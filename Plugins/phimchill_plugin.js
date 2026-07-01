@@ -7,7 +7,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.5",             
+        "version": "1.1",             
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://phimchillhdc.im/favicon.ico", 
         "isEnabled": true,
@@ -166,17 +166,17 @@ function parseMovieDetail(html) {
 
     rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }   
-     
+     /*
     var streamUrl = "";
     var smatch = html.match(/iframe[\s\S]*?data-src="([\s\S]*?)"/i);
    	if (smatch && smatch[1]) { streamUrl = smatch[1]; }
-     
+     */
     return JSON.stringify({
         id: lurl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + streamUrl,
+        description: ldes + "\r\n\r\n" + lurl,
         servers: [
             {
                 name: "Server Thường",
