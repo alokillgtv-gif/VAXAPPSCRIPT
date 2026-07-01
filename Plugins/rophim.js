@@ -7,11 +7,11 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "2.1", // Nâng version để hệ thống nhận diện mới             
+        "version": "1.4",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/logo.svg", 
         "isEnabled": true,
-        "type": "MOVIE" // ĐÃ SỬA: Đổi từ MOVIE thành TV_SHOWS để kích hoạt giao diện danh sách tập (Playlist)
+        "type": "MOVIE"
     });
 }
 
@@ -39,6 +39,7 @@ function getPrimaryCategories() {
     ]);
 }
 
+// ĐÃ SỬA: Đổi tên từ getFilterConfig thành getFilters theo chuẩn kkphim/ophim
 function getFilters() {
     return JSON.stringify({
         "sort": [
@@ -56,9 +57,13 @@ function getUrlList(slug, filtersJson) {
         var filters = JSON.parse(filtersJson || "{}");
         var page = filters.page || 1;
         
+        // ĐÃ SỬA: Nếu là trang 1 thì giữ nguyên, từ trang 2 trở đi chuyển sang cấu trúc /page/X/ để tương thích hệ thống rewrite URL của web
         if (page > 1) {
+            // Thử cấu trúc phổ biến nhất của các web phim hiện tại: danh-muc/page/2
             return "https://phimvn2y.com/" + slug + "/?page=" + page;
         }
+        
+        // Trang 1 mặc định
         return "https://phimvn2y.com/" + slug;
     } catch (e) {
         return "https://phimvn2y.com/" + slug;
@@ -72,18 +77,19 @@ function getUrlSearch(keyword, filtersJson) {
 function getUrlDetail(slug) {
     if (!slug) return "";
 
-    // Xử lý ID phức hợp dạng movieSlug|epSlug
+    // Nếu phát hiện ID đặc biệt có dấu '|' của chúng ta
     if (slug.indexOf("|") !== -1) {
         var parts = slug.split("|");
         if (parts.length >= 2) {
             var movieSlug = parts[0];
             var epSlug = parts[1];
+            // Tự động dựng lại URL chuẩn để App thực hiện GET HTML trang xem phim
             return "https://phimvn2y.com/" + movieSlug + "-" + epSlug + ".html";
         }
     }
 
+    // Các điều kiện fallback giữ nguyên
     if (slug.indexOf("http") === 0) return slug;
-    if (slug.indexOf("/") === 0) return "https://phimvn2y.com" + slug;
     return "https://phimvn2y.com/" + slug;
 }
 
@@ -92,7 +98,7 @@ function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
 // =============================================================================
-// PARSERS
+// PARSERS (Đã chuẩn hóa chỉ nhận duy nhất 1 tham số html)
 // =============================================================================
 
 function parseListResponse(html) {
@@ -103,25 +109,24 @@ function parseListResponse(html) {
         
         while ((match = regex.exec(html)) !== null) {
             var cleanThumb = match[3].replace(/&amp;/g, '&'); 
-            var rawUrl = match[2];
-            // ĐÃ SỬA: Tách lấy slug sạch từ URL (Ví dụ: từ 'https://phimvn2y.com/phim-abc' lấy ra 'phim-abc')
-            var cleanSlug = rawUrl.replace(/https?:\/\/[^\/]+\//, "").replace(/\/$/, "");
-
             items.push({
-                "id": cleanSlug,          
+                "id": match[2],          
                 "title": match[1].trim(), 
                 "posterUrl": cleanThumb,
                 "backdropUrl": cleanThumb
             });
         }
 
+        // --- KHU VỰC SỬA LẠI PHÂN TRANG CHUẨN ---
         var currentPage = 1;
         var totalPages = 1;
 
         if (html) {
+            // 1. Tìm giá trị đang hiển thị (Trang hiện tại) trong thẻ input v-form-control
             var currentMatch = html.match(/class="[^"]*v-form-control[^"]*"[^>]*value="(\d+)"/i) 
                             || html.match(/value="(\d+)"[^>]*class="[^"]*v-form-control[^"]*"/i);
             
+            // 2. Tìm giá trị max (Tổng số trang) trong thẻ input v-form-control
             var maxMatch = html.match(/class="[^"]*v-form-control[^"]*"[^>]*max="(\d+)"/i)
                         || html.match(/max="(\d+)"[^>]*class="[^"]*v-form-control[^"]*"/i);
 
@@ -132,6 +137,7 @@ function parseListResponse(html) {
                 totalPages = parseInt(maxMatch[1], 10);
             }
         }
+        // ----------------------------------------
 
         return JSON.stringify({
             "items": items,
@@ -151,6 +157,7 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
+// ĐÃ SỬA: Chỉ nhận 1 tham số html theo đúng chuẩn lõi hệ thống
 function parseMovieDetail(html) {
     try {
         var parts = html.split(/window\s*\.?\s*_\s*movie\s*=\s*(.*)/i);
@@ -198,11 +205,14 @@ function parseMovieDetail(html) {
                             }
                             epName = epName.replace("Tập Tập","Tập");
 
-                            // Tạo ID gộp kết nối hai tham số quan trọng
+                            // =========================================================
+                            // THAY ĐỔI THEO PHONG CÁCH HH3D: Đóng gói ID phức hợp
+                            // Thay vì gán link HTML, gán chuỗi định danh gộp cách nhau bởi dấu '|'
+                            // =========================================================
                             var specialId = movieSlug + "|" + epSlug; 
 
                             episodes.push({
-                                "id": specialId,  
+                                "id": specialId,  // Gán ID gộp để App Core quản lý Playlist
                                 "slug": epSlug,
                                 "name": epName
                             });
@@ -221,7 +231,7 @@ function parseMovieDetail(html) {
             if (appServers.length === 0) {
                 appServers.push({
                     "name": "Nguồn Dự Phòng",
-                    "episodes": [{ "id": movieSlug + "|full", "slug": "full", "name": "Full" }]
+                    "episodes": [{ "id": "full", "slug": "full", "name": "Full", "url": "https://phimvn2y.com" }]
                 });
             }
             
@@ -255,16 +265,21 @@ function parseMovieDetail(html) {
     }
 }
 
+/**
+ * ĐÃ SỬA: Phân giải mã HTML của trang xem phim riêng biệt để bóc link .m3u8 cuối cùng ẩn bên trong
+ */
 function parseDetailResponse(html) {
     try {
         var videoUrl = "";
 
         if (html && typeof html === 'string') {
+            // Bước 1: Quét tìm tất cả các chuỗi có định dạng link kết thúc bằng .m3u8 trong HTML/Script của trang xem phim mới tải
             var m3u8Match = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
             
             if (m3u8Match) {
                 videoUrl = m3u8Match[1].trim();
             } else {
+                // Bước dự phòng: Nếu không tìm thấy, thử tìm link embed player (như player.phimapi.com...)
                 var embedMatch = html.match(/(https?:\/\/player[^"']+\/player\/\?url=[^"']+)/i);
                 if (embedMatch) {
                     videoUrl = decodeURIComponent(embedMatch[1].split('url=')[1]);
@@ -274,11 +289,8 @@ function parseDetailResponse(html) {
             }
         }
 
-        // ĐÃ SỬA: Bổ sung định dạng chuẩn hóa luồng phát native để ép Core giữ giao diện Playlist
         return JSON.stringify({
             "url": videoUrl, 
-            "isEmbed": false, 
-            "mimeType": "application/x-mpegURL",
             "headers": {
                 "Referer": "https://phimvn2y.com/", 
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
