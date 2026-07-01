@@ -76,7 +76,20 @@ function getUrlSearch(keyword, filtersJson) {
 
 function getUrlDetail(slug) {
     if (!slug) return "";
-    if (slug.indexOf('http') === 0) return slug;
+
+    // Nếu phát hiện ID đặc biệt có dấu '|' của chúng ta
+    if (slug.indexOf("|") !== -1) {
+        var parts = slug.split("|");
+        if (parts.length >= 2) {
+            var movieSlug = parts[0];
+            var epSlug = parts[1];
+            // Tự động dựng lại URL chuẩn để App thực hiện GET HTML trang xem phim
+            return "https://phimvn2y.com/" + movieSlug + "-" + epSlug + ".html";
+        }
+    }
+
+    // Các điều kiện fallback giữ nguyên
+    if (slug.indexOf("http") === 0) return slug;
     return "https://phimvn2y.com/" + slug;
 }
 
@@ -161,11 +174,11 @@ function parseMovieDetail(html) {
             var title = _movieObj.title || "Chưa rõ tên phim";
             
             var posterUrl = "";
-				if (_movieObj.poster) {
-    				posterUrl = _movieObj.poster;
-				} else if (_movieObj.thumb) {
-    				posterUrl = _movieObj.thumb;
-				}
+            if (_movieObj.poster) {
+                posterUrl = _movieObj.poster;
+            } else if (_movieObj.thumb) {
+                posterUrl = _movieObj.thumb;
+            }
             var movieSlug = _movieObj.slug || "";
             
             var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?class="[^"]*movie-seo-article[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
@@ -186,18 +199,20 @@ function parseMovieDetail(html) {
                             var epName = ep.name ? "Tập " + ep.name : "Tập " + (i + 1);
                             var epSlug = ep.slug || String(i + 1);
                             
-                            // LOGIC MỚI: Sinh ra URL trang xem phim hoàn chỉnh để App thực hiện Request GET tiếp theo
-                            // Kết quả: https://phimvn2y.com/dau-la-dai-luc-2-tuyet-the-duong-mon-tap-01.html
-                            var chapterPageUrl = "https://phimvn2y.com/" + movieSlug + "-" + epSlug + ".html";
-							// Biểu thức chính quy: ^ (bắt đầu), \d+ (một hoặc nhiều chữ số), $ (kết thúc)
-							var numberRegex = /^\d+$/;
+                            var numberRegex = /^\d+$/;
+                            if (numberRegex.test(epSlug)) {
+                                epSlug = "tap-" + epSlug;
+                            }
+                            epName = epName.replace("Tập Tập","Tập");
 
-							if (numberRegex.test(epSlug)) {
-   						 	epSlug = "tap-" + epSlug;
-							}
-							epName = epName.replace("Tập Tập","Tập");
+                            // =========================================================
+                            // THAY ĐỔI THEO PHONG CÁCH HH3D: Đóng gói ID phức hợp
+                            // Thay vì gán link HTML, gán chuỗi định danh gộp cách nhau bởi dấu '|'
+                            // =========================================================
+                            var specialId = movieSlug + "|" + epSlug; 
+
                             episodes.push({
-                                "id": chapterPageUrl,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
+                                "id": specialId,  // Gán ID gộp để App Core quản lý Playlist
                                 "slug": epSlug,
                                 "name": epName
                             });
@@ -219,7 +234,7 @@ function parseMovieDetail(html) {
                     "episodes": [{ "id": "full", "slug": "full", "name": "Full", "url": "https://phimvn2y.com" }]
                 });
             }
-			
+            
             return JSON.stringify({
                 "id": movieSlug || title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
                 "title": title,
@@ -236,18 +251,18 @@ function parseMovieDetail(html) {
         return JSON.stringify({ "id": "error-object", "title": "Lỗi khởi tạo Object dữ liệu phim", "servers": [] });
 
     }  catch (error) {
-    return JSON.stringify({ 
-        "id": "error-" + Date.now(), 
-        "title": "Lỗi: " + error.message, 
-        "posterUrl": "", // BỔ SUNG TRƯỜNG NÀY ĐỂ TRÁNH LỖI MISING FIELD
-        "backdropUrl": "",
-        "description": "Không thể tải thông tin phim",
-        "year": "2026",
-        "rating": 0,
-        "quality": "SD",
-        "servers": [] 
-    });
-	}
+        return JSON.stringify({ 
+            "id": "error-" + Date.now(), 
+            "title": "Lỗi: " + error.message, 
+            "posterUrl": "", 
+            "backdropUrl": "",
+            "description": "Không thể tải thông tin phim",
+            "year": "2026",
+            "rating": 0,
+            "quality": "SD",
+            "servers": [] 
+        });
+    }
 }
 
 /**
