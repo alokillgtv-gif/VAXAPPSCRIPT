@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/logo.svg", 
         "isEnabled": true,
@@ -291,7 +291,7 @@ function parseDetailResponse(html) {
         }
 
         return JSON.stringify({
-    url: streamUrl,
+    url: videoUrl,
     headers: {
         "Referer": "https://phimvn2y.com",
         "Origin": "https://phimvn2y.com",
