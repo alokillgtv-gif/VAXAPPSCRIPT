@@ -7,7 +7,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.0",             
+        "version": "1.4",             
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://phimchillhdc.im/favicon.ico", 
         "isEnabled": true,
@@ -110,7 +110,13 @@ function parseListResponse(html) {
             
             var srcMatch = block.match(/img[\s\S]*?src="([^"]+)"/i);
             var posterUrl = srcMatch ? srcMatch[1].trim() : "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg";
-            
+            if (posterUrl.indexOf('/') === 0 && posterUrl.indexOf('//') !== 0) {
+    			posterUrl = "https://phimchillhdc.im" + posterUrl;
+			} 
+// Nếu link ảnh là dạng tương đối không có dấu "/" ở đầu (ví dụ: uploads/abc.jpg)
+			else if (posterUrl.indexOf('http') !== 0 && posterUrl.indexOf('//') !== 0) {
+    			posterUrl = "https://phimchillhdc.im/" + posterUrl;
+			}
             items.push({
                 "id": id,          
                 "title": title, 
@@ -218,13 +224,17 @@ function parseMovieDetail(html) {
             episodes: formattedEpisodes
         });
     }
-
+	
+	var streamUrl = "";
+    var rmatch = html.match(/data-link="([^"]+\.m3u8)"/i);
+   if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+	
     return JSON.stringify({
         id: lurl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + lurl,
+        description: ldes + "\r\n\r\n" + lurl + "\r\n\r\n" + streamUrl.replace("index.m3u8", "3000k/hls/mixed.m3u8"),
         servers: servers,
         quality: "HD",
         year: 2026,
@@ -261,7 +271,7 @@ if (document.readyState === 'loading') {
    	    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
    
         return JSON.stringify({
-            url: streamUrl,
+            url: streamUrl.replace("index.m3u8", "3000k/hls/mixed.m3u8"),
             headers: {
                 "Referer": "https://phimchillhdc.im",
                 "Origin": "https://phimchillhdc.im",
