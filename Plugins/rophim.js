@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.4.2", // Nâng version để hệ thống nhận diện mới             
+        "version": "2.1", // Nâng version để hệ thống nhận diện mới             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/logo.svg", 
         "isEnabled": true,
