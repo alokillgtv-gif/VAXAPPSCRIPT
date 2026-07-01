@@ -1,0 +1,12 @@
+{
+    "version": 1,
+    "plugins": [
+        {
+            "id": "croonphim",
+            "name": "Croon Phim",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/croonphim_plugin.js",
+            "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg"
+        }
+    ]
+}
