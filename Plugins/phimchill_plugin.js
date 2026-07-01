@@ -4,7 +4,7 @@
 
 function getManifest() {
     return JSON.stringify({
-        "id": "phimchill",          
+        "id": "phimchillhay",          
         "name": "Phim Chill",
         "description": "Phim online",
         "version": "1.1",             
