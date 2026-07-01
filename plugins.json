@@ -1,6 +1,20 @@
 {
     "version": 1,
     "plugins": [
+        {
+            "id": "phimchill",
+            "name": "Phim Chill",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/phimchill_plugin.js",
+            "iconUrl": "https://phimchillhdc.im/favicon.ico"
+        },
+        {
+            "id": "ophim",
+            "name": "OPhim",
+            "version": "1.0.4",
+            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/ophim_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/ophim.ico"
+        },
     {
             "id": "ophim",
             "name": "OPhim",
