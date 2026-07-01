@@ -7,7 +7,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.0",             
+        "version": "1.5",             
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://phimchillhdc.im/favicon.ico", 
         "isEnabled": true,
