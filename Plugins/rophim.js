@@ -3,11 +3,12 @@
 // =============================================================================
 
 function getManifest() {
+	print("--- TEST LOG ---");
     return JSON.stringify({
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.3",             
+        "version": "1.1",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -183,7 +184,12 @@ function parseMovieDetail(html) {
                             // LOGIC MỚI: Sinh ra URL trang xem phim hoàn chỉnh để App thực hiện Request GET tiếp theo
                             // Kết quả: https://phimvn2y.com/dau-la-dai-luc-2-tuyet-the-duong-mon-tap-01.html
                             var chapterPageUrl = "https://phimvn2y.com/" + movieSlug + "-" + epSlug + ".html";
+							// Biểu thức chính quy: ^ (bắt đầu), \d+ (một hoặc nhiều chữ số), $ (kết thúc)
+							var numberRegex = /^\d+$/;
 
+							if (numberRegex.test(epSlug)) {
+   						 	epSlug = "tap-" + epSlug;
+							}
                             episodes.push({
                                 "id": chapterPageUrl,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
                                 "slug": epSlug,
