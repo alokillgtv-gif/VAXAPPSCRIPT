@@ -7,7 +7,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.5",             
+        "version": "1.0",             
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://phimchillhdc.im/favicon.ico", 
         "isEnabled": true,
@@ -20,7 +20,7 @@ function getHomeSections() {
     return JSON.stringify([
         { "slug": "danh-sach/phim-le.html", "title": "1.Phim Lẻ", "type": "Horizontal" },
         { "slug": "danh-sach/phim-bo.html", "title": "2.Phim Bộ", "type": "Horizontal" },
-        { "slug": "the-loai/short-drama.html", "title": "3.Phim Ngắn", "type": "Horizontal" }, // ĐÃ SỬA: Bỏ dấu phẩy thừa
+        { "slug": "the-loai/short-drama.html", "title": "3.Phim Ngắn", "type": "Horizontal" },
         { "slug": "the-loai/kinh-di.html", "title": "4.Kinh Dị", "type": "Grid" }
     ]);
 }
@@ -92,8 +92,6 @@ function parseListResponse(html) {
             var hrefMatch = block.match(/href="([^"]+)"/i);
             if (!hrefMatch) continue; 
 
-            // Giữ nguyên logic bọc link qua Google Script của bạn
-            //https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rHhyjhWYZbSvuX5eqJntT-f2ayEvwKFUI4qOrdUTZ8/exec?url=https://phimchillhdc.im/phim/phi-phong-quy-mau-rung-thieng_46797.html&check=phimchill
             var rawUrl = hrefMatch[1].trim();
             var id = "https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rHhyjhWYZbSvuX5eqJntT-f2ayEvwKFUI4qOrdUTZ8/exec?check=phimchill&url=" + rawUrl;
             
@@ -121,14 +119,13 @@ function parseListResponse(html) {
             });
         }
 		
-        // ĐIỀU KIỆN 2: Sửa đổi thành biến 'html' chính xác
-        const activeRegex = /active".*?<a[^>]*>\s*(\d+)\s*<\/a>/s;
-		const activeMatch = html.match(activeRegex);
-		const activePage = activeMatch ? parseInt(activeMatch[1]) : 1;
+        var activeRegex = /active".*?<a[^>]*>\s*(\d+)\s*<\/a>/s;
+		var activeMatch = html.match(activeRegex);
+		var activePage = activeMatch ? parseInt(activeMatch[1]) : 1;
 
-		const lastPageRegex = /(\d+)\s*<\/a>\s*<\/li>\s*<li[^>]*next/s;
-		const lastPageMatch = html.match(lastPageRegex);
-		const lastPage = lastPageMatch ? parseInt(lastPageMatch[1]) : 1;
+		var lastPageRegex = /(\d+)\s*<\/a>\s*<\/li>\s*<li[^>]*next/s;
+		var lastPageMatch = html.match(lastPageRegex);
+		var lastPage = lastPageMatch ? parseInt(lastPageMatch[1]) : 1;
 
         return JSON.stringify({
             "items": items,
@@ -153,8 +150,10 @@ function parseMovieDetail(html) {
     var limg = "";
     var lname = "Đang cập nhật...";
     var ldes = "Không có mô tả.";
+    var ldirec = ""; // ĐÃ SỬA: Khai báo biến tránh ReferenceError
+    var lactor = ""; // ĐÃ SỬA: Khai báo biến tránh ReferenceError
+    var lduran = ""; // ĐÃ SỬA: Khai báo biến tránh ReferenceError
 
-    // Đã tối ưu regex tìm link chi tiết chính xác hơn
     var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lurl = rmatch[1]; }
 
@@ -176,65 +175,50 @@ function parseMovieDetail(html) {
     rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lduran = rmatch[1]; }   
     
-    const htmlContent = html;
+    // 1. Regex bóc tách chính xác từng khối server dựa theo Class Tailwind
+    var serverBlockRegex = /<span class="text-zinc-200[^"]*">([\s\S]*?)<\/span>\s*<div class="flex flex-row flex-wrap">([\s\S]*?)<\/div>/gi;
 
-// 1. Regex siết chặt bằng class Tailwind để bóc tách chính xác từng khối server
-const serverBlockRegex = /<span class="text-zinc-200[^"]*">([\s\S]*?)<\/span>\s*<div class="flex flex-row flex-wrap">([\s\S]*?)<\/div>/gi;
+    // 2. Regex bóc tách thẻ <a> của từng tập phim
+    var episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
 
-// 2. Regex bóc tách thẻ <a> của từng tập phim
-const episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+    var servers = [];
+    var serverMatch;
+    var serverCounter = 1; 
 
-const servers = [];
-let serverMatch;
-let serverCounter = 1; // Dùng để đặt tên Server 1, Server 2...
-
-// Tiến hành quét từng khối server bằng vòng lặp
-while ((serverMatch = serverBlockRegex.exec(htmlContent)) !== null) {
-    const episodesHtml = serverMatch[2]; // Lấy phần HTML chứa các thẻ <a> bên trong div
-    
-    const rawEpisodes = [];
-    let epMatch;
-    episodeRegex.lastIndex = 0; // Reset index tìm kiếm tập phim cho khối div mới
-    
-    while ((epMatch = episodeRegex.exec(episodesHtml)) !== null) {
-        rawEpisodes.push({
-            url: epMatch[1],
-            text: epMatch[2].trim()
+    while ((serverMatch = serverBlockRegex.exec(html)) !== null) {
+        var episodesHtml = serverMatch[2]; 
+        var rawEpisodes = [];
+        var epMatch;
+        episodeRegex.lastIndex = 0; 
+        
+        while ((epMatch = episodeRegex.exec(episodesHtml)) !== null) {
+            rawEpisodes.push({
+                url: epMatch[1],
+                text: epMatch[2].trim()
+            });
+        }
+        
+        if (rawEpisodes.length === 0) continue;
+        
+        var isSingleEpisode = rawEpisodes.length === 1;
+        
+        var formattedEpisodes = rawEpisodes.map(function(ep) {
+            var numberMatch = ep.text.match(/\d+/);
+            var epNumber = numberMatch ? parseInt(numberMatch[0], 10) : 1;
+            
+            return {
+                id: ep.url,
+                name: "Tập " + epNumber,
+                slug: isSingleEpisode ? "" : "tap-" + epNumber
+            };
+        });
+        
+        servers.push({
+            name: "Server " + serverCounter++,
+            episodes: formattedEpisodes
         });
     }
-    
-    // Nếu khối div này trống không có tập nào thì bỏ qua
-    if (rawEpisodes.length === 0) continue;
-    
-    const isSingleEpisode = rawEpisodes.length === 1;
-    
-    const formattedEpisodes = rawEpisodes.map(ep => {
-        // Trích xuất số từ text (Ví dụ: "Tập 01" hoặc "1" đều lấy ra số 1)
-        const numberMatch = ep.text.match(/\d+/);
-        const epNumber = numberMatch ? parseInt(numberMatch[0], 10) : 1;
-        
-        return {
-            id: ep.url,
-            name: `Tập ${epNumber}`,
-            slug: isSingleEpisode ? "" : `tap-${epNumber}`
-        };
-    });
-    
-    // Đẩy vào mảng với tên Server chuẩn hóa đơn giản
-    servers.push({
-        name: `Server ${serverCounter++}`,
-        episodes: formattedEpisodes
-    });
-}
 
-console.log(JSON.stringify({ servers }, null, 4));
-
-
-     /*
-    var streamUrl = "";
-    var smatch = html.match(/iframe[\s\S]*?data-src="([\s\S]*?)"/i);
-   	if (smatch && smatch[1]) { streamUrl = smatch[1]; }
-     */
     return JSON.stringify({
         id: lurl,
         title: lname,
@@ -252,24 +236,6 @@ console.log(JSON.stringify({ servers }, null, 4));
         category: "Phim"
     });
 }
-/*
-			year: movie.year || 0,
-            rating: ratingValue,
-            quality: movie.quality || "",
-            duration: movie.time || "",
-            servers: servers,
-            episode_current: movie.episode_current || "",
-            lang: movie.lang || "",
-            category: categories,
-            country: countries,
-            director: directors,
-            casts: actors,
-            status: movie.status || "",
-            tmdbId: String(tmdbId),
-            tmdbSeason: tmdbSeason || 0,
-            tmdbType: tmdbType || ""
-*/
-
 
 function parseDetailResponse(html) {
     try {
