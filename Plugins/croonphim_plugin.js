@@ -8,7 +8,7 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": "https://crimescenesolutions.co.za",
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -218,27 +218,25 @@ function parseDetailResponse(html) {
             videoUrl = getlink[1];
         }
         
-        /*
-        var getlink = html.match(/class="playactive" href="(https?:[^"]*)"/i);
-        if (getlink && getlink[1]) {
-            videoUrl = getlink[1];
+        if (videoUrl) {
+            // SỬA LỖI: Chỉ thay thế chữ "playlist.m3u8" ở cuối cùng của URL để tránh lỗi bóc tách sai link phim lẻ/tập 1
+            if (videoUrl.indexOf("playlist.m3u8") > -1) {
+                videoUrl = videoUrl.replace(/playlist\.m3u8$/, "playlist_1080.m3u8");
+            }
         }
-        */
-        // ĐÃ SỬA: Xóa bỏ hoàn toàn hàm alert() gây treo App
-      
 
         return JSON.stringify({
-            "url": videoUrl.replace("playlist","playlist_1080"), 
-            headers: {
-        	"Referer": "https://crimescenesolutions.co.za",
-        	"Origin": "https://crimescenesolutions.co.za",
-        	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-   		 },
+            "url": videoUrl, 
+            "headers": {
+                "Referer": "https://crimescenesolutions.co.za/",
+                "Origin": "https://crimescenesolutions.co.za",
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+            },
             "subtitles": []
         });
 
     } catch (e) {
-        return JSON.stringify({ "url": "https://cdn.phimhayok.net/filmhayok/episode/20260625/6a3d1f01000826b5bd8a2254/playlist_1080.m3u8", "headers": {} });
+        return JSON.stringify({ "url": "", "headers": {} });
     }
 }
 
