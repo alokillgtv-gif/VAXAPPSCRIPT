@@ -7,7 +7,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.1",             
+        "version": "1.6",             
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://phimchillhdc.im/favicon.ico", 
         "isEnabled": true,
@@ -93,9 +93,9 @@ function parseListResponse(html) {
             if (!hrefMatch) continue; 
 
             // Giữ nguyên logic bọc link qua Google Script của bạn
-            //https://script.google.com/macros/s/AKfycbz1GH1hnsRICOVZ4Tiwo-Oqt_fQwWWX5Nedgt7hDYgu1yowGvVigeVrk8vrc6vHHcdo/exec
+            //https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rHhyjhWYZbSvuX5eqJntT-f2ayEvwKFUI4qOrdUTZ8/exec?url=https://phimchillhdc.im/phim/phi-phong-quy-mau-rung-thieng_46797.html&check=phimchill
             var rawUrl = hrefMatch[1].trim();
-            var id = "https://script.google.com/macros/s/AKfycbz1GH1hnsRICOVZ4Tiwo-Oqt_fQwWWX5Nedgt7hDYgu1yowGvVigeVrk8vrc6vHHcdo/exec?url=" + rawUrl;
+            var id = "https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rHhyjhWYZbSvuX5eqJntT-f2ayEvwKFUI4qOrdUTZ8/exec?check=phimchill&url=" + rawUrl;
             
             var title = "";
             var altMatch = block.match(/title="([^"]+)"/i);
