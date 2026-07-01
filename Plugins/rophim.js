@@ -7,12 +7,12 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/logo.svg", 
         "isEnabled": true,
         "type": "VIDEO",
-        "playerType": "embedtoexoplay"
+        "playerType": "exoplayer"
     });
 }
 
