@@ -7,12 +7,12 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.0",             
+        "version": "1.4",             
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://phimchillhdc.im/favicon.ico", 
         "isEnabled": true,
         "type": "VIDEO",
-        "playerType": "auto"
+        "playerType": "embed"
     });
 }
 
@@ -234,7 +234,7 @@ function parseMovieDetail(html) {
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + lurl + "\r\n\r\n" + streamUrl.replace("index.m3u8", "3000k/hls/mixed.m3u8"),
+        description: ldes + "\r\n\r\n" + lurl + "\r\n\r\n" + streamUrl,
         servers: servers,
         quality: "HD",
         year: 2026,
@@ -269,9 +269,9 @@ if (document.readyState === 'loading') {
 		var streamUrl = "";
         var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
    	    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
-   
+   	
         return JSON.stringify({
-            url: streamUrl.replace("index.m3u8", "3000k/hls/mixed.m3u8"),
+            url: streamUrl,
             headers: {
                 "Referer": "https://phimchillhdc.im",
                 "Origin": "https://phimchillhdc.im",
