@@ -7,7 +7,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.6",             
+        "version": "1.5",             
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://phimchillhdc.im/favicon.ico", 
         "isEnabled": true,
@@ -18,10 +18,10 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "danh-sach/phim-le.html", "title": "Phim Lẻ", "type": "Horizontal" },
-        { "slug": "danh-sach/phim-bo.html", "title": "Phim Bộ", "type": "Horizontal" },
-        { "slug": "the-loai/short-drama.html", "title": "Phim Ngắn", "type": "Horizontal" }, // ĐÃ SỬA: Bỏ dấu phẩy thừa
-        { "slug": "the-loai/kinh-di.html", "title": "Kinh Dị", "type": "Grid" }
+        { "slug": "danh-sach/phim-le.html", "title": "1.Phim Lẻ", "type": "Horizontal" },
+        { "slug": "danh-sach/phim-bo.html", "title": "2.Phim Bộ", "type": "Horizontal" },
+        { "slug": "the-loai/short-drama.html", "title": "3.Phim Ngắn", "type": "Horizontal" }, // ĐÃ SỬA: Bỏ dấu phẩy thừa
+        { "slug": "the-loai/kinh-di.html", "title": "4.Kinh Dị", "type": "Grid" }
     ]);
 }
 
@@ -166,6 +166,70 @@ function parseMovieDetail(html) {
 
     rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }   
+    
+    rmatch = html.match(/meta\s+property="video:director"\s+content="([^"]+)"/i);
+    if (rmatch && rmatch[1]) { ldirec = rmatch[1]; }   
+    
+    rmatch = html.match(/meta\s+property="video:actor"\s+content="([^"]+)"/i);
+    if (rmatch && rmatch[1]) { lactor = rmatch[1]; }   
+    
+    rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
+    if (rmatch && rmatch[1]) { lduran = rmatch[1]; }   
+    
+    const htmlContent = html;
+
+// 1. Regex siết chặt bằng class Tailwind để bóc tách chính xác từng khối server
+const serverBlockRegex = /<span class="text-zinc-200[^"]*">([\s\S]*?)<\/span>\s*<div class="flex flex-row flex-wrap">([\s\S]*?)<\/div>/gi;
+
+// 2. Regex bóc tách thẻ <a> của từng tập phim
+const episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+
+const servers = [];
+let serverMatch;
+let serverCounter = 1; // Dùng để đặt tên Server 1, Server 2...
+
+// Tiến hành quét từng khối server bằng vòng lặp
+while ((serverMatch = serverBlockRegex.exec(htmlContent)) !== null) {
+    const episodesHtml = serverMatch[2]; // Lấy phần HTML chứa các thẻ <a> bên trong div
+    
+    const rawEpisodes = [];
+    let epMatch;
+    episodeRegex.lastIndex = 0; // Reset index tìm kiếm tập phim cho khối div mới
+    
+    while ((epMatch = episodeRegex.exec(episodesHtml)) !== null) {
+        rawEpisodes.push({
+            url: epMatch[1],
+            text: epMatch[2].trim()
+        });
+    }
+    
+    // Nếu khối div này trống không có tập nào thì bỏ qua
+    if (rawEpisodes.length === 0) continue;
+    
+    const isSingleEpisode = rawEpisodes.length === 1;
+    
+    const formattedEpisodes = rawEpisodes.map(ep => {
+        // Trích xuất số từ text (Ví dụ: "Tập 01" hoặc "1" đều lấy ra số 1)
+        const numberMatch = ep.text.match(/\d+/);
+        const epNumber = numberMatch ? parseInt(numberMatch[0], 10) : 1;
+        
+        return {
+            id: ep.url,
+            name: `Tập ${epNumber}`,
+            slug: isSingleEpisode ? "" : `tap-${epNumber}`
+        };
+    });
+    
+    // Đẩy vào mảng với tên Server chuẩn hóa đơn giản
+    servers.push({
+        name: `Server ${serverCounter++}`,
+        episodes: formattedEpisodes
+    });
+}
+
+console.log(JSON.stringify({ servers }, null, 4));
+
+
      /*
     var streamUrl = "";
     var smatch = html.match(/iframe[\s\S]*?data-src="([\s\S]*?)"/i);
@@ -177,25 +241,35 @@ function parseMovieDetail(html) {
         posterUrl: limg,
         backdropUrl: limg,
         description: ldes + "\r\n\r\n" + lurl,
-        servers: [
-            {
-                name: "Server Thường",
-                episodes: [
-                    // Link id này sẽ được truyền thẳng vào hàm parseDetailResponse tiếp theo
-                    { id: lurl, name: "Xem Ngay", slug: "full" }
-                ]
-            }
-        ],
+        servers: servers,
         quality: "HD",
         year: 2026,
         rating: 8.5,
         status: "Full",
-        duration: "N/A",
-        casts: "N/A",
-        director: "N/A",
+        duration: lduran || "",
+        casts: lactor || "",
+        director: ldirec || "",
         category: "Phim"
     });
 }
+/*
+			year: movie.year || 0,
+            rating: ratingValue,
+            quality: movie.quality || "",
+            duration: movie.time || "",
+            servers: servers,
+            episode_current: movie.episode_current || "",
+            lang: movie.lang || "",
+            category: categories,
+            country: countries,
+            director: directors,
+            casts: actors,
+            status: movie.status || "",
+            tmdbId: String(tmdbId),
+            tmdbSeason: tmdbSeason || 0,
+            tmdbType: tmdbType || ""
+*/
+
 
 function parseDetailResponse(html) {
     try {
@@ -217,7 +291,7 @@ if (document.readyState === 'loading') {
 }
 `;
 		var streamUrl = "";
-        var rmatch = html.match(/iframe[\s\S]*?data-src="([\s\S]*?)"/i);
+        var rmatch = html.match(/data-link="([^"]+\.m3u8)"/i);
    	    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
    
         return JSON.stringify({
