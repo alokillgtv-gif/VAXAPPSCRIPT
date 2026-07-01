@@ -7,11 +7,12 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.4",             
+        "version": "1.0",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/logo.svg", 
         "isEnabled": true,
-        "type": "MOVIE"
+        "type": "MOVIE",
+        "playerType": "embedtoexoplay"
     });
 }
 
@@ -290,13 +291,13 @@ function parseDetailResponse(html) {
         }
 
         return JSON.stringify({
-            "url": videoUrl, 
-            "headers": {
-                "Referer": "https://phimvn2y.com/", 
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            },
-            "subtitles": []
-        });
+    url: streamUrl,
+    headers: {
+        "Referer": "https://phimvn2y.com",
+        "Origin": "https://phimvn2y.com",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+});
 
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
