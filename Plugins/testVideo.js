@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.3",             
+        "version": "1.5",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -77,7 +77,7 @@ function parseListResponse(html) {
         var items = [];
             items.push({
                 "id": $url,          
-                "title": "testvideo", 
+                "title": $url, 
                 "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",  
                 "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png"
             });
@@ -123,10 +123,7 @@ function parseMovieDetail(html) {
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var movieUrl = "";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
-		    var linkfrist = "";
-        var $obj = JSON.parse(html);
-        videoUrl = $obj[0].link;
-      
+		    var linkfrist = "";      
         
         return JSON.stringify({
             "id": id,
