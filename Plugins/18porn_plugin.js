@@ -1,73 +1,62 @@
-// =============================================================================
-// VAAPP Plugin - Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
-// Tên file bắt buộc khi lưu:s crophim_plugin.js
-// =============================================================================
-BaseURL = "https://trak.ink";
+BaseURL18 = "https://www.18porn.sex";
+
 function getManifest() {
-    return JSON.stringify({
-        "id": "newporn",          
-        "name": "Croon Phim",
-        "description": "Nguồn xem phim Online ổn định",
-        "version": "1.7",             
-        "baseUrl": BaseURL,
-        "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
-        "isEnabled": true,
-        "type": "MOVIE",
-        "playerType": "auto"
-    });
+ return JSON.stringify({
+  "id": "newporn", 
+  "name": "18 Porn", 
+  "version": "1.5", 
+  "baseUrl": BaseURL18, 
+  "iconUrl": BaseURL18 + "/images/logo.png", 
+  "isEnabled": true, 
+  "type": "MOVIE", 
+  "playerType": "auto"
+ });
 }
 
 function getHomeSections() {
-    return JSON.stringify([
-        { "slug": "phim-le", "title": "Phim Lẻ", "type": "Horizontal" },
-        { "slug": "phim-bo", "title": "Phim Bộ", "type": "Horizontal" },
-        { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Horizontal" },
-        { "slug": "motphim", "title": "Phim Mới", "type": "Grid" }
-    ]);
+ return JSON.stringify([
+  { slug: 'new', title: 'Hàng Mới', type: 'Grid' }
+ ]);
 }
 
 function getPrimaryCategories() {
-    return JSON.stringify([
-        { "name": "Hành Động", "slug": "hanh-dong" },
-        { "name": "Kinh Dị", "slug": "kinh-di" },
-        { "slug": "phim-18", "name": "Phim 18+"},
-        { "slug": "hai-huoc", "name": "Phim Hài"},
-        { "slug": "chien-tranh", "name": "Phim Chiến Tranh"},
-        { "slug": "hoat-hinh", "name": "Phim Hoạt Hình"},
-        { "slug": "vien-tuong", "name": "Phim Viễn Tưởng"}
-    ]);
+ return JSON.stringify([
+  { name: 'Vú Bự', slug: 'categories/big-tits' },
+  { name: 'Xinh Đẹp', slug: 'categories/beuatiful' },
+  { name: 'Châu Á', slug: 'categories/asian' },
+  { name: 'Chơi 3', slug: 'categories/threesome' },
+  { name: 'Lỗ Nhị', slug: 'categories/anal' }
+ ]);
 }
 
 function getFilters() {
-    return JSON.stringify({
-        "sort": [
-            { "name": "Mới nhất", "value": "newest" }
-        ]
-    });
+ return JSON.stringify({
+  "sort": [
+   { "name": "Mới nhất", "value": "newest" }
+  ]
+ });
 }
 
-// =============================================================================
-// URL GENERATION (Bóc tách slug sạch theo khuôn mẫu mới)
-// =============================================================================
-
 function getUrlList(slug, filtersJson) {
-    var filters = JSON.parse(filtersJson || "{}");
-    var page = filters.page || 1;
-    
-    if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
-        return BaseURL + "/page/" + page + "/?s=&genres=" + slug;
+    try {
+     var filters = JSON.parse(filtersJson || "{}");
+     var page = filters.page || 1;
+     
+     if (page > 1) {
+      return BaseURL18 + "/" + slug + "/" + page;
+     }
+     return BaseURL18 + "/" + slug;
+    } catch (e) {
+     return BaseURL18 + "/" + slug;
     }
-    return BaseURL + "/page/" + page + "/?s=&categories=" + slug;
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return BaseURL + "/?s=" + encodeURIComponent(keyword);
+    return BaseURL18 + "/search/MOM/" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
-    if (!slug) return "";
-    if (slug.indexOf('http') === 0) return slug;
-    return BaseURL + "/" + slug;
+    return BaseURL18 + "/" + slug;
 }
 
 function getUrlCategories() { return ""; }
