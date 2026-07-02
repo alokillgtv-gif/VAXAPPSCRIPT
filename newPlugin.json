@@ -2,7 +2,7 @@
     "version": 1,
     "plugins": [
         {
-            "id": "18porn",
+            "id": "newporn",
             "name": "18 Porn",
             "version": "1.0",
             "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/18porn_plugin.js",
