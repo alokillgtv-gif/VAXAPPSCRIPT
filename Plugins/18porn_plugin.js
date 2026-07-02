@@ -9,7 +9,7 @@ function getManifest() {
         "id": "newporn",          
         "name": "18porn",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.7",             
+        "version": "1.1",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -20,17 +20,17 @@ function getManifest() {
 
 function getHomeSections() {
  return JSON.stringify([
-  { slug: 'new', title: 'Hàng Mới', type: 'Grid' }
+  { slug: 'new/', title: 'Hàng Mới', type: 'Grid' }
  ]);
 }
 
 function getPrimaryCategories() {
  return JSON.stringify([
-  { name: 'Vú Bự', slug: 'categories/big-tits' },
-  { name: 'Xinh Đẹp', slug: 'categories/beuatiful' },
-  { name: 'Châu Á', slug: 'categories/asian' },
-  { name: 'Chơi 3', slug: 'categories/threesome' },
-  { name: 'Lỗ Nhị', slug: 'categories/anal' }
+  { name: 'Vú Bự', slug: 'categories/big-tits/' },
+  { name: 'Xinh Đẹp', slug: 'categories/beuatiful/' },
+  { name: 'Châu Á', slug: 'categories/asian/' },
+  { name: 'Chơi 3', slug: 'categories/threesome/' },
+  { name: 'Lỗ Nhị', slug: 'categories/anal/' }
  ]);
 }
 
@@ -48,7 +48,7 @@ function getUrlList(slug, filtersJson) {
      var page = filters.page || 1;
      
      if (page > 1) {
-      return BaseURL + "/" + slug + "/" + page;
+      return BaseURL + "/" + slug + page;
      }
      return BaseURL + "/" + slug;
     } catch (e) {
