@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>JavaScript &amp; HTML Interactive Lab (Integrated)</title>
+		<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+		<style>
+			* {
+			            box-sizing: border-box;
+			            margin: 0;
+			            padding: 0;
+			            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			        }
+			        body {
+			            background-color: #121212;
+			            color: #e0e0e0;
+			            padding: 15px;
+			            display: flex;
+			            flex-direction: column;
+			            min-height: 100vh;
+			        }
+			        h2 {
+			            margin-bottom: 15px;
+			            font-size: 20px;
+			            color: #fff;
+			        }
+			        .url-bar {
+			            display: flex;
+			            gap: 10px;
+			            margin-bottom: 15px;
+			            background: #1e1e1e;
+			            padding: 10px;
+			            border-radius: 6px;
+			        }
+			        .url-bar input {
+			            flex: 1;
+			            padding: 10px 12px;
+			            border: 1px solid #333;
+			            background-color: #2a2a2a;
+			            color: #fff;
+			            border-radius: 4px;
+			            font-size: 14px;
+			        }
+			        .btn {
+			            padding: 10px 16px;
+			            border: none;
+			            border-radius: 4px;
+			            cursor: pointer;
+			            font-weight: bold;
+			            transition: background 0.2s, transform 0.1s;
+			            white-space: nowrap;
+			        }
+			        .btn:active { transform: scale(0.98); }
+			        .btn-primary { background-color: #3498db; color: white; }
+			        .btn-success { background-color: #2ecc71; color: white; }
+			        .btn-secondary { background-color: #444; color: #fff; }
+			        .btn-secondary:hover { background-color: #555; }
+			        .btn-danger { background-color: #e74c3c; color: white; }
+			
+			        .main-layout {
+			            display: flex;
+			            gap: 15px;
+			            margin-bottom: 15px;
+			        }
+			        @media (max-width: 768px) {
+			            .main-layout { flex-direction: column; }
+			        }
+			        .panel {
+			            flex: 1;
+			            display: flex;
+			            flex-direction: column;
+			            background: #1e1e1e;
+			            border-radius: 6px;
+			            padding: 15px;
+			        }
+			        .panel-title {
+			            font-weight: bold;
+			            margin-bottom: 10px;
+			            color: #bbb;
+			            font-size: 14px;
+			        }
+			        textarea {
+			            width: 100%;
+			            height: 200px;
+			            resize: vertical;
+			            padding: 10px;
+			            font-family: 'Courier New', Courier, monospace;
+			            font-size: 13px;
+			            border: 1px solid #333;
+			            border-radius: 4px;
+			            background-color: #252525;
+			            color: #fff;
+			        }
+			        
+			        /* THANH ĐIỀU KHIỂN JS BAN ĐẦU */
+			        .js-controls {
+			            margin-top: 10px;
+			            display: flex;
+			            gap: 10px;
+			            align-items: center;
+			            overflow-x: auto;
+			            padding-bottom: 5px;
+			            -webkit-overflow-scrolling: touch;
+			        }
+			        .js-controls::-webkit-scrollbar { height: 4px; }
+			        .js-controls::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+			
+			        select {
+			            padding: 10px;
+			            border: 1px solid #333;
+			            background-color: #2a2a2a;
+			            color: #fff;
+			            border-radius: 4px;
+			            min-width: 180px;
+			            flex-shrink: 0;
+			        }
+			
+			        /* CONSOLE OUTPUT */
+			        .output-panel {
+			            background: #000000;
+			            border: 1px solid #333;
+			            border-radius: 6px;
+			            padding: 15px;
+			            display: flex;
+			            flex-direction: column;
+			            height: 300px;
+			            box-sizing: border-box;
+			        }
+			        .output-header {
+			            display: flex;
+			            justify-content: space-between;
+			            align-items: center;
+			            color: #888;
+			            font-size: 12px;
+			            margin-bottom: 8px;
+			            border-bottom: 1px solid #222;
+			            padding-bottom: 5px;
+			            flex-shrink: 0;
+			        }
+			        .header-actions {
+			            display: flex;
+			            gap: 15px;
+			        }
+			        .action-link { cursor: pointer; font-weight: bold; }
+			        .action-link:hover { text-decoration: underline; }
+			
+			        .output-log {
+			            flex: 1;
+			            overflow-y: auto !important;
+			            overflow-x: auto;
+			            font-family: 'Courier New', Courier, monospace;
+			            font-size: 13px;
+			            line-height: 1.5;
+			            white-space: pre;
+			            -webkit-overflow-scrolling: touch;
+			            padding-bottom: 70px;
+			        }
+			        
+			        .log-item { margin-bottom: 6px; color: #ffffff; word-break: break-all; }
+			        .log-item.log-error { color: #ff6b6b; background: rgba(255,107,107,0.1); padding: 2px 5px; border-radius: 3px; }
+			        .log-item.log-info { color: #5bc0de; }
+			        .log-item.log-return { color: #f1c40f; font-weight: bold; }
+			        
+			        #btnExitFullscreen { display: none; }
+			
+			        /* --- FULLSCREEN CONSOLE MODE --- */
+			        body.fullscreen-mode {
+			            height: 100vh;
+			            overflow: hidden !important;
+			        }
+			        body.fullscreen-mode h2,
+			        body.fullscreen-mode .url-bar,
+			        body.fullscreen-mode .main-layout {
+			            display: none !important;
+			        }
+			        
+			        body.fullscreen-mode .output-panel {
+			            position: fixed !important;
+			            top: 0 !important;
+			            left: 0 !important;
+			            width: 100vw !important;
+			            height: 100vh !important;
+			            border: none !important;
+			            border-radius: 0 !important;
+			            z-index: 9998;
+			        }
+			        
+			        body.fullscreen-mode .js-controls {
+			            position: fixed !important;
+			            bottom: 20px !important;
+			            right: 20px !important;
+			            z-index: 9999;
+			            background: rgba(25, 25, 25, 0.95);
+			            border: 1px solid #444;
+			            padding: 10px;
+			            border-radius: 8px;
+			            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+			            backdrop-filter: blur(6px);
+			            max-width: calc(100% - 40px);
+			            margin-top: 0;
+			        }
+			
+			        body.fullscreen-mode #btnExitFullscreen {
+			            display: inline-block !important;
+			        }
+			
+			        #sandbox { display: none; }
+		</style>
+	</head>
+
+	<body>
+		<h2>JavaScript &amp; HTML Lab 1.1</h2>
+		<div class="url-bar"> <input type="text" id="urlInput" value="https://greenxh.today/categories/vietnamese" placeholder="Nhập đường dẫn website..."> <button class="btn btn-primary" id="btnFetch">Tải Source HTML</button> </div>
+		<div class="main-layout">
+			<div class="panel">
+				<div class="panel-title">Mã nguồn HTML (Vùng Sandbox)</div> <textarea id="htmlInput" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Mã nguồn HTML sẽ xuất hiện ở đây..."></textarea> </div>
+			<div class="panel">
+				<div class="panel-title">Mã JavaScript (Auto-Format JSON Return)</div> <textarea id="jsInput" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="// Viết hoặc dán mã JS vào đây..."></textarea> <div class="js-controls" id="jsControlsBlock"> <button class="btn btn-success" id="btnRunAll">Chạy toàn bộ JS</button> <select id="functionSelect"> <option value="">-- Chọn hàm cụ thể --</option> </select> <button class="btn btn-primary" id="btnRunFunc" disabled="">Chạy hàm đã chọn</button> <button class="btn btn-secondary" id="btnClearConsoleBtn">Xóa Console</button> <button class="btn btn-danger" id="btnExitFullscreen">Thoát</button> </div>
+			</div>
+		</div>
+		<div class="output-panel">
+			<div class="output-header"> <span>CONSOLE OUTPUT</span> <div class="header-actions"> <span class="action-link" style="color: #3498db;" id="btnToggleFullscreen">[Toàn màn hình]</span> <span class="action-link" style="color: #ff6b6b;" id="btnClearConsole">[Xóa Console]</span> </div>
+			</div>
+			<div class="output-log" id="consoleLog"></div>
+		</div>
+		<div id="sandbox"></div>
+		<script>
+			$(document).ready(function() {
+			            const $htmlInput = $('#htmlInput');
+			            const $jsInput = $('#jsInput');
+			            const $consoleLog = $('#consoleLog');
+			            const $functionSelect = $('#functionSelect');
+			            const $btnRunFunc = $('#btnRunFunc');
+			            const $sandbox = $('#sandbox');
+			            const $jsControlsBlock = $('#jsControlsBlock');
+			
+			            const GOOGLE_SCRIPT_PROXY = "https://script.google.com/macros/s/AKfycbwGOhlYMORQ0Rv45F54tfYgTfbLHeYQ04ulpQ5f6nMqV2Y_OgD9GGpTLSV4oGDCtGF70A/exec";
+			
+			            // ĐỒNG BỘ BIẾN HTML TOÀN CỤC THUẦN CHUỖI KHÔNG QUA DOM KHI EDIT
+			            function syncGlobalHtml() { window.html = $htmlInput.val(); }
+			            $htmlInput.on('input blur change', syncGlobalHtml);
+			            syncGlobalHtml();
+			
+			            // LOGIC CHUYỂN ĐỔI TOÀN MÀN HÌNH MỚI (DI CHUYỂN CẢ CỤM NÚT BAO GỒM NÚT XÓA CONSOLE)
+			            function toggleFullscreenLayout() {
+			                $('body').toggleClass('fullscreen-mode');
+			                if ($('body').hasClass('fullscreen-mode')) {
+			                    $('#btnToggleFullscreen').text('[Thu nhỏ]');
+			                    $('body').append($jsControlsBlock);
+			                } else {
+			                    $('#btnToggleFullscreen').text('[Toàn màn hình]');
+			                    $('.panel:last').append($jsControlsBlock);
+			                }
+			            }
+			
+			            $('#btnToggleFullscreen').click(toggleFullscreenLayout);
+			            $('#btnExitFullscreen').click(toggleFullscreenLayout);
+			
+			            // ĐỒNG BỘ NÚT XÓA CONSOLE
+			            function clearConsoleLogs() { $consoleLog.empty(); }
+			            $('#btnClearConsole').click(clearConsoleLogs);
+			            $('#btnClearConsoleBtn').click(clearConsoleLogs);
+			
+			            function logToConsole(message, type = 'log') {
+			                let extraClass = '';
+			                if (type === 'error') extraClass = 'log-error';
+			                if (type === 'info') extraClass = 'log-info';
+			                if (type === 'return') extraClass = 'log-return';
+			
+			                let formattedMessage = message;
+			
+			                if (typeof message === 'object' && message !== null) {
+			                    try { formattedMessage = JSON.stringify(message, null, 4); } catch(e) { formattedMessage = String(message); }
+			                } 
+			                else if (typeof message === 'string') {
+			                    let trimmed = message.trim();
+			                    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+			                        try {
+			                            let parsed = JSON.parse(message);
+			                            formattedMessage = JSON.stringify(parsed, null, 4);
+			                        } catch (e) {
+			                            formattedMessage = message;
+			                        }
+			                    }
+			                }
+			
+			                let headerPrefix = type === 'return' ? `👉 [Return] [${new Date().toLocaleTimeString()}]\n` : `[${new Date().toLocaleTimeString()}] `;
+			
+			                $consoleLog.append(`<div class="log-item ${extraClass}">${headerPrefix}${formattedMessage}</div>`);
+			                $consoleLog.scrollTop($consoleLog[0].scrollHeight);
+			            }
+			
+			            const nativeLog = console.log;
+			            const nativeError = console.error;
+			
+			            // TƯỜNG LỬA CHẶN ĐỨNG JS REDIRECT (ĐÓNG BĂNG WINDOW.LOCATION)
+			            function lockDownRedirects() {
+			                try {
+			                    Object.defineProperty(window.location, 'href', {
+			                        set: function(val) { logToConsole(`[Bảo vệ] Đã chặn mã JS cố gắng chuyển hướng tới: ${val}`, 'error'); },
+			                        configurable: true
+			                    });
+			                    window.location.assign = function(url) { logToConsole(`[Bảo vệ] Đã chặn hàm assign(${url})`, 'error'); };
+			                    window.location.replace = function(url) { logToConsole(`[Bảo vệ] Đã chặn hàm replace(${url})`, 'error'); };
+			                    window.navigate = function(url) { logToConsole(`[Bảo vệ] Đã chặn hàm navigate(${url})`, 'error'); };
+			                } catch (e) {}
+			            }
+			
+			            // CÀO MÃ NGUỒN
+			            $('#btnFetch').click(function() {
+			                let targetUrl = $('#urlInput').val().trim();
+			                if (!targetUrl) { alert('Vui lòng nhập URL.'); return; }
+			                if (!/^https?:\/\//i.test(targetUrl)) { targetUrl = 'https://' + targetUrl; $('#urlInput').val(targetUrl); }
+			
+			                logToConsole(`Đang gửi yêu cầu cào dữ liệu qua Google Script...`, 'info');
+			                $.get(GOOGLE_SCRIPT_PROXY, { url: "https://script.google.com/macros/s/AKfycbwGOhlYMORQ0Rv45F54tfYgTfbLHeYQ04ulpQ5f6nMqV2Y_OgD9GGpTLSV4oGDCtGF70A/exec?url=" + targetUrl }, function(htmlResponse) {
+			                    if (htmlResponse && !htmlResponse.startsWith("Lỗi:")) {
+			                        // Sàng lọc loại bỏ cả thẻ meta refresh thô trước khi nạp
+			                        let cleanHtml = htmlResponse.replace(/<meta\s+http-equiv=["']refresh["'][^>]*>/gi, '<!-- Meta Refresh Blocked -->');
+			                        $htmlInput.val(cleanHtml);
+			                        syncGlobalHtml();
+			                        logToConsole('Cào và đồng bộ Source HTML thành công!', 'info');
+			                    } else {
+			                        logToConsole('Proxy báo lỗi: ' + htmlResponse, 'error');
+			                    }
+			                }).fail(function() {
+			                    logToConsole('Lỗi kết nối đến Google Apps Script.', 'error');
+			                });
+			            });
+			
+			            // PHÂN TÍCH HÀM
+			            $jsInput.on('input blur', function() {
+			                let jsCode = $(this).val();
+			                let funcRegex = /(?:function\s+([a-zA-Z0-9_$]+)|(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>))/g;
+			                let match, functions = [];
+			
+			                while ((match = funcRegex.exec(jsCode)) !== null) {
+			                    let funcName = match[1] || match[2];
+			                    if (funcName && !functions.includes(funcName)) { functions.push(funcName); }
+			                }
+			
+			                let currentSelected = $functionSelect.val();
+			                $functionSelect.html('<option value="">-- Chọn hàm cụ thể --</option>');
+			                if (functions.length > 0) {
+			                    functions.forEach(f => { $functionSelect.append(`<option value="${f}">${f}()</option>`); });
+			                }
+			                if (functions.includes(currentSelected)) { $functionSelect.val(currentSelected); }
+			                $functionSelect.trigger('change');
+			            });
+			
+			            $functionSelect.change(function() {
+			                if ($(this).val()) { $btnRunFunc.removeAttr('disabled'); } 
+			                else { $btnRunFunc.attr('disabled', 'disabled'); }
+			            });
+			
+			            // --- 4. ENGINE THỰC THI JAVASCRIPT ĐÃ TÍCH HỢP GỐC VÀ THÊM ANTI-REDIRECT ---
+			            function executeEngine(runMode) {
+			                let htmlCode = $htmlInput.val();
+			                
+			                // BIỆN PHÁP BẢO VỆ: Loại bỏ tất cả thẻ <script> có trong HTML cào về để tránh bị kích hoạt chuyển hướng quảng cáo
+			                if (htmlCode) {
+			                    // Tạo một DOM ảo để lọc bỏ script một cách an toàn
+			                    let $cleanHtml = $('<div>').html(htmlCode);
+			                    $cleanHtml.find('script').remove(); // Xóa sạch mọi thẻ script ẩn
+			                    $sandbox.html($cleanHtml.html());
+			                } else {
+			                    $sandbox.empty();
+			                }
+			
+			                lockDownRedirects(); // Kích hoạt bộ chặn đè window.location bảo vệ tab
+			
+			                let jsCode = $jsInput.val();
+			                
+			                window.console.log = function(...args) {
+			                    logToConsole(args.length > 1 ? args : args[0]);
+			                    nativeLog.apply(console, args);
+			                };
+			                window.console.error = function(...args) {
+			                    logToConsole(args.length > 1 ? args : args[0], 'error');
+			                    nativeError.apply(console, args);
+			                };
+			
+			                let executeCode = '';
+			
+			                if (runMode === 'single') {
+			                    let selectedFunc = $functionSelect.val();
+			                    logToConsole(`--- Bắt đầu chạy hàm: ${selectedFunc}() ---`, 'info');
+			                    
+			                    executeCode = `
+			                        ${jsCode}
+			                        \n;try { 
+			                            let result = ${selectedFunc}(); 
+			                            if(result !== undefined) {
+			                                console.info(result);
+			                            }
+			                        } catch(err) { 
+			                            console.error(err.message); 
+			                        }
+			                    `;
+			                } else {
+			                    logToConsole('--- Bắt đầu chạy toàn bộ JavaScript ---', 'info');
+			                    executeCode = jsCode;
+			                }
+			
+			                try {
+			                    let interceptorJs = `
+			                        (function($, jQuery){
+			                            console.info = function(msg) { window.customLogReturn(msg); };
+			                            ${executeCode}
+			                        })(function(selector, context){ 
+			                            return jQuery(selector, context || '#sandbox'); 
+			                        }, function(selector, context){ 
+			                            return jQuery(selector, context || '#sandbox'); 
+			                        });
+			                    `;
+			                    
+			                    window.customLogReturn = function(val) { logToConsole(val, 'return'); };
+			                    window.eval(interceptorJs);
+			                } catch (error) {
+			                    logToConsole(error.name + ': ' + error.message, 'error');
+			                }
+			            }
+			
+			            $('#btnRunAll').click(function() { executeEngine('all'); });
+			            $btnRunFunc.click(function() { executeEngine('single'); });
+			        });
+		</script>
+	</body>
+
+</html>
