@@ -9,11 +9,11 @@ function getManifest() {
         "id": "newporn",          
         "name": "18porn",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.2",             
+        "version": "1.5",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
-        "type": "MOVIE",
+        "type": "VIDEO",
         "playerType": "exoplayer"
     });
 }
@@ -228,8 +228,18 @@ function parseDetailResponse(html) {
  return JSON.stringify({
   url: "", 
   headers: { 
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", 
-    "Referer": BaseURL 
+    "Referer": BaseURL,
+    "Origin": BaseURL,
+    "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+    // Đánh lừa thuật toán Client Hints của tường lửa
+    "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+    "Sec-Ch-Ua-Mobile": "?1",
+    "Sec-Ch-Ua-Platform": '"Android"',
+    
+    // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+    "Accept": "*/*",
+    "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+    "X-Requested-With": "com.android.chrome"
   }, 
   subtitles: [] 
  });
