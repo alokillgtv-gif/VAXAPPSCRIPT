@@ -5,13 +5,12 @@
 /**
  * Định nghĩa thông tin cơ bản của Plugin.
  */
-var BaseURL = "https://www.18porn.sex";
-
+BaseURL = "https://www.18porn.sex";
 function getManifest() {
  return JSON.stringify({
   "id": "newporn", 
   "name": "18 Porn", 
-  "version": "1.2", 
+  "version": "1.4", 
   "baseUrl": BaseURL, 
   "iconUrl": BaseURL + "/images/logo.png", 
   "isEnabled": true, 
@@ -34,11 +33,11 @@ function getHomeSections() {
  */
 function getPrimaryCategories() {
  return JSON.stringify([
-  { name: 'Vú Bự', slug: 'categories/big-tits/' },
-  { name: 'Xinh Đẹp', slug: 'categories/beuatiful/' },
-  { name: 'Châu Á', slug: 'categories/asian/' },
-  { name: 'Chơi 3', slug: 'categories/threesome/' },
-  { name: 'Lỗ Nhị', slug: 'categories/anal/' }
+  { name: 'Vú Bự', slug: 'categories/big-tits' },
+  { name: 'Xinh Đẹp', slug: 'categories/beuatiful' },
+  { name: 'Châu Á', slug: 'categories/asian' },
+  { name: 'Chơi 3', slug: 'categories/threesome' },
+  { name: 'Lỗ Nhị', slug: 'categories/anal' }
  ]);
 }
 
@@ -249,13 +248,7 @@ function parseDetailResponse(html) {
  });
 }
 
-function parseCategoriesResponse(html) {
- return JSON.stringify([
-    { name: "Vú Bự", slug: "categories/big-tits/" },
-    { name: "Xinh Đẹp", slug: "categories/beuatiful/" },
-    { name: "Châu Á", slug: "categories/asian/" }
- ]);
-}
-
-function parseCountriesResponse(html) { return "[]"; }
-function parseYearsResponse(html) { return "[]"; }
+// KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
+function parseCategoriesResponse(html) { return "[]"}
+function parseCountriesResponse(html) { return "[]"}
+function parseYearsResponse(html) { return "[]"}
