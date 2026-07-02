@@ -8,7 +8,7 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.5",             
+        "version": "1.6",             
         "baseUrl": "https://crimescenesolutions.co.za",
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -85,6 +85,7 @@ function parseListResponse(html) {
         var matchList;
         
         while ((matchList = regexList.exec(html)) !== null) {
+          if(matchList[3]){
             var cleanThumb = matchList[3].replace(/&amp;/g, '&'); 
             items.push({
                 "id": matchList[1],          
@@ -92,6 +93,7 @@ function parseListResponse(html) {
                 "posterUrl": cleanThumb,  
                 "backdropUrl": cleanThumb
             });
+          }
         }
         
         var totalPages = 1; 
