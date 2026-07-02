@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.5",             
+        "version": "1.0",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -73,7 +73,8 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         BaseJSON = JSON.parse(html);
-        var $url = BaseJSON[0].url;
+        BaseJSON = BaseJSON[0];
+        var $url = BaseJSON.url;
         var items = [];
             items.push({
                 "id": $url,          
@@ -116,7 +117,7 @@ function parseSearchResponse(html) {
 function parseMovieDetail(html) {
     try {
         var id = BaseURL;
-        eval(BaseJSON[0].codea)
+        eval(BaseJSON.codea)
         var title = "Chưa rõ tên phim";
         var year = "2026";
         var des = streamUrl + "\r\n\r\n" + JSON.stringify(BaseJSON);
@@ -144,13 +145,13 @@ function parseMovieDetail(html) {
 //  <a onclick="chooseStreamingServer(this)" data-type="m3u8" id="streaming-sv" data-id="1" data-link="https://cdn.phimhayok.net/filmhayok/hls/6a3a9626d63a92f33ffa0063/20260623142024/playlist.m3u8" class="streaming-server tag-link" style="background: #232328;color: #FFF">
 function parseDetailResponse(html) {
     try {
-        var videoUrl = BaseJSON[0].link;
+        var videoUrl = BaseJSON.link;
         
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
-                "Referer": $obj[0].ref,
-                "Origin": $obj[0].ref,
+                "Referer": BaseJSON.ref,
+                "Origin": BaseJSON.ref,
                 "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
             },
             "subtitles": []
