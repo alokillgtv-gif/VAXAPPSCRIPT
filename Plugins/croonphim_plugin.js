@@ -8,7 +8,7 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.6",             
+        "version": "1.1",             
         "baseUrl": "https://crimescenesolutions.co.za",
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -147,9 +147,10 @@ function parseMovieDetail(html) {
     var direc = "????";
     var cast = "????";
     var status = "????";
-    var duration = "????";
+    var duration = "1:09:00 | 16 | 16";
     var rating = "????";
 	  var servers = [{}];
+  try {
     
     rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
@@ -241,6 +242,23 @@ if (containerMatch) {
         casts: cast,
         director: direc
     });
+  }
+  catch (e) {
+        return JSON.stringify({
+        id: lurl,
+        title: lname,
+        posterUrl: limg,
+        backdropUrl: limg,
+        description: ldes,
+        servers: servers,
+        quality: "HD",
+        year: year,
+        status: status,
+        duration: duration,
+        casts: cast,
+        director: direc
+      });
+    }
 }
 //<link rel="preload" href="https://video3.cdnsolutions.media/key=kePlMtN+ADhubUR5+oDV3A,end=1782846000/data=2405:4802:918e:9690:213f:c9b0:ee12:58e-dvp/media=hls4/multi=256x144:144p:,426x240:240p:,854x480:480p:,1280x720:720p:,1920x1080:1080p:/029/485/972/_TPL_.av1.mp4.m3u8" as="fetch" crossorigin="true">
 function parseDetailResponse(html) {
