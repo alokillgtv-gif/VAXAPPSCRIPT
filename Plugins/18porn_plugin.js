@@ -9,7 +9,7 @@ function getManifest() {
         "id": "newporn",          
         "name": "18porn",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.1",             
+        "version": "1.0",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -43,30 +43,33 @@ function getFilters() {
 }
 
 function getUrlList(slug, filtersJson) {
-    try {
-     var filters = JSON.parse(filtersJson || "{}");
-     var page = filters.page || 1;
-     
-     if (page > 1) {
-      return BaseURL + "/" + slug + page;
-     }
-     return BaseURL + "/" + slug;
-    } catch (e) {
-     return BaseURL + "/" + slug;
-    }
+ try {
+  var filters = JSON.parse(filtersJson || "{}");
+  var page = filters.page || 1;
+  
+  if (page > 1) {
+   return BaseURL + "/" + slug + page;
+  }
+  return BaseURL + "/" + slug;
+ } catch (e) {
+  return BaseURL + "/" + slug;
+ }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return BaseURL + "/search/MOM/" + encodeURIComponent(keyword);
+ return BaseURL + "/search/" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
-    return BaseURL + "/" + slug;
+ if (!slug) return "";
+ if (slug.indexOf('http') === 0) return slug;
+ return BaseURL + "/" + slug;
 }
 
 function getUrlCategories() { return ""; }
 function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
+
 
 // =============================================================================
 // PARSERS - 18 PORN
