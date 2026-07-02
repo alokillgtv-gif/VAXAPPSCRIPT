@@ -8,7 +8,7 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.2",             
+        "version": "1.5",             
         "baseUrl": "https://crimescenesolutions.co.za",
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -137,108 +137,175 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html) {
-    try {
-        var title = "Chưa rõ tên phim";
-        var year = "2026";
-        var des = "Chưa có mô tả.";
-        var img = "";
-        var movieUrl = "";
-        var episodes = [];
-		var linkfrist = "";
-        var tMatch = html.match(new RegExp('<h1 class="page-title">([\\s\\S]*?)<\\/h1>', 'i'));
-        if (tMatch && tMatch[1]) { title = tMatch[1].replace(new RegExp('<[^>]*>', 'g'), '').trim(); }
+    var lurl = "";
+    var limg = "";
+    var lname = "Đang cập nhật...";
+    var ldes = "Không có mô tả.";
+    var year = 2026;
+    var direc = "????";
+    var cast = "????";
+    var status = "????";
+    var duration = "????";
+    var rating = "????";
+	  var servers = [{}];
+    
+    rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+    if (rmatch && rmatch[1]) { limg = rmatch[1]; }
 
-        var yMatch = html.match(new RegExp('<div class="tag-link">([\\s\\S]*?)<\\/div>', 'i'));
-        if (yMatch && yMatch[1]) { year = yMatch[1].replace(new RegExp('<[^>]*>', 'g'), '').trim(); }
+    rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
+    if (rmatch && rmatch[1]) { lname = rmatch[1]; }
 
-        var dMatch = html.match(new RegExp('<div class="video-info-item video-info-content">([\\s\\S]*?)<\\/div>', 'i'));
-        if (dMatch && dMatch[1]) { des = dMatch[1].replace(new RegExp('<[^>]*>', 'g'), '').trim(); }
+    rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
+    if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
+    
+    rmatch = html.match(/video-info-aux[\s\S]*?(\d+)[\s\S]*?<\/div>/i);
+    if (rmatch && rmatch[1]) { year = rmatch[1]; }
+    
+    rmatch = html.match(/video-info-actor[\s\S]*?title="([\s\S]*?)"/i);
+    if (rmatch && rmatch[1]) { direc = rmatch[1]; }
+    
+    rmatch = html.match(/Trạng thái[\s\S]*?video-info-item">([\s\S]*?)<\/div>/i);
+    if (rmatch && rmatch[1]) { status = rmatch[1].trim(); }
+    
+    rmatch = html.match(/Thời lượng[\s\S]*?video-info-item">([\s\S]*?)<\/div>/i);
+    if (rmatch && rmatch[1]) { duration = rmatch[1].trim(); }
+    
+    var split = duration.replace(/\s|\s+/gi,"").split("|");
+	  var stime = split[0];
+	  var firstEP = Number(split[1]);
+	  var lastEP = Number(split[1]);
+	  duration = "Độ Dài: " + stime + ", Tập: " + firstEP + "/" + lastEP;
+    
 
-        var iMatch = html.match(new RegExp('<div class="module-item-pic">[\\s\\S]*?<img[\\s\\S]*?src="([\\s\\S]*?)"', 'i'));
-        if (iMatch && iMatch[1]) { img = iMatch[1].replace(new RegExp('<[^>]*>', 'g'), '').trim(); }
+// Bước 1: Tìm vùng HTML nằm trong class video-info-actor
+  const containerRegex = /Diễn viên[\s\S]*?class="[^"]*video-info-actor[^"]*"[\s\S]*?<\/div>/;
+  const containerMatch = html.match(containerRegex);
 
-        var uMatch = html.match(new RegExp('<div class="video-info-footer display">[\\s\\S]*?<a[\\s\\S]*?href="([\\s\\S]*?)"', 'i'));
-        if (uMatch && uMatch[1]) {
-            movieUrl = uMatch[1].replace(new RegExp('<[^>]*>', 'g'), '').trim();
+if (containerMatch) {
+    const actorHtml = containerMatch[0]; // Chỉ lấy đoạn HTML bên trong div này
+    
+    // Bước 2: Tìm tất cả tên diễn viên trong đoạn HTML đã được giới hạn
+    const actorRegex = />([^<]+)<\/a>/g;
+    const matches = [...actorHtml.matchAll(actorRegex)];
+    
+    const actors = matches.map(match => match[1]);
+    cast = actors.join("").replace(/\n/gi,",").replace(/,,/gi,", ")
+    // Kết quả: [ 'Kiều Minh Tuấn', 'Mạc Văn Khoa', 'Mỹ Uyên', 'Ngọc Trinh', 'Trương Thế Vinh' ]
+} 
 
-            if (movieUrl.indexOf("full") > -1) {
-                episodes.push({ "id": movieUrl, "slug": "1", "name": "Full Tập", "url": movieUrl });
-                linkfrist += movieUrl + "\r\n";
-            } else {
-                var pageMatch = html.match(new RegExp('<span class="video-info-itemtitle">Thời lượng[\\s\\S]*?<div class="video-info-item">([\\s\\S]*?)<\\/div>', 'i'));
-                var totalEpisodes = 0;
-
-                if (pageMatch && pageMatch[1]) {
-                    var numMatch = pageMatch[1].match(/[\s\S]*?\|[\s\S]*?(\d+)[\s\S]*?\|[\s\S]*?(\d+)/i);
-                    if (numMatch && numMatch[1]) {
-                        totalEpisodes = parseInt(numMatch[1], 10);
-                    }
-                }
-
-                var linkParts = movieUrl.split(new RegExp('tap-(\\d+)-'));
-                if (linkParts && linkParts.length >= 3 && totalEpisodes > 0) {
-                    var linkGoc = linkParts[0];
-                    var linkSer = linkParts[2];
-
-                    for (var j = 1; j <= totalEpisodes; j++) {
-                        var fullLink = linkGoc + "tap-" + j + "-" + linkSer;
-                        linkfrist += fullLink + "\r\n";
-                        episodes.push({ "id": fullLink, "slug": String(j), "name": "Tập " + j, "url": fullLink });
-                    }
-                } else if (movieUrl) {
-                	linkfrist += movieUrl + "\r\n";
-                    episodes.push({ "id": movieUrl, "slug": "1", "name": "Tập 1", "url": movieUrl });
-                }
+	var rmatch = html.match(/video-info-footer display[\s\S]*?href="([\s\S]*?)"/i);
+    if (rmatch && rmatch[1]) { lurl = rmatch[1] }
+	
+	if(lurl.indexOf("full") > -1){
+		servers = [
+            {
+                name: "Server 1",
+                episodes: [
+                    { id: lurl, name: "Xem Ngay", slug: "full" }
+                ]
             }
-        }
-
-        return JSON.stringify({
-            "id": movieUrl || "unknown",
-            "title": title,
-            "posterUrl": img,
-            "backdropUrl": img,
-            "description": des + "\r\n" + linkfrist,
-            "year": year,
-            "rating": 10,
-            "quality": "HD",
-            "servers": [{ "name": "Server Vietsub", "episodes": episodes }]
-        });
-
-    } catch (e) {
-        return JSON.stringify({ "id": "error", "title": "Lỗi tải dữ liệu", "servers": [] });
+        ];
+	}
+	else{
+		var surl = lurl.match(/([\s\S]*?\/tap-)(\d+)([\s\S]*)/);
+    var furl = surl[1];
+    var eurl = surl[3];
+    var episodes = [];
+    for(var j = 1;j < firstEP;j++){
+      var itemEp = {};
+      itemEp.id = furl + j + eurl;
+      itemEp.name = "Tập " + j;
+      itemEp.slug = "tap-" + j;
+      episodes.push(itemEp);
     }
+    servers = [
+            {
+                name: "Server 1",
+                episodes: episodes
+            }
+    ];
+	}        
+    return JSON.stringify({
+        id: lurl,
+        title: lname,
+        posterUrl: limg,
+        backdropUrl: limg,
+        description: ldes + "\r\n\r\n" +lurl,
+        servers: servers,
+        quality: "HD",
+        year: year,
+        status: status,
+        duration: duration,
+        casts: cast,
+        director: direc
+    });
 }
-//  <a onclick="chooseStreamingServer(this)" data-type="m3u8" id="streaming-sv" data-id="1" data-link="https://cdn.phimhayok.net/filmhayok/hls/6a3a9626d63a92f33ffa0063/20260623142024/playlist.m3u8" class="streaming-server tag-link" style="background: #232328;color: #FFF">
+//<link rel="preload" href="https://video3.cdnsolutions.media/key=kePlMtN+ADhubUR5+oDV3A,end=1782846000/data=2405:4802:918e:9690:213f:c9b0:ee12:58e-dvp/media=hls4/multi=256x144:144p:,426x240:240p:,854x480:480p:,1280x720:720p:,1920x1080:1080p:/029/485/972/_TPL_.av1.mp4.m3u8" as="fetch" crossorigin="true">
 function parseDetailResponse(html) {
     try {
-        var videoUrl = "";
-       
-        var getlink = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
-        if (getlink && getlink[1]) {
-            videoUrl = getlink[1];
-        }
+        var streamUrl = "";
         
-        if (videoUrl) {
-            // SỬA LỖI: Chỉ thay thế chữ "playlist.m3u8" ở cuối cùng của URL để tránh lỗi bóc tách sai link phim lẻ/tập 1
-            if (videoUrl.indexOf("playlist.m3u8") > -1) {
-                videoUrl = videoUrl.replace(/playlist\.m3u8$/, "playlist_1080.m3u8");
+        var rmatch = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
+   	    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+		var customJs = `
+      function initCustomVideoFix() {
+        alert('${decodedUrl}');
+      
+        // 1. Chèn CSS dọn dẹp giao diện (ẩn footer, sidebar, navbar...)
+        const style = document.createElement('style');
+        style.innerHTML = '';
+        document.head.appendChild(style);
+      
+        // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
+        const checkInterval = setInterval(() => {
+          const theaterButton = document.querySelector('.icon-theater.vjs-control.vjs-button');
+          const video = document.querySelector('video');
+      
+          // Chỉ xử lý khi cả nút bấm và thẻ video đều đã xuất hiện trên trang
+          if (theaterButton && video) {
+            clearInterval(checkInterval); // Tìm thấy rồi thì dừng vòng lặp kiểm tra
+      
+            // Xử lý nút Cinema mode
+            const buttonText = theaterButton.innerText || theaterButton.textContent || "";
+            if (buttonText.toLowerCase().includes('cinema mode')) {
+              theaterButton.click();
+              console.log("Đã kích hoạt Cinema mode thành công!");
             }
-        }
+      
+            // Xử lý bật tiếng video
+            if (video.muted) {
+              video.muted = false;
+              console.log("Đã mở tiếng video thành công!");
+            }
+          }
+        }, 200); // Cứ mỗi 0.2 giây sẽ kiểm tra lại một lần
+      
+        // Bảo hiểm: Tự động dừng kiểm tra sau 10 giây nếu trang bị lỗi không tải được video
+        setTimeout(() => clearInterval(checkInterval), 10000);
+      }
+      
+      // Kiểm tra trạng thái trang để kích hoạt hàm an toàn nhất
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+      } else {
+        initCustomVideoFix();
+      }
+      `;
 
-        return JSON.stringify({
-            "url": videoUrl, 
-            "headers": {
-                "Referer": "https://crimescenesolutions.co.za/",
-                "Origin": "https://crimescenesolutions.co.za",
-                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-            },
-            "subtitles": []
-        });
-
-    } catch (e) {
-        return JSON.stringify({ "url": "", "headers": {} });
-    }
+      return JSON.stringify({
+          url: streamUrl,
+          headers: {
+              "Referer": "https://crimescenesolutions.co.za",
+              "Origin": "https://crimescenesolutions.co.za",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              "Custom-Js": customJs.trim()
+          }
+      });
+          } catch (error) {
+              return JSON.stringify({ url: "", headers: {} });
+          }
 }
+
 
 // KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
 function parseCategoriesResponse(html) { return "[]"; }
