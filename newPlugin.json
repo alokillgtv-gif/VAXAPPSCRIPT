@@ -2,10 +2,66 @@
     "version": 1,
     "plugins": [
         {
+            "id": "phimchill",
+            "name": "Phim Chill",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/phimchill_plugin.js",
+            "iconUrl": "https://phimchillhdc.im/favicon.ico"
+        },
+    {
+            "id": "ophim",
+            "name": "OPhim",
+            "version": "1.0.4",
+            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/ophim_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/ophim.ico"
+        },
+        {
+            "id": "testvideo",
+            "name": "testvideo",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/testVideo.js",
+            "iconUrl": "https://viet69z.me/wp-content/uploads/2023/05/logo.png"
+        },
+        {
+            "id": "haysex",
+            "name": "Haysex",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/haysex_plugin.js",
+            "iconUrl": "https://phimsexsuong3x.net/wp-content/uploads/2023/07/haysex3x-logo.png"
+        },
+        {
+            "id": "xhamster",
+            "name": "Xamster",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/xhamster_plugin.js",
+            "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico"
+        },
+        {
+            "id": "superporn",
+            "name": "SuperPorn",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/superporn_plugin.js",
+            "iconUrl": "https://superporn.com/favicon.ico"
+        },
+        {
+            "id": "sexmup",
+            "name": "sexmup",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/sexmup_plugin.js",
+            "iconUrl": "https://sexmupxinh.net/favicon.ico"
+        },
+        {
+            "id": "rophim",
+            "name": "Rổ Phim",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/rophim.js",
+            "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/logo.svg"
+        },
+        {
             "id": "croonphim",
             "name": "Croon Phim",
             "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/croonphim_plugin.js",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/croonphim_plugin.js",
             "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg"
         }
     ]
