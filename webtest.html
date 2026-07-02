@@ -19,7 +19,16 @@
 			            padding: 15px;
 			            display: flex;
 			            flex-direction: column;
-			            min-height: 100vh;
+			            min-height: 100vh;⇝  if (rmatch && rmatch[1]) { lname = rmatch[1]; }
+
+
+<!DOCTYPE html><html lang="vi"> <head>  <meta charset="UTF-8">  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>JavaScript &amp; HTML Interactive Lab (Fixed Layout)</title>  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>  <style>   * {               box-sizing: border-box;               margin: 0;               padding: 0;               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;           }           body {               background-color: #121212;               color: #e0e0e0;               padding: 15px;               display: flex;               flex-direction: column;               min-height: 100vh;               gap: 15px;           }           h2 {               font-size: 20px;               color: #fff;           }           .url-bar {
+
+ 
+ 
+ 
+setTimeout(function() {
+
 			            gap: 15px;
 			        }
 			        h2 {
@@ -41,7 +50,7 @@
 			            color: #fff;
 			            border-radius: 4px;
 			            font-size: 14px;
-			            min-width: 0; /* Ngăn input làm phình layout */
+			            min-width: 0;
 			        }
 			        .btn {
 			            padding: 10px 16px;
@@ -71,7 +80,7 @@
 			            background: #1e1e1e;
 			            border-radius: 6px;
 			            padding: 15px;
-			            min-width: 0; /* QUAN TRỌNG: Cho phép flex item co nhỏ hơn nội dung để scroll hoạt động */
+			            min-width: 0;
 			        }
 			        .panel-header-wrapper {
 			            display: flex;
@@ -129,7 +138,7 @@
 			            height: 220px;
 			        }
 			
-			        /* KHUNG HIỂN THỊ CODE EXTRACTED - TỰ ĐỘNG XUỐNG DÒNG KHÔNG PHÌNH NGANG */
+			        /* KHUNG HIỂN THỊ CODE EXTRACTED */
 			        .code-display-wrapper {
 			            width: 100%;
 			            height: 220px;
@@ -149,13 +158,17 @@
 			            line-height: 1.5;
 			            tab-size: 4;
 			            -moz-tab-size: 4;
+			            position: relative;
+			            transition: all 0.2s ease-in-out;
 			        }
 			        
 			        .html-tag { color: #e06c75; font-weight: bold; }
 			        .html-bracket { color: #56b6c2; }
 			        .html-attr { color: #d19a66; font-weight: bold; }
-			        .html-val { color: #98c379; }
-			        .html-text { color: #ffffff; }
+			        .html-val { color: #98c379; cursor: pointer; border-radius: 2px; }
+			        .html-val:hover { background: #2c313c; color: #fff; }
+			        .html-text { color: #ffffff; cursor: pointer; }
+			        .html-text:hover { background: #2c313c; }
 			        
 			        .js-controls {
 			            margin-top: 10px;
@@ -206,7 +219,7 @@
 			            justify-content: space-between;
 			            align-items: center;
 			            padding-right: 10px;
-			            overflow-x: auto; /* Cuộn ngang thanh tab nếu quá dài */
+			            overflow-x: auto;
 			        }
 			        .tab-buttons-group {
 			            display: flex;
@@ -265,7 +278,6 @@
 			        .action-link { cursor: pointer; font-weight: bold; }
 			        .action-link:hover { text-decoration: underline; }
 			
-			        /* CHỈ KHÓA CHẾT CHIỀU NGANG TRONG KHUNG HIỂN THỊ LOG */
 			        .output-log {
 			            flex: 1;
 			            overflow-y: auto !important;
@@ -274,7 +286,6 @@
 			            font-size: 13px;
 			            line-height: 1.5;
 			        }
-			        /* Ép bẻ dòng text sâu bên trong thẻ log-item span mà không ảnh hưởng cấu trúc ngoài */
 			        .log-item { 
 			            margin-bottom: 6px; 
 			            color: #ffffff; 
@@ -321,7 +332,6 @@
 			            overflow-x: auto;
 			        }
 			
-			        /* --- CHẾ ĐỘ TOÀN MÀN HÌNH CHO CONSOLE --- */
 			        body.fullscreen-mode h2,
 			        body.fullscreen-mode .url-bar,
 			        body.fullscreen-mode .top-layout,
@@ -337,7 +347,7 @@
 			        body.inspect-fullscreen-mode #panel-javascript,
 			        body.inspect-fullscreen-mode .top-layout .panel:first-child,
 			        body.inspect-fullscreen-mode .bottom-layout,
-			        body.inspect-fullscreen-mode .tab-headers { display: none !important; }
+			        body.inspect-fullscreen-mode .tab-headers,#info-bar { display: none !important; }
 			
 			        body.inspect-fullscreen-mode .top-layout { margin-bottom: 0; gap: 0; }
 			        body.inspect-fullscreen-mode .tab-container { border: none !important; }
@@ -348,8 +358,10 @@
 			            width: 100vw; 
 			            height: calc(100vh - 150px) !important;
 			            z-index: 9990;
+			            transition: height 0.2s ease-in-out;
 			        }
 			
+			        /* --- CẤU HÌNH BAN ĐẦU KHI THU GỌN (Cao 180px, khung code cao 120px) --- */
 			        body.inspect-fullscreen-mode #panel-extracted {
 			            display: flex !important;
 			            position: fixed !important;
@@ -364,6 +376,7 @@
 			            border-radius: 0px;
 			            padding: 10px 15px;
 			            box-shadow: 0px -5px 25px rgba(0,0,0,0.8);
+			            transition: height 0.25s ease-in-out; /* Tạo hiệu ứng chuyển động mượt mà khi tăng/giảm chiều cao */
 			        }
 			        body.inspect-fullscreen-mode #panel-extracted .panel-title {
 			            display: flex;
@@ -372,21 +385,55 @@
 			            margin-bottom: 6px;
 			        }
 			        body.inspect-fullscreen-mode .code-display-wrapper {
-						width:100%;
+			            width: 100%;
 			            height: 120px !important;
 			            max-height: 120px !important;
 			            background-color: #0d0d0d;
+			            transition: height 0.25s ease-in-out, max-height 0.25s ease-in-out; /* Hiệu ứng mượt cho khung code */
+			        }
+			
+			        /* --- KHI DI CHUỘT VÀO: BUNG RỘNG RA (Cao 450px, khung code tự tăng lên 390px) --- */
+			        body.inspect-fullscreen-mode #panel-extracted.expanded {
+			            height: 450px !important;
+			        }
+			        body.inspect-fullscreen-mode #panel-extracted.expanded .code-display-wrapper {
+			            height: 390px !important;
+			            max-height: 390px !important;
 			        }
 			        
+			        /* CSS ĐIỀU KHIỂN KHUNG TRÍCH XUẤT KHI BUNG MAX TOÀN MÀN HÌNH */
+			        body.inspect-fullscreen-mode #panel-extracted.expanded-max {
+			            height: calc(100vh - 40px) !important; /* Chiếm gần hết màn hình, chừa 40px cho iframe bên dưới */
+			        }
+			        body.inspect-fullscreen-mode #panel-extracted.expanded-max .code-display-wrapper {
+			            height: calc(100vh - 95px) !important;
+			            max-height: calc(100vh - 95px) !important;
+			        }
+			        body.inspect-fullscreen-mode.expanded-max-active #tab-inspect-content {
+			            height: 40px !important; /* Co nhỏ iframe lên góc đầu */
+			        }
+			        
+			        /* Thiết kế nút mở rộng nhỏ ở góc phải */
+			        .btn-expand-trigger {
+			            background: #34495e;
+			            color: #fff;
+			            border: none;
+			            padding: 2px 7px;
+			            font-size: 11px;
+			            border-radius: 3px;
+			            cursor: pointer;
+			            font-weight: bold;
+			            margin-right: 5px;
+			        }
+			        .btn-expand-trigger:hover { background: #4e6a85; }
+			
 			        #btnExitInspectFullscreen { display: none; }
 			        body.inspect-fullscreen-mode #btnExitInspectFullscreen { display: inline-block; }
 			        #sandbox { display: none; }
-					
 					#panel-javascript, #jsInput {
 						height: 320px;
 					}
-
-					/* --- TĂNG KÍCH THƯỚC VÀ ĐỘ DÀY CỦA THANH CUỘN (SCROLLBAR) --- */
+			
 					::-webkit-scrollbar {
 						width: 8px;
 						height: 8px;
@@ -401,11 +448,10 @@
 					::-webkit-scrollbar-thumb:hover {
 						background: #555;
 					}
-
-					/* --- RESPONSIVE OPTIMIZATION CHO MÀN HÌNH DƯỚI 1000PX --- */
+			
 					@media (max-width: 1000px) {
 						.top-layout {
-							flex-direction: column; /* Chuyển thành hàng dọc để không bị nén ngang */
+							flex-direction: column;
 						}
 						#panel-javascript {
 							height: auto !important;
@@ -468,7 +514,7 @@
 					<div class="inspect-panel">
 						<iframe id="preview-iframe" sandbox="allow-same-origin"></iframe>
 						<div id="info-bar">
-							<span id="info-bar-text">CLICK CHUỘT PHẢI trực tiếp vào phần tử để trích xuất.</span>
+							<span id="info-bar-text"></span>
 							<button class="btn btn-primary" style="padding: 4px 10px; font-size: 12px;" id="btnEnterInspectFullscreenInner">Fullscreen</button>
 						</div>
 					</div>
@@ -480,9 +526,13 @@
 			<div class="panel" id="panel-extracted">
 				<div class="panel-title">
 					<span style="color: #2ecc71; font-weight: bold;">[Inject Extracted HTML - Đã trích xuất trực tiếp]</span>
-					<button class="btn btn-danger" style="padding: 4px 12px; font-size: 12px;" id="btnExitInspectFullscreen">Thoát Fullscreen</button>
+					<div>
+						<button class="btn-expand-trigger" id="btnToggleMaxHeight">↕ </button>
+						<button class="btn btn-success" style="padding: 4px 12px; font-size: 12px; margin-right: 5px;" id="btnExtractMeta">Meta</button>
+						<button class="btn btn-danger" style="padding: 4px 12px; font-size: 12px;" id="btnExitInspectFullscreen">Thoát</button>
+					</div>
 				</div>
-				<div class="code-display-wrapper" id="extractedCodeOutput">Kết quả trích xuất dạng phân cấp sẽ xuất hiện ở đây...</div>
+				<div class="code-display-wrapper" id="extractedCodeOutput"></div>
 			</div>
 			
 			<div class="panel">
@@ -520,7 +570,6 @@
     const STORAGE_KEY = "html_lab_source_backup";
     const JS_STORAGE_KEY = "html_lab_js_backup";
 
-    // CSS bổ sung động cho cấu trúc Cây (Tree View) giống Chrome DevTools
     $('head').append(`
         <style>
             .tree-node { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; margin-left: 14px; position: relative; }
@@ -530,7 +579,6 @@
             .tree-children.hidden { display: none; }
             .tree-leaf { margin-left: 14px; }
             
-            /* Màu sắc giống Chrome DevTools Dark Mode */
             .html-bracket { color: #808080; }
             .html-tag { color: #5db0d7; }
             .html-attr { color: #9bbbdc; }
@@ -538,7 +586,6 @@
             .html-text { color: #ffffff; }
             .html-comment { color: #747474; font-style: italic; }
             
-            /* Console Object View */
             .obj-key { color: #b76bcf; font-weight: bold; }
             .obj-collapse-summary { color: #aaa; font-style: italic; cursor: pointer; }
         </style>
@@ -596,18 +643,37 @@
         let label = keyName ? `<span class="obj-key">${keyName}</span>: ` : '';
 
         if (obj === null) return $container.html(`${label}<span class="html-val">null</span>`);
-        if (typeof obj !== 'object') {
-            let valClass = typeof obj === 'string' ? 'html-val' : 'html-tag';
-            let displayVal = typeof obj === 'string' ? `"${escapeHtmlText(obj)}"` : obj;
-            return $container.html(`${label}<span class="${valClass}">${displayVal}</span>`);
-        }
+if (typeof obj !== 'object') {
+	let valClass = typeof obj === 'string' ? 'html-val' : 'html-tag';
+	
+	// NẾU LÀ CHUỖI VÀ DÀI HƠN 60 KÝ TỰ -> TẠO CƠ CHẾ THU GỌN
+	if (typeof obj === 'string' && obj.length > 60) {
+		let shortText = `"${escapeHtmlText(obj.substring(0, 60))}..." <span style="color:#3498db; cursor:pointer; font-size:11px; font-style:italic;">[Xem thêm (${obj.length} ký tự)]</span>`;
+		let fullText = `"${escapeHtmlText(obj)}" <span style="color:#e74c3c; cursor:pointer; font-size:11px; font-style:italic;">[Thu gọn]</span>`;
+		
+		let $span = $('<span>').addClass(valClass).html(shortText).css('white-space', 'nowrap');
+		
+		$span.on('click', function(e) {
+			e.stopPropagation();
+			if ($(this).data('is-expanded')) {
+				$(this).html(shortText).css('white-space', 'nowrap').data('is-expanded', false);
+			} else {
+				$(this).html(fullText).css('white-space', 'pre-wrap').data('is-expanded', true);
+			}
+		});
+		
+		return $container.html(label).append($span);
+	}
+	
+	// Các kiểu dữ liệu ngắn hoặc Number/Boolean khác giữ nguyên
+	let displayVal = typeof obj === 'string' ? `"${escapeHtmlText(obj)}"` : obj;
+	return $container.html(`${label}<span class="${valClass}">${displayVal}</span>`);
+}
 
-        // Nếu là phần tử DOM nguyên bản
         if (obj instanceof HTMLElement) {
             return renderDomToTree(obj);
         }
 
-        // Nếu là jQuery Object, render dưới dạng mảng các Element
         if (obj instanceof jQuery) {
             let $jToggle = $('<span>').addClass('tree-toggle').html('▼');
             let $jSummary = $('<span>').addClass('obj-collapse-summary').text(`jQuery [${obj.length}]`);
@@ -617,7 +683,8 @@
                 $jChildren.append(renderObjectToTree(el, index));
             });
 
-            $jToggle.on('click', function() {
+            $jToggle.on('click', function(e) {
+                e.stopPropagation();
                 $(this).toggleClass('collapsed').html($(this).hasClass('collapsed') ? '▶' : '▼');
                 $jChildren.toggleClass('hidden');
             });
@@ -625,7 +692,6 @@
             return $container.append($jToggle).append(label).append($jSummary).append($jChildren);
         }
 
-        // Xử lý Object hoặc Array thông thường
         let isArr = Array.isArray(obj);
         let summaryText = isArr ? `Array([${obj.length}])` : `Object { ... }`;
         
@@ -639,7 +705,8 @@
             }
         }
 
-        $toggle.on('click', function() {
+        $toggle.on('click', function(e) {
+            e.stopPropagation();
             $(this).toggleClass('collapsed').html($(this).hasClass('collapsed') ? '▶' : '▼');
             $children.toggleClass('hidden');
         });
@@ -664,12 +731,11 @@
             let tagName = node.tagName.toLowerCase();
             if (tagName === 'style' && node.id === 'inspect-style') return null;
 
-            // Xây dựng chuỗi thẻ mở cùng thuộc tính
             let attrStr = '';
             if (node.attributes) {
                 for (let i = 0; i < node.attributes.length; i++) {
                     let attr = node.attributes[i];
-                    attrStr += ` <span class="html-attr">${attr.name}</span><span class="html-bracket">=</span><span class="html-val">"${escapeHtmlText(attr.value)}"</span>`;
+                    attrStr += ` <span class="html-attr">${attr.name}</span><span class="html-bracket">=</span><span class="html-bracket">"</span><span class="html-val">${escapeHtmlText(attr.value)}</span><span class="html-bracket">"</span>`;
                 }
             }
 
@@ -692,7 +758,6 @@
                 }
             });
 
-            // Lưu trữ chuỗi HTML gốc vào thuộc tính dữ liệu để phục vụ việc COPY chuẩn xác
             $container.data('raw-html', node.outerHTML);
 
             if (!hasValidChildren) {
@@ -722,38 +787,104 @@
             let href = this.href ?  this.href : '';
             let className = this.className && typeof this.className === 'string' ? '.' + $.trim(this.className).replace(/\s+/g, '.') : '';
             if(src.length > 0 || href.length > 0){
-                $infoBarText.html(`Đang trỏ: <i style="width:300px;display: inline-block;max-width:300 px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;color:#ccc; font-weight:bold">${src}${href}</i>`);
+            			let $intext = `<i style="width:300px;display: inline-block;max-width:300 px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;color:#ccc; font-weight:bold">${src}${href}</i>`;
+                $infoBarText.html($intext);
+                $(".panel-title span").html($intext);
             } else if (tagName) {
-                $infoBarText.html(`Đang trỏ: <b style="color:#2ecc71; font-weight:bold">${tagName}${id}${className}</b>`);
+            				let $intext= `<b style="color:#2ecc71; font-weight:bold">${tagName}${id}${className}</b>`;
+                $infoBarText.html($intext);
+                $(".panel-title span").html($intext);
             }
         });
 
         iframeDoc.on('contextmenu', '*', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            let tagName = this.tagName ? this.tagName.toLowerCase() : 'element';
-            $infoBarText.html(`<strong>Đã trích xuất:</strong> <code>&lt;${tagName}&gt;</code> (Click chuột vào vùng xanh dưới để Copy mã nguồn gốc)`);
-
-            $extractedCodeOutput.empty();
-            let $tree = renderDomToTree(this);
-            if($tree) {
-                $extractedCodeOutput.append($tree);
-            }
-            $extractedCodeOutput.scrollTop(0).scrollLeft(0);
-        });
+										e.preventDefault();
+										e.stopPropagation();
+										
+										let tagName = this.tagName ? this.tagName.toLowerCase() : 'element';
+										let infoText = ``;
+										$infoBarText.html(infoText);
+										
+										$extractedCodeOutput.empty();
+										let $tree = renderDomToTree(this);
+										if ($tree) {
+											$extractedCodeOutput.append($tree);
+											
+											// --- LƯU TRẠNG THÁI VÀO LOCALSTORAGE ---
+											localStorage.setItem('extracted_info_text', infoText);
+											localStorage.setItem('extracted_tree_html', $extractedCodeOutput.html());
+											
+											// Đồng thời lưu lại data('raw-html') của root node để tính năng sao chép không bị lỗi khi reload
+											localStorage.setItem('extracted_root_raw_html', $(this)[0].outerHTML);
+										}
+										$extractedCodeOutput.scrollTop(0).scrollLeft(0);
+							});
     });
 
     $('#btnEnterInspectFullscreen, #btnEnterInspectFullscreenInner').click(function() {
-        $('body').addClass('inspect-fullscreen-mode');
-        $panelExtracted.appendTo('body').show();
+	$('.tab-button[data-tab="inspect"]').trigger('click');
+	$('body').addClass('inspect-fullscreen-mode');
+	$panelExtracted.appendTo('body').show();
+	
+	// NÂNG CẤP: Lưu lại trạng thái ghi nhớ mở Fullscreen
+	localStorage.setItem('inspect_fullscreen_remember', 'true');
+});
+				// --- TÍNH NĂNG MỚI: TỰ ĐỘNG BUNG RỘNG KHI HOVER VÀO Ô TRÍCH XUẤT (CHỈ HOẠT ĐỘNG TRONG FULLSCREEN) ---
+				$panelExtracted.on('mouseenter', function() {
+					if ($('body').hasClass('inspect-fullscreen-mode')) {
+						$(this).addClass('expanded');
+					}
+				}).on('mouseleave', function() {
+					if ($('body').hasClass('inspect-fullscreen-mode')) {
+						$(this).removeClass('expanded');
+					}
+				});
+    $('#btnExitInspectFullscreen').click(function() {
+	// Đưa mọi thứ về trạng thái thu nhỏ ban đầu khi thoát
+	$('#panel-extracted').removeClass('expanded-max');
+	$('body').removeClass('expanded-max-active');
+	$('#btnToggleMaxHeight').text('[ ↕ Bung rộng ]');
+	
+	$('body').removeClass('inspect-fullscreen-mode');
+	$('.bottom-layout').append($panelExtracted);
+	if ($('.tab-button[data-tab="console"]').hasClass('active')) $panelExtracted.hide();
+	
+	// NÂNG CẤP: Xóa cờ ghi nhớ vì người dùng đã chủ động tắt Fullscreen
+	localStorage.setItem('inspect_fullscreen_remember', 'false');
+});
+
+    // --- TÍNH NĂNG MỚI: BUNG RỘNG CỰC ĐẠI / THU NHỎ KHUNG TRÍCH XUẤT ---
+    $('#btnToggleMaxHeight').click(function() {
+        let $panel = $('#panel-extracted');
+        $panel.toggleClass('expanded-max');
+        $('body').toggleClass('expanded-max-active');
+        
+        if ($panel.hasClass('expanded-max')) {
+            $(this).text('[ ↕ Thu nhỏ lại ]');
+        } else {
+            $(this).text('[ ↕ Bung rộng ]');
+        }
     });
 
-    $('#btnExitInspectFullscreen').click(function() {
-        $('body').removeClass('inspect-fullscreen-mode');
-        $('.bottom-layout').append($panelExtracted);
-        if ($('.tab-button[data-tab="console"]').hasClass('active')) $panelExtracted.hide();
-    });
+    // --- TÍNH NĂNG MỚI: TỰ ĐỘNG BÔI ĐEN VÙNG TEXT KHI NGƯỜI DÙNG CLICK ---
+    // --- TÍNH NĂNG MỚI: TỰ ĐỘNG BÔI ĐEN VÙNG TEXT KHI NGƯỜI DÙNG CLICK (LOẠI BỎ DẤU NGOẶC KÉP) ---
+				$extractedCodeOutput.on('click', '.html-val, .html-text, .html-attr, .html-tag', function(e) {
+					e.stopPropagation();
+					
+					let range = document.createRange();
+					let selection = window.getSelection();
+					
+					// Nếu thẻ chứa các node chữ bên trong, chỉ bọc vùng chọn trọn vẹn nội dung text node đó
+					if (this.childNodes.length > 0) {
+						range.setStart(this.childNodes[0], 0);
+						range.setEnd(this.childNodes[0], this.childNodes[0].length);
+					} else {
+						range.selectNodeContents(this);
+					}
+					
+					selection.removeAllRanges();
+					selection.addRange(range);
+				});
 
     function toggleFullscreenLayout() {
         $('body').toggleClass('fullscreen-mode');
@@ -767,42 +898,76 @@
     }
     $('#btnToggleFullscreen').click(toggleFullscreenLayout);
 
-    function clearConsoleLogs() { $consoleLog.empty(); }
-    $('#btnClearConsole').click(clearConsoleLogs);
+    function clearConsoleLogs() {
+	$consoleLog.empty();
+	// Xóa luôn dữ liệu đã lưu trong localStorage
+	localStorage.removeItem('console_logs_html');
+}
+$('#btnClearConsole').click(clearConsoleLogs);
 
-    function logToConsole(message, type = 'log') {
-        let extraClass = '';
-        if (type === 'error') extraClass = 'log-error';
-        if (type === 'info') extraClass = 'log-info';
-        if (type === 'return') extraClass = 'log-return';
+				function logToConsole(message, type = 'log') {
+    let extraClass = '';
+    if (type === 'error') extraClass = 'log-error';
+    if (type === 'info') extraClass = 'log-info';
+    if (type === 'return') extraClass = 'log-return';
 
-        let headerPrefix = type === 'return' ? `👉 [Return] ` : ``;
-        let $logItem = $('<div>').addClass('log-item').addClass(extraClass);
-        
-        if (headerPrefix) {
-            $logItem.append($('<span>').text(headerPrefix));
-        }
-
-        // TỰ ĐỘNG DỰNG CÂY OBJECT NẾU LÀ ĐỐI TƯỢNG (OBJECT, JQUERY, ARRAY, DOM)
-        if (typeof message === 'object' && message !== null) {
-            $logItem.append(renderObjectToTree(message));
-        } else {
-            // Định dạng chuỗi JSON thô nếu chuỗi nhập vào dạng cấu trúc {} hoặc []
-            let formattedMessage = message;
-            if (typeof message === 'string') {
-                let trimmed = message.trim();
-                if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-                    try { parsed = JSON.parse(message); formattedMessage = JSON.stringify(parsed, null, 4); } catch (e) {}
-                }
-            }
-            $logItem.append($('<span>').text(formattedMessage));
-        }
-        
-        $consoleLog.prepend($logItem);
-        $consoleLog.scrollTop(0);
+    let headerPrefix = type === 'return' ? `👉 [Return] ` : ``;
+    let $logItem = $('<div>').addClass('log-item').addClass(extraClass);
+    
+    if (headerPrefix) {
+        $logItem.append($('<span>').text(headerPrefix));
     }
 
-    const nativeLog = console.log;
+    // TỰ ĐỘNG DỰNG CÂY OBJECT NẾU LÀ ĐỐI TƯỢNG (OBJECT, JQUERY, ARRAY, DOM)
+    if (typeof message === 'object' && message !== null) {
+        $logItem.append(renderObjectToTree(message));
+    } else {
+        // Định dạng chuỗi JSON thô nếu chuỗi nhập vào dạng cấu trúc {} hoặc []
+        let formattedMessage = message;
+        if (typeof message === 'string') {
+            let trimmed = message.trim();
+            if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+                try { parsed = JSON.parse(message); formattedMessage = JSON.stringify(parsed, null, 4); } catch (e) {}
+            }
+        }
+        $logItem.append($('<span>').text(formattedMessage));
+    }
+    
+    $consoleLog.prepend($logItem);
+    $consoleLog.scrollTop(0);
+
+    // === NÂNG CẤP: LƯU TOÀN BỘ HTML CONSOLE VÀO LOCALSTORAGE NGAY KHI CÓ THAY ĐỔI ===
+    localStorage.setItem('console_logs_html', $consoleLog.html());
+
+    // --- HIỆU ỨNG NHẬP NHÁY THÔNG BÁO LOG MỚI ---
+    let $consoleTab = $('.tab-button[data-tab="console"]');
+    let $outputPanel = $('.output-panel');
+
+    $consoleTab.css('transition', 'all 0.15s ease-in-out');
+    $outputPanel.css('transition', 'box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out');
+
+    $consoleTab.css({'background-color': '#1a365d', 'color': '#3498db'});
+    $outputPanel.css({
+        'background-color': '#050c14',
+        'box-shadow': 'inset 0 0 15px rgba(52, 152, 219, 0.4)'
+    });
+
+    setTimeout(function() {
+        $consoleTab.css('background-color', '');
+        if (!$consoleTab.hasClass('active')) {
+            $consoleTab.css('color', '#888');
+        } else {
+            $consoleTab.css('color', '#3498db');
+        }
+
+        $outputPanel.css({
+            'background-color': '#000000',
+            'box-shadow': 'none'
+        });
+    }, 250);
+}
+				
+				const nativeLog = console.log;
     const nativeError = console.error;
 
     function lockDownRedirects() {
@@ -865,48 +1030,63 @@
         }
     });
 
-    function executeEngine(runMode) {
-        let htmlCode = $htmlInput.val();
-        if (htmlCode) {
-            let $cleanHtml = $('<div>').html(htmlCode);
-            $cleanHtml.find('script').remove(); 
-            $sandbox.html($cleanHtml.html());
-        } else { $sandbox.empty(); }
-
-        lockDownRedirects();
-        let jsCode = $jsInput.val();
-        localStorage.setItem(JS_STORAGE_KEY, jsCode);
-
-        window.console.log = function(...args) {
-            logToConsole(args.length > 1 ? args : args[0]);
-            nativeLog.apply(console, args);
-        };
-        window.console.error = function(...args) {
-            logToConsole(args.length > 1 ? args : args[0], 'error');
-            nativeError.apply(console, args);
-        };
-
-        let executeCode = '';
-        if (runMode === 'single') {
-            let selectedFunc = $functionSelect.val();
-            let customParamsValue = $paramInput.val().trim();
-            logToConsole(`--- Bắt đầu chạy hàm: ${selectedFunc}(${customParamsValue}) ---`, 'info');
-            executeCode = `${jsCode}\n;try { let result = ${selectedFunc}(${customParamsValue}); if(result !== undefined) console.info(result); } catch(err) { console.error(err.message); }`;
-        } else {
-            logToConsole('--- Bắt đầu chạy toàn bộ JavaScript ---', 'info');
-            let lines = jsCode.trim().split('\n');
-            if (lines.length > 0) {
-                let lastLine = lines[lines.length - 1].trim();
-                let isStructural = lastLine.endsWith('}') || lastLine.endsWith(';') || lastLine.includes('var ') || lastLine.includes('let ') || lastLine.includes('const ') || lastLine.includes('function') || lastLine.includes('console.') || lastLine.startsWith('//') || lastLine.startsWith('/*') || lastLine.includes('=');
-                if (lastLine && !isStructural) {
-                    lines[lines.length - 1] = `let __repl_res = (${lastLine}); if(__repl_res !== undefined) console.info(__repl_res);`;
-                    executeCode = lines.join('\n');
-                } else { executeCode = jsCode; }
-            } else { executeCode = jsCode; }
-        }
-
-        try {
-            let interceptorJs = `
+function executeEngine(runMode) {
+	$('.tab-button[data-tab="console"]').trigger('click');
+	let htmlCode = $htmlInput.val();
+	if (htmlCode) {
+		let $cleanHtml = $('<div>').html(htmlCode);
+		$cleanHtml.find('script').remove();
+		$sandbox.html($cleanHtml.html());
+	} else { $sandbox.empty(); }
+	
+	lockDownRedirects();
+	let jsCode = $jsInput.val();
+	localStorage.setItem(JS_STORAGE_KEY, jsCode);
+	
+	window.console.log = function(...args) {
+		logToConsole(args.length > 1 ? args : args[0]);
+		nativeLog.apply(console, args);
+	};
+	window.console.error = function(...args) {
+		logToConsole(args.length > 1 ? args : args[0], 'error');
+		nativeError.apply(console, args);
+	};
+	
+	let executeCode = '';
+	if (runMode === 'single') {
+		let selectedFunc = $functionSelect.val();
+		let customParamsValue = $paramInput.val().trim();
+		logToConsole(`--- Bắt đầu chạy hàm: ${selectedFunc}(${customParamsValue}) ---`, 'info');
+		executeCode = `${jsCode}\n;try { let result = ${selectedFunc}(${customParamsValue}); if(result !== undefined) console.info(result); } catch(err) { console.error(err.message); }`;
+	} else {
+		// Đã lược bỏ dòng log tiêu đề cũ theo ý bạn
+		let lines = jsCode.trim().split('\n');
+		if (lines.length > 0) {
+			let lastLine = lines[lines.length - 1].trim();
+			
+			// --- ĐÃ SỬA: Nới lỏng điều kiện kiểm tra biến ở dòng cuối ---
+			let isStructural = lastLine.endsWith(';') ||
+				lastLine.endsWith('}') ||
+				lastLine.startsWith('if') ||
+				lastLine.startsWith('for') ||
+				lastLine.startsWith('while') ||
+				lastLine.startsWith('//') ||
+				lastLine.startsWith('/*');
+			
+			if (lastLine && !isStructural) {
+				// Tự động bọc dòng cuối lại để in kết quả ra Console
+				lines[lines.length - 1] = `try { let __repl_res = (${lastLine}); if(__repl_res !== undefined) console.info(__repl_res); } catch(e) { ${lastLine} }`;
+				executeCode = lines.join('\n');
+			} else {
+				executeCode = jsCode;
+			}
+		} else {
+			executeCode = jsCode;
+		}
+	}
+	
+	try {
+		let interceptorJs = `
                 (function($, jQuery){
                     var html = window.html;
                     console.info = function(msg) { window.customLogReturn(msg); };
@@ -917,11 +1097,10 @@
                     return jQuery(selector, context || '#sandbox'); 
                 });
             `;
-            window.customLogReturn = function(val) { logToConsole(val, 'return'); };
-            window.eval(interceptorJs);
-        } catch (error) { logToConsole(error.name + ': ' + error.message, 'error'); }
-    }
-
+		window.customLogReturn = function(val) { logToConsole(val, 'return'); };
+		window.eval(interceptorJs);
+	} catch (error) { logToConsole(error.name + ': ' + error.message, 'error'); }
+}
     document.addEventListener('keydown', function(event) {
         if (event.ctrlKey && event.key === 'Enter') {
             event.preventDefault(); executeEngine('all');
@@ -954,14 +1133,87 @@
         navigator.clipboard.writeText(allLogs.reverse().join('\n'));
         logToConsole("Đã sao chép toàn bộ log Console vào Clipboard.", "info");
     });
+				
+				// --- TÍNH NĂNG: TỰ ĐỘNG BẬT FULLSCREEN & KHÔI PHỤC CÂY DOM TRÍCH XUẤT CŨ ---
+			// --- TÍNH NĂNG: TỰ ĐỘNG BẬT FULLSCREEN & KHÔI PHỤC CÂY DOM NẾU CÓ GHI NHỚ ---
 
-    // GIẢI QUYẾT TRIỆT ĐỂ NÚT COPY TRÍCH XUẤT: Click chuột vào ô kết quả trích xuất để sao chép chuẩn 100% mã nguồn gốc (outerHTML)
-    $extractedCodeOutput.on('click', '.tree-node', function(e) {
-        e.stopPropagation(); // Ngăn sự kiện nổi bọt lên các tag cha bọc ngoài
-        let rawHtml = $(this).data('raw-html');
-        if(rawHtml) {
-            
+// --- TÍNH NĂNG: TỰ ĐỘNG BẬT FULLSCREEN & KHÔI PHỤC CÂY DOM TRÍCH XUẤT + CONSOLE LOGS ---
+setTimeout(function() {
+	// ==========================================
+	// PHẦN 1: KHÔI PHỤC TOÀN BỘ CONSOLE LOGS CŨ
+	// ==========================================
+	let savedConsoleHtml = localStorage.getItem('console_logs_html');
+	if (savedConsoleHtml) {
+		$consoleLog.html(savedConsoleHtml);
+		
+		// QUAN TRỌNG: Gắn lại sự kiện click đóng/mở (toggle) cho các Object Tree và DOM Tree trong Console
+		$consoleLog.find('.tree-toggle').off('click').on('click', function(e) {
+			e.stopPropagation();
+			$(this).toggleClass('collapsed').html($(this).hasClass('collapsed') ? '▶' : '▼');
+			$(this).siblings('.tree-children').toggleClass('hidden');
+		});
+		
+		// Gắn lại sự kiện click bôi đen nội dung (chuỗi dài xem thêm...) trong Console nếu có
+		$consoleLog.find('.html-val').css('cursor', 'pointer');
+	}
+	
+	// ==========================================
+	// PHẦN 2: KHÔI PHỤC TRẠNG THÁI FULLSCREEN & KHUNG TRÍCH XUẤT CŨ
+	// ==========================================
+	let isFullscreenRemembered = localStorage.getItem('inspect_fullscreen_remember') === 'true';
+	if (!isFullscreenRemembered) return;
+	
+	$('.tab-button[data-tab="inspect"]').trigger('click');
+	$('body').addClass('inspect-fullscreen-mode');
+	$panelExtracted.appendTo('body').show();
+	
+	let savedInfoText = localStorage.getItem('extracted_info_text');
+	let savedTreeHtml = localStorage.getItem('extracted_tree_html');
+	let savedRawHtml = localStorage.getItem('extracted_root_raw_html');
+	
+	if (savedTreeHtml) {
+		$infoBarText.html(savedInfoText || "");
+		$(".panel-title span").html(savedInfoText || "");
+		$extractedCodeOutput.html(savedTreeHtml);
+		
+		if (savedRawHtml) {
+			$extractedCodeOutput.children('.tree-node').first().data('raw-html', savedRawHtml);
+		}
+		
+		// Gắn lại sự kiện toggle cho khung trích xuất element
+		$extractedCodeOutput.find('.tree-toggle').off('click').on('click', function(e) {
+			e.stopPropagation();
+			$(this).toggleClass('collapsed').html($(this).hasClass('collapsed') ? '▶' : '▼');
+			$(this).siblings('.tree-children').toggleClass('hidden');
+		});
+	}
+}, 100);
+		
+    $('#btnExtractMeta').on('click', function() {
+        let htmlContent = $htmlInput.val();
+        if (!htmlContent) {
+            logToConsole("Không có dữ liệu HTML để trích xuất Meta!", "error");
+            return;
         }
+
+        let $tempDom = $('<div>').html(htmlContent);
+        let $metaAndLinks = $tempDom.find('meta, link');
+
+        if ($metaAndLinks.length === 0) {
+            $extractedCodeOutput.html('<div style="color: #888; font-style: italic; padding: 10px;">Không tìm thấy thẻ &lt;meta&gt; hoặc &lt;link&gt; nào.</div>');
+            return;
+        }
+
+        $extractedCodeOutput.empty();
+        $metaAndLinks.each(function() {
+            let $treeNode = renderDomToTree(this);
+            if ($treeNode) {
+                $extractedCodeOutput.append($treeNode);
+            }
+        });
+
+        //$infoBarText.html(`<strong>Đã trích xuất thành công:</strong> Tìm thấy <b>${$metaAndLinks.length}</b> thẻ Meta & Link.`);
+        $extractedCodeOutput.scrollTop(0).scrollLeft(0);
     });
 });
 		</script>
