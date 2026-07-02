@@ -4,12 +4,13 @@
 // =============================================================================
 BaseURL = "https://script.google.com/macros/s/AKfycbydwasfO9sUsP7nSduOON6yKVZUMpSraNRFb58knwl_AKpb6vixCuPe-uptcpaGIiXBEw/exec";
 BaseJSON = "";
+
 function getManifest() {
     return JSON.stringify({
         "id": "testvideo",          
         "name": "Test",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -72,23 +73,22 @@ function getUrlYears() { return ""; }
 
 function parseListResponse(html) {
     try {
-        BaseJSON = JSON.parse(html);
-        BaseJSON = BaseJSON[0];
-        var $url = BaseJSON.url;
-        var items = [];
-            items.push({
-                "id": $url,          
-                "title": $url, 
-                "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",  
-                "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png"
-            });
+        // Lưu trữ object đầu tiên trực tiếp vào BaseJSON toàn cục để các hàm sau dùng tiện lợi
+        var parsed = JSON.parse(html);
+        BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
         
-        var totalPages = 1; 
-        var currentPage = 1; 
-
+        var $url = BaseJSON.url || "";
+        var items = [];
+        items.push({
+            "id": $url,          
+            "title": $url, 
+            "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",  
+            "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png"
+        });
+        
         return JSON.stringify({
             "items": items,
-            "pagination": { "currentPage": currentPage, "totalPages": totalPages }
+            "pagination": { "currentPage": 1, "totalPages": 1 }
         });
     } catch (e) {
         return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
@@ -99,32 +99,22 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-/*Code Example
-[
-  {
-    "url": "https://trak.ink/xem-phim/bo-chinh-am/tap-full-sv-vietsub/",
-    "codea": "var rmatch = html.match(/id=\"streaming-sv\"[^>]*?data-link=\"(https?:[^\"]*)\"/i);\nif (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }\nconsole.log(streamUrl);",
-    "codeb": "",
-    "link": "https://cdn.phimhayok.net/filmhayok/hls/6a44d0fa4b6c7b7d3015fe46/20260701083402/playlist.m3u8",
-    "ref": "https://cdn.phimhayok.net",
-    "codec": "",
-    "coded": "",
-    "codee": ""
-  }
-]
-*/
-
 function parseMovieDetail(html) {
     try {
         var id = BaseURL;
-        eval(BaseJSON.codea)
+        
+        // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
+        var streamUrl = ""; 
+        if (BaseJSON && BaseJSON.codea) {
+            // Lưu ý: Đảm bảo chuỗi BaseJSON.codea không thao tác nhầm trên biến html gốc của API
+            eval(BaseJSON.codea); 
+        }
+        
         var title = "Chưa rõ tên phim";
         var year = "2026";
         var des = streamUrl + "\r\n\r\n" + JSON.stringify(BaseJSON);
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
-        var movieUrl = "";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
-		    var linkfrist = "";      
         
         return JSON.stringify({
             "id": id,
@@ -142,16 +132,18 @@ function parseMovieDetail(html) {
         return JSON.stringify({ "id": "error", "title": "Lỗi tải dữ liệu", "servers": [] });
     }
 }
-//  <a onclick="chooseStreamingServer(this)" data-type="m3u8" id="streaming-sv" data-id="1" data-link="https://cdn.phimhayok.net/filmhayok/hls/6a3a9626d63a92f33ffa0063/20260623142024/playlist.m3u8" class="streaming-server tag-link" style="background: #232328;color: #FFF">
+
 function parseDetailResponse(html) {
     try {
-        var videoUrl = BaseJSON.link;
+        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        var videoUrl = BaseJSON.link || "";
+        var refUrl = BaseJSON.ref || "https://cdn.phimhayok.net";
         
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
-                "Referer": BaseJSON.ref,
-                "Origin": BaseJSON.ref,
+                "Referer": refUrl,
+                "Origin": refUrl,
                 "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
             },
             "subtitles": []
@@ -162,7 +154,6 @@ function parseDetailResponse(html) {
     }
 }
 
-// KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
