@@ -1,19 +1,19 @@
 // =============================================================================
 // VAAPP Plugin - Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
-// Tên file bắt buộc khi lưu: crophim_plugin.js
+// Tên file bắt buộc khi lưu:s crophim_plugin.js
 // =============================================================================
-
+BaseURL = "https://trak.ink";
 function getManifest() {
     return JSON.stringify({
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
         "version": "1.1",             
-        "baseUrl": "https://crimescenesolutions.co.za",
+        "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE",
-        "playerType": "exoplayer"
+        "playerType": "auto"
     });
 }
 
@@ -55,19 +55,19 @@ function getUrlList(slug, filtersJson) {
     var page = filters.page || 1;
     
     if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
-        return "https://crimescenesolutions.co.za/page/" + page + "/?s=&genres=" + slug;
+        return BaseURL + "/page/" + page + "/?s=&genres=" + slug;
     }
-    return "https://crimescenesolutions.co.za/page/" + page + "/?s=&categories=" + slug;
+    return BaseURL + "/page/" + page + "/?s=&categories=" + slug;
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://crimescenesolutions.co.za/?s=" + encodeURIComponent(keyword);
+    return BaseURL + "/?s=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://crimescenesolutions.co.za/" + slug;
+    return BaseURL + "/" + slug;
 }
 
 function getUrlCategories() { return ""; }
@@ -267,60 +267,24 @@ function parseDetailResponse(html) {
         
         var rmatch = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
    	    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
-		var customJs = `
-      function initCustomVideoFix() {
-        alert('${decodedUrl}');
-      
-        // 1. Chèn CSS dọn dẹp giao diện (ẩn footer, sidebar, navbar...)
-        const style = document.createElement('style');
-        style.innerHTML = '';
-        document.head.appendChild(style);
-      
-        // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
-        const checkInterval = setInterval(() => {
-          const theaterButton = document.querySelector('.icon-theater.vjs-control.vjs-button');
-          const video = document.querySelector('video');
-      
-          // Chỉ xử lý khi cả nút bấm và thẻ video đều đã xuất hiện trên trang
-          if (theaterButton && video) {
-            clearInterval(checkInterval); // Tìm thấy rồi thì dừng vòng lặp kiểm tra
-      
-            // Xử lý nút Cinema mode
-            const buttonText = theaterButton.innerText || theaterButton.textContent || "";
-            if (buttonText.toLowerCase().includes('cinema mode')) {
-              theaterButton.click();
-              console.log("Đã kích hoạt Cinema mode thành công!");
+		
+          return JSON.stringify({
+              url: streamUrl,
+              "headers": {
+                "Referer": BaseURL,
+                "Origin": BaseURL,
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome"
             }
-      
-            // Xử lý bật tiếng video
-            if (video.muted) {
-              video.muted = false;
-              console.log("Đã mở tiếng video thành công!");
-            }
-          }
-        }, 200); // Cứ mỗi 0.2 giây sẽ kiểm tra lại một lần
-      
-        // Bảo hiểm: Tự động dừng kiểm tra sau 10 giây nếu trang bị lỗi không tải được video
-        setTimeout(() => clearInterval(checkInterval), 10000);
-      }
-      
-      // Kiểm tra trạng thái trang để kích hoạt hàm an toàn nhất
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCustomVideoFix);
-      } else {
-        initCustomVideoFix();
-      }
-      `;
-
-      return JSON.stringify({
-          url: streamUrl,
-          headers: {
-              "Referer": "https://crimescenesolutions.co.za",
-              "Origin": "https://crimescenesolutions.co.za",
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-              "Custom-Js": customJs.trim()
-          }
-      });
+          });
           } catch (error) {
               return JSON.stringify({ url: "", headers: {} });
           }
