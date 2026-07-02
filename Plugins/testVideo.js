@@ -2,14 +2,14 @@
 // VAAPP Plugin - Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
 // Tên file bắt buộc khi lưu: crophim_plugin.js
 // =============================================================================
-
+BaseURL = "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec";
 function getManifest() {
     return JSON.stringify({
         "id": "testvideo",          
         "name": "Test",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.1",             
-        "baseUrl": "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec",
+        "version": "1.3",             
+        "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE",
@@ -46,19 +46,19 @@ function getUrlList(slug, filtersJson) {
     var page = filters.page || 1;
     
     if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
-        return "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec";
+        return BaseURL;
     }
-    return "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec";
+    return BaseURL;
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec";
+    return BaseURL;
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec";
+    return BaseURL;
 }
 
 function getUrlCategories() { return ""; }
@@ -73,7 +73,7 @@ function parseListResponse(html) {
     try {
         var items = [];
             items.push({
-                "id": "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec",          
+                "id": BaseURL,          
                 "title": "testvideo", 
                 "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",  
                 "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png"
@@ -97,7 +97,7 @@ function parseSearchResponse(html) {
 
 function parseMovieDetail(html) {
     try {
-        var id = "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec";
+        var id = BaseURL;
         var title = "Chưa rõ tên phim";
         var year = "2026";
         var des = "Chưa có mô tả.";
