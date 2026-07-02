@@ -1,36 +1,28 @@
 // =============================================================================
-// CONFIGURATION & METADATA
+// CONFIGURATION & METADATA - 18 PORN (Độc lập hoàn toàn)
 // =============================================================================
 
-/**
- * Định nghĩa thông tin cơ bản của Plugin.
- */
-BaseURL = "https://www.18porn.sex";
+BaseURL18 = "https://www.18porn.sex";
+
 function getManifest() {
  return JSON.stringify({
   "id": "newporn", 
   "name": "18 Porn", 
-  "version": "1.4", 
-  "baseUrl": BaseURL, 
-  "iconUrl": BaseURL + "/images/logo.png", 
+  "version": "1.1", 
+  "baseUrl": BaseURL18, 
+  "iconUrl": BaseURL18 + "/images/logo.png", 
   "isEnabled": true, 
   "type": "MOVIE", 
   "playerType": "auto"
  });
 }
 
-/**
- * Định nghĩa các mục (Sections) hiển thị ở trang chủ.
- */
 function getHomeSections() {
  return JSON.stringify([
   { slug: 'new', title: 'Hàng Mới', type: 'Grid' }
  ]);
 }
 
-/**
- * Danh mục chính.
- */
 function getPrimaryCategories() {
  return JSON.stringify([
   { name: 'Vú Bự', slug: 'categories/big-tits' },
@@ -41,9 +33,6 @@ function getPrimaryCategories() {
  ]);
 }
 
-/**
- * Cấu hình bộ lọc.
- */
 function getFilterConfig() {
  return JSON.stringify({
   sort: [
@@ -54,30 +43,26 @@ function getFilterConfig() {
  });
 }
 
-// =============================================================================
-// URL GENERATION
-// =============================================================================
-
 function getUrlList(slug, filtersJson) {
     try {
      var filters = JSON.parse(filtersJson || "{}");
      var page = filters.page || 1;
      
      if (page > 1) {
-      return BaseURL + "/" + slug + "/" + page;
+      return BaseURL18 + "/" + slug + "/" + page;
      }
-     return BaseURL + "/" + slug;
+     return BaseURL18 + "/" + slug;
     } catch (e) {
-     return BaseURL + "/" + slug;
+     return BaseURL18 + "/" + slug;
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return BaseURL + "/search/MOM/" + encodeURIComponent(keyword);
+    return BaseURL18 + "/search/MOM/" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
-    return BaseURL + "/" + slug;
+    return BaseURL18 + "/" + slug;
 }
 
 function getUrlCategories() { return ""; }
@@ -85,12 +70,9 @@ function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
 // =============================================================================
-// PARSERS
+// PARSERS - 18 PORN
 // =============================================================================
 
-/**
- * Phân tích danh sách phim từ HTML
- */
 function parseListResponse(html) {
  try {
   var items = [];
@@ -128,7 +110,6 @@ function parseListResponse(html) {
    });
   }
   
-  // Xử lý phân trang an toàn
   let currentPage = 1;
   let currentMatch = html.match(/class="page-current"[^>]*>\s*<span>\s*(\d+)/i);
   if (currentMatch) {
@@ -159,9 +140,6 @@ function parseSearchResponse(html) {
  return parseListResponse(html);
 }
 
-/**
- * Phân tích chi tiết phim và tạo danh sách Server
- */
 function parseMovieDetail(html) {
  var limg = "";
  var lname = "Đang cập nhật...";
@@ -193,11 +171,10 @@ function parseMovieDetail(html) {
   var elink = "";
   var dlink = "";
   
-  // Khai báo var đầy đủ cho idvideo để tránh bẫy lỗi strict mode
   rmatch = html.match(/video_id[\s\S]*?\'(\d+)\'/);
   if (rmatch && rmatch[1]) { 
    var idvideo = rmatch[1].trim();
-   elink = BaseURL + "/embed/" + idvideo; // Đã sửa từ BaseUrl thành BaseURL
+   elink = BaseURL18 + "/embed/" + idvideo;
   }
   
   rmatch = html.match(/video_url:\s*['"](https:\/\/[^'"]+)['"]/i);
@@ -205,14 +182,17 @@ function parseMovieDetail(html) {
    dlink = rmatch[1].trim(); 
   }
   
-  // Đã chuẩn hóa mảng episodes về dạng phẳng (mảng 1 chiều chứa các tập phim)
-  servers = [{
-    name: "Server Hệ Thống",
-    episodes: [
-      { id: dlink, name: "Server Gốc (MP4)", slug: "tap-1" },
-      { id: elink, name: "Server Dự Phòng (Embed)", slug: "tap-2" }
-    ]
-  }];
+  // SỬA ĐÚNG CHUẨN: Tách thành 2 Server riêng biệt để người dùng chọn nguồn
+  servers = [
+    {
+      name: "Server Gốc (MP4)",
+      episodes: [{ id: dlink || elink, name: "Xem Ngay", slug: "full" }]
+    },
+    {
+      name: "Server Dự Phòng (Embed)",
+      episodes: [{ id: elink || dlink, name: "Xem Ngay", slug: "full" }]
+    }
+  ];
 
   return JSON.stringify({
    id: dlink || elink || "",
@@ -232,23 +212,25 @@ function parseMovieDetail(html) {
   });
   
  } catch (error) {
-  console.error("Lỗi tổng thể của hàm parseMovieDetail:", error);
   return "null";
  }
 }
 
 /**
- * Cấu hình HTTP Headers khi phát video
+ * SỬA ĐÚNG CHUẨN: Trả về trực tiếp đường dẫn ID truyền vào để phát video
  */
 function parseDetailResponse(html) {
+ // linkId chính là cái id (dlink hoặc elink) được chọn từ cấu trúc episodes bên trên truyền vào
  return JSON.stringify({
   url: "", 
-  headers: { "User-Agent": "Mozilla/5.0", "Referer": BaseURL }, // Đã sửa thành BaseURL
+  headers: { 
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", 
+    "Referer": BaseURL18 
+  }, 
   subtitles: [] 
  });
 }
 
-// KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
-function parseCategoriesResponse(html) { return "[]"}
-function parseCountriesResponse(html) { return "[]"}
-function parseYearsResponse(html) { return "[]"}
+function parseCategoriesResponse(html) { return "[]"; }
+function parseCountriesResponse(html) { return "[]"; }
+function parseYearsResponse(html) { return "[]"; }
