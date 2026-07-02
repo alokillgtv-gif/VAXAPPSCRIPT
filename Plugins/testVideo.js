@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.5",             
+        "version": "1.0",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -109,7 +109,7 @@ function parseMovieDetail(html) {
         if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         var title = "Chưa rõ tên phim";
         var year = "2026";
-        var des = html + "\r\n\r\n" + streamUrl;
+        var des = streamUrl + "\r\n\r\n" + html;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
         
