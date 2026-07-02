@@ -8,7 +8,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.2",             
+        "version": "1.1",             
         "baseUrl": "https://script.google.com/macros/s/AKfycbwen0-k5gXcj4UNeKMGVY1zQQ_KPepFCfM7aSXHnnyhLOJ_ViI0KzN6YLqrUAsYyD-qAg/exec",
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -103,7 +103,7 @@ function parseMovieDetail(html) {
         var des = "Chưa có mô tả.";
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var movieUrl = "";
-        var episodes = { id: id, name: "Xem Ngay", slug: "full" };
+        var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
 		    var linkfrist = "";
         
         return JSON.stringify({
