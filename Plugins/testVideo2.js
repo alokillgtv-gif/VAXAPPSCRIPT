@@ -154,7 +154,7 @@ function parseDetailResponse(html) {
                 "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
                 "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs
+                "Custom-Js": customjs.trim()
             },
             "subtitles": []
         });
