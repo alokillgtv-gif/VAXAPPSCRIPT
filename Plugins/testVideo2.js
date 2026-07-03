@@ -8,7 +8,7 @@ BaseJSON = "";
 function getManifest() {
     return JSON.stringify({
         "id": "testvideo2",          
-        "name": "Test",
+        "name": "Test Exoplayer",
         "description": "Nguồn xem phim Online ổn định",
         "version": "1.5",             
         "baseUrl": BaseURL,
