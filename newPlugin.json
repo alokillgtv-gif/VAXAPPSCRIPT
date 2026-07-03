@@ -30,8 +30,15 @@
             "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/ophim.ico"
         },
         {
+            "id": "testvideo2",
+            "name": "Test Exoplayer",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/testVideo2.js",
+            "iconUrl": "https://www.18porn.sex/images/logo.png"
+        },
+        {
             "id": "testvideo",
-            "name": "testvideo",
+            "name": "Test Embed",
             "version": "1.0",
             "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/testVideo.js",
             "iconUrl": "https://viet69z.me/wp-content/uploads/2023/05/logo.png"
