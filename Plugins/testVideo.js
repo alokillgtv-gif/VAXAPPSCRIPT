@@ -15,7 +15,7 @@ function getManifest() {
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "VIDEO",
-        "playerType": "auto"
+        "playerType": "embed"
     });
 }
 
