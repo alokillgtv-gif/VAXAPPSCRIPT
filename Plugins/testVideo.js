@@ -10,12 +10,12 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.3",             
+        "version": "1.5",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "VIDEO",
-        "playerType": "embedtoexoplay"
+        "playerType": "auto"
     });
 }
 
@@ -138,6 +138,7 @@ function parseDetailResponse(html) {
         var videoUrl = BaseJSON.link || "";
         var refUrl = BaseJSON.ref || "";
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+        var customjs = BaseJSON.codec || ""
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
@@ -152,7 +153,8 @@ function parseDetailResponse(html) {
     // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
                 "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome"
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs
             },
             "subtitles": []
         });
