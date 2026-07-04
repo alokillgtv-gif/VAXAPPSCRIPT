@@ -5,12 +5,12 @@
 BaseURL = "https://heovl.im";
 function getManifest() {
     return JSON.stringify({
-        "id": "heovl",          
+        "id": "heovl",
         "name": "Heovl",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.0",             
+        "version": "1.0",
         "baseUrl": BaseURL,
-        "iconUrl": BaseURL + "/resize/50/2024/05/09/3aecc32e86cf3a79a98ed9f567354ab1fdd5d5355ddefdbb24855553b519a396.png", 
+        "iconUrl": BaseURL + "/resize/50/2024/05/09/3aecc32e86cf3a79a98ed9f567354ab1fdd5d5355ddefdbb24855553b519a396.png",
         "isEnabled": true,
         "type": "VIDEO",
         "playerType": "embed"
