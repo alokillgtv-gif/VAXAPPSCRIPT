@@ -8,7 +8,25 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.1",
+        "version": "1.2",
+        "baseUrl": BaseURL,
+        "iconUrl": BaseURL + "/resize/50/2024/05/09/3aecc32e86cf3a79a98ed9f567354ab1fdd5d5355ddefdbb24855553b519a396.png",
+        "isEnabled": true,
+        "type": "VIDEO",
+        "playerType": "embed"
+    });
+}
+// =============================================================================
+// VAAPP Plugin-Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
+// Tên file bắt buộc khi lưu:s crophim_plugin.js
+// =============================================================================
+BaseURL = "https://heovl.im";
+function getManifest() {
+    return JSON.stringify({
+        "id": "heovl",
+        "name": "Heovl",
+        "description": "Nguồn xem phim XXX ổn định",
+        "version": "1.0",
         "baseUrl": BaseURL,
         "iconUrl": BaseURL + "/resize/50/2024/05/09/3aecc32e86cf3a79a98ed9f567354ab1fdd5d5355ddefdbb24855553b519a396.png",
         "isEnabled": true,
@@ -21,14 +39,6 @@ function getManifest() {
 function buildMenu(listurl){
 // 2. Khởi tạo mảng chứa kết quả
 let menulist = [];
-
-// 3. Sử dụng RegExp để khớp từng dòng theo ký tự @@
-// Ý nghĩa RegExp: 
-// ^([^@\r\n]+)  -> Nhóm 1 (link): Tìm các ký tự không phải@hay xuống dòng từ đầu dòng
-// @@            -> Phân tách bằng cụm @@ thứ nhất
-// ([^@\r\n]+)   -> Nhóm 2 (name): Tìm các ký tự tiếp theo không phải@hay xuống dòng
-// (?:@@([^@\r\n]+))? -> Nhóm 3 (check-tùy chọn): Nếu có cụm @@ thứ hai thì bắt lấy giá trị đi sau nó
-// /gm           -> g: tìm tất cả các dòng, m: duyệt theo chế độ nhiều dòng
 let regex = /^([^@\r\n]+)@@([^@\r\n]+)(?:@@([^@\r\n]+))?/gm;
 let match;
 
