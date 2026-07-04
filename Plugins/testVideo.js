@@ -20,6 +20,7 @@ function getManifest() {
 }
 
 function log(msg) {
+    nativeLog("" + msg);
     if (typeof nativeLog !== 'undefined') {
         nativeLog("" + msg);
     }
@@ -110,7 +111,7 @@ function parseSearchResponse(html) {
 function parseMovieDetail(html) {
     try {
         var id = BaseURL;
-        log("Tạo Chi Tiết và getlink:" + $url);
+        log("Tạo Chi Tiết và getlink:" + BaseURL);
         // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
         var streamUrl = ""; 
         var rmatch = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
