@@ -1,6 +1,14 @@
 {
     "version": 1,
     "plugins": [
+
+{
+            "id": "heovl",
+            "name": "Heovl",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/heovl_plugin.js",
+            "iconUrl": "https://heovl.im/resize/50/2024/05/09/3aecc32e86cf3a79a98ed9f567354ab1fdd5d5355ddefdbb24855553b519a396.png"
+        },
         {
             "id": "newporn",
             "name": "18 Porn",
