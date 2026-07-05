@@ -8,7 +8,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.0",
+        "version": "1.1",
         "baseUrl": BaseURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -146,24 +146,6 @@ function getUrlDetail(slug) {
 }
 
 function getUrlCategories() { return BASEURL; }
-
-function parseCategoriesResponse(apiResponseJson) {
-var listurl = `
-categories/viet-nam@@Việt Nam
-categories/nga-russia@@Nga(Russia)
-categories/vu-to@@Vú To
-categories/tap-the@@Tập Thể
-categories/hiep-dam@@Hiếp Dâm
-categories/loan-luan@@Loạn Luân
-categories/phim-cap-3@@Phim Cap 3
-categories/vietsub@@Vietsub
-categories/choi-lo-dit-anal-sex@@Chơi lỗ đít(Anal Sex
-categories/nhat-ban@@Nhật Bản
-`
-    var menulist = buildMenu(listurl);
-    
-    return JSON.stringify(menulist);
-}
 function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
@@ -394,5 +376,22 @@ if (document.readyState === 'loading') {
 
 // KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
 //function parseCategoriesResponse(html) { return "[]"}
+function parseCategoriesResponse(apiResponseJson) {
+    var listurl = `
+categories/viet-nam@@Việt Nam
+categories/nga-russia@@Nga(Russia)
+categories/vu-to@@Vú To
+categories/tap-the@@Tập Thể
+categories/hiep-dam@@Hiếp Dâm
+categories/loan-luan@@Loạn Luân
+categories/phim-cap-3@@Phim Cap 3
+categories/vietsub@@Vietsub
+categories/choi-lo-dit-anal-sex@@Chơi lỗ đít(Anal Sex
+categories/nhat-ban@@Nhật Bản
+`
+    var menulist = buildMenu(listurl);
+    
+    return JSON.stringify(menulist);
+}
 function parseCountriesResponse(html) { return "[]"}
 function parseYearsResponse(html) { return "[]"}
