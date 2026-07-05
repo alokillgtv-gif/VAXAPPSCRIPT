@@ -2,11 +2,11 @@ BASEURL = "https://motherless.xxx";
 function getManifest() {
     return JSON.stringify({
         "id": "motherless",
-        "name": "Mortherless",
+        "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.0",
-        "BASEURL": BASEURL,
-        "iconUrl": "https://motherless.xxx/images/logo-header-3.svg",
+        "version": "1.1",
+        "baseUrl": BASEURL,
+        "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
@@ -243,9 +243,9 @@ function getPrimaryCategories() {
 }
 
 function getFilterConfig() {
+    return JSON.stringify({
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
-    return JSON.stringify({
         category: menulist
     });
 }
