@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -79,7 +79,6 @@ function parseListResponse(html) {
         // Lưu trữ object đầu tiên trực tiếp vào BaseJSON toàn cục để các hàm sau dùng tiện lợi
         var parsed = JSON.parse(html);
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
-        localStorage.setItem("username", JSON.stringify(html));
         var $url = BaseJSON.url || "";
         var items = [];
         items.push({
@@ -141,11 +140,7 @@ function parseDetailResponse(html,url) {
         var refUrl = BaseJSON.ref || "";
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
         url = JSON.stringify(url);
-        var joinnew = "";
-        var BaseJSON2 = localStorage.getItem("username");
-        if(BaseJSON2){
-             joinnew += BaseJSON2 + "\r\n";
-        }
+        var joinnew = videoUrl;
         if(BaseURL){
             joinnew += BaseURL;
         }
