@@ -5,7 +5,7 @@ function getManifest() {
         "id": "motherless",
         "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.5",
+        "version": "1.1",
         "baseUrl": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -285,70 +285,94 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        // Tách theo class bọc ngoài của mỗi thumbnail video
-        var chunks = html.split('class="mobile-thumb-inner"');
         
-        // SỬA CHUẨN: i < chunks.length (Xóa bỏ hoàn toàn "- 1") để lấy tất cả các item, kể cả item cuối
-        for (var i = 1; i < chunks.length; i++) {
-            var blockHtml = chunks[i];
+        // Kiểm tra nếu HTML trả về là trang lỗi hoặc trang trống
+        if (!html || html.indexOf('body') === -1) {
+            return JSON.stringify({ items: [], pagination: { currentPage: 1, totalPages: 1 } });
+        }
+        
+        // Regex quét tìm mọi khối liên kết chứa ảnh thumbnail dạng: /giá_trị_id (thường là chuỗi số hoặc ký tự băm)
+        // Cấu trúc Motherless: <a href="/[Mã_Số]"><img ... src="[Link_Ảnh]" alt="[Tiêu_Đề]" /></a>
+        var regex = /<a[\s\S]*?href=["'](\/[A-F0-9]{7,15}|\/video\/[^"']+)["'][\s\S]*?>[\s\S]*?<img class="static" [\s\S]*?src=["']([^"']+)["'][\s\S]*?alt=["']([^"']+)["']/gi;
+        
+        var match;
+        // Quét toàn bộ HTML từ trên xuống dưới
+        while ((match = regex.exec(html)) !== null) {
+            var url = match[1];
+            var poster = match[2];
+            var title = match[3].trim();
             
-            if (!blockHtml.match(/img|href|video|src/i)) {
+            // Bỏ qua nếu dính icon hoặc ảnh đại diện avatar người dùng
+            if (poster.indexOf('avatar') > -1 || poster.indexOf('favicon') > -1 || !url) {
                 continue;
             }
             
-            // Tối ưu Regex lấy href: Chấp nhận mọi khoảng trắng hoặc xuống dòng bên trong thẻ <a>
-            var urlMatch = blockHtml.match(/<a[\s\S]*?href="([^"]+)"/i);
-            var url = "";
-            var title = "";
-            
-            if (urlMatch && urlMatch[1]) {
-                url = urlMatch[1];
-            } else {
-                continue; // Không có link thì bỏ qua block lỗi này
-            }
-            
+            // Chuẩn hóa URL video
             if (!url.startsWith("http")) {
-                url = url.startsWith("/") ? BASEURL + url : BASEURL + "/" + url;
+                url = BASEURL + url;
             }
             
-            // Lấy tiêu đề từ alt của ảnh trước
-            var rmatch = blockHtml.match(/alt="([^"]+)"/i);
-            if (rmatch && rmatch[1]) {
-                title = rmatch[1].trim();
-            } else {
-                // Nếu không có alt, tìm trong class title của thẻ <a>
-                rmatch = blockHtml.match(/class="title"[\s\S]*?>([\s\S]*?)<\/a>/i);
-                if (rmatch && rmatch[1]) {
-                    title = rmatch[1].trim();
-                }
+            // Chuẩn hóa URL ảnh poster (Xử lý nếu dính ảnh lười tải plc.gif)
+            if (html.indexOf('data-src=') > -1) {
+                // Nếu trang có dùng lazyload, ta bóc lại data-src kế cạnh khối đó
+                var subBlock = html.substring(match.index, match.index + 400);
+                var realImg = subBlock.match(/data-src=["']([^"']+)["']/i);
+                if (realImg && realImg[1]) poster = realImg[1];
             }
             
-            // Lấy ảnh poster (Hỗ trợ cả lazy load data-src lẫn src thông thường)
-            var posterMatch = blockHtml.match(/data-src="([^"]+)"/i) || blockHtml.match(/src="([^"]+)"/i);
-            var poster = posterMatch ? posterMatch[1] : "https://cdn5-static.motherlessmedia.com/images/plc.gif";
-            if (poster && !poster.startsWith("http")) {
-                poster = poster.startsWith("/") ? BASEURL + poster : BASEURL + "/" + poster;
+            if (!poster.startsWith("http")) {
+                poster = BASEURL + poster;
             }
             
-            // Làm sạch các thực thể chữ thừa trong HTML
+            // Giải mã chữ lỗi hiển thị
             title = title.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
             
-            items.push({
-                id: url,
-                title: title,
-                posterUrl: poster
-            });
+            // Kiểm tra trùng lặp ID trước khi push
+            var isDuplicate = false;
+            for (var j = 0; j < items.length; j++) {
+                if (items[j].id === url) { isDuplicate = true; break; }
+            }
+            
+            if (!isDuplicate) {
+                items.push({
+                    id: url,
+                    title: title,
+                    posterUrl: poster
+                });
+            }
+        }
+        
+        // Nếu dùng Regex quét gắt quá vẫn rỗng, dùng phương án dự phòng cuối cùng: bóc chay thẻ <a>
+        if (items.length === 0) {
+            var fallbackMatches = html.match(/<div class=["']thumb-title["']>[\s\S]*?href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi);
+            if (fallbackMatches) {
+                for (var k = 0; k < fallbackMatches.length; k++) {
+                    var linkM = fallbackMatches[k].match(/href=["']([^"']+)["']/i);
+                    var textM = fallbackMatches[k].match(/>([^<]+)<\/a>/i);
+                    if (linkM && linkM[1]) {
+                        var fUrl = linkM[1].startsWith("http") ? linkM[1] : BASEURL + linkM[1];
+                        var fTitle = textM ? textM[1].trim() : "Video";
+                        items.push({
+                            id: fUrl,
+                            title: fTitle,
+                            posterUrl: "https://cdn5-static.motherlessmedia.com/images/plc.gif"
+                        });
+                    }
+                }
+            }
         }
         
         return JSON.stringify({
             items: items,
             pagination: { currentPage: 1, totalPages: 999 }
         });
+        
     } catch (e) {
-        console.error("Lỗi Parse:", e);
         return JSON.stringify({ items: [], pagination: { currentPage: 1, totalPages: 1 } });
     }
 }
+
+
 
 function parseSearchResponse(html) {
     return parseListResponse(html);
