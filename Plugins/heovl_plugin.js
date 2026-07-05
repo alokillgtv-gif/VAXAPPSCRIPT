@@ -8,7 +8,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.12",
+        "version": "1.81",
         "BASEURL": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -276,7 +276,14 @@ function parseMovieDetail(html,ourl) {
                 var sourceUrl = sourcebutton.match(/data-source=["']([\s\S]*?)["']/i);
                 if(sourceUrl && sourceUrl[1]){
                     //console.log(sourceUrl[1])
-                    if (j === 0) { lurl = sourceUrl[1]; } // Server đầu tiên làm ID chính
+                    if (j === 0) {
+                        episodes.push({
+                            id: sourceUrl[1],
+                            name: "Server " + (j + 1),
+                            slug: "tap-" + (j + 1)
+                        });
+                    
+                    } // Server đầu tiên làm ID chính
                    
                     episodes.push({
                         id: sourceUrl[1],
