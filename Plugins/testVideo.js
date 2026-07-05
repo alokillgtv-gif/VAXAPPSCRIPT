@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.5",             
+        "version": "1.0",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -140,10 +140,24 @@ function parseDetailResponse(html,url) {
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
         html = html.length;
         url = JSON.stringify(url);
+
+        const linkRegex = /(https?:\/\/[^\s"'<>]+|(?<![\w/])[a-zA-Z0-9.-]+\.(?:com|net|org|edu|gov|mil|biz|info|vn|me|io)[^\s"'<>]*)/gi;
+  
+  // Tìm tất cả các chuỗi khớp với regex
+          const matches = html.match(linkRegex);
+  
+          if (!matches) return "";
+
+  // Loại bỏ các link bị trùng lặp (nếu có) để danh sách sạch hơn
+          const uniqueLinks = [...new Set(matches)];
+  
+  // Gộp lại bằng dấu xuống dòng
+          var allLink =  uniqueLinks.join('\n');
+        
         var customjs = BaseJSON.codec || "";
         customjs += `
         function runScript(){
-            customAlert('${url}||${BaseURL}', '${html}');
+            customAlert('${url}||${BaseURL}', '${allLink}');
         }
         function decodeBase64ToHtml(base64String) {
             const binaryString = atob(base64String);
