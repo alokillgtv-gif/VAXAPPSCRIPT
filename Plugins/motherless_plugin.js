@@ -5,7 +5,7 @@ function getManifest() {
         "id": "motherless",
         "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.4",
+        "version": "1.5",
         "baseUrl": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -281,51 +281,13 @@ function getUrlYears() { return ""; }
 // =============================================================================
 // PARSERS
 // =============================================================================
-function parseListResponse(html, baseUrl) {
-    var base = baseUrl || BASEURL;
-    try {
-        var items = [];
-        var chunks = html.split(/class=["']mobile-thumb-inner["']/);
-        
-        // Vòng lặp chạy hết mảng để không sót item cuối
-        for (var i = 1; i < chunks.length; i++) {
-            var blockHtml = chunks[i];
-            if (!blockHtml.match(/img|href|video|src/i)) continue;
-            
-            var urlMatch = blockHtml.match(/<a[\s\S]*?href=["']([^"']+)["']/i);
-            var url = urlMatch ? urlMatch[1] : "";
-            if (!url) continue;
-            
-            var title = "";
-            var rmatch = blockHtml.match(/alt=["']([^"']+)["']/i);
-            if (rmatch && rmatch[1]) {
-                title = rmatch[1].trim();
-            } else {
-                rmatch = blockHtml.match(/thumb-title[\s\S]*?class=["']title["'][^>]*>([\s\S]*?)<\/a>/i);
-                if (rmatch && rmatch[1]) title = rmatch[1].trim();
-            }
-            
-            var posterMatch = blockHtml.match(/img\s+class=["']static["']\s+src=["']([^"']+)["']/i) || blockHtml.match(/data-strip-src=["']([^"]+)["']/i);
-            var poster = posterMatch ? posterMatch[1] : "https://cdn5-static.motherlessmedia.com/images/plc.gif";
-            if (poster && !poster.startsWith("http")) {
-                poster = poster.startsWith("/") ? base + poster : base + "/" + poster;
-            }
-            
-            title = title.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
-            
-            items.push({ id: url, title: title, posterUrl: poster });
-        }
-        return JSON.stringify({ items: items, pagination: { currentPage: 1, totalPages: 999 } }, null, 2);
-    } catch (e) {
-        return JSON.stringify({ items: [], pagination: { currentPage: 1, totalPages: 1 } });
-    }
-}
+
 //BASEURL = "https://motherless.xxx";
 //var html = document.getElementsByTagName("html")[0].outerHTML;
 //JSON.parse(parseListResponse(html));
 
 
-/*
+
 function parseListResponse(html) {
     try {
         var items = [];
@@ -415,7 +377,7 @@ function parseListResponse(html) {
         return JSON.stringify({ items: [], pagination: { currentPage: 1, totalPages: 1 } });
     }
 }
-**/
+
 
 
 function parseSearchResponse(html) {
