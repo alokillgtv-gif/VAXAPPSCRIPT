@@ -1,7 +1,7 @@
 BASEURL = "https://motherless.xxx";
 function getManifest() {
     return JSON.stringify({
-        "id": "mortherless",
+        "id": "motherless",
         "name": "Mortherless",
         "description": "XXX Hay",
         "version": "1.0",
