@@ -8,7 +8,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.8",
+        "version": "1.0",
         "baseUrl": BaseURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -157,49 +157,8 @@ categories/hiep-dam@@Hiếp Dâm
 categories/loan-luan@@Loạn Luân
 categories/phim-cap-3@@Phim Cap 3
 categories/vietsub@@Vietsub
-categories/khong-che@@Không Che
+categories/choi-lo-dit-anal-sex@@Chơi lỗ đít(Anal Sex
 categories/nhat-ban@@Nhật Bản
-categories/choi-lo-dit-anal-sex@@Chơi lỗ đít(Anal Sex)
-categories/quay-len@@Quay Lén
-categories/vlxx@@Vlxx
-categories/jav-hd@@JAV HD
-categories/bu-lon@@Bú Lồn
-categories/phimheovip@@Phimheovip
-categories/tu-quay@@Tự Quay
-categories/xvideos@@Xvideos
-categories/y-ta@@Y Tá
-categories/doggy@@Doggy
-categories/ban-tinh-day-lon@@Bắn Tinh Đầy Lồn
-categories/livestream@@Livestream
-categories/bu-cu@@Bú cu
-categories/mong-dep@@Mông đẹp
-categories/mong-to@@Mông to
-categories/lon-dep-bim-hong@@Lồn đẹp-Bím hồng
-categories/co-giao@@Cô giáo
-categories/ban-len-mat@@Bắn lên mặt
-categories/sextoy-do-choi-tinh-duc@@Sextoy-Đồ chơi tình dục
-categories/cowgirl-cuoi-ngua@@Cowgirl-Cưỡi ngựa
-categories/uncensored-leak@@Uncensored Leak
-categories/nghiep-du@@Nghiệp dư
-categories/massage@@Massage-Mát xa
-categories/ba-bau@@Bà Bầu
-categories/sextop1@@Sextop1
-categories/chau-phi@@Châu Phi
-categories/hoc-sinh@@Học Sinh
-categories/bao-dam@@Bạo Dâm
-categories/tu-suong@@Tự Sướng
-categories/nguoi-mau-dang-chuan@@Người Mẫu(Dáng Chuẩn)
-categories/viet69@@Viet69
-categories/gai-xinh@@Gái Xinh
-categories/gay@@Gay
-categories/trung-quoc@@Trung Quốc
-categories/lesbian@@Lesbian
-categories/tu-the-69@@Tư Thế 69
-categories/vung-trom@@Vụng Trộm
-categories/au-my@@Âu-Mỹ
-categories/hoat-hinh-hentai@@Hoạt Hình(Hentai)
-categories/ngoai-tinh@@Ngoại Tình
-categories/han-quoc@@Hàn Quốc
 `
     var menulist = buildMenu(listurl);
     
