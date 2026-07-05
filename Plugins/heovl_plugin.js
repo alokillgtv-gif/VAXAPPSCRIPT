@@ -8,7 +8,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.3",
+        "version": "1.1",
         "baseUrl": BaseURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -307,7 +307,7 @@ function parseMovieDetail(html) {
 // =================================================================
 // TẦNG 1: Xử lý trang xem phim gốc (link_xem_phim)
 // =================================================================
-function parseDetailResponse(html, url)) {
+function parseDetailResponse(html, url) {
     try {
         var customJs = `
 // Script chạy cho server heovl
