@@ -7,13 +7,13 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.7",             
+        "version": "1.5",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "embedtoexoplay"
+        "playerType": "embed"
     });
 }
 
