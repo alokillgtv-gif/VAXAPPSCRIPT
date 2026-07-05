@@ -8,7 +8,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.2",
+        "version": "1.1",
         "BASEURL": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -273,7 +273,7 @@ function parseMovieDetail(html,ourl) {
                 if (j === 1) { lurl = sourceUrl; } // Server đầu tiên làm ID chính
                 
                 episodes.push({
-                    id: ourl,
+                    id: lurl,
                     name: "Server " + (j + 1),
                     slug: "tap-" + (j + 1)
                 });
@@ -286,7 +286,7 @@ function parseMovieDetail(html,ourl) {
             if (iframeMatch && iframeMatch[1]) {
                 lurl = iframeMatch[1];
                 episodes.push({
-                    id: ourl,
+                    id: lurl,
                     name: "Server 1",
                     slug: "tap-1"
                 });
@@ -304,7 +304,7 @@ function parseMovieDetail(html,ourl) {
     
     // Trả về kết quả (Dù lỗi hay không lỗi vẫn return đúng cấu trúc object mong muốn)
     return JSON.stringify({
-        id: ourl,
+        id: lurl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
