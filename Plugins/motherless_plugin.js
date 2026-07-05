@@ -1,10 +1,11 @@
-BASEURL = "https://motherless.xxx";
+var BASEURL = "https://motherless.xxx";
+
 function getManifest() {
     return JSON.stringify({
         "id": "motherless",
         "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.1",
+        "version": "1.5",
         "baseUrl": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -14,55 +15,41 @@ function getManifest() {
     });
 }
 
-// Hàm tách menu bằng list
-function buildMenu(listurl){
-// 2. Khởi tạo mảng chứa kết quả
-let menulist = [];
-let regex = /^([^@\r\n]+)@@([^@\r\n]+)(?:@@([^@\r\n]+))?/gm;
-let match;
+// Hàm tách menu bằng list - ĐÃ TỐI ƯU: Không dùng Regex lặp để tránh treo app
+function buildMenu(listurl) {
+    let menulist = [];
+    if (!listurl) return menulist;
+    
+    let lines = listurl.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (!line || line.indexOf('@@') === -1) continue;
+        
+        let parts = line.split('@@');
+        let link = parts[0] ? parts[0].trim() : "";
+        let name = parts[1] ? parts[1].trim() : "";
+        let check = parts[2] ? parts[2].trim() : undefined;
 
-// 4. Vòng lặp duyệt qua từng hàng bằng RegExp
-while ((match = regex.exec(listurl)) !== null) {
-    let link = match[1].trim();
-    let name = match[2].trim();
-    let check = match[3] ? match[3].trim() : undefined; // Lấy giá trị check nếu có
+        if (!link || !name) continue;
 
-    let item = {};
-
-    // 5. Kiểm tra điều kiện biến check để tạo cấu trúc Object
-    if (check === "false") {
-        item = { 
-            "slug": link, 
-            "title": name, 
-            "type": "Horizontal" 
-        };
-    } else if (check === "true") {
-        item = { 
-            "slug": link, 
-            "title": name, 
-            "type": "Grid" 
-        };
-    } else {
-        // Trường hợp không có biến check (undefined)
-        item = { 
-            "slug": link, 
-            "name": name 
-        };
+        let item = {};
+        if (check === "false") {
+            item = { "slug": link, "title": name, "type": "Horizontal" };
+        } else if (check === "true") {
+            item = { "slug": link, "title": name, "type": "Grid" };
+        } else {
+            item = { "slug": link, "name": name };
+        }
+        menulist.push(item);
     }
-
-    // 6. Push item vào mảng menulist
-    menulist.push(item);
-}
-// 7. In kết quả ra để kiểm tra
-    return menulist
+    return menulist;
 }
 
-function getLISTmenu(){
- return `
-porn/gay-group/videos@@Gay Group
+function getLISTmenu() {
+    return `porn/gay-group/videos@@Gay Group
 porn/gay-incest/videos@@Gay Incest
 porn/transsexual-anal/videos@@Trans Anal
-porn/transsexual-ladyboy/videos@@LTrans adyboy
+porn/transsexual-ladyboy/videos@@Trans Ladyboy
 porn/transsexual-thai/videos@@Trans Thai
 porn/transsexual-threesome/videos@@Trans Threesome
 porn/amateur/videos@@Amateur
@@ -212,50 +199,35 @@ porn/extreme-uniform/videos@@Uniform
 porn/extreme-worship/videos@@Worship
 porn/funny-humor/videos@@Humor
 porn/funny-weird/videos@@Weird
-porn/funny-wtf/videos@@WTF
- `
+porn/funny-wtf/videos@@WTF`;
 }
-//https://motherless.xxx/videos/recent
-/*
-{ "slug": "", "title": "", "type": "Horizontal" },
-{ "slug": "", "title": "", "type": "Grid" }
-*/
 
 function getHomeSections() {
-    var listurl = `
-    videos/recent@@Hàng Mới@@true
-    `
-    var  menulist = buildMenu(listurl);
+    var listurl = "videos/recent@@Hàng Mới@@true";
+    var menulist = buildMenu(listurl);
     return JSON.stringify(menulist);
 }
 
-// https://pornone.com/anal/
-/*
-    { "slug": "", "name": ""},
-    { "slug": "", "name": ""}
-    
-    
-*/
 function getPrimaryCategories() {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
     return JSON.stringify(menulist);
 }
 
+// ĐÃ SỬA: Lỗi cú pháp khai báo biến trong JSON.stringify
 function getFilterConfig() {
-    return JSON.stringify({
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
+    return JSON.stringify({
         category: menulist
     });
 }
 
 // =============================================================================
-// URL GENERATION (Bóc tách slug sạch theo khuôn mẫu mới)
+// URL GENERATION
 // =============================================================================
 
-// https://motherless.xxx/porn/anal/videos?page=4
-
+// ĐÃ SỬA: Xóa bỏ hàm getUrlList thừa, giữ lại hàm chuẩn logic phân trang
 function getUrlList(slug, filtersJson) {
     try {
         var filters = JSON.parse(filtersJson || "{}");
@@ -269,18 +241,17 @@ function getUrlList(slug, filtersJson) {
             targetUrl += "/?range=0&size=0&sort=relevance";
             if (page > 1) targetUrl += "&page=" + page;
         } else {
-            if (page > 1) targetUrl += "/?page=" + page;
+            if (page > 1) {
+                // Kiểm tra xem cấu trúc url gốc đã có dấu ? chưa
+                targetUrl += (targetUrl.indexOf('?') > -1 ? '&' : '/?') + "page=" + page;
+            }
         }
         return targetUrl;
     } catch (e) {
         return BASEURL + "/" + slug;
     }
 }
-//console.log("Test 1", getUrlList("videos/recent", "{}"));
-//console.log("Test 2", getUrlList("videos", '{"category": "term/videos/girl"}'));
 
-
-// https://motherless.xxx/term/girl
 function getUrlSearch(keyword, filtersJson) {
     return BASEURL + "/term/" + encodeURIComponent(keyword);
 }
@@ -302,52 +273,49 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        // Tách từng item phim để tránh regex chạy sai giữa các item
         var chunks = html.split('class="mobile-thumb-inner"');
         
-        // Bắt đầu từ 1 vì phần tử 0 là phần html trước class đầu tiên
+        // ĐÃ SỬA: Chạy đến < chunks.length để lấy item cuối cùng
         for (var i = 1; i < chunks.length - 1; i++) {
             var blockHtml = chunks[i];
             
-            // Kiểm tra xem block này có chứa các thẻ cốt lõi của video không
             if (!blockHtml.match(/img|href|video|src/i)) {
                 continue;
             }
             
-            // 1. Lấy link phim
-            var urlMatch = blockHtml.match(/a[\s\S]*?href="([^"]+)"/i);
+            var urlMatch = blockHtml.match(/<a[^>]*href="([^"]+)"/i);
             var url = "";
-            var title = ""; // Khai báo một lần ở đây để dùng cho cả block
+            var title = ""; 
             
             if (urlMatch && urlMatch[1]) {
                 url = urlMatch[1];
             } else {
-                // Nếu không có url hợp lệ, bỏ qua chunk này luôn
                 continue;
             }
             
             if (!url.startsWith("http")) {
-                url = BASEURL + url;
+                url = url.startsWith("/") ? BASEURL + url : BASEURL + "/" + url;
             }
             
-            // 2. Lấy Title
             var rmatch = blockHtml.match(/alt="([^"]+)"/i);
             if (rmatch && rmatch[1]) {
                 title = rmatch[1].trim();
             } else {
-                rmatch = blockHtml.match(/thumb-title[\s\S]*?class="title"[\s\S]*?>([\s\S]*?)<\/a>/i);
+                rmatch = blockHtml.match(/thumb-title[\s\S]*?class="title"[^>]*>([\s\S]*?)<\/a>/i);
                 if (rmatch && rmatch[1]) {
                     title = rmatch[1].trim();
                 }
             }
             
-            // 3. Lấy Poster
             var posterMatch = blockHtml.match(/data-src="([^"]+)"/i) || blockHtml.match(/src="([^"]+)"/i);
             var poster = posterMatch ? posterMatch[1] : "https://cdn5-static.motherlessmedia.com/images/plc.gif";
             if (poster && !poster.startsWith("http")) {
-                poster = BASEURL + poster;
+                poster = poster.startsWith("/") ? BASEURL + poster : BASEURL + "/" + poster;
             }
             
+            // Xóa thực thể HTML cơ bản
+            title = title.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+
             items.push({
                 id: url,
                 title: title,
@@ -382,24 +350,20 @@ function parseMovieDetail(html) {
     var servers = [];
     
     try {
-        // 1. Parse Meta Tags
         var rmatch;
         rmatch = html.match(/meta\s+property=\"og:image\"\s+content=\"([^"]+)\"/i);
         if (rmatch && rmatch[1]) { limg = rmatch[1]; }
         
         rmatch = html.match(/<h1 class="lab-pinned-child">([\s\S]*?)<\/h1>/i);
-        if (rmatch && rmatch[1]) { lname = rmatch[1]; }
+        if (rmatch && rmatch[1]) { lname = rmatch[1].replace(/<[^>]*>/g, "").trim(); }
         
         rmatch = html.match(/meta\s+name=\"description\"\s+content=\"([^"]+)\"/i);
         if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
         
         var episodes = [];
-        
-
-        var serverMatches = html.match(/<video[\s\S]*?src=\"([\s\S]*?)"/i);
+        var serverMatches = html.match(/<video[\s\S]*?src=\"([^"]+)\"/i);
         if (serverMatches && serverMatches[1]) {
             lurl = serverMatches[1];
-            // Nếu tìm thấy các nút server
             episodes.push({
                 id: serverMatches[1],
                 name: "Xem Ngay",
@@ -415,7 +379,6 @@ function parseMovieDetail(html) {
         console.error("Lỗi parse dữ liệu: ", e);
     }
     
-    // Trả về kết quả (Dù lỗi hay không lỗi vẫn return đúng cấu trúc object mong muốn)
     return JSON.stringify({
         id: lurl,
         title: lname,
@@ -432,22 +395,13 @@ function parseMovieDetail(html) {
     });
 }
 
-
-// =================================================================
-// TẦNG 1: Xử lý trang xem phim gốc (link_xem_phim)
-// =================================================================
 function parseDetailResponse(html, url) {
     try {
         var customJs = `
-// Script chạy cho server heovl
-
 function initCustomVideoFix() {
     const style = document.createElement('style');
-    
-    // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
     var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
-    
-    style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
+    style.innerHTML = customcss;
     document.head.appendChild(style);
     
     if (typeof jwplayer === "function") {
@@ -455,7 +409,6 @@ function initCustomVideoFix() {
         if (player && typeof player.getMute === "function") {
             if (player.getMute()) {
                 player.setMute(false);
-                console.log("Đã bật tiếng video!");
             }
             player.setVolume(100);
         }
@@ -463,31 +416,19 @@ function initCustomVideoFix() {
     
     const checkAndClick = setInterval(() => {
         const skipButton = document.getElementById("skip-ad");
-        
         if (skipButton) {
             skipButton.click();
-            console.log("🎯 Đã tìm thấy và bấm nút thành công! Dừng script.");
-            clearInterval(checkAndClick); // Dừng lại ngay lập tức
-        } else {
-            console.log("⏳ Vẫn đang tìm nút...");
+            clearInterval(checkAndClick);
         }
     }, 200);
     
-    // Giới hạn tối đa 20 giây để tự động dọn dẹp bộ nhớ nếu nút không bao giờ xuất hiện
-    setTimeout(() => {
-        clearInterval(checkAndClick);
-        console.log("⏱️ Đã quá 20 giây, dừng tìm kiếm.");
-    }, 20000);
-    
+    setTimeout(() => { clearInterval(checkAndClick); }, 20000);
 }
-
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
     initCustomVideoFix();
-}
-
-`;
+}`;
         
         return JSON.stringify({
             url: "",
@@ -503,12 +444,11 @@ if (document.readyState === 'loading') {
     }
 }
 
-// KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
-//function parseCategoriesResponse(html) { return "[]"}
 function parseCategoriesResponse(apiResponseJson) {
-var listurl = getLISTmenu();
-var menulist = buildMenu(listurl);
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
     return JSON.stringify(menulist);
 }
-function parseCountriesResponse(html) { return "[]"}
-function parseYearsResponse(html) { return "[]"}
+
+function parseCountriesResponse(html) { return "[]"; }
+function parseYearsResponse(html) { return "[]"; }
