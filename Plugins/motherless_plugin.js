@@ -259,25 +259,25 @@ function getFilterConfig() {
 function getUrlList(slug, filtersJson) {
     try {
         var filters = JSON.parse(filtersJson || "{}");
-        var page = filters.page || 1;
-        // Prioritize category filter if present
-        if (filtersJson.category) {
-            return BASEURL + "/" + filters.category + "/?page=" + page;
-        }
+        var page = parseInt(filters.page) || 1;
+        var path = filters.category ? filters.category : slug;
         
-        if (page > 1) {
-            // https://motherless.xxx/term/videos/girl?range=0&size=0&sort=relevance&page=3
-            if (slug.indexOf("term") > -1) {
-                return BASEURL + "/" + slug + "/?range=0&size=0&sort=relevance&page=" + page;
-            } else {
-                return BASEURL + "/" + slug + "/?page=" + page;
-            }
+        if (path.startsWith("/")) path = path.substring(1);
+        var targetUrl = BASEURL + "/" + path;
+        
+        if (path.indexOf("term") > -1) {
+            targetUrl += "/?range=0&size=0&sort=relevance";
+            if (page > 1) targetUrl += "&page=" + page;
+        } else {
+            if (page > 1) targetUrl += "/?page=" + page;
         }
-        return BASEURL + "/" + slug;
+        return targetUrl;
     } catch (e) {
         return BASEURL + "/" + slug;
     }
 }
+//console.log("Test 1", getUrlList("videos/recent", "{}"));
+//console.log("Test 2", getUrlList("videos", '{"category": "term/videos/girl"}'));
 
 
 // https://motherless.xxx/term/girl
