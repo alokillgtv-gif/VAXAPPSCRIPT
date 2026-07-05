@@ -5,7 +5,7 @@ function getManifest() {
         "id": "motherless",
         "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.2",
+        "version": "1.0",
         "baseUrl": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -235,15 +235,27 @@ function getUrlList(slug, filtersJson) {
         var path = filters.category ? filters.category : slug;
         
         if (path.startsWith("/")) path = path.substring(1);
+        
+        // Đảm bảo đuôi link danh mục có dấu / để tránh bị Server redirect 301/403
+        if (!path.endsWith("/") && path.indexOf('?') === -1) {
+            path += "/";
+        }
+        
         var targetUrl = BASEURL + "/" + path;
         
         if (path.indexOf("term") > -1) {
-            targetUrl += "/?range=0&size=0&sort=relevance";
-            if (page > 1) targetUrl += "&page=" + page;
-        } else {
+            // Đối với trang tìm kiếm / tag
             if (page > 1) {
-                // Kiểm tra xem cấu trúc url gốc đã có dấu ? chưa
-                targetUrl += (targetUrl.indexOf('?') > -1 ? '&' : '/?') + "page=" + page;
+                targetUrl = targetUrl.replace(/\/$/, ""); // Xóa dấu / cuối nếu có để nối param
+                targetUrl += "/?page=" + page + "&size=0&range=0&sort=relevance";
+            } else {
+                targetUrl = targetUrl.replace(/\/$/, "");
+                targetUrl += "/?size=0&range=0&sort=relevance";
+            }
+        } else {
+            // Đối với danh mục thông thường (ví dụ: porn/anal/videos/)
+            if (page > 1) {
+                targetUrl += "?page=" + page;
             }
         }
         return targetUrl;
@@ -274,85 +286,88 @@ function parseListResponse(html) {
     try {
         var items = [];
         
-        // Cắt chuỗi theo class bao bọc bên ngoài mỗi ô video (Hỗ trợ cả giao diện mobile lẫn chuẩn)
-        var chunks = html.split('class="mobile-thumb-inner"');
-        if (chunks.length <= 1) {
-            // Dự phòng nếu hệ thống đổi class hoặc dùng giao diện PC
-            chunks = html.split('class="thumb-container"');
+        // Kiểm tra nếu HTML trả về là trang lỗi hoặc trang trống
+        if (!html || html.indexOf('body') === -1) {
+            return JSON.stringify({ items: [], pagination: { currentPage: 1, totalPages: 1 } });
         }
         
-        // Duyệt toàn bộ mảng (i < chunks.length) để không bỏ sót phần tử cuối cùng
-        for (var i = 1; i < chunks.length; i++) {
-            var blockHtml = chunks[i];
+        // Regex quét tìm mọi khối liên kết chứa ảnh thumbnail dạng: /giá_trị_id (thường là chuỗi số hoặc ký tự băm)
+        // Cấu trúc Motherless: <a href="/[Mã_Số]"><img ... src="[Link_Ảnh]" alt="[Tiêu_Đề]" /></a>
+        var regex = /<a[\s\S]*?href=["'](\/[A-F0-9]{7,15}|\/video\/[^"']+)["'][\s\S]*?>[\s\S]*?<img[\s\S]*?src=["']([^"']+)["'][\s\S]*?alt=["']([^"']+)["']/gi;
+        
+        var match;
+        // Quét toàn bộ HTML từ trên xuống dưới
+        while ((match = regex.exec(html)) !== null) {
+            var url = match[1];
+            var poster = match[2];
+            var title = match[3].trim();
             
-            // Bỏ qua các khối HTML rác hoặc quảng cáo không có tài nguyên
-            if (!blockHtml.match(/img|href|video|src/i)) {
+            // Bỏ qua nếu dính icon hoặc ảnh đại diện avatar người dùng
+            if (poster.indexOf('avatar') > -1 || poster.indexOf('favicon') > -1 || !url) {
                 continue;
             }
             
-            // 1. Tách LINK VIDEO: Dùng [\s\S]*? để nuốt gọn mọi dấu xuống dòng/khoảng trắng trong thẻ <a>
-            var urlMatch = blockHtml.match(/<a[\s\S]*?href=["']([^"']+)["']/i);
-            var url = "";
-            if (urlMatch && urlMatch[1]) {
-                url = urlMatch[1];
-            } else {
-                continue; // Không bóc được URL của item này thì bỏ qua, chạy tiếp item sau
-            }
-            
-            // Chuẩn hóa link video đầy đủ
+            // Chuẩn hóa URL video
             if (!url.startsWith("http")) {
-                url = url.startsWith("/") ? BASEURL + url : BASEURL + "/" + url;
+                url = BASEURL + url;
             }
             
-            // 2. Tách TIÊU ĐỀ: Tìm trong alt trước, nếu không có thì quét qua class text/title
-            var title = "";
-            var rmatch = blockHtml.match(/alt=["']([^"']+)["']/i);
-            if (rmatch && rmatch[1]) {
-                title = rmatch[1].trim();
-            } else {
-                rmatch = blockHtml.match(/class=["']title["'][^>]*>([\s\S]*?)<\/a>/i) ||
-                    blockHtml.match(/<caption[^>]*>([\s\S]*?)<\/caption>/i);
-                if (rmatch && rmatch[1]) {
-                    title = rmatch[1].trim();
-                }
+            // Chuẩn hóa URL ảnh poster (Xử lý nếu dính ảnh lười tải plc.gif)
+            if (html.indexOf('data-src=') > -1) {
+                // Nếu trang có dùng lazyload, ta bóc lại data-src kế cạnh khối đó
+                var subBlock = html.substring(match.index, match.index + 400);
+                var realImg = subBlock.match(/data-src=["']([^"']+)["']/i);
+                if (realImg && realImg[1]) poster = realImg[1];
             }
             
-            // Loại bỏ các tag HTML lọt vào tiêu đề (nếu có)
-            title = title.replace(/<[^>]*>/g, "");
-            
-            // 3. Tách POSTER: Hỗ trợ ảnh lười tải (data-src, data-original) và ảnh thường (src)
-            var posterMatch = blockHtml.match(/data-src=["']([^"']+)["']/i) ||
-                blockHtml.match(/data-original=["']([^"']+)["']/i) ||
-                blockHtml.match(/src=["']([^"']+)["']/i);
-            
-            var poster = posterMatch ? posterMatch[1] : "https://cdn5-static.motherlessmedia.com/images/plc.gif";
-            
-            if (poster && !poster.startsWith("http")) {
-                poster = poster.startsWith("/") ? BASEURL + poster : BASEURL + "/" + poster;
+            if (!poster.startsWith("http")) {
+                poster = BASEURL + poster;
             }
             
-            // Giải mã thực thể HTML tránh lỗi hiển thị chữ lỗi thời
-            title = title.replace(/&amp;/g, '&')
-                .replace(/&quot;/g, '"')
-                .replace(/&#039;/g, "'")
-                .replace(/&lt;/g, "<")
-                .replace(/&gt;/g, ">");
+            // Giải mã chữ lỗi hiển thị
+            title = title.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
             
-            items.push({
-                id: url,
-                title: title,
-                posterUrl: poster
-            });
+            // Kiểm tra trùng lặp ID trước khi push
+            var isDuplicate = false;
+            for (var j = 0; j < items.length; j++) {
+                if (items[j].id === url) { isDuplicate = true; break; }
+            }
+            
+            if (!isDuplicate) {
+                items.push({
+                    id: url,
+                    title: title,
+                    posterUrl: poster
+                });
+            }
         }
         
-        // Trả về chuỗi JSON theo cấu trúc chuẩn của plugin
+        // Nếu dùng Regex quét gắt quá vẫn rỗng, dùng phương án dự phòng cuối cùng: bóc chay thẻ <a>
+        if (items.length === 0) {
+            var fallbackMatches = html.match(/<div class=["']thumb-title["']>[\s\S]*?href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi);
+            if (fallbackMatches) {
+                for (var k = 0; k < fallbackMatches.length; k++) {
+                    var linkM = fallbackMatches[k].match(/href=["']([^"']+)["']/i);
+                    var textM = fallbackMatches[k].match(/>([^<]+)<\/a>/i);
+                    if (linkM && linkM[1]) {
+                        var fUrl = linkM[1].startsWith("http") ? linkM[1] : BASEURL + linkM[1];
+                        var fTitle = textM ? textM[1].trim() : "Video";
+                        items.push({
+                            id: fUrl,
+                            title: fTitle,
+                            posterUrl: "https://cdn5-static.motherlessmedia.com/images/plc.gif"
+                        });
+                    }
+                }
+            }
+        }
+        
         return JSON.stringify({
             items: items,
             pagination: { currentPage: 1, totalPages: 999 }
         });
         
     } catch (e) {
-        console.error("Lỗi nghiêm trọng trong parseListResponse:", e);
         return JSON.stringify({ items: [], pagination: { currentPage: 1, totalPages: 1 } });
     }
 }
