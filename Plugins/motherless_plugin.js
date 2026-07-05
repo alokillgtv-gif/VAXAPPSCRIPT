@@ -5,7 +5,7 @@ function getManifest() {
         "id": "motherless",
         "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.5",
+        "version": "1.1",
         "baseUrl": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -387,7 +387,7 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html) {
+function parseMovieDetail(html, url) {
     var lurl = "";
     var limg = "";
     var lname = "Đang cập nhật...";
@@ -401,11 +401,13 @@ function parseMovieDetail(html) {
     
     try {
         var rmatch;
-        rmatch = html.match(/meta\s+property=\["']og:image\"\s+content=\"([^"']+)["']/i);
-        if (rmatch && rmatch[1]) { limg = rmatch[1]; }
+        var idvideo = url.replace(BASEURL + "/", "");
+        var limg = "https://cdn5-thumbs.motherlessmedia.com/thumbs/" + idvideo + "-small-7.jpg";
+        //rmatch = html.match(/meta\s+property=\["']og:image["']\s+content=["']([^"']+)["']/i);
+        // if (rmatch && rmatch[1]) { limg = rmatch[1]; }
         
-        rmatch = html.match(/<h1 class=["']lab-pinned-child["']>([\s\S]*?)<\/h1>/i);
-        if (rmatch && rmatch[1]) { lname = rmatch[1].replace(/<[^>]*>/g, "").trim(); }
+        rmatch = html.match(/<title>([\s\S]*?)<\/title>/i);
+        if (rmatch && rmatch[1]) { lname = rmatch[1].trim(); }
         
         rmatch = html.match(/meta\s+name=["']description["']\s+content=["']([^"']+)["']/i);
         if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
@@ -445,6 +447,9 @@ function parseMovieDetail(html) {
         director: direc
     });
 }
+//BASEURL = "https://motherless.xxx";
+//var html = document.getElementsByTagName("html")[0].outerHTML;
+//JSON.parse(parseMovieDetail(html));
 
 
 
