@@ -2,14 +2,14 @@
 // VAAPP Plugin-Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
 // Tên file bắt buộc khi lưu:s crophim_plugin.js
 // =============================================================================
-BaseURL = "https://heovl.im";
+BASEURL = "https://heovl.im";
 function getManifest() {
     return JSON.stringify({
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.1",
-        "baseUrl": BaseURL,
+        "version": "1.0",
+        "BASEURL": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
         "isAdult": true,
@@ -102,10 +102,22 @@ function getPrimaryCategories() {
     return JSON.stringify(menulist);
 }
 
-function getFilters() {
+function getFilterConfig() {
     return JSON.stringify({
-        "sort": [
-            { "name": "Mới nhất", "value": "newest" }
+        sort: [
+            { name: 'Mới cập nhật', value: 'latest' },
+            { name: 'Đánh giá cao', value: 'rating' },
+            { name: 'Xem nhiều', value: 'views' }
+        ],
+        category: [
+            { name: "Huyền Huyễn", value: "huyen-huyen" },
+            { name: "Xuyên Không", value: "xuyen-khong" },
+            { name: "Trùng Sinh", value: "trung-sinh" },
+            { name: "Tiên Hiệp", value: "tien-hiep" },
+            { name: "Cổ Trang", value: "co-trang" },
+            { name: "Hài Hước", value: "hai-huoc" },
+            { name: "Kiếm Hiệp", value: "kiem-hiep" },
+            { name: "Hiện Đại", value: "hien-dai" }
         ]
     });
 }
@@ -121,28 +133,32 @@ function getUrlList(slug, filtersJson) {
     try {
         var filters = JSON.parse(filtersJson || "{}");
         var page = filters.page || 1;
+        // Prioritize category filter if present
+        if (filtersJson.category) {
+            return BASEURL + "/" + filters.category + "/?page=" + page;
+        }
         
         if (page > 1) {
             if (slug.indexOf("search") > -1) {
-                return BaseURL + "/" + slug + "/?page=" + page;
+                return BASEURL + "/" + slug + "/?page=" + page;
             } else {
-                return BaseURL + "/" + slug + "/?page=" + page;
+                return BASEURL + "/" + slug + "/?page=" + page;
             }
         }
-        return BaseURL + "/" + slug;
+        return BASEURL + "/" + slug;
     } catch (e) {
-        return BaseURL + "/" + slug;
+        return BASEURL + "/" + slug;
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return BaseURL + "/search/" + encodeURIComponent(keyword);
+    return BASEURL + "/search/" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return BaseURL + "/" + slug;
+    return BASEURL + "/" + slug;
 }
 
 function getUrlCategories() { return BASEURL; }
