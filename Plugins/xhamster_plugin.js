@@ -8,7 +8,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.6",             
         "baseUrl": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -180,7 +180,7 @@ function parseMovieDetail(html) {
         
      
     return JSON.stringify({
-        id: lurl,
+        id: streamUrl ,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -189,7 +189,7 @@ function parseMovieDetail(html) {
             {
                 name: "Xhamster Stream",
                 episodes: [
-                    { id: lurl, name: "Xem Ngay", slug: "full" }
+                    { id: streamUrl , name: "Xem Ngay", slug: "full" }
                 ]
             }
         ],
