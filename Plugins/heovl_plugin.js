@@ -8,7 +8,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.5",
+        "version": "1.3",
         "baseUrl": BaseURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -307,60 +307,69 @@ function parseMovieDetail(html) {
 // =================================================================
 // TẦNG 1: Xử lý trang xem phim gốc (link_xem_phim)
 // =================================================================
-function parseDetailResponse(html, url) {
+function parseDetailResponse(html, url)) {
     try {
-        // LỚP 1: Tìm thẻ iframe trong trang xem phim
-        // Giả định HTML có dạng: <iframe src="https://gialap.com/embed/123"></iframe>
-        var iframeMatch = html.match(/window.videoData\s+=\s+{"id":"(\w+)/i);
-        
-        if (iframeMatch) {
-            //https://wogblex.com/videos/693d47c06b69a605f403d222/config
-            var host = "https://wogblex.com";
-            var link_json = host + "/videos/" + iframeMatch[1] + "/config";
-            
-            // 🛑 LỆNH NGỪNG TẦNG 1: 
-            // Trả link_iframe về cho App. Nhờ cấu hình "isEmbed: true", App sẽ biết 
-            // đây chưa phải là link video cuối và sẽ tự động fetch tiếp link_iframe này, 
-            // sau đó ném kết quả vào hàm parseEmbedResponse ở dưới.
-            return JSON.stringify({
-                url: link_json,
-                isEmbed: true,
-                headers: { "Referer": host,"Origin": host } // Gửi kèm referer nếu iframe chặn xem lén
-            });
+        var customJs = `
+// Script chạy cho server heovl
+function initCustomVideoFix() {
+    const style = document.createElement('style');
+    
+    // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
+    var customcss = 'body { background: black; overflow: hidden; }';
+    
+    style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
+    document.head.appendChild(style);
+    
+    if (typeof jwplayer === "function") {
+        const player = jwplayer("previewPlayer");
+        if (player && typeof player.getMute === "function") {
+            if (player.getMute()) {
+                player.setMute(false);
+                console.log("Đã bật tiếng video!");
+            }
+            player.setVolume(100);
         }
-        
-        // LỚP DỰ PHÒNG: Nếu trang gốc không có iframe mà có sẵn m3u8 luôn
-        var m3u8Match = html.match(/(https?:\/\/[^"' ]+\.m3u8[^"' ]*)/i);
-        if (m3u8Match) {
-            return JSON.stringify({ url: m3u8Match[1], mimeType: "application/x-mpegURL", isEmbed: false });
-        }
-        return JSON.stringify({ url: url, isEmbed: true });
-    } catch (e) {
-        return JSON.stringify({ url: "", isEmbed: false });
     }
+    const checkAndClick = setInterval(() => {
+        const skipButton = document.getElementById("skip-ad");
+        
+        if (skipButton) {
+            skipButton.click();
+            console.log("🎯 Đã tìm thấy và bấm nút thành công! Dừng script.");
+            clearInterval(checkAndClick); // Dừng lại ngay lập tức
+        } else {
+            console.log("⏳ Vẫn đang tìm nút...");
+        }
+    }, 200);
+    
+    // Giới hạn tối đa 20 giây để tự động dọn dẹp bộ nhớ nếu nút không bao giờ xuất hiện
+    setTimeout(() => {
+        clearInterval(checkAndClick);
+        console.log("⏱️ Đã quá 20 giây, dừng tìm kiếm.");
+    }, 20000);
+    
+    
 }
 
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+    initCustomVideoFix();
+}
 
-// =================================================================
-// TẦNG 2 & TẦNG 3 (Dùng chung một hàm nhưng lặp lại)
-// =================================================================
-function parseEmbedResponse(html, sourceUrl) {
-    try {
-        //log("Đang quét mã nguồn tại URL: " + sourceUrl);
+`;
         
-        // KỊCH BẢN A: Quét tìm xem CÓ iframe con nào bên trong nữa không (Tầng 3)
-        var object = JSON.parse(html);
-        
-        if (object) {
-            var linkfile = object.sources[0].file;
-            var type = object.sources[0].type;
-            return JSON.stringify({ url: linkfile, mimeType: type, isEmbed: false });
-        }
-        // Phòng hờ tầng cuối cùng không ra m3u8 mà ra link xem trực tiếp dạng khác
-        return JSON.stringify({ url: sourceUrl, isEmbed: false });
-        
-    } catch (e) {
-        return JSON.stringify({ url: sourceUrl, isEmbed: false });
+        return JSON.stringify({
+            url: url,
+            headers: {
+                "Referer": BaseURL,
+                "Origin": BaseURL,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Custom-Js": customJs.trim()
+            }
+        });
+    } catch (error) {
+        return JSON.stringify({ url: "", headers: {} });
     }
 }
 
