@@ -299,13 +299,15 @@ function parseListResponse(html) {
         
         // Regex quét tìm mọi khối liên kết chứa ảnh thumbnail dạng: /giá_trị_id (thường là chuỗi số hoặc ký tự băm)
         // Cấu trúc Motherless: <a href="/[Mã_Số]"><img ... src="[Link_Ảnh]" alt="[Tiêu_Đề]" /></a>
-        var regex = /<a[\s\S]*?href=["'](\/[A-F0-9]{7,15}|\/video\/[^"']+)["'][\s\S]*?>[\s\S]*?<img class="static" [\s\S]*?src=["']([^"']+)["'][\s\S]*?alt=["']([^"']+)["']/gi;
+        var regex = /<a[\s\S]*?href=["'](\/[A-F0-9]{7,15}|\/video\/[^"']+)["'][\s\S]*?>[\s\S]*?<img\s+class=["']static["'][\s\S]*?src=["']([^"']+)["'][\s\S]*?alt=["']([^"']+)["']/gi;
         
         var match;
         // Quét toàn bộ HTML từ trên xuống dưới
         while ((match = regex.exec(html)) !== null) {
             var url = match[1];
-            var poster = match[2];
+            var id = url.replace(BASEURL + "/", "");
+            //https://cdn5-thumbs.motherlessmedia.com/thumbs/69A3E54-small-7.jpg
+            var poster = "https://cdn5-thumbs.motherlessmedia.com/thumbs/" + id + "-small-7.jpg";
             var title = match[3].trim();
             
             // Bỏ qua nếu dính icon hoặc ảnh đại diện avatar người dùng
@@ -377,8 +379,9 @@ function parseListResponse(html) {
         return JSON.stringify({ items: [], pagination: { currentPage: 1, totalPages: 1 } });
     }
 }
-
-
+//BASEURL = "https://motherless.xxx";
+//var html = document.getElementsByTagName("html")[0].outerHTML;
+//JSON.parse(parseListResponse(html));
 
 function parseSearchResponse(html) {
     return parseListResponse(html);
