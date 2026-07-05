@@ -271,7 +271,7 @@ function parseMovieDetail(html,ourl) {
                 var sourceUrl = serverMatches[j][1]; // Lấy giá trị trong nhóm ngoặc đơn ([^"]+)
                 
                 if (j === 1) { lurl = sourceUrl; } // Server đầu tiên làm ID chính
-                
+                ldes += "\r\n" + sourceUrl;
                 episodes.push({
                     id: lurl,
                     name: "Server " + (j + 1),
@@ -285,6 +285,7 @@ function parseMovieDetail(html,ourl) {
             
             if (iframeMatch && iframeMatch[1]) {
                 lurl = iframeMatch[1];
+                ldes += "\r\n" + sourceUrl;
                 episodes.push({
                     id: lurl,
                     name: "Server 1",
@@ -308,7 +309,7 @@ function parseMovieDetail(html,ourl) {
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: lurl ? ldes + "\r\n\r\n" + lurl : ldes,
+        description: lurl,
         servers: servers,
         quality: "HD",
         year: year,
@@ -377,7 +378,7 @@ if (document.readyState === 'loading') {
 `;
         
         return JSON.stringify({
-            url: url,
+            url: "",
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
