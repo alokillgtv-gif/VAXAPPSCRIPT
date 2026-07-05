@@ -8,7 +8,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.81",
+        "version": "1.82",
         "BASEURL": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -279,8 +279,8 @@ function parseMovieDetail(html,ourl) {
                     if (j === 0) {
                         episodes.push({
                             id: sourceUrl[1],
-                            name: "Server " + (j + 1),
-                            slug: "tap-" + (j + 1)
+                            name: "Server Full",
+                            slug: "tap-0"
                         });
                     
                     } // Server đầu tiên làm ID chính
