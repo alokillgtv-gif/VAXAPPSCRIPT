@@ -8,8 +8,8 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.0",
-        "baseUrl": BASEURL,
+        "version": "1.2",
+        "BASEURL": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
         "isAdult": true,
@@ -234,7 +234,7 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html) {
+function parseMovieDetail(html,ourl) {
     var lurl = "";
     var limg = "";
     var lname = "Đang cập nhật...";
@@ -273,7 +273,7 @@ function parseMovieDetail(html) {
                 if (j === 1) { lurl = sourceUrl; } // Server đầu tiên làm ID chính
                 
                 episodes.push({
-                    id: sourceUrl,
+                    id: ourl,
                     name: "Server " + (j + 1),
                     slug: "tap-" + (j + 1)
                 });
@@ -286,7 +286,7 @@ function parseMovieDetail(html) {
             if (iframeMatch && iframeMatch[1]) {
                 lurl = iframeMatch[1];
                 episodes.push({
-                    id: iframeMatch[1],
+                    id: ourl,
                     name: "Server 1",
                     slug: "tap-1"
                 });
@@ -304,7 +304,7 @@ function parseMovieDetail(html) {
     
     // Trả về kết quả (Dù lỗi hay không lỗi vẫn return đúng cấu trúc object mong muốn)
     return JSON.stringify({
-        id: lurl,
+        id: ourl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -379,8 +379,8 @@ if (document.readyState === 'loading') {
         return JSON.stringify({
             url: url,
             headers: {
-                "Referer": url,
-                "Origin": url,
+                "Referer": BASEURL,
+                "Origin": BASEURL,
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Custom-Js": customJs.trim()
             }
