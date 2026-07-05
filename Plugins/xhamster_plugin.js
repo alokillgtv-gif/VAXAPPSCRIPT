@@ -1,14 +1,15 @@
 // =============================================================================
 // VAAPP Plugin - Xhamster (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
 // =============================================================================
-
+BASEURL = "https://xhwide.com";
+DEV = "true";
 function getManifest() {
     return JSON.stringify({
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.5",             
-        "baseUrl": "https://greenxh.today",
+        "version": "1.1",             
+        "baseUrl": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
         "isAdult": true,
@@ -56,22 +57,22 @@ function getUrlList(slug, filtersJson) {
         var page = filters.page || 1;
         
         if (page > 1) {
-            return "https://greenxh.today/" + slug + "/" + page;
+            return BASEURL + "/" + slug + "/" + page;
         }
-        return "https://greenxh.today/" + slug;
+        return BASEURL + "/" + slug;
     } catch (e) {
-        return "https://greenxh.today/" + slug;
+        return BASEURL + "/" + slug;
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://greenxh.today/search/" + encodeURIComponent(keyword);
+    return BASEURL + "/search/" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://greenxh.today/" + slug;
+    return BASEURL + "/" + slug;
 }
 
 function getUrlCategories() { return ""; }
@@ -163,7 +164,7 @@ function parseMovieDetail(html) {
     var ldes = "Không có mô tả.";
 
     var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
-    if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com","https://greenxh.today"); }
+    if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com",BASEURL); }
 
     rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
@@ -203,7 +204,7 @@ function parseMovieDetail(html) {
     });
 }
 //<link rel="preload" href="https://video3.cdnsolutions.media/key=kePlMtN+ADhubUR5+oDV3A,end=1782846000/data=2405:4802:918e:9690:213f:c9b0:ee12:58e-dvp/media=hls4/multi=256x144:144p:,426x240:240p:,854x480:480p:,1280x720:720p:,1920x1080:1080p:/029/485/972/_TPL_.av1.mp4.m3u8" as="fetch" crossorigin="true">
-function parseDetailResponse(html) {
+function parseDetailResponse(html,url) {
     try {
         var streamUrl = "";
         
@@ -215,55 +216,181 @@ function parseDetailResponse(html) {
     if (rmatch && rmatch[1]) { lurl = rmatch[1]; }
     */
 		var customJs = `
+// Script chạy cho server heovl
 function initCustomVideoFix() {
-  alert('${decodedUrl}');
-
-  // 1. Chèn CSS dọn dẹp giao diện (ẩn footer, sidebar, navbar...)
-  const style = document.createElement('style');
-  style.innerHTML = '';
-  document.head.appendChild(style);
-
-  // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
-  const checkInterval = setInterval(() => {
-    const theaterButton = document.querySelector('.icon-theater.vjs-control.vjs-button');
+    const style = document.createElement('style');
+    var customcss = 'body { background: black; overflow: hidden; }';
+    style.innerHTML = customcss;
+    document.head.appendChild(style);
     const video = document.querySelector('video');
-
-    // Chỉ xử lý khi cả nút bấm và thẻ video đều đã xuất hiện trên trang
-    if (theaterButton && video) {
-      clearInterval(checkInterval); // Tìm thấy rồi thì dừng vòng lặp kiểm tra
-
-      // Xử lý nút Cinema mode
-      const buttonText = theaterButton.innerText || theaterButton.textContent || "";
-      if (buttonText.toLowerCase().includes('cinema mode')) {
-        theaterButton.click();
-        console.log("Đã kích hoạt Cinema mode thành công!");
-      }
-
-      // Xử lý bật tiếng video
-      if (video.muted) {
-        video.muted = false;
-        console.log("Đã mở tiếng video thành công!");
-      }
+    const body = document.querySelector('body');
+    if (video) {
+        video.addEventListener('click', () => {
+            autoFullscreenLoop(video);
+        });
+        autoFullscreenLoop(video);
+    } else {
+        console.log("Không tìm thấy phần tử video trên trang.");
     }
-  }, 200); // Cứ mỗi 0.2 giây sẽ kiểm tra lại một lần
+    var $DEV = "${DEV}"
+    // Gọi hàm alert tùy chỉnh
+    
+    customAlert("${$url}||${BASE}", "${html}");
+    
+} // <--- ĐÃ BỔ SUNG: Dấu ngoặc đóng của hàm initCustomVideoFix nằm ở đây
 
-  // Bảo hiểm: Tự động dừng kiểm tra sau 10 giây nếu trang bị lỗi không tải được video
-  setTimeout(() => clearInterval(checkInterval), 10000);
+// Định nghĩa hàm customAlert độc lập bên ngoài để code sạch sẽ hơn
+function customAlert(title, message) {
+    // 1. Tạo lớp nền mờ (Overlay)
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: '99999',
+        opacity: '0',
+        transition: 'opacity 0.2s ease'
+    });
+    
+    // 2. Tạo hộp thoại chính (Box)
+    const box = document.createElement('div');
+    Object.assign(box.style, {
+        backgroundColor: '#ffffff',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+        maxWidth: '380px',
+        width: '85%',
+        textAlign: 'center',
+        fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        transform: 'scale(0.8)',
+        transition: 'transform 0.2s ease'
+    });
+    
+    // 3. Tạo Tiêu đề (Title)
+    const titleEl = document.createElement('input');
+    titleEl.type = 'text'; // Biến thành input text
+    titleEl.value = title;
+    Object.assign(titleEl.style, {
+        margin: '0 0 12px 0',
+        color: '#222222',
+        fontSize: '15px',
+        fontWeight: '600'
+    });
+    
+    // 4. Tạo Nội dung (Message)
+    const msgEl = document.createElement('textarea');
+    msgEl.value = message;
+    Object.assign(msgEl.style, {
+        margin: '0 0 20px 0',
+        color: '#555555',
+        fontSize: '15px',
+        height: '200px',
+        lineHeight: '1.5'
+    });
+    
+    // 5. Tạo Nút bấm (Button)
+    const btn = document.createElement('button');
+    btn.innerText = 'OK';
+    Object.assign(btn.style, {
+        padding: '10px 28px',
+        fontSize: '15px',
+        fontWeight: '600',
+        color: '#ffffff',
+        backgroundColor: '#007bff',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        outline: 'none',
+        transition: 'background-color 0.1s'
+    });
+    
+    // Hiệu ứng hover cho nút
+    btn.onmouseover = () => btn.style.backgroundColor = '#0056b3';
+    btn.onmouseout = () => btn.style.backgroundColor = '#007bff';
+    
+    // 6. Hàm đóng và xóa Alert khỏi giao diện
+    const closeAlert = () => {
+        overlay.style.opacity = '0';
+        box.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+            overlay.remove();
+        }, 200);
+    };
+    
+    // Sự kiện khi bấm nút hoặc bấm ra ngoài màn hình
+    btn.onclick = closeAlert;
+    overlay.onclick = (e) => {
+        if (e.target === overlay) closeAlert();
+    };
+    
+    // 7. Lắp ráp các phần tử lại với nhau
+    box.appendChild(titleEl);
+    box.appendChild(msgEl);
+    box.appendChild(btn);
+    overlay.appendChild(box);
+    
+    // 8. Đưa vào body và kích hoạt hiệu ứng hiển thị
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => {
+        overlay.style.opacity = '1';
+        box.style.transform = 'scale(1)';
+    }, 10);
 }
 
-// Kiểm tra trạng thái trang để kích hoạt hàm an toàn nhất
+// Định nghĩa hàm autoFullscreenLoop độc lập bên ngoài
+function autoFullscreenLoop(videoElement) {
+    if (!videoElement) return;
+    
+    const checkInterval = setInterval(() => {
+        const isFullscreen = document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement;
+        
+        if (isFullscreen) {
+            console.log("Đã vào Fullscreen thành công! Dừng vòng lặp.");
+            clearInterval(checkInterval);
+            return;
+        }
+        
+        console.log("Đang thử mở Fullscreen và bật tiếng...");
+        
+        videoElement.muted = false;
+        if (videoElement.paused) {
+            videoElement.play().catch(err => console.log("Chưa phát được video:", err.message));
+        }
+        
+        if (videoElement.requestFullscreen) {
+            videoElement.requestFullscreen().catch(err => {});
+        } else if (videoElement.webkitRequestFullscreen) {
+            videoElement.webkitRequestFullscreen();
+        } else if (videoElement.msRequestFullscreen) {
+            videoElement.msRequestFullscreen();
+        }
+    }, 100);
+}
+
+// Khởi chạy script
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
-  initCustomVideoFix();
+    initCustomVideoFix();
 }
 `;
 
 return JSON.stringify({
     url: streamUrl,
     headers: {
-        "Referer": "https://greenxh.today",
-        "Origin": "https://greenxh.today",
+        "Referer": BASEURL,
+        "Origin": BASEURL,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Custom-Js": customJs.trim()
     }
