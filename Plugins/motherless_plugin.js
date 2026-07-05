@@ -5,7 +5,7 @@ function getManifest() {
         "id": "motherless",
         "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.1",
+        "version": "1.2",
         "baseUrl": BASEURL,
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -288,24 +288,24 @@ function parseListResponse(html, baseUrl) {
         var chunks = html.split('class="mobile-thumb-inner"');
         
         // Vòng lặp chạy hết mảng để không sót item cuối
-        for (var i = 1; i < chunks.length - 1; i++) {
+        for (var i = 1; i < chunks.length; i++) {
             var blockHtml = chunks[i];
             if (!blockHtml.match(/img|href|video|src/i)) continue;
             
-            var urlMatch = blockHtml.match(/<a[\s\S]*?href="([^"]+)"/i);
+            var urlMatch = blockHtml.match(/<a[\s\S]*?href=["']([^"']+)["']/i);
             var url = urlMatch ? urlMatch[1] : "";
             if (!url) continue;
             
             var title = "";
-            var rmatch = blockHtml.match(/alt="([^"]+)"/i);
+            var rmatch = blockHtml.match(/alt=["']([^"']+)["']/i);
             if (rmatch && rmatch[1]) {
                 title = rmatch[1].trim();
             } else {
-                rmatch = blockHtml.match(/thumb-title[\s\S]*?class="title"[^>]*>([\s\S]*?)<\/a>/i);
+                rmatch = blockHtml.match(/thumb-title[\s\S]*?class=["']title["'][^>]*>([\s\S]*?)<\/a>/i);
                 if (rmatch && rmatch[1]) title = rmatch[1].trim();
             }
             
-            var posterMatch = blockHtml.match(/img\s+class="static"\s+src="([^"]+)"/i) || blockHtml.match(/data-strip-src="([^"]+)"/i);
+            var posterMatch = blockHtml.match(/img\s+class=["']static["']\s+src=["']([^"']+)["']/i) || blockHtml.match(/data-strip-src=["']([^"]+)["']/i);
             var poster = posterMatch ? posterMatch[1] : "https://cdn5-static.motherlessmedia.com/images/plc.gif";
             if (poster && !poster.startsWith("http")) {
                 poster = poster.startsWith("/") ? base + poster : base + "/" + poster;
@@ -436,17 +436,18 @@ function parseMovieDetail(html) {
     
     try {
         var rmatch;
-        rmatch = html.match(/meta\s+property=\"og:image\"\s+content=\"([^"]+)\"/i);
+        rmatch = html.match(/meta\s+property=\["']og:image\"\s+content=\"([^"']+)["']/i);
         if (rmatch && rmatch[1]) { limg = rmatch[1]; }
         
-        rmatch = html.match(/<h1 class="lab-pinned-child">([\s\S]*?)<\/h1>/i);
+        rmatch = html.match(/<h1 class=["']lab-pinned-child["']>([\s\S]*?)<\/h1>/i);
         if (rmatch && rmatch[1]) { lname = rmatch[1].replace(/<[^>]*>/g, "").trim(); }
         
-        rmatch = html.match(/meta\s+name=\"description\"\s+content=\"([^"]+)\"/i);
+        rmatch = html.match(/meta\s+name=["']description["']\s+content=["']([^"']+)["']/i);
         if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
         
         var episodes = [];
-        var serverMatches = html.match(/<video[\s\S]*?src=\"([^"]+)\"/i);
+        var serverMatches = html.match(/<video[\s\S]*?src=["']([^"']+)["']/i);
+        
         if (serverMatches && serverMatches[1]) {
             lurl = serverMatches[1];
             episodes.push({
@@ -479,6 +480,8 @@ function parseMovieDetail(html) {
         director: direc
     });
 }
+
+
 
 function parseDetailResponse(html, url) {
     try {
