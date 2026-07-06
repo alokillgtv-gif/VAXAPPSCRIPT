@@ -7,13 +7,13 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.4",
+        "version": "1.6",
         "BASEURL": BASEURL,
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "embed"
+        "playerType": "exoplayer"
     });
 }
 
@@ -247,7 +247,7 @@ function parseMovieDetail(html, url) {
         
         rmatch = html.match(/property=["']og:image["']\s+content=["']([\s\S]*?)["']/i);
         if (rmatch && rmatch[1]) { limg = rmatch[1].trim(); }
-        rmatch = html.match(/links__list[\s\S]*?lab-pinned-child[^>]*>([\s\S]*?)<\/div>/i);
+        rmatch = html.match(/class=["']links__list["'][^>]*>([\s\S]*?)<\/div>/i);
         if (rmatch && rmatch[1]) {
                 var result = rmatch[1].replace(/<[^>]*>/g, '');
                 // 2. (Tùy chọn) Khử các thực thể HTML phổ biến như &nbsp;, &amp;, &lt;, &gt;
