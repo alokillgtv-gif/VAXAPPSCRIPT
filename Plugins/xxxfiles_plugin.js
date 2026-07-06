@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.5",
+        "version": "1.1",
         "BASEURL": BASEURL,
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -20,7 +20,7 @@ function getManifest() {
 
 
 function getHomeSections() {
-    var listurl = "latest-updates/1/@@Hàng Mới@@true";
+    var listurl = "latest-updates/@@Hàng Mới@@true";
     var menulist = buildMenu(listurl);
     return JSON.stringify(menulist);
 }
@@ -59,7 +59,7 @@ function getUrlList(slug, filtersJson) {
         }
         
         var targetUrl = BASEURL + "/" + path;
-        // search/black/
+        // search/black
         if (path.indexOf("/search/") > -1) {
             // Đối với trang tìm kiếm / tag
             if (page > 1) {
@@ -67,7 +67,7 @@ function getUrlList(slug, filtersJson) {
                 targetUrl += "/" + page + "/";
             } else {
                 targetUrl = targetUrl.replace(/\/$/, "");
-                targetUrl += "";
+                targetUrl += "/";
             }
         } else {
             // Đối với danh mục thông thường (ví dụ: porn/anal/videos/)
@@ -327,7 +327,7 @@ categories/old-and-young2/@@Già và Trẻ
 categories/hardcore/@@Hạng Nặng
 categories/fetish/@@Đặc biệt
 categories/double-penetration2/@@2 Cây Hàng
-categories/ebony/@@Da Dàu;
+categories/ebony/@@Da Màu
 `
 }
 
