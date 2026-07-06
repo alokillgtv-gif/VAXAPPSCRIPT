@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": BASEURL,
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -44,42 +44,79 @@ function getFilterConfig() {
 // URL GENERATION
 // =============================================================================
 
-// ĐÃ SỬA: Xóa bỏ hàm getUrlList thừa, giữ lại hàm chuẩn logic phân trang
 function getUrlList(slug, filtersJson) {
+    var baseUrlClean = (typeof BASEURL !== 'undefined' ? BASEURL : "").replace(/\/$/, "");
+    
+    var page = 1;
+    var path = "";
+    
+    // 1. Cố gắng parse JSON một cách an toàn
     try {
-        var filters = JSON.parse(filtersJson || "{}");
-        var page = parseInt(filters.page) || 1;
-        var path = filters.category ? filters.category : slug;
-        
-        if (path.startsWith("/")) path = path.substring(1);
-        
-        // Đảm bảo đuôi link danh mục có dấu / để tránh bị Server redirect 301/403
-        if (!path.endsWith("/") && path.indexOf('?') === -1) {
-            path += "/";
-        }
-        
-        var targetUrl = BASEURL + "/" + path;
-        // search/black
-        if (path.indexOf("/search/") > -1) {
-            // Đối với trang tìm kiếm / tag
-            if (page > 1) {
-                targetUrl = targetUrl.replace(/\/$/, ""); // Xóa dấu / cuối nếu có để nối param
-                targetUrl += "/" + page + "/";
-            } else {
-                targetUrl = targetUrl.replace(/\/$/, "");
-                targetUrl += "/";
-            }
-        } else {
-            // Đối với danh mục thông thường (ví dụ: porn/anal/videos/)
-            if (page > 1) {
-                targetUrl += "/" + page + "/";
+        if (filtersJson) {
+            // Thay thế các key không có dấu nháy bằng key có dấu nháy để sửa lỗi JSON lỏng lẻo
+            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+            var filters = JSON.parse(fixedJson);
+            
+            page = parseInt(filters.page) || 1;
+            
+            // Xử lý nếu category là mảng
+            if (filters.category) {
+                if (Array.isArray(filters.category) && filters.category.length > 0) {
+                    path = filters.category[0].slug;
+                } else if (typeof filters.category === 'string') {
+                    path = filters.category;
+                }
             }
         }
-        return targetUrl;
     } catch (e) {
-        return BASEURL + "/" + slug;
+        
     }
+    
+    // 2. Nếu filters không có category, sử dụng slug truyền vào
+    if (!path) {
+        path = slug || "";
+    }
+    
+    // 3. KIỂM TRA NẾU PATH ĐÃ LÀ URL TUYỆT ĐỐI
+    // Nếu path bắt đầu bằng http:// hoặc https://, ta xử lý riêng không cộng BASEURL nữa
+    if (/^https?:\/\//i.test(path)) {
+        // Chuẩn hóa xóa dấu / ở cuối
+        path = path.replace(/\/+$/, "");
+        
+        if (page > 1) {
+            return path + "/" + page + "/";
+        } else {
+            return path + "/";
+        }
+    }
+    
+    // 4. Xử lý cho URL tương đối (slug thông thường)
+    if (!path) return baseUrlClean + "/";
+    
+    path = path.replace(/^\/+|\/+$/g, "");
+    var targetUrl = baseUrlClean + "/" + path;
+    
+    if (page > 1) {
+        targetUrl += "/" + page + "/";
+    } else {
+        targetUrl += "/";
+    }
+    
+    return targetUrl;
 }
+/*
+var BASEURL = "https://www.xxxfiles.com";
+// JSON lỗi cú pháp (thiếu nháy kép) của bạn
+var filtersJson = '{page:1,category:[{"slug":"categories/teen/","name":"Thiếu niên"}]}'; 
+// Trường hợp 1: Truyền URL tuyệt đối vào slug
+console.log(getUrlList("https://www.xxxfiles.com/search/black/", filtersJson));
+// Kết quả: "https://www.xxxfiles.com/categories/teen/" 
+// (Vì trong filtersJson có category nên nó ưu tiên dùng category trước)
+// Trường hợp 2: Nếu filtersJson không có category, nó sẽ dùng slug trực tiếp
+var filtersJsonNoCat = '{page:2}';
+console.log(getUrlList("https://www.xxxfiles.com/search/black/", filtersJsonNoCat));
+// Kết quả: "https://www.xxxfiles.com/search/black/2/" (Nhận diện đúng URL và thêm trang)
+*/
 
 function getUrlSearch(keyword, filtersJson) {
     return BASEURL + "/search/" + encodeURIComponent(keyword);
