@@ -147,6 +147,7 @@ function getUrlYears() { return ""; }
 // =============================================================================
 
 
+
 function parseListResponse(html, currentUrl) {
     try {
         var items = [];
@@ -186,14 +187,14 @@ function parseListResponse(html, currentUrl) {
             
             // 4. Lấy Title từ thuộc tính alt của ảnh
             var title = "";
-            var rmatch = content.match(/video.thumbnail_file_url[^>]+http[^"']+["'][^>]+:alt[^>]+alt=["']([^>]+)["']/i);
+            var rmatch = content.match(/alt=["']([^>]+)["']/i);
             if (rmatch && rmatch[1]) {
                 title = rmatch[1];
             }
             
             // 5. Lấy Poster (Ưu tiên data-src rồi mới đến src)
             // <a[^>]+href=["'](http[^"']+)["']
-            var posterMatch = content.match(/video.thumbnail_file_url[^>]+(http[^"']+)["']/i);
+            var posterMatch = content.match(/src=['"](http[^"']+)["']/i);
             var poster = posterMatch ? posterMatch[1] : BASEIMG;
             
             if (poster && !poster.startsWith("http")) {
@@ -221,12 +222,14 @@ function parseListResponse(html, currentUrl) {
 }
 
 // --- Cách chạy thực tế trên Console trình duyệt ---
-//var htmlData = document.documentElement.outerHTML; // Lấy toàn bộ HTML chuẩn hơn
-//var resultJson = parseListResponse(htmlData, window.location.href);
-//JSON.parse(resultJson);
-//BASEURL = "https://www.xxxfiles.com";
-//var html = document.getElementsByTagName("html")[0].outerHTML;
-//JSON.parse(parseListResponse(html));
+
+/*
+BASEURL = "https://sexdeplon.com";
+BASEIMG = "https://sexdeplon.com";
+var html = document.getElementsByTagName("html")[0].outerHTML;
+JSON.parse(parseListResponse(html));
+*/
+
 
 function parseSearchResponse(html) {
     return parseListResponse(html);
