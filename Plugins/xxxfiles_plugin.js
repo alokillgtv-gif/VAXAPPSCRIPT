@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": BASEURL,
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -105,17 +105,14 @@ function getUrlYears() { return ""; }
 
 
 
-function parseListResponse(html,url) {
+function parseListResponse(html, url) {
     try {
         var items = [];
-        var error = {id: url,title: "Lỗi: " + url,posterUrl: BASEIMG};
         // Kiểm tra nếu HTML trả về là trang lỗi hoặc trang trống
         if (!html || html.indexOf('body') === -1) {
-            
-            return JSON.stringify({ items: [error], pagination: { currentPage: 1, totalPages: 1 } });
+            return JSON.stringify({ items: [{ id: url, title: "Lỗi: 1" + url, posterUrl: BASEIMG }], pagination: { currentPage: 1, totalPages: 1 } });
         }
-        
-        const divRegex = /<div\s+class=["']thumb item["']>([\s\S]*?)<\/div>/g;
+        const divRegex = /class=["']thumb\s+item["']>([\s\S]*?)<\/div>/g;
         let match;
         while ((match = divRegex.exec(html)) !== null) {
             const content = match[1];
@@ -123,33 +120,35 @@ function parseListResponse(html,url) {
                 // nếu trong khối không có link và ảnh thì bỏ qua
                 continue;
             }
-            var urlMatch = blockHtml.match(/a[\s\S]*?href=["']([^"]+)["']/i);
+            var urlMatch = content.match(/a[\s\S]*?href=["']([^"]+)["']/i);
+            
             var url = "";
             if (urlMatch && urlMatch[1]) {
                 url = urlMatch[1];
             } else {
-                // Nếu không có url hợp lệ, bỏ qua chunk này luôn, không lấy rác
                 continue;
             }
             if (!url.startsWith("http")) {
-                 url = BASEURL + url;
+                url = BASEURL + url;
             }
-            
             var title = "";
-            var rmatch = blockHtml.match(/alt="([^"]+)"/i);
+            var rmatch = content.match(/alt="([^"]+)"/i);
             if (rmatch && rmatch[1]) {
                 title = rmatch[1];
             }
             // 3. Lấy Poster (Toán tử 3 ngôi chuẩn)
-            var posterMatch = blockHtml.match(/data-src="([^"]+)"/i) || blockHtml.match(/src="([^"]+)"/i);
+            var posterMatch = content.match(/data-src="([^"]+)"/i) || content.match(/src="([^"]+)"/i);
+            
             var poster = posterMatch ? posterMatch[1] : BASEIMG;
             if (poster && !poster.startsWith("http")) {
                 poster = BASEURL + poster;
             }
+            
+            
             items.push({
-                 id: url,
-                 title: title,
-                 posterUrl: poster
+                id: url,
+                title: title,
+                posterUrl: poster
             });
         }
         return JSON.stringify({
@@ -158,10 +157,10 @@ function parseListResponse(html,url) {
         });
         
     } catch (e) {
-        return JSON.stringify({ items: [], pagination: { currentPage: 1, totalPages: 1 } });
+        return JSON.stringify({ items: [{ id: url, title: "Lỗi: 2: " + url, posterUrl: BASEIMG }], pagination: { currentPage: 1, totalPages: 1 } });
     }
 }
-//BASEURL = "https://motherless.xxx";
+//BASEURL = "https://www.xxxfiles.com";
 //var html = document.getElementsByTagName("html")[0].outerHTML;
 //JSON.parse(parseListResponse(html));
 
@@ -180,7 +179,6 @@ function parseMovieDetail(html, url) {
     var status = "????";
     var duration = "1:09:00 | 16 | 16";
     var servers = [];
-    
     try {
         var rmatch;
         var idvideo = url.replace(BASEURL + "/", "");
