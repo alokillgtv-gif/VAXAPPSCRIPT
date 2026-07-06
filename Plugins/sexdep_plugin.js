@@ -9,7 +9,7 @@ function getManifest() {
         "id": "sexdep",
         "name": "sexdep",
         "description": "XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": BASEURL,
         "iconUrl": BASEIMG,
         "isEnabled": true,
