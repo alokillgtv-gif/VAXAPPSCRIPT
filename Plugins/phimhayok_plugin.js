@@ -37,17 +37,14 @@ function getFilterConfig() {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
     return JSON.stringify({
-        category: menulist,
         sort: [
             { name: 'Phim Lẻ', value: 'phim-le' },
             { name: 'Phim Bộ', value: 'phim-bo' },
-            { name: 'Phim Ngắn', value: 'phim-ngan'}
-        ]
+            { name: 'Phim Ngắn', value: 'phim-ngan' }
+        ],
+        category: menulist
     });
 }
-
-
-
 
 // =============================================================================
 // URL GENERATION (Bóc tách slug sạch theo khuôn mẫu mới)
