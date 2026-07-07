@@ -387,7 +387,7 @@ function buildMenu(listurl) {
 }
 
 function CustomjQ(html, url){
-    var $cutom1 = `
+    var $custom1 = `
     function runBegin(){
         customAlert("2412421", "Alo alo");
     }
@@ -490,7 +490,8 @@ function CustomjQ(html, url){
         initCustomVideoFix();
     }
 `
-return $cutom1 + $cutom2;
+
+return $custom1 + $custom2;
 }
 
 
