@@ -14,7 +14,7 @@ function getManifest() {
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg", 
         "isEnabled": true,
         "type": "VIDEO",
-        "playerType": "exoplayer"
+        "playerType": "embed"
     });
 }
 
