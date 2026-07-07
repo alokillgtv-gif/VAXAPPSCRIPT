@@ -9,7 +9,7 @@ function getManifest() {
         "name": "phimhayok",
         "description": "Nguồn xem phim Online ổn định",
         "version": "1.0",             
-        "BASEURL": BASEURL,
+        "baseUrl": BASEURL,
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/phimhayok.jpg",
         "isEnabled": true,
         "type": "MOVIE",
@@ -77,16 +77,16 @@ function getUrlList(slug, filtersJson) {
                     path += "&categories=" + filters.sort;
                 }
             }
-            console.log("sort");
+            //console.log("sort");
             return BASEURL + "/page/" + page + "?" + path;
             
         }
     }
     if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
-        console.log("menu");
+        //console.log("menu");
         return BASEURL + "/page/" + page + slug;
     }
-    console.log("main");
+    //console.log("main");
     return BASEURL + "/page/" + page + slug;
     
 }
