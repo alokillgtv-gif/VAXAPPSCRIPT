@@ -102,7 +102,7 @@ function parseListResponse(html) {
     try {
         var script = html.match(/<script[^>]+id=['"]initials-script["']>([\s\S]*?)<\/script>/i);
         if (script && script[1]) {
-            eval(script);
+            eval(script[1]);
             var listVideos = window.initials.pagesCategoryComponent.trendingVideoListProps.videoThumbProps;
             var items = [];
             for (var j = 0; j < listVideos.length; j++) {
