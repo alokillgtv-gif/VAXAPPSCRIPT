@@ -1,15 +1,13 @@
-// =============================================================================
-// VAAPP Plugin - Xhamster (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
-// =============================================================================
+BASEURL = "https://viet69z.me";
 
 function getManifest() {
     return JSON.stringify({
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.0",             
         "baseUrl": "https://viet69z.me",
-        "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
+        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.jpg", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
@@ -49,31 +47,33 @@ function getUrlList(slug, filtersJson) {
     try {
         var filters = JSON.parse(filtersJson || "{}");
         var page = filters.page || 1;
-        
+        if (filtersJson.category) {
+            return BASEURL + "/" + filters.category + "/page/" + page;
+        }
         if (page > 1) {
             if (slug.indexOf("s=") > -1) {
-                 return "https://viet69z.me/page/" + page + "/" + slug;
+                 return BASEURL + "/page/" + page + "/" + slug;
             } else {
-                 return "https://viet69z.me/" + slug + "/page/" + page;
+                 return BASEURL + "/" + slug + "/page/" + page;
             }
         }
-        return "https://viet69z.me/" + slug;
+        return BASEURL + "/" + slug;
     } catch (e) {
-        return "https://viet69z.me/" + slug;
+        return BASEURL + "/" + slug;
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://viet69z.me/?s=" + encodeURIComponent(keyword);
+    return BASEURL + "/?s=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://viet69z.me/" + slug;
+    return BASEURL + "/" + slug;
 }
 
-function getUrlCategories() { return ""; }
+function getUrlCategories() { return BASEURL; }
 function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
@@ -183,7 +183,7 @@ function parseMovieDetail(html) {
         description: ldes  + "\r\n\r\n" + lurl + "\r\n\r\n" + streamUrl,
         servers: [
             {
-                name: "HaySex",
+                name: "Server",
                 episodes: [
                     { id: lurl, name: "Xem Ngay", slug: "full" }
                 ]
@@ -199,6 +199,9 @@ function parseMovieDetail(html) {
         category: "18+"
     });
 }
+/*
+body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline--block}iframe { width: 100 % ;height: 100 % ;position: fixed;top: 0;left: 0;right: 0;bottom: 0;z - index: 99999 }
+*/
 
 function parseDetailResponse(html) {
     try {
@@ -207,10 +210,13 @@ function initCustomVideoFix() {
   const style = document.createElement('style');
   
   // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-  var customcss = 'body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline--block}';
+  var customcss = 'body { display: block;position: relative;width: 100% ;height: 100% ;overflow: hidden }';
                   
   style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
   document.head.appendChild(style);
+  
+  var $iframe = document.querySelector('iframe[id*="player"]').outerHTML;
+    document.querySelector('html').innerHTML = "<body>" + $iframe + "</body>";
   
   if (typeof jwplayer === "function") {
     const player = jwplayer("previewPlayer");
@@ -250,6 +256,12 @@ if (document.readyState === 'loading') {
     }
 }
 
-function parseCategoriesResponse(html) { return "[]"; }
+function parseCategoriesResponse(html) { return JSON.stringify([
+    { "slug": "sinh-vien", "name": "Sinh Viên" },
+    { "slug": "may-bay-ba-gia", "name": "Máy Bay" },
+    { "slug": "?s=Vi%E1%BB%87t+nam", "name": "Việt Nam" },
+    { "slug": "?s=T%E1%BA%ADp+th%E1%BB%83", "name": "Tập Thể" }, // ĐÃ SỬA: Thêm dấu phẩy ở đây
+    { "slug": "?s=Hi%E1%BA%BFp+d%C3%A2m", "name": "Hiếp Dâm" }
+])}
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
