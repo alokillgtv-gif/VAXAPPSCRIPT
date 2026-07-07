@@ -214,7 +214,7 @@ function initCustomVideoFix() {
                   
   style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
   const script = document.createElement('script');
-  var scAppend = 'var $iframe = document.querySelector('iframe[id*="player"]').outerHTML;document.querySelector('html').innerHTML = "<body>" + $iframe + "</body>";'
+  var scAppend = 'var $iframe = document.querySelector(\'iframe[id*="player"]\').outerHTML;document.querySelector("html").innerHTML = "<body>" + $iframe + "</body>";'
   script.innerHTML = scAppend;
   document.head.appendChild(style);
   document.body.appendChild(script);
