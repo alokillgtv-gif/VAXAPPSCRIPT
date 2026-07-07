@@ -338,7 +338,7 @@ function buildMenu(listurl) {
 function CustomjQ(html, url) {
     var $custom1 = `
     function runBegin(){
-        customAlert("2412421", "Alo alo");
+        //customAlert("2412421", "Alo alo");
     }
     `;
     var $custom2 = `
