@@ -204,65 +204,23 @@ function parseDetailResponse(html) {
     try {
 var customJs = `
 function initCustomVideoFix() {
-  // 1. Thêm CSS cơ bản để tràn màn hình
   const style = document.createElement('style');
-  style.innerHTML = '#jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline--block}iframe { width: 100 % ;height: 100 % ;position: fixed;top: 0;left: 0;right: 0;bottom: 0;z - index: 99999 }body, html { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; background: #000; }';
+  
+  // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
+  var customcss = 'body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline--block}';
+                  
+  style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
   document.head.appendChild(style);
   
-  startContinuousCleaning();
-}
-
-// Hàm thực hiện việc dọn dẹp liên tục
-function startContinuousCleaning() {
-  // Chạy lần đầu tiên ngay lập tức
-  cleanPageAndKeepVideo();
-  
-  // Cứ mỗi 5 giây (5000ms) sẽ quét và xóa banner một lần để diệt tận gốc quảng cáo tự nhảy ra
-  // Nếu bạn muốn ĐÚNG 1 phút tròn mới quét một lần thì đổi số 5000 thành 60000 nhé
-  let cleanInterval = setInterval(cleanPageAndKeepVideo, 5000);
-  
-  // Tự động dừng vòng lặp dọn dẹp này sau 5 phút (300000ms) để tiết kiệm RAM/CPU cho trình duyệt
-  setTimeout(() => {
-    clearInterval(cleanInterval);
-    console.log("Đã dừng vòng lặp dọn dẹp sau 5 phút.");
-  }, 300000);
-}
-
-// Hàm dọn sạch trang web, chỉ giữ lại đúng iframe video
-function cleanPageAndKeepVideo() {
-  const iframe = document.querySelector('iframe[id*="player"]');
-  
-  if (iframe) {
-    // Ép style cho iframe này tràn hết màn hình
-    if (iframe.style.position !== 'fixed') {
-      iframe.style.position = 'fixed';
-      iframe.style.top = '0';
-      iframe.style.left = '0';
-      iframe.style.width = '100vw';
-      iframe.style.height = '100vh';
-      iframe.style.zIndex = '999999';
-      iframe.style.border = 'none';
+  if (typeof jwplayer === "function") {
+    const player = jwplayer("previewPlayer");
+    if (player && typeof player.getMute === "function") {
+        if (player.getMute()) {
+            player.setMute(false);
+            console.log("Đã bật tiếng video!");
+        }
+        player.setVolume(100); 
     }
-
-    // Đưa iframe ra làm con trực tiếp của body nếu nó chưa ở đó
-    if (iframe.parentElement !== document.body) {
-      document.body.appendChild(iframe);
-    }
-
-    // Quét và xóa sạch tất cả những thằng khác nằm trong <body>
-    let deletedCount = 0;
-    Array.from(document.body.children).forEach(child => {
-      if (child !== iframe && child.tagName !== 'STYLE' && child.tagName !== 'SCRIPT') {
-        child.remove(); 
-        deletedCount++;
-      }
-    });
-    
-    if (deletedCount > 0) {
-      console.log(\`Đã quét và xóa thêm \${deletedCount} banner quảng cáo phát sinh!\`);
-    }
-  } else {
-    console.log("Không tìm thấy iframe video để bảo vệ.");
   }
 }
 
@@ -270,7 +228,7 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
   initCustomVideoFix();
-}
+  }
 `;
 
 
