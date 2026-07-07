@@ -50,6 +50,16 @@ function getFilters() {
     });
 }
 
+function getFilterConfig() {
+    return JSON.stringify({
+        sort: [
+            { name: 'Mới cập nhật', value: 'update' },
+            { name: 'Năm xuất bản', value: 'year' },
+            { name: 'Lượt xem', value: 'view' }
+        ]
+    });
+}
+
 // =============================================================================
 // URL GENERATION
 // =============================================================================
