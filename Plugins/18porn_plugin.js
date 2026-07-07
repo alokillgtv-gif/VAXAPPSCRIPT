@@ -44,22 +44,80 @@ function getFilters() {
  });
 }
 
+
 function getUrlList(slug, filtersJson) {
+ var baseUrlClean = (typeof BASEURL !== 'undefined' ? BASEURL : "").replace(/\/$/, "");
+ 
+ var page = 1;
+ var path = "";
+ 
+ // 1. Cố gắng parse JSON một cách an toàn
  try {
-  var filters = JSON.parse(filtersJson || "{}");
-  var page = filters.page || 1;
+  if (filtersJson) {
+   // Thay thế các key không có dấu nháy bằng key có dấu nháy để sửa lỗi JSON lỏng lẻo
+   var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+   var filters = JSON.parse(fixedJson);
+   
+   page = parseInt(filters.page) || 1;
+   
+   // Chỉ lấy category từ JSON nếu không truyền slug vào hàm
+   if (!slug && filters.category) {
+    if (Array.isArray(filters.category) && filters.category.length > 0) {
+     path = filters.category[0].slug;
+    } else if (typeof filters.category === 'string') {
+     path = filters.category;
+    }
+   }
+  }
+ } catch (e) {
+  // Ghi log lỗi nếu cần thiết để debug: console.error(e);
+ }
+ 
+ // 2. Nếu có slug truyền vào, ưu tiên sử dụng slug đó
+ if (slug) {
+  path = slug;
+ }
+ 
+ // 3. KIỂM TRA NẾU PATH ĐÃ LÀ URL TUYỆT ĐỐI
+ if (/^https?:\/\//i.test(path)) {
+  path = path.replace(/\/+$/, "");
   
   if (page > 1) {
-   return BaseURL + "/" + slug + page;
+   if (path.indexOf("?") > -1) {
+    return path + "/" + page;
+   } else {
+    return path + "/" + page;
+   }
+  } else {
+   return path + "/";
   }
-  return BaseURL + "/" + slug;
- } catch (e) {
-  return BaseURL + "/" + slug;
  }
+ 
+ // 4. Xử lý cho URL tương đối (slug thông thường)
+ if (!path) return baseUrlClean + "/";
+ 
+ path = path.replace(/^\/+|\/+$/g, "");
+ var targetUrl = baseUrlClean + "/" + path;
+ 
+ if (page > 1) {
+  if (targetUrl.indexOf("?") > -1) {
+   targetUrl += "/" + page;
+  } else {
+   targetUrl += "/" + page;
+  }
+ } else {
+  // Tránh nhân đôi dấu / nếu path thực chất là query string (ví dụ: ?view=hay-nhat)
+  if (path.indexOf("?") !== 0) {
+   targetUrl += "/";
+  }
+ }
+ 
+ return targetUrl;
 }
 
+
 function getUrlSearch(keyword, filtersJson) {
- return BaseURL + "/search/" + encodeURIComponent(keyword);
+ return BaseURL + "/search/" + encodeURIComponent(keyword) + "/";
 }
 
 function getUrlDetail(slug) {
@@ -189,12 +247,8 @@ function parseMovieDetail(html) {
   // SỬA ĐÚNG CHUẨN: Tách thành 2 Server riêng biệt để người dùng chọn nguồn
   servers = [
     {
-      name: "Server Gốc (MP4)",
-      episodes: [{ id: dlink || elink, name: "Xem Ngay", slug: "full" }]
-    },
-    {
-      name: "Server Dự Phòng (Embed)",
-      episodes: [{ id: elink || dlink, name: "Xem Ngay", slug: "full" }]
+     name: "Server",
+     episodes: [{ id: elink, name: "Xem Ngay", slug: "full" }]
     }
   ];
 
@@ -244,7 +298,204 @@ function parseDetailResponse(html) {
   subtitles: [] 
  });
 }
+function parseCategoriesResponse(apiResponseJson) {
+ var listurl = getLISTmenu();
+ var menulist = buildMenu(listurl);
+ return JSON.stringify(menulist);
+}
 
-function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
+
 function parseYearsResponse(html) { return "[]"; }
+
+function getLISTmenu() {
+ return `
+new/@@Mới Nhất
+categories/dildo/@@Dildo
+categories/blonde/@@Blonde
+categories/small-tits/@@Small Tits
+categories/stockings/@@Stockings
+categories/brunette/@@Brunette
+categories/beuatiful/@@Beautiful
+categories/solo/@@Solo
+categories/masturbation/@@Masturbation
+categories/lesbian/@@Lesbian
+categories/blowjob/@@Blowjob
+categories/hairy-pussy/@@Hairy Pussy
+categories/redhead/@@Redhead
+categories/latina/@@Latina
+categories/asian/@@Asian
+categories/creampie/@@Creampie
+categories/fisting/@@Fisting
+categories/cumshot/@@Cumshot
+categories/threesome/@@Threesome
+categories/big-tits/@@Big Tits
+categories/cum-in-mouth/@@Cum In Mouth
+categories/anal/@@Anal
+categories/cum-on-face/@@Cum On Face
+categories/striptease/@@Striptease
+categories/webcam/@@Webcam
+categories/outdoors/@@Outdoors
+categories/amateur/@@Amateur
+categories/toys/@@Toys
+categories/teen/@@Teen
+categories/pussy-licking/@@Pussy Licking
+categories/shaved-pussy/@@Shaved Pussy
+categories/group/@@Group
+categories/hardcore/@@Hardcore
+categories/rimming/@@Rimming
+categories/interracial/@@Interracial
+categories/old-and-young/@@Old and Young
+`
+}
+
+
+// Hàm tách menu bằng list - ĐÃ TỐI ƯU: Không dùng Regex lặp để tránh treo app
+function buildMenu(listurl) {
+ let menulist = [];
+ if (!listurl) return menulist;
+ 
+ let lines = listurl.split('\n');
+ for (let i = 0; i < lines.length; i++) {
+  let line = lines[i].trim();
+  if (!line || line.indexOf('@@') === -1) continue;
+  
+  let parts = line.split('@@');
+  let link = parts[0] ? parts[0].trim() : "";
+  let name = parts[1] ? parts[1].trim() : "";
+  let check = parts[2] ? parts[2].trim() : undefined;
+  
+  if (!link || !name) continue;
+  
+  let item = {};
+  if (check === "false") {
+   item = { "slug": link, "title": name, "type": "Horizontal" };
+  } else if (check === "true") {
+   item = { "slug": link, "title": name, "type": "Grid" };
+  } else {
+   item = { "slug": link, "name": name };
+  }
+  menulist.push(item);
+ }
+ return menulist;
+}
+
+function CustomjQ(html, url) {
+ var $cutom1 = `
+    function runBegin(){
+        customAlert("2412421", "Alo alo");
+    }
+    `;
+ var $custom2 = `
+    function customAlert(title, message) {
+        const overlay = document.createElement('div');
+        Object.assign(overlay.style, {
+            position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center',
+            alignItems: 'center', zIndex: '99999', opacity: '0', transition: 'opacity 0.2s ease'
+        });
+        
+        const box = document.createElement('div');
+        Object.assign(box.style, {
+            backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.25)', maxWidth: '380px', width: '85%',
+            boxSizing: 'border-box', fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+            transform: 'scale(0.8)', transition: 'transform 0.2s ease'
+        });
+        
+        const titleEl = document.createElement('input');
+        titleEl.type = 'text'; 
+        titleEl.value = title;
+        Object.assign(titleEl.style, {
+            display: 'block', width: '100%', boxSizing: 'border-box',
+            margin: '0 0 12px 0', padding: '6px 10px', color: '#222222',
+            fontSize: '15px', fontWeight: '600', border: '1px solid #ddd', borderRadius: '6px'
+        });
+        
+        const msgEl = document.createElement('textarea');
+        msgEl.value = message;
+        Object.assign(msgEl.style, {
+            display: 'block', width: '100%', boxSizing: 'border-box',
+            margin: '0 0 20px 0', padding: '8px 10px', color: '#555555',
+            fontSize: '14px', height: '200px', lineHeight: '1.5',
+            border: '1px solid #ddd', borderRadius: '6px', resize: 'none'
+        });
+        
+        const btn = document.createElement('button');
+        btn.innerText = 'OK';
+        Object.assign(btn.style, {
+            display: 'block', margin: '0 auto', padding: '10px 28px',
+            fontSize: '15px', fontWeight: '600', color: '#ffffff',
+            backgroundColor: '#007bff', border: 'none', borderRadius: '6px',
+            cursor: 'pointer', outline: 'none', transition: 'background-color 0.1s'
+        });
+        
+        btn.onmouseover = () => btn.style.backgroundColor = '#0056b3';
+        btn.onmouseout = () => btn.style.backgroundColor = '#007bff';
+        
+        const closeAlert = () => {
+            overlay.style.opacity = '0';
+            box.style.transform = 'scale(0.8)';
+            setTimeout(() => { overlay.remove(); }, 200);
+        };
+        
+        btn.onclick = closeAlert;
+        overlay.onclick = (e) => { if (e.target === overlay) closeAlert(); };
+        
+        box.appendChild(titleEl);
+        box.appendChild(msgEl);
+        box.appendChild(btn);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        
+        setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'scale(1)'; }, 10);
+    }
+
+    function initCustomVideoFix() {
+        const style = document.createElement('style');
+        var customcss = 'body {overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
+        style.innerHTML = customcss;
+        document.head.appendChild(style);
+        
+        if (typeof jwplayer === "function") {
+            const player = jwplayer("previewPlayer");
+            if (player && typeof player.getMute === "function") {
+                if (player.getMute()) {
+                    player.setMute(false);
+                }
+                player.setVolume(100);
+            }
+        }
+        
+        const checkAndClick = setInterval(() => {
+            const skipButton = document.getElementById("skip-ad");
+            if (skipButton) {
+                skipButton.click();
+                clearInterval(checkAndClick);
+            }
+        }, 200);
+        
+        setTimeout(() => { clearInterval(checkAndClick); }, 20000);
+        runBegin();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+    } else {
+        initCustomVideoFix();
+    }
+`
+ return $cutom1 + $cutom2;
+}
+
+
+function trimHTML(inhtml) {
+ var result = inhtml.replace(/<[^>]*>/g, '');
+ result = result.replace(/&nbsp;/g, ' ')
+  .replace(/&amp;/g, '&')
+  .replace(/&lt;/g, '<')
+  .replace(/&gt;/g, '>')
+  .replace(/\n|\r/gi, ' - ')
+  .replace(/\s+/gi, ' ')
+  .replace(/^,+|,+$/g, "");
+ return result;
+}
