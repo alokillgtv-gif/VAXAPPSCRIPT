@@ -213,10 +213,12 @@ function initCustomVideoFix() {
   var customcss = 'body { display: block;position: relative;width: 100% ;height: 100% ;overflow: hidden }';
                   
   style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
+  const script = document.createElement('script');
+  var scAppend = 'var $iframe = document.querySelector('iframe[id*="player"]').outerHTML;document.querySelector('html').innerHTML = "<body>" + $iframe + "</body>";'
+  script.innerHTML = scAppend;
   document.head.appendChild(style);
-  
-  var $iframe = document.querySelector('iframe[id*="player"]').outerHTML;
-    document.querySelector('html').innerHTML = "<body>" + $iframe + "</body>";
+  document.body.appendChild(script);
+    
   
   if (typeof jwplayer === "function") {
     const player = jwplayer("previewPlayer");
@@ -228,6 +230,8 @@ function initCustomVideoFix() {
         player.setVolume(100); 
     }
   }
+  
+    
 }
 
 if (document.readyState === 'loading') {
