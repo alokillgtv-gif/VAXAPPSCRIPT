@@ -7,7 +7,7 @@ function getManifest() {
         "description": "XXX Hay",
         "version": "1.2",
         "baseUrl": BASEURL,
-        "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
+        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless.jpg",
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
