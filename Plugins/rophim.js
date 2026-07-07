@@ -1,6 +1,8 @@
 // =============================================================================
 // VAAPP Plugin - Rophim Fake (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
 // =============================================================================
+BASEURL = "https://script.google.com/macros/s/AKfycbyxM6-_Q-DG_2l1hm1bM_ASVA74OPywVPk3hpm2FbpT78gGzBEpDN81Ty6tla8DTO27/exec?&type=html&render=false&check=true&url=https://phimvn2y.com"
+
 
 function getManifest() {
     return JSON.stringify({
@@ -58,16 +60,16 @@ function getUrlList(slug, filtersJson) {
         var page = filters.page || 1;
         
         if (page > 1) {
-            return "https://phimvn2y.com/" + slug + "/?page=" + page;
+            return BASEURL + "/" + slug + "/?page=" + page;
         }
-        return "https://phimvn2y.com/" + slug;
+        return BASEURL + "/" + slug;
     } catch (e) {
-        return "https://phimvn2y.com/" + slug;
+        return BASEURL + "/" + slug;
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://phimvn2y.com/tim-kiem/?q=" + encodeURIComponent(keyword);
+    return BASEURL + "/tim-kiem/?q=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
@@ -79,13 +81,13 @@ function getUrlDetail(slug) {
         if (parts.length >= 2) {
             var movieSlug = parts[0];
             var epSlug = parts[1];
-            return "https://phimvn2y.com/" + movieSlug + "-" + epSlug + ".html";
+            return BASEURL + "/" + movieSlug + "-" + epSlug + ".html";
         }
     }
 
     if (slug.indexOf("http") === 0) return slug;
     if (slug.indexOf("/") === 0) return "https://phimvn2y.com" + slug;
-    return "https://phimvn2y.com/" + slug;
+    return BASEURL + "/" + slug;
 }
 
 function getUrlCategories() { return ""; }
