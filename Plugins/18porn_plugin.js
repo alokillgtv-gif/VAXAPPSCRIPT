@@ -46,7 +46,7 @@ function getFilters() {
 
 
 function getUrlList(slug, filtersJson) {
- var baseUrlClean = (typeof BASEURL !== 'undefined' ? BASEURL : "").replace(/\/$/, "");
+ var BaseURLClean = (typeof BaseURL !== 'undefined' ? BaseURL : "").replace(/\/$/, "");
  
  var page = 1;
  var path = "";
@@ -94,10 +94,10 @@ function getUrlList(slug, filtersJson) {
  }
  
  // 4. Xử lý cho URL tương đối (slug thông thường)
- if (!path) return baseUrlClean + "/";
+ if (!path) return BaseURLClean + "/";
  
  path = path.replace(/^\/+|\/+$/g, "");
- var targetUrl = baseUrlClean + "/" + path;
+ var targetUrl = BaseURLClean + "/" + path;
  
  if (page > 1) {
   if (targetUrl.indexOf("?") > -1) {
