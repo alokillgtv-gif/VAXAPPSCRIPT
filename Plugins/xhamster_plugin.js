@@ -51,6 +51,17 @@ function getFilters() {
     });
 }
 
+function getFilterConfig() {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
+    return JSON.stringify({
+        "sort": [
+            { "name": "Mới nhất", "value": "newest" }
+        ],
+        "category": menulist
+    });
+}
+
 // =============================================================================
 // URL GENERATION
 // =============================================================================
