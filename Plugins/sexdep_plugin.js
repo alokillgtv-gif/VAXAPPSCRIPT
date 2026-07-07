@@ -128,6 +128,7 @@ var filtersJson = '{page:5,category:[{"slug":"?view=hay-nhat","name":"Hay Nhất
 console.log(getUrlList("https://sexdep.vip/search/vang-anh", filtersJson));
 */
 // https://sexdep.vip/search/gai-nga?page=2
+
 function getUrlSearch(keyword, filtersJson) {
     return BASEURL + "/search/" + encodeURIComponent(keyword);
 }
@@ -385,6 +386,17 @@ function buildMenu(listurl) {
     }
     return menulist;
 }
+function trimHTML(inhtml) {
+    var result = inhtml.replace(/<[^>]*>/g, '');
+    result = result.replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\n|\r/gi, ' - ')
+        .replace(/\s+/gi, ' ')
+        .replace(/^,+|,+$/g, "");
+    return result;
+}
 
 function CustomjQ(html, url){
     var $custom1 = `
@@ -495,14 +507,3 @@ return $custom1 + $custom2;
 }
 
 
-function trimHTML(inhtml) {
-    var result = inhtml.replace(/<[^>]*>/g, '');
-    result = result.replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/\n|\r/gi, ' - ')
-        .replace(/\s+/gi, ' ')
-        .replace(/^,+|,+$/g, "");
-    return result;
-}
