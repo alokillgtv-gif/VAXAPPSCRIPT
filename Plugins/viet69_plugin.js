@@ -211,32 +211,8 @@ function initCustomVideoFix() {
   const style = document.createElement('style');
   style.innerHTML = 'body, html { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; background: #000; }';
   document.head.appendChild(style);
-  
   // 2. Chờ JWPlayer sẵn sàng để bật tiếng trước
-  let checkPlayerExist = setInterval(function() {
-    if (typeof jwplayer === "function") {
-      try {
-        const player = jwplayer("previewPlayer");
-        if (player && typeof player.getMute === "function") {
-          if (player.getMute()) {
-              player.setMute(false);
-              console.log("Đã bật tiếng video!");
-          }
-          player.setVolume(100); 
-          
-          // Sau khi cấu hình tiếng xong, tiến hành "dọn dẹp bãi rác" quảng cáo
-          cleanPageAndKeepVideo();
-          
-          clearInterval(checkPlayerExist); // Hoàn thành nhiệm vụ, dừng check
-        }
-      } catch (e) {
-        console.log("Đang chờ player setup...");
-      }
-    }
-  }, 200);
-
-  // Giới hạn check trong 15 giây để tránh treo máy nếu trang lỗi
-  setTimeout(() => clearInterval(checkPlayerExist), 15000);
+  cleanPageAndKeepVideo();
 }
 
 // Hàm dọn sạch trang web, chỉ giữ lại đúng iframe video
