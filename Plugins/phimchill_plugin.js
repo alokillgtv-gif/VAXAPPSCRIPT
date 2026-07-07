@@ -193,7 +193,7 @@ function parseMovieDetail(html) {
     var servers = [];
     var serverMatch;
     var serverCounter = 1; 
-
+    
     while ((serverMatch = serverBlockRegex.exec(html)) !== null) {
         var episodesHtml = serverMatch[2]; 
         var rawEpisodes = [];
@@ -231,13 +231,12 @@ function parseMovieDetail(html) {
 	var streamUrl = "";
     var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
-	
     return JSON.stringify({
-        id: lurl,
+        id: streamUrl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + lurl + "\r\n\r\n" + streamUrl,
+        description: ldes + "\r\n\r\n\r\n" + JSON.stringify(servers),
         servers: servers,
         quality: "HD",
         year: 2026,
