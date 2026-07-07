@@ -1,8 +1,9 @@
 // =============================================================================
 // VAAPP Plugin - Xhamster (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
 // =============================================================================
-BASEURL = "https://xhwide.com";
-DEV = "true";
+var BASEURL = "https://xhwide.com";
+var DEV = "true";
+
 function getManifest() {
     return JSON.stringify({
         "id": "xhamster",          
@@ -46,20 +47,12 @@ function getFilters() {
         "sort": [
             { "name": "Mới nhất", "value": "newest" }
         ],
-        category: menulist
+        "category": menulist
     });
 }
 
-// ĐÃ SỬA: Lỗi cú pháp khai báo biến trong JSON.stringify
 function getFilterConfig() {
-    var listurl = getLISTmenu();
-    var menulist = buildMenu(listurl);
-    return JSON.stringify({
-        sort: [
-            { "name": "Mới nhất", "value": "newest" }
-        ],
-        category: menulist
-    });
+    return getFilters(); // Tái sử dụng để tránh trùng lặp code thừa
 }
 
 // =============================================================================
@@ -97,55 +90,41 @@ function getUrlYears() { return ""; }
 // =============================================================================
 // PARSERS
 // =============================================================================
-/*
 
-        id: 26522500
-        duration: 1130
-        created: 1746867016
-        title: "Fuck While Her Mom Next Room, Came All Over Her Face, Hoping She Wouldn't Notice."
-        thumbId: 17475568
-        videoType: "video"
-        pageURL: "https://xhwide.com/videos/fuck-while-her-mom-next-room-came-all-over-her-face-hoping-she-wouldnt-notice-xhAOCwF"
-        thumbURL: "https://ic-vt-nss.cdnsolutions.media/a/ZjQ2NTQxYTc0YjVlNDcwZjc5YjRiNDFiYWZmMjJkM2Y/s(w:526,h:298),webp/026/522/500/1280x720.17475568.jpg"
-        imageURL: "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg"
-        previewThumbURL: "https://thumb-nss.cdnsolutions.media/a/9K9iFlO_g1a4evV3qApisA/026/522/500/16x9.17475568.jpg"
-        icon: null
-        spriteURL: "https://thumb-v0.cdnsolutions.media/a/aev8YLFGPuOK0aszutZMqA/026/522/500/526x298.s.webp"
-        trailerURL: "https://thumb-v0.cdnsolutions.media/a/wQ7bPlymoSp4RxeqnFy1lQ/026/522/500/526x298.94.3.5.t.av1.mp4"
-        trailerFallbackUrl: "https://thumb-v0.cdnsolutions.media/a/AV96D_DzLKvtU1vTZBv4QQ/026/522/500/526x298.94.3.5.t.mp4"
-        isUHD: true
-        views: 4707095
-*/
 function parseListResponse(html) {
     try {
         var script = html.match(/<script[^>]+id=['"]initials-script["']>([\s\S]*?)<\/script>/i);
-        if(script && script[1]){
+        if (script && script[1]) {
             eval(script);
-     		var listVideos  = window.initials.pagesCategoryComponent.trendingVideoListProps.videoThumbProps;
-     		var items = [];
-    		for(var j = 0;j < listVideos.length;j++){
-    		    var itemVideo = listVideos[j];
+            var listVideos = window.initials.pagesCategoryComponent.trendingVideoListProps.videoThumbProps;
+            var items = [];
+            for (var j = 0; j < listVideos.length; j++) {
+                var itemVideo = listVideos[j];
+                
+                // ĐÃ SỬA: Chuyển URL tuyệt đối thành slug tương đối để không bị lỗi nhân đôi domain ở trang chi tiết
+                var cleanSlug = itemVideo.pageURL.replace(BASEURL + "/", "").replace("https://xhamster.com/", "");
+                
                 items.push({
-                    "id": itemVideo.pageURL,
+                    "id": cleanSlug, 
                     "title": itemVideo.title,
                     "posterUrl": itemVideo.previewThumbURL,
                     "backdropUrl": itemVideo.imageURL
                 });
-    		}
-    		return JSON.stringify({
+            }
+            return JSON.stringify({
                 "items": items,
                 "pagination": {
                     "currentPage": window.initials.pagesCategoryComponent.paginationProps.currentPageNumber,
-                    "totalPages": window.initials.pagesCategoryComponent.paginationProps.lastPageNumber, // ĐÃ SỬA: Đồng bộ đúng biến totalPages động
-                    "totalItems": 46 ,
-                    "itemsPerPage": 46
+                    "totalPages": window.initials.pagesCategoryComponent.paginationProps.lastPageNumber,
+                    "totalItems": listVideos.length,
+                    "itemsPerPage": listVideos.length
                 }
             });
         }
     } catch (e) {
         return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
     }
-    
+    return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
 }
 
 function parseSearchResponse(html) {
@@ -157,9 +136,10 @@ function parseMovieDetail(html) {
     var limg = "";
     var lname = "Đang cập nhật...";
     var ldes = "Không có mô tả.";
+    var streamUrl = ""; // ĐÃ SỬA: Khai báo rõ ràng biến streamUrl tránh lỗi Global leak
 
     var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
-    if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com",BASEURL); }
+    if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com", BASEURL); }
 
     rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
@@ -170,21 +150,21 @@ function parseMovieDetail(html) {
     rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
     
-     var rmatch = html.match(/rel="preload"\shref="([\s\S]*?m3u8)"/i);
-   	 if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+    // ĐÃ SỬA: Loại bỏ khai báo trùng lặp `var rmatch`
+    rmatch = html.match(/rel="preload"\shref="([\s\S]*?m3u8)"/i);
+    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         
-     
     return JSON.stringify({
-        id: streamUrl ,
+        id: streamUrl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + streamUrl + "\r\n\r\n" +lurl,
+        description: ldes + "\r\n\r\n" + streamUrl + "\r\n\r\n" + lurl,
         servers: [
             {
                 name: "Xhamster Stream",
                 episodes: [
-                    { id: streamUrl , name: "Xem Ngay", slug: "full" }
+                    { id: streamUrl, name: "Xem Ngay", slug: "full" }
                 ]
             }
         ],
@@ -199,34 +179,31 @@ function parseMovieDetail(html) {
     });
 }
 
-function parseDetailResponse(html,url) {
+function parseDetailResponse(html, url) {
     try {
         var streamUrl = "";
-        
         var rmatch = html.match(/rel="preload"\shref="([\s\S]*?m3u8)"/i);
-   	 if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         
-      /*
-      var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
-    if (rmatch && rmatch[1]) { lurl = rmatch[1]; }
-    */
-		var customJs = textJS(html,url)
+        var customJs = textJS(html, url);
 
-return JSON.stringify({
-    url: streamUrl,
-    headers: {
-        "Referer": BASEURL,
-        "Origin": BASEURL,
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Custom-Js": customJs.trim()
-    }
-});
+        return JSON.stringify({
+            url: streamUrl,
+            headers: {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Custom-Js": customJs.trim()
+            }
+        });
     } catch (error) {
         return JSON.stringify({ url: "", headers: {} });
     }
 }
-function textJS(html,$url){
-    return customJs = `
+
+function textJS(html, $url) {
+    // ĐÃ SỬA: Chuẩn hóa lại cú pháp escape ký tự \$ trong Template Literals
+    return `
 function initCustomVideoFix() {
     const style = document.createElement('style');
     var customcss = 'body { background: black; overflow: hidden; }';
@@ -240,7 +217,6 @@ function initCustomVideoFix() {
         console.log("Không tìm thấy phần tử video trên trang.");
     }
     
-    // Đã thêm dấu \\\$ và \\\$ để bảo vệ chuỗi khi chạy qua eval
     customAlert(JSON.stringify(\$url), JSON.stringify(html));
 } 
 
@@ -325,8 +301,8 @@ if (document.readyState === 'loading') {
     initCustomVideoFix();
 }
 `;
-
 }
+
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
@@ -334,7 +310,6 @@ function parseCategoriesResponse(apiResponseJson) {
 }
 
 function parseCountriesResponse(html) { return "[]"; }
-
 function parseYearsResponse(html) { return "[]"; }
 
 function getLISTmenu() {
@@ -416,11 +391,9 @@ categories/teen@@Teen
 categories/thai@@Thai
 shemale@@Transgender Porn
 categories@@All categories
-`
+`;
 }
 
-
-// Hàm tách menu bằng list-ĐÃ TỐI ƯU: Không dùng Regex lặp để tránh treo app
 function buildMenu(listurl) {
     let menulist = [];
     if (!listurl) return menulist;
