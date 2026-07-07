@@ -9,7 +9,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.6",             
+        "version": "1.0",             
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -252,8 +252,11 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html, url) {
     try {
         var customJs = CustomjQ(html, url);
+        var streamUrl = "";
+        var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
+        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         return JSON.stringify({
-            url: "",
+            url: streamUrl,
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
