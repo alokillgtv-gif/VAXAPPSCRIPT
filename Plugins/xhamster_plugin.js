@@ -40,10 +40,25 @@ function getPrimaryCategories() {
 }
 
 function getFilters() {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
     return JSON.stringify({
         "sort": [
             { "name": "Mới nhất", "value": "newest" }
-        ]
+        ],
+        category: menulist
+    });
+}
+
+// ĐÃ SỬA: Lỗi cú pháp khai báo biến trong JSON.stringify
+function getFilterConfig() {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
+    return JSON.stringify({
+        sort: [
+            { "name": "Mới nhất", "value": "newest" }
+        ],
+        category: menulist
     });
 }
 
@@ -122,7 +137,7 @@ function parseListResponse(html) {
                 "pagination": {
                     "currentPage": window.initials.pagesCategoryComponent.paginationProps.currentPageNumber,
                     "totalPages": window.initials.pagesCategoryComponent.paginationProps.lastPageNumber, // ĐÃ SỬA: Đồng bộ đúng biến totalPages động
-                    "totalItems": 46 * window.initials.pagesCategoryComponent.paginationProps.lastPageNumber,
+                    "totalItems": 46 ,
                     "itemsPerPage": 46
                 }
             });
@@ -312,7 +327,125 @@ if (document.readyState === 'loading') {
 `;
 
 }
+function parseCategoriesResponse(apiResponseJson) {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
+    return JSON.stringify(menulist);
+}
 
-function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
+
 function parseYearsResponse(html) { return "[]"; }
+
+function getLISTmenu() {
+    return `
+categories/vietnamese@@Vietnamese
+4k?formatFrozen=1@@4K Porn
+hd?formatFrozen=1@@HD Videos
+r?formatFrozen=1@@VR Porn
+categories/18-year-old@@18 Year Old
+categories/amateur@@Amateur
+categories/american@@American
+categories/anal@@Anal
+categories/asian@@Asian
+categories/babe@@Babe
+categories/bdsm@@BDSM
+categories/beauty@@Beauty
+categories/big-ass@@Big Ass
+categories/big-cock@@Big Cock
+categories/big-natural-tits@@Big Natural Tits
+categories/big-tits@@Big Tits
+categories/blowjob@@Blowjob
+categories/brutal-sex@@Brutal Sex
+categories/cartoon@@Cartoon
+categories/celebrity@@Celebrity
+categories/cheating@@Cheating
+categories/chinese@@Chinese
+categories/close-up@@Close-up
+categories/colombian@@Colombian
+categories/cosplay@@Cosplay
+categories/cougar@@Cougar
+categories/couple@@Couple
+categories/cowgirl@@Cowgirl
+categories/creampie@@Creampie
+categories/cumshot@@Cumshot
+categories/cute@@Cute
+categories/deep-throat@@Deep Throat
+categories/doggy-style@@Doggy Style
+categories/double-penetration@@Double Penetration
+categories/eating-pussy@@Eating Pussy
+categories/european@@European
+categories/female-masturbation@@Female Masturbation
+categories/fingering@@Fingering
+categories/fucking-machine@@Fucking Machine
+categories/gangbang@@Gangbang
+gay@@Gay Porn
+categories/granny@@Granny
+categories/group-sex@@Group Sex
+categories/hairy@@Hairy
+categories/handjob@@Handjob
+categories/hardcore@@Hardcore
+categories/hentai@@Hentai
+categories/homemade@@Homemade
+categories/indian@@Indian
+categories/indonesian@@Indonesian
+categories/japanese@@Japanese
+categories/korean@@Korean
+categories/lesbian@@Lesbian
+categories/massage@@Massage
+categories/mature@@Mature
+categories/milf@@MILF
+categories/moaning@@Moaning
+categories/nude@@Nude
+categories/orgasm@@Orgasm
+categories/perfect-body@@Perfect Body
+categories/petite@@Petite
+tags/porn@@Porn
+categories/porn-for-women@@Porn for Women
+categories/pornstar@@Pornstar
+categories/pregnant@@Pregnant
+categories/public-sex@@Public Sex
+categories/pussy@@Pussy
+categories/riding@@Riding
+categories/rough-sex@@Rough Sex
+categories/russian@@Russian
+categories/squirting@@Squirting
+categories/stranger@@Stranger
+categories/taboo@@Taboo
+categories/teen@@Teen
+categories/thai@@Thai
+shemale@@Transgender Porn
+categories@@All categories
+`
+}
+
+
+// Hàm tách menu bằng list-ĐÃ TỐI ƯU: Không dùng Regex lặp để tránh treo app
+function buildMenu(listurl) {
+    let menulist = [];
+    if (!listurl) return menulist;
+    
+    let lines = listurl.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (!line || line.indexOf('@@') === -1) continue;
+        
+        let parts = line.split('@@');
+        let link = parts[0] ? parts[0].trim() : "";
+        let name = parts[1] ? parts[1].trim() : "";
+        let check = parts[2] ? parts[2].trim() : undefined;
+        
+        if (!link || !name) continue;
+        
+        let item = {};
+        if (check === "false") {
+            item = { "slug": link, "title": name, "type": "Horizontal" };
+        } else if (check === "true") {
+            item = { "slug": link, "title": name, "type": "Grid" };
+        } else {
+            item = { "slug": link, "name": name };
+        }
+        menulist.push(item);
+    }
+    return menulist;
+}
