@@ -10,7 +10,7 @@ function getManifest() {
         "name": "18porn",
         "description": "Nguồn xem phim XXX ổn định",
         "version": "1.0",             
-        "baseUrl": BaseURL,
+        "baseUrl": "https://www.18porn.sex",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg", 
         "isEnabled": true,
         "type": "VIDEO",
@@ -126,7 +126,7 @@ function getUrlDetail(slug) {
  return BaseURL + "/" + slug;
 }
 
-function getUrlCategories() { return ""; }
+function getUrlCategories() { return BaseURL; }
 function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
