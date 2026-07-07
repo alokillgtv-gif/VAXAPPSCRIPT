@@ -51,6 +51,10 @@ function getFilterConfig() {
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
+    if (slug && slug.indexOf("http") !== -1) {
+        // Nếu có JSON và có page, ta có thể chèn page vào link (tùy bạn cấu hình, ở đây trả về slug gốc để tránh lỗi)
+        return slug;
+    }
     var path = "";
     // Thay thế các key không có dấu nháy bằng key có dấu nháy để sửa lỗi JSON lỏng lẻo
     if (filtersJson) {
@@ -75,27 +79,43 @@ function getUrlList(slug, filtersJson) {
                 }
             }
             //console.log("sort");
-            return BASEURL + "/page/" + page + "?" + path;
+            return BASEURL + "/page/" + page + "/?s=" + path;
             
         }
+        if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
+            //console.log("menu");
+            return BASEURL + "/page/" + page + "/?s=&categories=" + slug;
+        }
+        //console.log("main");
+        return BASEURL + "/page/" + page + "/?s=&genres=" + slug;
     }
-    if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
-        //console.log("menu");
-        return BASEURL + "/page/" + page + slug;
+    else {
+        if (slug.indexOf("http") == -1) {
+            if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
+                //console.log("menu");
+                return BASEURL + "/?s=&categories=" + slug;
+            }
+            return BASEURL + "/?s=&genres=" + slug;
+        }
+        else {
+            return slug
+        }
     }
-    //console.log("main");
-    return BASEURL + "/page/" + page + slug;
-    
 }
-//var BASEURL = "https://sexdep.vip";
+/*
+
+//var BASEURL = "https://y2mate.ink";
+// Test trường hợp của bạn (slug = "kinh-di", có kèm filter JSON)
 //var filtersJson = '{"page":5,"category":[{"slug":"am-nhac","name":"Âm Nhạc"}],"sort":[{"name":"Phim Lẻ","value":"phim-le"}]}';
+//console.log(getUrlList("kinh-di", filtersJson)); 
+// Kết quả chuẩn: https://y2mate.ink/page/5?genres=kinh-di&categories=phim-le
+// (genres "kinh-di" truyền ngoài vào đã ghi đè "am-nhac" trong JSON theo đúng logic ưu tiên slug)
+// Test trường hợp không có filter JSON
+//var filtersJson = '{"page":6}';
+//console.log(getUrlList("https://y2mate.ink/?s=b%C3%A1o+th%C3%B9", filtersJson));
+// Kết quả chuẩn: https://y2mate.ink?categories=phim-bo
 
-//Trường hợp 1: Truyền slug cụ thể -> Sẽ lấy slug này + số page trong JSON
-//console.log(getUrlList("the-loai/au-my", filtersJson)); 
-// Kết quả: https://sexdep.vip/the-loai/au-my?page=7
-// Trường hợp 2: Không truyền slug -> Sẽ tự động lấy phần tử đầu tiên trong JSON (?view=hay-nhat)
-//console.log(getUrlList("https://sexdep.vip/search/vang-anh", filtersJson));
-
+*/
 function getUrlSearch(keyword, filtersJson) {
     var filters = JSON.parse(filtersJson || "{}");
     var page = filters.page || 1;
