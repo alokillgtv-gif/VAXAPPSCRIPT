@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -205,40 +205,76 @@ body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.to
 
 function parseDetailResponse(html) {
     try {
-        var customJs = `
+var customJs = `
 function initCustomVideoFix() {
+  // 1. Thêm CSS cơ bản để tràn màn hình
   const style = document.createElement('style');
-  
-  // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-  var customcss = 'body { display: block;position: relative;width: 100% ;height: 100% ;overflow: hidden }';
-                  
-  style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
-  const script = document.createElement('script');
-  var scAppend = 'var $iframe = document.querySelector(\'iframe[id*="player"]\').outerHTML;document.querySelector("html").innerHTML = "<body>" + $iframe + "</body>";'
-  script.innerHTML = scAppend;
+  style.innerHTML = 'body, html { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; background: #000; }';
   document.head.appendChild(style);
-  document.body.appendChild(script);
-    
   
-  if (typeof jwplayer === "function") {
-    const player = jwplayer("previewPlayer");
-    if (player && typeof player.getMute === "function") {
-        if (player.getMute()) {
-            player.setMute(false);
-            console.log("Đã bật tiếng video!");
+  // 2. Chờ JWPlayer sẵn sàng để bật tiếng trước
+  let checkPlayerExist = setInterval(function() {
+    if (typeof jwplayer === "function") {
+      try {
+        const player = jwplayer("previewPlayer");
+        if (player && typeof player.getMute === "function") {
+          if (player.getMute()) {
+              player.setMute(false);
+              console.log("Đã bật tiếng video!");
+          }
+          player.setVolume(100); 
+          
+          // Sau khi cấu hình tiếng xong, tiến hành "dọn dẹp bãi rác" quảng cáo
+          cleanPageAndKeepVideo();
+          
+          clearInterval(checkPlayerExist); // Hoàn thành nhiệm vụ, dừng check
         }
-        player.setVolume(100); 
+      } catch (e) {
+        console.log("Đang chờ player setup...");
+      }
     }
-  }
+  }, 200);
+
+  // Giới hạn check trong 15 giây để tránh treo máy nếu trang lỗi
+  setTimeout(() => clearInterval(checkPlayerExist), 15000);
+}
+
+// Hàm dọn sạch trang web, chỉ giữ lại đúng iframe video
+function cleanPageAndKeepVideo() {
+  // Tìm iframe chứa video
+  const iframe = document.querySelector('iframe[id*="player"]');
   
+  if (iframe) {
+    // Ép style cho iframe này tràn hết 100% màn hình
+    iframe.style.position = 'fixed';
+    iframe.style.top = '0';
+    iframe.style.left = '0';
+    iframe.style.width = '100vw';
+    iframe.style.height = '100vh';
+    iframe.style.zIndex = '999999';
+    iframe.style.border = 'none';
+
+    // BƯỚC QUYẾT ĐỊNH: Di chuyển iframe này ra ngoài cùng (thành con trực tiếp của <body>)
+    document.body.appendChild(iframe);
+
+    // Tiến hành xóa sạch TẤT CẢ các thẻ khác nằm trong <body> ngoại trừ cái iframe vừa giữ lại
+    Array.from(document.body.children).forEach(child => {
+      if (child !== iframe && child.tagName !== 'STYLE') {
+        child.remove(); // Quảng cáo, banner, script rác... bay màu hết!
+      }
+    });
     
+    console.log("Đã dọn sạch quảng cáo! Chỉ giữ lại video.");
+  } else {
+    console.log("Không tìm thấy iframe video để giữ lại.");
+  }
 }
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
   initCustomVideoFix();
-  }
+}
 `;
 
         // Quét lấy link nhúng theo domain đã tối ưu
