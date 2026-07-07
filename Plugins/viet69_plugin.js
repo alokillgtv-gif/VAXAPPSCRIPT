@@ -209,7 +209,7 @@ var customJs = `
 function initCustomVideoFix() {
   // 1. Thêm CSS cơ bản để tràn màn hình
   const style = document.createElement('style');
-  style.innerHTML = 'body, html { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; background: #000; }';
+  style.innerHTML = 'body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline--block}iframe { width: 100 % ;height: 100 % ;position: fixed;top: 0;left: 0;right: 0;bottom: 0;z - index: 99999 }body, html { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; background: #000; }';
   document.head.appendChild(style);
   // 2. Chờ JWPlayer sẵn sàng để bật tiếng trước
   cleanPageAndKeepVideo();
