@@ -51,10 +51,6 @@ function getFilters() {
     });
 }
 
-function getFilterConfig() {
-    return getFilters(); // Tái sử dụng để tránh trùng lặp code thừa
-}
-
 // =============================================================================
 // URL GENERATION
 // =============================================================================
