@@ -96,7 +96,7 @@ function getUrlDetail(slug) {
     }
 
     if (slug.indexOf("http") === 0) return slug;
-    if (slug.indexOf("/") === 0) return "https://phimvn2y.com" + slug;
+    if (slug.indexOf("/") === 0) return BASEURL + "/" + slug;
     return BASEURL + "/" + slug;
 }
 
