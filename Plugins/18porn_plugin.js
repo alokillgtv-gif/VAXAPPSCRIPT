@@ -9,7 +9,7 @@ function getManifest() {
         "id": "newporn",          
         "name": "18porn",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.51",             
+        "version": "1.0",             
         "baseUrl": BaseURL,
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg", 
         "isEnabled": true,
