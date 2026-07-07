@@ -1,7 +1,3 @@
-// =============================================================================
-// VAAPP Plugin-Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
-// Tên file bắt buộc khi lưu:s crophim_plugin.js
-// =============================================================================
 BASEURL = "https://heovl.im";
 function getManifest() {
     return JSON.stringify({
@@ -331,8 +327,6 @@ function parseMovieDetail(html,ourl) {
         casts: cast,
         director: direc
     }
-    var $string = JSON.stringify($return);
-    $return.description = $return.description + "\r\n" + JSON.stringify($return);
     // Trả về kết quả (Dù lỗi hay không lỗi vẫn return đúng cấu trúc object mong muốn)
     return JSON.stringify($return);
 }
@@ -346,121 +340,8 @@ function parseMovieDetail(html,ourl) {
 // =================================================================
 function parseDetailResponse(html, url) {
     try {
-        var customJs = `
-// Script chạy cho server heovl
 
-function initCustomVideoFix() {
-    const style = document.createElement('style');
-    
-    // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-    var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
-    
-    style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
-    document.head.appendChild(style);
-    
-    if (typeof jwplayer === "function") {
-        const player = jwplayer("previewPlayer");
-        if (player && typeof player.getMute === "function") {
-            if (player.getMute()) {
-                player.setMute(false);
-                console.log("Đã bật tiếng video!");
-            }
-            player.setVolume(100);
-        }
-    }
-    
-    const checkAndClick = setInterval(() => {
-        const skipButton = document.getElementById("skip-ad");
-        
-        if (skipButton) {
-            skipButton.click();
-            console.log("🎯 Đã tìm thấy và bấm nút thành công! Dừng script.");
-            clearInterval(checkAndClick); // Dừng lại ngay lập tức
-        } else {
-            console.log("⏳ Vẫn đang tìm nút...");
-        }
-    }, 200);
-function customAlert(title, message) {
-    const overlay = document.createElement('div');
-    Object.assign(overlay.style, {
-        position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center',
-        alignItems: 'center', zIndex: '99999', opacity: '0', transition: 'opacity 0.2s ease'
-    });
-    
-    const box = document.createElement('div');
-    Object.assign(box.style, {
-        backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.25)', maxWidth: '380px', width: '85%',
-        boxSizing: 'border-box', fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-        transform: 'scale(0.8)', transition: 'transform 0.2s ease'
-    });
-    
-    const titleEl = document.createElement('input');
-    titleEl.type = 'text'; 
-    titleEl.value = title;
-    Object.assign(titleEl.style, {
-        display: 'block', width: '100%', boxSizing: 'border-box',
-        margin: '0 0 12px 0', padding: '6px 10px', color: '#222222',
-        fontSize: '15px', fontWeight: '600', border: '1px solid #ddd', borderRadius: '6px'
-    });
-    
-    const msgEl = document.createElement('textarea');
-    msgEl.value = message;
-    Object.assign(msgEl.style, {
-        display: 'block', width: '100%', boxSizing: 'border-box',
-        margin: '0 0 20px 0', padding: '8px 10px', color: '#555555',
-        fontSize: '14px', height: '200px', lineHeight: '1.5',
-        border: '1px solid #ddd', borderRadius: '6px', resize: 'none'
-    });
-    
-    const btn = document.createElement('button');
-    btn.innerText = 'OK';
-    Object.assign(btn.style, {
-        display: 'block', margin: '0 auto', padding: '10px 28px',
-        fontSize: '15px', fontWeight: '600', color: '#ffffff',
-        backgroundColor: '#007bff', border: 'none', borderRadius: '6px',
-        cursor: 'pointer', outline: 'none', transition: 'background-color 0.1s'
-    });
-    
-    btn.onmouseover = () => btn.style.backgroundColor = '#0056b3';
-    btn.onmouseout = () => btn.style.backgroundColor = '#007bff';
-    
-    const closeAlert = () => {
-        overlay.style.opacity = '0';
-        box.style.transform = 'scale(0.8)';
-        setTimeout(() => { overlay.remove(); }, 200);
-    };
-    
-    btn.onclick = closeAlert;
-    overlay.onclick = (e) => { if (e.target === overlay) closeAlert(); };
-    
-    box.appendChild(titleEl);
-    box.appendChild(msgEl);
-    box.appendChild(btn);
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
-    
-    setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'scale(1)'; }, 10);
-}
-
-    // Giới hạn tối đa 20 giây để tự động dọn dẹp bộ nhớ nếu nút không bao giờ xuất hiện
-    setTimeout(() => {
-        clearInterval(checkAndClick);
-        customAlert("Báo", "⏱️ Đã quá 20 giây, dừng tìm kiếm."))
-        console.log("⏱️ Đã quá 20 giây, dừng tìm kiếm.");
-    }, 20000);
-    
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
-} else {
-    initCustomVideoFix();
-}
-
-`;
-        
+        var customjs = customJQ();
         return JSON.stringify({
             url: url,
             headers: {
@@ -496,3 +377,120 @@ categories/nhat-ban@@Nhật Bản
 }
 function parseCountriesResponse(html) { return "[]"}
 function parseYearsResponse(html) { return "[]"}
+
+function customJQ(){
+    return `
+// Script chạy cho server heovl
+
+function showToast(message, duration = 7000) {
+    // 1. Kiểm tra xem trên màn hình đã có "khung chứa" Toast chưa, nếu chưa thì tự tạo bằng JS
+    let container = document.getElementById('global-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'global-toast-container';
+        
+        // Ép CSS trực tiếp bằng JS để đặt khung ở góc dưới bên phải màn hình
+        Object.assign(container.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            zIndex: '99999',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px'
+        });
+        document.body.appendChild(container);
+    }
+    
+    // 2. Tạo phần tử Toast mới hoàn toàn bằng JS
+    const toast = document.createElement('div');
+    toast.innerText = message;
+    
+    // Ép CSS giao diện cho cục Toast (màu bo góc, bóng mờ, hiệu ứng hiện hình)
+    Object.assign(toast.style, {
+        background: 'rgba(50, 50, 50, 0.95)',
+        color: '#fff',
+        padding: '12px 24px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+        fontFamily: 'sans-serif',
+        fontSize: '14px',
+        minWidth: '200px',
+        transition: 'all 0.3s ease',
+        transform: 'translateX(120%)', // Ban đầu nằm ẩn bên ngoài màn hình
+        opacity: '0'
+    });
+    
+    // Đưa cục Toast vào khung chứa
+    container.appendChild(toast);
+    
+    // 3. Tạo hiệu ứng bay từ bên phải vào (Slide In) sau 10 mili-giây
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+        toast.style.opacity = '1';
+    }, 10);
+    
+    // 4. Tạo hiệu ứng mờ dần (Fade Out) và XÓA HOÀN TOÀN khỏi màn hình khi hết thời gian
+    setTimeout(() => {
+        toast.style.transform = 'translateX(120%)';
+        toast.style.opacity = '0';
+        
+        // Chờ hiệu ứng ẩn chạy xong 300ms rồi xóa hẳn thẻ HTML này đi cho sạch bộ nhớ
+        setTimeout(() => {
+            toast.remove();
+            // Nếu không còn thông báo nào nữa thì xóa luôn cái khung lớn cho gọn
+            if (container.childElementCount === 0) {
+                container.remove();
+            }
+        }, 300);
+    }, duration);
+}
+
+function initCustomVideoFix() {
+    const style = document.createElement('style');
+    
+    // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
+    var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
+    
+    style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
+    document.head.appendChild(style);
+    showToast("Chèn css mới", duration = 3000)
+    if (typeof jwplayer === "function") {
+        const player = jwplayer("previewPlayer");
+        if (player && typeof player.getMute === "function") {
+            if (player.getMute()) {
+                player.setMute(false);
+                showToast("Đã bật tiếng", duration = 3000)
+            }
+            player.setVolume(100);
+        }
+    }
+    
+    const checkAndClick = setInterval(() => {
+        const skipButton = document.getElementById("skip-ad");
+        
+        if (skipButton) {
+            skipButton.click();
+            console.log("🎯 Đã tìm thấy và bấm nút thành công! Dừng script.");
+            showToast("Đã bỏ qua quảng cáo", duration = 3000)
+            clearInterval(checkAndClick); // Dừng lại ngay lập tức
+        } else {
+            //showToast("Đang tìm nút", duration = 3000)
+        }
+    }, 200);
+    // Giới hạn tối đa 20 giây để tự động dọn dẹp bộ nhớ nếu nút không bao giờ xuất hiện
+    setTimeout(() => {
+        clearInterval(checkAndClick);
+        //console.log("⏱️ Đã quá 20 giây, dừng tìm kiếm.");
+    }, 20000);
+    
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+    initCustomVideoFix();
+}
+
+`;
+}
