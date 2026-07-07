@@ -82,75 +82,55 @@ function getUrlYears() { return ""; }
 // =============================================================================
 // PARSERS
 // =============================================================================
+/*
 
+        id: 26522500
+        duration: 1130
+        created: 1746867016
+        title: "Fuck While Her Mom Next Room, Came All Over Her Face, Hoping She Wouldn't Notice."
+        thumbId: 17475568
+        videoType: "video"
+        pageURL: "https://xhwide.com/videos/fuck-while-her-mom-next-room-came-all-over-her-face-hoping-she-wouldnt-notice-xhAOCwF"
+        thumbURL: "https://ic-vt-nss.cdnsolutions.media/a/ZjQ2NTQxYTc0YjVlNDcwZjc5YjRiNDFiYWZmMjJkM2Y/s(w:526,h:298),webp/026/522/500/1280x720.17475568.jpg"
+        imageURL: "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg"
+        previewThumbURL: "https://thumb-nss.cdnsolutions.media/a/9K9iFlO_g1a4evV3qApisA/026/522/500/16x9.17475568.jpg"
+        icon: null
+        spriteURL: "https://thumb-v0.cdnsolutions.media/a/aev8YLFGPuOK0aszutZMqA/026/522/500/526x298.s.webp"
+        trailerURL: "https://thumb-v0.cdnsolutions.media/a/wQ7bPlymoSp4RxeqnFy1lQ/026/522/500/526x298.94.3.5.t.av1.mp4"
+        trailerFallbackUrl: "https://thumb-v0.cdnsolutions.media/a/AV96D_DzLKvtU1vTZBv4QQ/026/522/500/526x298.94.3.5.t.mp4"
+        isUHD: true
+        views: 4707095
+*/
 function parseListResponse(html) {
     try {
-        var items = [];
-var pattern = /(?=<div[^>]*class="[^"]*thumb-list__item[^"]*")/g;
-var splitItems = html.split(pattern).filter(Boolean);
-
-for (var j = 1; j < splitItems.length; j++) {
-    var block = splitItems[j];
-    var hrefMatch = block.match(/href="([^"]+)"/i);
-    if (!hrefMatch) continue; // Bỏ qua nếu khối không chứa link
-
-    var id = hrefMatch[1].trim();
-    
-    // ĐIỀU KIỆN 2: Đường dẫn id buộc phải chứa dạng "/videos/"
-    if (id.indexOf('/videos/') === -1) {
-        continue; // Loại bỏ nếu không đúng định dạng đường dẫn video
-    }
-
-    var title = "";
-    
-    // Thử lấy title từ thuộc tính alt của ảnh trước
-    var altMatch = block.match(/img[\s\S]*?alt="([^"]+)"/i);
-    if (altMatch) {
-        title = altMatch[1].trim();
-    } else {
-        // Khử fallback sang aria-label nếu alt không tồn tại
-        var labelMatch = block.match(/aria-label="([^"]+)"/i);
-        title = labelMatch ? labelMatch[1].trim() : "";
-    }
-    
-    // ĐIỀU KIỆN 1: Nếu tiêu đề rỗng hoặc là "Video không tiêu đề" thì không gán vào items
-    if (!title || title === "Video không tiêu đề") {
-        continue; 
-    }
-    
-    var srcMatch = block.match(/img[\s\S]*?src="([^"]+)"/i);
-    var posterUrl = srcMatch ? srcMatch[1].trim() : "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg";
-    
-    items.push({
-        "id": id,          
-        "title": title, 
-        "posterUrl": posterUrl, 
-        "backdropUrl": posterUrl
-    });
-}
-		
-        var currentPage = 1;
-        var totalPages = 1;
-
-        var currentMatch = html.match(/page-button-link--active[^>]*>(\d+)/i);
-        var maxMatch = html.match(/page-limit-button--right[^>]*page-button-link[^>]*>(\d+)/i);
-
-        if (currentMatch) currentPage = parseInt(currentMatch[1], 10);
-        if (maxMatch) totalPages = parseInt(maxMatch[1], 10);
-        if (totalPages < currentPage) totalPages = currentPage;
-
-        return JSON.stringify({
-            "items": items,
-            "pagination": { 
-                "currentPage": currentPage, 
-                "totalPages": 10, // ĐÃ SỬA: Đồng bộ đúng biến totalPages động
-                "totalItems": 46 * totalPages,
-                "itemsPerPage": 46
-            }
-        });
+        var script = html.match(/<script[^>]+id=['"]initials-script["']>([\s\S]*?)<\/script>/i);
+        if(script && script[1]){
+            eval(script);
+     		var listVideos  = window.initials.pagesCategoryComponent.trendingVideoListProps.videoThumbProps;
+     		var items = [];
+    		for(var j = 0;j < listVideos.length;j++){
+    		    var itemVideo = listVideos[j];
+                items.push({
+                    "id": itemVideo.pageURL,
+                    "title": itemVideo.title,
+                    "posterUrl": itemVideo.previewThumbURL,
+                    "backdropUrl": itemVideo.imageURL
+                });
+    		}
+    		return JSON.stringify({
+                "items": items,
+                "pagination": {
+                    "currentPage": window.initials.pagesCategoryComponent.paginationProps.currentPageNumber,
+                    "totalPages": window.initials.pagesCategoryComponent.paginationProps.lastPageNumber, // ĐÃ SỬA: Đồng bộ đúng biến totalPages động
+                    "totalItems": 46 * window.initials.pagesCategoryComponent.paginationProps.lastPageNumber,
+                    "itemsPerPage": 46
+                }
+            });
+        }
     } catch (e) {
         return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
     }
+    
 }
 
 function parseSearchResponse(html) {
@@ -203,7 +183,7 @@ function parseMovieDetail(html) {
         category: "18+"
     });
 }
-//<link rel="preload" href="https://video3.cdnsolutions.media/key=kePlMtN+ADhubUR5+oDV3A,end=1782846000/data=2405:4802:918e:9690:213f:c9b0:ee12:58e-dvp/media=hls4/multi=256x144:144p:,426x240:240p:,854x480:480p:,1280x720:720p:,1920x1080:1080p:/029/485/972/_TPL_.av1.mp4.m3u8" as="fetch" crossorigin="true">
+
 function parseDetailResponse(html,url) {
     try {
         var streamUrl = "";
