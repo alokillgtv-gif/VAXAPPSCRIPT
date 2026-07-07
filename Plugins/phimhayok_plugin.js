@@ -277,7 +277,7 @@ if (containerMatch) {
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n\r\n" + JSON.stringify(servers),
+        description: ldes + "\r\n\r\n\r\n" + streamUrl + "\r\n\r\n\r\n" + JSON.stringify(servers),
         servers: servers,
         quality: "HD",
         year: year,
@@ -313,7 +313,7 @@ function parseDetailResponse(html) {
    	    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
 		
           return JSON.stringify({
-              url: "",
+              url: streamUrl,
               "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
