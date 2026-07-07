@@ -22,7 +22,7 @@ function getHomeSections() {
         { "slug": "phim-le", "title": "Phim Lẻ", "type": "Horizontal" },
         { "slug": "phim-bo", "title": "Phim Bộ", "type": "Horizontal" },
         { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Horizontal" },
-        { "slug": "motphim", "title": "Phim Mới", "type": "Grid" }
+        { "slug": "kinh-di", "title": "Phim Mới", "type": "Grid" }
     ]);
 }
 
