@@ -50,6 +50,13 @@ function getUrlList(slug, filtersJson) {
         var filters = JSON.parse(fixedJson);
         var path = "";
         page = parseInt(filters.page) || 1;
+        var $url = "";
+        if(slug == "new/" && page > 1){
+            return BASEURL + "/" + slug + page + "/";
+        }
+        if(slug == "new/"){
+            return BASEURL + "/" + slug + "1/";
+        }
         if (slug && slug.indexOf("http") !== -1 && !filters.category) {
             // dạng url có chuyên mục
             if (Array.isArray(filters.category) && filters.category.length > 0) {
@@ -58,20 +65,25 @@ function getUrlList(slug, filtersJson) {
                 path = filters.category;
             }
            // console.log(3);
-            return BASEURL + "/" + path + "/page/" + page;
+            $url = BASEURL + "/" + path + "/page/" + page
+            return $url.replace(/\/+/g,"/");
         }
         if (page > 1) {
-            return BASEURL + "/" + slug + "/page/" + page;
+            $url = BASEURL + "/" + slug + "/page/" + page
+            return $url.replace(/\/+/g,"/");
         }
         // url ko có page
-        //console.log(2);
-        return BASEURL + "/" + slug;
+       // console.log(2);
+        $url = BASEURL + "/" + slug
+        return $url.replace(/\/+/g,"/");
         
     } catch (e) {
-        //console.log(e + " 1");
-        return BASEURL + "/" + slug;
+       // console.log(e + " 11");
+        $url = BASEURL;
+        return $url.replace(/\/+/g,"/");
     }
 }
+
 //var BASEURL = "https://clipsexvn.mobi";
 // Test trường hợp của bạn (slug = "kinh-di", có kèm filter JSON)/
 //var filtersJson = '{"page":5,"category":[{"slug":"hiep-dam/","name":"Hiếp dâm"}]}';
