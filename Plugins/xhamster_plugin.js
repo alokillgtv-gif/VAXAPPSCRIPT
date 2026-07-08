@@ -110,7 +110,7 @@ function getUrlDetail(slug) {
     return BASEURL + "/" + slug;
 }
 
-function getUrlCategories() { return ""; }
+function getUrlCategories() { return BASEURL; }
 function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
