@@ -2,15 +2,15 @@
 // VAAPP Plugin-Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
 // Tên file bắt buộc khi lưu:s crophim_plugin.js
 // =============================================================================
-BASEURL = "https://y2mate.ink";
+BASEURL = "https://phimvietsub.pro";
 function getManifest() {
     return JSON.stringify({
-        "id": "phimhayok",          
-        "name": "phimhayok",
+        "id": "motchill",          
+        "name": "Phim Motchill",
         "description": "Nguồn xem phim Online ổn định",
         "version": "1.0",             
         "baseUrl": BASEURL,
-        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/phimhayok.jpg",
+        "iconUrl": "https://phimvietsub.pro/images/logo.png",
         "isEnabled": true,
         "type": "MOVIE",
         "playerType": "auto"
@@ -19,7 +19,10 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "chuyen-muc/motphim", "title": "Phim Mới", "type": "Grid"}
+        { "slug": "/phim-song-ngu", "title": "Phim Bộ", "type": "Horizontal" },
+        { "slug": "/loai-phim/phim-bo", "title": "Phim Bộ", "type": "Horizontal" },
+        { "slug": "/quoc-gia/viet-nam", "title": "Phim VN", "type": "Horizontal" },
+        { "slug": "/loai-phim/phim-le", "title": "Phim Lẻ", "type": "Grid" }
     ]);
 }
 
@@ -34,11 +37,6 @@ function getFilterConfig() {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
     return JSON.stringify({
-        sort: [
-            { name: 'Phim Lẻ', value: 'phim-le' },
-            { name: 'Phim Bộ', value: 'phim-bo' },
-            { name: 'Phim Ngắn', value: 'phim-ngan' }
-        ],
         category: menulist
     });
 }
@@ -47,9 +45,22 @@ function getFilterConfig() {
 // URL GENERATION (Bóc tách slug sạch theo khuôn mẫu mới)
 // =============================================================================
 
+// https://phimvietsub.pro/loai-phim/phim-le
+// https://phimvietsub.pro/the-loai/kinh-di
+// https://phimvietsub.pro/tim-kiem?keyword=hitman
+// https://phimvietsub.pro/phim-song-ngu
+// https://phimvietsub.pro/phim-song-ngu?page=3
+// https://phimvietsub.pro/the-loai/kinh-di?page=4
+
 function getUrlList(slug, filtersJson) {
     if (slug && slug.indexOf("http") !== -1) {
+        var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+        var filters = JSON.parse(fixedJson);
+        page = parseInt(filters.page) || 1;
         // Nếu có JSON và có page, ta có thể chèn page vào link (tùy bạn cấu hình, ở đây trả về slug gốc để tránh lỗi)
+        if(page > 1){
+            return slug + "?page=" + page;
+        }
         return slug;
     }
     var path = "";
@@ -60,50 +71,29 @@ function getUrlList(slug, filtersJson) {
         page = parseInt(filters.page) || 1;
         // Chỉ lấy category từ JSON nếu không truyền slug vào hàm
         // https://y2mate.ink/?s=&genres=bao-thu&regions=&years=&categories=phim-ngan
-        if (filters.category || filters.sort) {
-            if (filters.category) {
-                if (Array.isArray(filters.category) && filters.category.length > 0) {
-                    path += "&genres=" + filters.category[0].slug;
-                } else if (typeof filters.category === 'string') {
-                    path += "&genres=" + filters.category;
-                }
-            }
-            if (filters.sort) {
-                if (Array.isArray(filters.sort) && filters.sort.length > 0) {
-                    path += "&categories=" + filters.sort[0].value;
-                } else if (typeof filters.sort === 'string') {
-                    path += "&categories=" + filters.sort;
-                }
+        if (filters.category) {
+            if (Array.isArray(filters.category) && filters.category.length > 0) {
+                path = filters.category[0].slug;
+            } else if (typeof filters.category === 'string') {
+                path = filters.category;
             }
             //console.log("sort");
-            return BASEURL + "/page/" + page + "/?s=" + path;
+            return BASEURL + "/" + path + "?page" + page;
             
         }
-        if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
-            //console.log("menu");
-            return BASEURL + "/page/" + page + "/?s=&categories=" + slug;
+        if (page > 1 && slug.indexOf("http") == -1) {
+            return BASEURL + "/" + slug + "/" + page;
         }
-        //console.log("main");
-        return BASEURL + "/page/" + page + "/?s=&genres=" + slug;
-    }
-    else {
-        if (slug.indexOf("http") == -1) {
-            if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
-                //console.log("menu");
-                return BASEURL + "/?s=&categories=" + slug;
-            }
-            return BASEURL + "/?s=&genres=" + slug;
-        }
-        else {
-            return slug
+        if (page > 1 && slug.indexOf("http") > -1) {
+            return slug + "/" + page;
         }
     }
 }
 /*
 
-//var BASEURL = "https://y2mate.ink";
+//var BASEURL = "https://phimvietsub.pro";
 // Test trường hợp của bạn (slug = "kinh-di", có kèm filter JSON)
-//var filtersJson = '{"page":5,"category":[{"slug":"am-nhac","name":"Âm Nhạc"}],"sort":[{"name":"Phim Lẻ","value":"phim-le"}]}';
+//var filtersJson = '{"page":5,"category":[{"slug":"am-nhac","name":"Âm Nhạc"}]}';
 //console.log(getUrlList("kinh-di", filtersJson)); 
 // Kết quả chuẩn: https://y2mate.ink/page/5?genres=kinh-di&categories=phim-le
 // (genres "kinh-di" truyền ngoài vào đã ghi đè "am-nhac" trong JSON theo đúng logic ưu tiên slug)
@@ -116,7 +106,7 @@ function getUrlList(slug, filtersJson) {
 function getUrlSearch(keyword, filtersJson) {
     var filters = JSON.parse(filtersJson || "{}");
     var page = filters.page || 1;
-    return BASEURL + "/page/" + page + "/?s=" + encodeURIComponent(keyword);
+    return BASEURL + "/tim-kiem?keyword=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
@@ -136,49 +126,23 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        var regexList = new RegExp('<div class="module-item-pic"><a\\s+href="([^"]+)"\\s+title="([^"]+)"[\\s\\S]*?<img[^>]*data-src="([^"]+)"', 'g');
+        var regexList = /<div\s+class=["']group\s+relative[\s\S]*?<a[^>]+aria-label="([^"]+)"[^>]+href="([^"]+)"[\s\S]*?<img[^>]*src="([^"]+)"/g;
         var matchList;
         
         while ((matchList = regexList.exec(html)) !== null) {
-          if(matchList[3]){
-            var cleanThumb = matchList[3].replace(/&amp;/g, '&'); 
-            items.push({
-                "id": matchList[1],          
-                "title": matchList[2].trim(), 
-                "posterUrl": cleanThumb,  
-                "backdropUrl": cleanThumb
-            });
-          }
-        }
-        
-        var totalPages = 1; 
-        var currentPage = 1; 
-
-        if (html && html.indexOf('id="page"') > -1) {
-            var pageSectionBox = html.match(new RegExp('<div id="page">([\\s\\S]*?)<\/div>', 'i'));
-            if (pageSectionBox && pageSectionBox[1]) {
-                var pageHtml = pageSectionBox[1];
-                var currentMatch = pageHtml.match(new RegExp('class="[^"]*page-current[^"]*">(\\d+)<', 'i'));
-                if (currentMatch) {
-                    currentPage = parseInt(currentMatch[1], 10);
-                }
-
-                var pageNumbers = [];
-                var pageRegex = new RegExp('>(\\d+)<\\/a>', 'g');
-                var pageMatch;
-                
-                while ((pageMatch = pageRegex.exec(pageHtml)) !== null) {
-                    pageNumbers.push(parseInt(pageMatch[1], 10));
-                }
-
-                if (pageNumbers.length > 0) {
-                    totalPages = Math.max.apply(Math, pageNumbers);
-                }
-                if (totalPages < currentPage) {
-                    totalPages = currentPage;
-                }
+            if (matchList[3]) {
+                var cleanThumb = matchList[3].replace(/&amp;/g, '&');
+                items.push({
+                    "id": matchList[3],
+                    "title": matchList[2].trim(),
+                    "posterUrl": cleanThumb,
+                    "backdropUrl": cleanThumb
+                });
             }
         }
+        
+        var totalPages = 999;
+        var currentPage = 1;
         
         return JSON.stringify({
             "items": items,
@@ -188,6 +152,14 @@ function parseListResponse(html) {
         return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
     }
 }
+//var BASEURL = "https://phimvietsub.pro";
+//var html = $("html")[0].outerHTML;
+//JSON.parse(parseListResponse(html));
+//var regexList = /<div\s+class=["']group\s+relative[\s\S]*?<a[^>]+aria-label="([^"]+)"[^>]+href="([^"]+)"[\s\S]*?<img[^>]*src="([^"]+)"/g;
+//matchItem = regexList.exec(html);
+//var BASEURL = "https://phimvietsub.pro";
+//var html = $("html")[0].outerHTML;
+//JSON.parse(parseListResponse(html));
 
 function parseSearchResponse(html) {
     return parseListResponse(html);
@@ -360,67 +332,38 @@ function parseYearsResponse(html) { return "[]"; }
 
 function getLISTmenu() {
     return `
-phim-le@@Phim Lẻ
-phim-bo@@Phim Bộ
-phim-ngan@@Phim Ngắn
-am-nhac@@Âm Nhạc
-anime@@Anime
-bao-thu@@Báo Thù
-bi-an@@Bí Ẩn
-boy-love@@boy love
-cao-boi-mien-tay@@Cao Bồi Miền Tây
-chiem-huu@@Chiếm Hữu
-chien-tranh@@Chiến Tranh
-chinh-kich@@Chính Kịch
-chuong-trinh-truyen-hinh@@Chương Trình Truyền Hình
-co-trang@@Cổ Trang
-cuoi-gia-yeu-that@@Cưới Giả Yêu Thật
-cuoi-truoc-yeu-sau@@Cưới Trước Yêu Sau
-du-hanh-thoi-gian@@Du Hành Thời Gian
-gay-can@@Gây Cấn
-gia-dinh@@Gia Đình
-gia-tuong@@Giả Tưởng
-hai-huoc@@Hài Hước
-hanh-dong@@Hành Động
-he-thong@@Hệ Thống
-hinh-su@@Hình Sự
-hoat-hinh@@Hoạt Hình
-hoc-duong@@Học Đường
-khoa-hoc@@Khoa Học
-kich-tinh@@Kịch Tính
-kinh-di@@Kinh Dị
-kinh-dien@@Kinh Điển
-lang-man@@Lãng Mạn
-lgbt@@LGBT
-lich-su@@Lịch Sử
-mien-tay@@Miền Tây
-nam-than@@Nam Thần
-ngoai-tinh@@Ngoại Tình
-ngon-tinh@@Ngôn Tình
-nguoc-luyen-tan-tam@@Ngược Luyến Tàn Tâm
-nu-cuong-su-nghiep@@Nữ Cường Sự Nghiệp
-phan-boi@@Phản Bội
-phieu-luu@@Phiêu Lưu
-phim-18@@Phim 18 +
-tai-lieu@@Tài Liệu
-tam-ly@@Tâm Lý
-than-thoai@@Thần Thoại
-the-thao@@Thể Thao
-tien-hiep@@Tiên Hiệp
-tinh-1-dem@@Tình 1 Đêm
-tinh-cam@@Tình Cảm
-toi-pham@@Tội Phạm
-tong-tai@@Tổng Tài
-tra-thu@@Trả thù
-trao-than-phan@@Tráo Thân Phận
-tre-em@@Trẻ Em
-trong-sinh@@Trọng Sinh
-trung-sinh@@Trùng Sinh
-vien-tuong@@Viễn Tưởng
-vo-thuat@@Võ Thuật
-vua-yeu-vua-han@@Vừa Yêu Vừa Hận
-xuyen-khong@@Xuyên Không
-xuyen-sach@@Xuyên Sách
+/the-loai/am-nhac@@Âm Nhạc
+/the-loai/bi-an@@Bí ẩn
+/the-loai/co-trang@@Cổ Trang
+/the-loai/chien-tranh@@Chiến Tranh
+/the-loai/chinh-kich@@Chính Kịch
+/the-loai/gay-can@@Gây Cấn
+/the-loai/gia-dinh@@Gia Đình
+/the-loai/gia-tuong@@Giả Tưởng
+/the-loai/hai-huoc@@Hài Hước
+/the-loai/hanh-dong@@Hành Động
+/the-loai/hinh-su@@Hình Sự
+/the-loai/hoat-hinh@@Hoạt Hình
+/the-loai/hoc-duong@@Học Đường
+/the-loai/kinh-di@@Kinh Dị
+/the-loai/khoa-hoc@@Khoa Học
+/the-loai/khoa-hoc-vien-tuong@@Khoa Học Viễn Tưởng
+/the-loai/lang-man@@Lãng Mạn
+/the-loai/lich-su@@Lịch Sử
+/the-loai/mien-tay@@Miền Tây
+/the-loai/phieu-luu@@Phiêu Lưu
+/the-loai/phim-hai@@Phim Hài
+/the-loai/phim-ngan@@Phim Ngắn
+/the-loai/phim-nhac@@Phim Nhạc
+/the-loai/short-drama@@Short Drama
+/the-loai/tai-lieu@@Tài Liệu
+/the-loai/tam-ly@@Tâm Lý
+/the-loai/tinh-cam@@Tình Cảm
+/the-loai/than-thoai@@Thần Thoại
+/the-loai/the-thao@@Thể Thao
+/the-loai/tre-em@@Trẻ Em
+/the-loai/vien-tuong@@Viễn Tưởng
+/the-loai/vo-thuat@@Võ Thuật
 `
 }
 

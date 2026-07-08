@@ -2112,7 +2112,8 @@ function v163ExtractLinksFromElement(rootElement, extractType = 'default') {
         if (name.length < 4) {
             return "";
         }
-        return href + '@@' + name;
+        var stringurl = href + '@@' + name;
+        return stringurl.replace(/^https?:\/\/[^\/]+/i, "")
     }).filter(Boolean).join('\n');
 }
 

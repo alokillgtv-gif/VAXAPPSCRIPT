@@ -20,30 +20,22 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "danh-sach/phim-le.html", "title": "1.Phim Lẻ", "type": "Horizontal" },
-        { "slug": "danh-sach/phim-bo.html", "title": "2.Phim Bộ", "type": "Horizontal" },
-        { "slug": "the-loai/short-drama.html", "title": "3.Phim Ngắn", "type": "Horizontal" },
-        { "slug": "the-loai/kinh-di.html", "title": "4.Kinh Dị", "type": "Grid" }
+        { "slug": "danh-sach/phim-moi.html", "title": "4.Kinh Dị", "type": "Grid" }
     ]);
 }
 
 function getPrimaryCategories() {
-    return JSON.stringify([
-        { "slug": "the-loai/hoat-hinh.html", "name": "Hoạt Hình" },
-        { "slug": "the-loai/phim-18.html", "name": "18+" },
-        { "slug": "the-loai/hanh-dong.html", "name": "Hành Động" },
-        { "slug": "the-loai/hai-huoc.html", "name": "Hài Hước" },
-        { "slug": "the-loai/vien-tuong.html", "name": "Viễn Tưởng" },
-        { "slug": "the-loai/phieu-luu.html", "name": "Phiêu Lưu" },
-        { "slug": "the-loai/chien-tranh.html", "name": "Chiến Tranh" }
-	]);
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
+    return JSON.stringify(menulist);
 }
 
-function getFilters() {
+// ĐÃ SỬA: Lỗi cú pháp khai báo biến trong JSON.stringify
+function getFilterConfig() {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
     return JSON.stringify({
-        "sort": [
-            { "name": "Mới nhất", "value": "newest" }
-        ]
+        category: menulist
     });
 }
 
@@ -281,6 +273,9 @@ function parseYearsResponse(html) { return "[]"; }
 
 function getLISTmenu() {
     return `
+danh-sach/phim-le.html@@Phim Lẻ
+danh-sach/phim-bo.html@@Phim Bộ
+the-loai/short-drama.html@@Phim Ngắn
 the-loai/tinh-cam.html@@Tình Cảm
 the-loai/am-nhac.html@@Âm Nhạc
 the-loai/tam-ly.html@@Tâm Lý
