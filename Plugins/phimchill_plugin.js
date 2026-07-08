@@ -20,7 +20,7 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "danh-sach/phim-moi.html", "title": "4.Kinh Dị", "type": "Grid" }
+        { "slug": "danh-sach/phim-moi.html", "title": "Phim Mới", "type": "Grid" }
     ]);
 }
 

@@ -83,6 +83,9 @@ function getUrlList(slug, filtersJson) {
             //console.log("menu");
             return BASEURL + "/page/" + page + "/?s=&categories=" + slug;
         }
+        if(slug.indexOf("chuyen-muc") > -1){
+            return BASEURL  + "/" + slug + "/page/" + page;
+        }
         //console.log("main");
         return BASEURL + "/page/" + page + "/?s=&genres=" + slug;
     }
@@ -99,6 +102,7 @@ function getUrlList(slug, filtersJson) {
         }
     }
 }
+
 /*
 
 //var BASEURL = "https://y2mate.ink";
@@ -363,6 +367,12 @@ function getLISTmenu() {
 phim-le@@Phim Lẻ
 phim-bo@@Phim Bộ
 phim-ngan@@Phim Ngắn
+phim-18@@Phim 18+
+hai-huoc@@Hài Hước
+hanh-dong@@Hành Động
+hoat-hinh@@Hoạt Hình
+kinh-di@@Kinh Dị
+kich-tinh@@Kịch Tính
 am-nhac@@Âm Nhạc
 anime@@Anime
 bao-thu@@Báo Thù
@@ -380,15 +390,10 @@ du-hanh-thoi-gian@@Du Hành Thời Gian
 gay-can@@Gây Cấn
 gia-dinh@@Gia Đình
 gia-tuong@@Giả Tưởng
-hai-huoc@@Hài Hước
-hanh-dong@@Hành Động
 he-thong@@Hệ Thống
 hinh-su@@Hình Sự
-hoat-hinh@@Hoạt Hình
 hoc-duong@@Học Đường
 khoa-hoc@@Khoa Học
-kich-tinh@@Kịch Tính
-kinh-di@@Kinh Dị
 kinh-dien@@Kinh Điển
 lang-man@@Lãng Mạn
 lgbt@@LGBT
@@ -401,7 +406,6 @@ nguoc-luyen-tan-tam@@Ngược Luyến Tàn Tâm
 nu-cuong-su-nghiep@@Nữ Cường Sự Nghiệp
 phan-boi@@Phản Bội
 phieu-luu@@Phiêu Lưu
-phim-18@@Phim 18 +
 tai-lieu@@Tài Liệu
 tam-ly@@Tâm Lý
 than-thoai@@Thần Thoại
