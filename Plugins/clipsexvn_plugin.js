@@ -10,13 +10,13 @@ function getManifest() {
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "exoplayer"
+        "playerType": "embed"
     });
 }
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "newest", "title": "Hàng Mới", "type": "Grid" }
+        { "slug": "new/", "title": "Hàng Mới", "type": "Grid" }
     ]);
 }
 
