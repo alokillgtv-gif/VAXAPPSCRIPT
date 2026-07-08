@@ -75,17 +75,7 @@ function getUrlYears() { return ""; }
 
 function parseListResponse(html) {
     try {
-        var script = html.match(/<script[^>]+id=['"]initials-script["']>([\s\S]*?)<\/script>/i);
-        if (script && script[1]) {
-            var scriptText = script[1].trim();
-            
-            // 1. Dùng RegExp bóc tách lấy từ dấu { đầu tiên cho đến dấu } cuối cùng
-            var jsonMatch = scriptText.match(/\{[\s\S]*\}/);
-            
-            if (jsonMatch) {
-                var jsonText = jsonMatch[0]; // Chuỗi JSON sạch
-            }
-        }
+       
         // Lưu trữ object đầu tiên trực tiếp vào BaseJSON toàn cục để các hàm sau dùng tiện lợi
         var parsed = JSON.parse(html);
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
@@ -113,6 +103,18 @@ function parseSearchResponse(html) {
 
 function parseMovieDetail(html) {
     try {
+     var script = html.match(/<script[^>]+id=['"]initials-script["']>([\s\S]*?)<\/script>/i);
+     var jsonText = "";
+     if (script && script[1]) {
+         var scriptText = script[1].trim();
+         
+         // 1. Dùng RegExp bóc tách lấy từ dấu { đầu tiên cho đến dấu } cuối cùng
+         var jsonMatch = scriptText.match(/\{[\s\S]*\}/);
+         
+         if (jsonMatch) {
+             var jsonText = jsonMatch[0]; // Chuỗi JSON sạch
+         }
+     }
         var id = BaseURL;
         // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
         var streamUrl = ""; 
@@ -120,7 +122,7 @@ function parseMovieDetail(html) {
         if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         var title = "Chưa rõ tên phim";
         var year = "2026";
-        var des = streamUrl + "\r\n\r\n" + html;
+        var des = streamUrl + "\r\n\r\n" + jsonText;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
         
