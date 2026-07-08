@@ -60,14 +60,14 @@ function getUrlList(slug, filtersJson) {
                 } else if (typeof filters.category === 'string') {
                     path = filters.category;
                 }
-                return BASEURL + "/" + path + "/" + page;
+                return BASEURL + "/" + path + "/page/" + page;
             }
             if (page > 1 && slug.indexOf("http") == -1) {
-                return BASEURL + "/" + slug + page;
+                return BASEURL + "/" + slug + "/page/";
             }
             // dạng url search
             if (page > 1 && slug.indexOf("http") > -1) {
-                return slug + "/" + page;
+                return slug + "/page/" + page;
             }
         }
         // url ko có page
