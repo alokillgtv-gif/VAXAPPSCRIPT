@@ -1,6 +1,3 @@
-// =============================================================================
-// VAAPP Plugin - Phim Chill
-// =============================================================================
 BASEURL = "https://phimchillhdc.im";
 BASESCRIPT = "https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rHhyjhWYZbSvuX5eqJntT-f2ayEvwKFUI4qOrdUTZ8/exec?check=phimchill&url=";
 
@@ -13,7 +10,8 @@ function getManifest() {
         "baseUrl": "https://phimchillhdc.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
-        "type": "VIDEO",
+        "isAdult": true,
+        "type": "MOVIE",
         "playerType": "embedtoexoplay"
     });
 }

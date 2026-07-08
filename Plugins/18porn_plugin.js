@@ -9,6 +9,7 @@ function getManifest() {
         "baseUrl": "https://www.18porn.sex",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg", 
         "isEnabled": true,
+        "isAdult": true,
         "type": "VIDEO",
         "playerType": "embed"
     });
