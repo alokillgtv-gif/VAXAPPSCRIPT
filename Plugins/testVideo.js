@@ -116,7 +116,6 @@ function parseMovieDetail(html) {
              var jsonText = jsonMatch[0]; // Chuỗi JSON sạch
             try {
                 var jsonObj = JSON.parse(jsonText);
-                console.log("Parse JSON thành công!"); // ĐÃ SỬA: log -> console.log
                 
                 // 2. Cơ chế quét động tìm mảng Video và Phân trang (Tránh lỗi Undefined ở trang Search/Home)
                 var listVideos = null;
