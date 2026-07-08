@@ -43,41 +43,35 @@ function getFilterConfig() {
 
 function getUrlList(slug, filtersJson) {
     try {
-        if (slug && slug.indexOf("http") !== -1) {
-            // Nếu có JSON và có page, ta có thể chèn page vào link (tùy bạn cấu hình, ở đây trả về slug gốc để tránh lỗi)
+        if (slug && slug.indexOf("http") !== -1 && !filtersJson) {
             return slug;
         }
-        if (filtersJson) {
-            // url có page và categ
-            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
-            var filters = JSON.parse(fixedJson);
-            page = parseInt(filters.page) || 1;
-            // Chỉ lấy category từ JSON nếu không truyền slug vào hà
-            if (filters.category) {
-                // dạng url có chuyên mục
-                if (Array.isArray(filters.category) && filters.category.length > 0) {
-                    path = filters.category[0].slug;
-                } else if (typeof filters.category === 'string') {
-                    path = filters.category;
-                }
-                return BASEURL + "/" + path + "/page/" + page;
+        var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+        var filters = JSON.parse(fixedJson);
+        var path = "";
+        page = parseInt(filters.page) || 1;
+        if (slug && slug.indexOf("http") !== -1 && !filters.category) {
+            // dạng url có chuyên mục
+            if (Array.isArray(filters.category) && filters.category.length > 0) {
+                path = filters.category[0].slug;
+            } else if (typeof filters.category === 'string') {
+                path = filters.category;
             }
-            if (page > 1 && slug.indexOf("http") == -1) {
-                return BASEURL + "/" + slug + "/page/";
-            }
-            // dạng url search
-            if (page > 1 && slug.indexOf("http") > -1) {
-                return slug + "/page/" + page;
-            }
+            console.log(3);
+            return BASEURL + "/" + path + "/page/" + page;
+        }
+        if (page > 1) {
+            return BASEURL + "/" + slug + "/page/" + page;
         }
         // url ko có page
+        console.log(2);
         return BASEURL + "/" + slug;
         
     } catch (e) {
+        console.log(e + " 1");
         return BASEURL + "/" + slug;
     }
 }
-
 //var BASEURL = "https://clipsexvn.mobi";
 // Test trường hợp của bạn (slug = "kinh-di", có kèm filter JSON)/
 //var filtersJson = '{"page":5,"category":[{"slug":"hiep-dam/","name":"Hiếp dâm"}]}';
