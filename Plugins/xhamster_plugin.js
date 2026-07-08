@@ -74,18 +74,32 @@ function getFilterConfig() {
 
 function getUrlList(slug, filtersJson) {
     try {
-        var filters = JSON.parse(filtersJson || "{}");
-        var page = filters.page || 1;
-        
-        if (page > 1) {
-            return BASEURL + "/" + slug + "/" + page;
+        if (filtersJson) {
+            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+            var filters = JSON.parse(fixedJson);
+            page = parseInt(filters.page) || 1;
+            // Chỉ lấy category từ JSON nếu không truyền slug vào hà
+            if (filters.category) {
+                if (Array.isArray(filters.category) && filters.category.length > 0) {
+                    path = filters.category[0].slug;
+                } else if (typeof filters.category === 'string') {
+                    path = filters.category;
+                }
+                return BASEURL + "/" + path + "/" + page;
+            }
+            if (page > 1 && slug.indexOf("http") == -1) {
+                return BASEURL + "/" + slug + "/" + page;
+            }
+            if (page > 1 && slug.indexOf("http") > -1) {
+                return slug + "/" + page;
+            }
         }
         return BASEURL + "/" + slug;
+        
     } catch (e) {
         return BASEURL + "/" + slug;
     }
 }
-
 function getUrlSearch(keyword, filtersJson) {
     return BASEURL + "/search/" + encodeURIComponent(keyword);
 }
