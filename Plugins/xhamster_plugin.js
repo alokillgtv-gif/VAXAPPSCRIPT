@@ -167,7 +167,7 @@ function parseListResponse(html) {
                         items.push({
                             "id": cleanSlug, 
                             "title": itemVideo.title || "No Title",
-                            "posterUrl": itemVideo.previewThumbURL || itemVideo.thumbURL || "",
+                            "posterUrl": itemVideo.imageURL || itemVideo.previewThumbURL || "",
                             "backdropUrl": itemVideo.imageURL || ""
                         });
                     }
