@@ -1,6 +1,6 @@
 // =============================================================================
 // VAAPP Plugin - Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
-// Tên file bắt buộc khi lưu: crophim_plugin.js
+// Tên file bắt buộc khi lưu: crophim_plugin.js #labHtmlSourceModal
 // =============================================================================
 BaseURL = "https://script.google.com/macros/s/AKfycbydwasfO9sUsP7nSduOON6yKVZUMpSraNRFb58knwl_AKpb6vixCuPe-uptcpaGIiXBEw/exec";
 BaseJSON = "";
@@ -75,16 +75,26 @@ function getUrlYears() { return ""; }
 
 function parseListResponse(html) {
     try {
-        
+        var script = html.match(/<script[^>]+id=['"]initials-script["']>([\s\S]*?)<\/script>/i);
+        if (script && script[1]) {
+            var scriptText = script[1].trim();
+            
+            // 1. Dùng RegExp bóc tách lấy từ dấu { đầu tiên cho đến dấu } cuối cùng
+            var jsonMatch = scriptText.match(/\{[\s\S]*\}/);
+            
+            if (jsonMatch) {
+                var jsonText = jsonMatch[0]; // Chuỗi JSON sạch
+            }
+        }
         // Lưu trữ object đầu tiên trực tiếp vào BaseJSON toàn cục để các hàm sau dùng tiện lợi
         var parsed = JSON.parse(html);
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
         var $url = BaseJSON.url || "";
         var items = [];
         items.push({
-            "id": $url,          
-            "title": $url, 
-            "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",  
+            "id": $url,
+            "title": $url,
+            "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",
             "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png"
         });
         
