@@ -41,49 +41,73 @@ function getFilterConfig() {
 // https://clipsexvn.mobi/new/3/
 // https://clipsexvn.mobi/search/be/page/3/
 
+var BASEURL = "https://clipsexvn.mobi";
+
 function getUrlList(slug, filtersJson) {
     try {
+        // 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
         if (slug && slug.indexOf("http") !== -1 && !filtersJson) {
             return slug;
         }
-        var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
-        var filters = JSON.parse(fixedJson);
-        var path = "";
-        page = parseInt(filters.page) || 1;
-        var $url = "";
-        if(slug == "new/" && page > 1){
-            return BASEURL + "/" + slug + page + "/";
-        }
-        if(slug == "new/"){
-            return BASEURL + "/" + slug + "1/";
-        }
-        if (slug && slug.indexOf("http") !== -1 && !filters.category) {
-            // dạng url có chuyên mục
-            if (Array.isArray(filters.category) && filters.category.length > 0) {
-                path = filters.category[0].slug;
-            } else if (typeof filters.category === 'string') {
-                path = filters.category;
+        
+        let page = 1;
+        let path = slug || "";
+        
+        // 2. Xử lý an toàn filtersJson nếu có truyền vào
+        if (filtersJson) {
+            // Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
+            let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':'); // Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
+            
+            try {
+                let filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+                
+                // Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
+                if (filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {
+               // console.log("JSON parse lỗi, dùng giá trị mặc định");
             }
-           // console.log(3);
-            $url = BASEURL + "/" + path + "/page/" + page
-            return $url.replace(/\/+/g,"/");
         }
+        
+        // 3. Xử lý riêng biệt cho trường hợp slug "new/" giống code gốc của bạn
+        if (slug === "new/") {
+            return BASEURL + "/new/" + page + "/";
+        }
+        
+        // 4. Chuẩn hóa path (Xóa dấu gạch chéo thừa ở đầu/cuối để tránh nhân đôi dấu //)
+        if (path) {
+            path = path.replace(/^\/+|\/+$/g, "");
+        }
+        
+        // 5. Nối chuỗi URL kết quả
+        let resultUrl = BASEURL;
+        if (path) {
+            resultUrl += "/" + path;
+        }
+        
         if (page > 1) {
-            $url = BASEURL + "/" + slug + "/page/" + page
-            return $url.replace(/\/+/g,"/");
+            resultUrl += "/page/" + page;
         }
-        // url ko có page
-       // console.log(2);
-        $url = BASEURL + "/" + slug
-        return $url.replace(/\/+/g,"/");
+        
+        // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
         
     } catch (e) {
-       // console.log(e + " 11");
-        $url = BASEURL;
-        return $url.replace(/\/+/g,"/");
+       // console.log("Lỗi hệ thống: " + e.message);
+        // Trả về URL gốc an toàn nếu có lỗi
+        let fallback = BASEURL + (slug ? "/" + slug : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
 }
 
+// --- KHU VỰC TEST CÁC TRƯỜNG HỢP ---
 //var BASEURL = "https://clipsexvn.mobi";
 // Test trường hợp của bạn (slug = "kinh-di", có kèm filter JSON)/
 //var filtersJson = '{"page":5,"category":[{"slug":"hiep-dam/","name":"Hiếp dâm"}]}';
@@ -180,21 +204,22 @@ function parseMovieDetail(html,$url) {
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
     
     // ĐÃ SỬA: Loại bỏ khai báo trùng lặp `var rmatch`
-    rmatch = html.match(/class=["']video-player[\s\S]*?src=["']([^"']+)"/i);
+    rmatch = html.match(/class=["']video-player[\s\S]*?iframe[^>]+src=["']([^"']+)"/i);
     if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+    var epi = [
+        { id: streamUrl, name: "Server 1", slug: "full" }, { id: streamUrl + "2", name: "Server 2", slug: "full" }, { id: streamUrl + "3", name: "Server 3", slug: "full" }
+    ];    
         
     return JSON.stringify({
         id: streamUrl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + streamUrl + "\r\n\r\n" + lurl,
+        description: ldes + "\r\n\r\n" + streamUrl + "\r\n\r\n" + lurl+ "\r\n\r\n" +epi,
         servers: [
             {
                 name: "Servers: ",
-                episodes: [
-                    { id: streamUrl, name: "Server 1", slug: "full" },{ id: streamUrl + "2", name: "Server 2", slug: "full" },{ id: streamUrl + "3", name: "Server 3", slug: "full" }
-                ]
+                episodes: epi
             }
         ],
         quality: "HD",
