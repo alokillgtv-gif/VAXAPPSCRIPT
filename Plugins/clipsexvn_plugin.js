@@ -215,7 +215,7 @@ function parseMovieDetail(html,$url) {
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + streamUrl + "\r\n\r\n" + lurl+ "\r\n\r\n" +epi,
+        description: ldes + "\r\n\r\n" + streamUrl + "\r\n\r\n" + lurl+ "\r\n\r\n" + JSON.stringify(epi),
         servers: [
             {
                 name: "Servers: ",
