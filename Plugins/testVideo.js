@@ -105,6 +105,7 @@ function parseMovieDetail(html) {
     try {
      var script = html.match(/<script[^>]+id=['"]initials-script["']>([\s\S]*?)<\/script>/i);
      var jsonText = "";
+     var listVIDEO = "";
      if (script && script[1]) {
          var scriptText = script[1].trim();
          
@@ -113,6 +114,75 @@ function parseMovieDetail(html) {
          
          if (jsonMatch) {
              var jsonText = jsonMatch[0]; // Chuỗi JSON sạch
+            try {
+                var jsonObj = JSON.parse(jsonText);
+                console.log("Parse JSON thành công!"); // ĐÃ SỬA: log -> console.log
+                
+                // 2. Cơ chế quét động tìm mảng Video và Phân trang (Tránh lỗi Undefined ở trang Search/Home)
+                var listVideos = null;
+                var paginationProps = null;
+                var keys = Object.keys(jsonObj);
+                
+                for (var i = 0; i < keys.length; i++) {
+                    var component = jsonObj[keys[i]];
+                    if (component) {
+                        if (!listVideos && component.trendingVideoListProps && component.trendingVideoListProps.videoThumbProps) {
+                            listVideos = component.trendingVideoListProps.videoThumbProps;
+                        }
+                        if (!listVideos && component.videoListProps && component.videoListProps.videoThumbProps) {
+                            listVideos = component.videoListProps.videoThumbProps;
+                        }
+                        if (!paginationProps && component.paginationProps) {
+                            paginationProps = component.paginationProps;
+                        }
+                    }
+                }
+                
+                // Fallback nếu duyệt qua cấu trúc động không thấy, lấy theo cấu trúc tĩnh cũ của bạn
+                if (!listVideos && jsonObj.pagesCategoryComponent && jsonObj.pagesCategoryComponent.trendingVideoListProps) {
+                    listVideos = jsonObj.pagesCategoryComponent.trendingVideoListProps.videoThumbProps;
+                }
+                if (!paginationProps && jsonObj.pagesCategoryComponent && jsonObj.pagesCategoryComponent.paginationProps) {
+                    paginationProps = jsonObj.pagesCategoryComponent.paginationProps;
+                }
+                
+                // Nếu hoàn toàn không có dữ liệu video thì trả về mảng rỗng
+                if (!listVideos || !Array.isArray(listVideos)) {
+                    return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
+                }
+                
+                var items = [];
+                for (var j = 0; j < listVideos.length; j++) {
+                    var itemVideo = listVideos[j];
+                    if (!itemVideo) continue;
+                    
+                    // Đồng bộ bóc tách slug an toàn
+                    var cleanSlug = itemVideo.pageURL ? itemVideo.pageURL.replace("https://xhwide.com/", "").replace("https://xhamster.com/", "") : "";
+                    
+                    items.push({
+                        "id": cleanSlug,
+                        "title": itemVideo.title || "No Title",
+                        "posterUrl": itemVideo.previewThumbURL || itemVideo.thumbURL || "",
+                        "backdropUrl": itemVideo.imageURL || ""
+                    });
+                }
+                
+                // Thiết lập giá trị phân trang an toàn
+                var currentPage = 1;
+                var totalPages = 1;
+                if (paginationProps) {
+                    currentPage = parseInt(paginationProps.currentPageNumber) || 1;
+                    totalPages = parseInt(paginationProps.lastPageNumber) || 1;
+                }
+                var listVIDEO = JSON.stringify({
+                    "items": items,
+                    "pagination": {
+                        "currentPage": currentPage,
+                        "totalPages": totalPages,
+                        "totalItems": items.length,
+                        "itemsPerPage": items.length
+                    }
+                });
          }
      }
         var id = BaseURL;
@@ -122,7 +192,7 @@ function parseMovieDetail(html) {
         if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         var title = "Chưa rõ tên phim";
         var year = "2026";
-        var des = streamUrl + "\r\n\r\n" + jsonText;
+        var des = streamUrl + "\r\n\r\n" + listVIDEO;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
         
