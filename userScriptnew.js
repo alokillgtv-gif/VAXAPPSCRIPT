@@ -1760,6 +1760,8 @@
 
                     // Nếu thỏa mãn 1 trong 2 điều kiện phím thì mới chạy tiếp
                     if (isCtrlQ) {
+                        $("#labFabBtn").click();
+                        /* Nhấn để ẩn menu
                         if (!$dashboard.is(':hidden')) {
                             const $target = $(e.target);
                             let $panel = $target.closest('.lab-panel');
@@ -1780,6 +1782,7 @@
                                 $panel.find('.lab-btn-max').first().trigger('click');
                             }
                         }
+                        */
                     }
                     if(isEsc){
                         $("#labBtnMaximizeDashboard").click();
