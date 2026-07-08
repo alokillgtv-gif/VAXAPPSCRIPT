@@ -57,18 +57,18 @@ function getUrlList(slug, filtersJson) {
             } else if (typeof filters.category === 'string') {
                 path = filters.category;
             }
-            console.log(3);
+           // console.log(3);
             return BASEURL + "/" + path + "/page/" + page;
         }
         if (page > 1) {
             return BASEURL + "/" + slug + "/page/" + page;
         }
         // url ko có page
-        console.log(2);
+        //console.log(2);
         return BASEURL + "/" + slug;
         
     } catch (e) {
-        console.log(e + " 1");
+        //console.log(e + " 1");
         return BASEURL + "/" + slug;
     }
 }
