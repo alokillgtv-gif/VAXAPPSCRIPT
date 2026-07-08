@@ -1,7 +1,7 @@
 var BASEURL = "https://clipsexvn.mobi";
 function getManifest() {
     return JSON.stringify({
-        "id": "clipxexvn",          
+        "id": "clipsexvn",          
         "name": "Clip Sex Hay",
         "description": "XXX Hay",
         "version": "1.0",             
