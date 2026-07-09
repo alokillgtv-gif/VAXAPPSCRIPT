@@ -268,7 +268,7 @@ function parseEmbedResponse(html, sourceUrl) {
     // Bước trung gian: trích iframe URL từ AJAX response
     if (sourceUrl.indexOf('ajax') !== -1) {
         var stream = "";
-        var iframe = $data.match(/src=["']([^"']+)["']/i);
+        var iframe = html.match(/src=["']([^"']+)["']/i);
         if (iframe && iframe[1]) {
             var stream = iframe[1]
         }
