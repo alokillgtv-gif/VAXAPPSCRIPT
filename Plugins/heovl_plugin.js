@@ -4,7 +4,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.3",
+        "version": "1.1",
         "BASEURL": "https://heovl.im",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -314,7 +314,7 @@ function parseMovieDetail(html,ourl) {
         //console.error("Lỗi parse dữ liệu: ", e);
     }
     var $return = {
-        id: lurl,
+        id: ourl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
