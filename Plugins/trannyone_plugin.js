@@ -1,4 +1,4 @@
-var BASEURL = "https://www.tranny.one/recent/";
+var BASEURL = "https://www.tranny.one";
 function getManifest() {
     return JSON.stringify({
         "id": "trannyone",          
