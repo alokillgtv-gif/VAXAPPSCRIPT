@@ -89,11 +89,11 @@ function getUrlList(slug, filtersJson) {
         // 5. Nối chuỗi URL kết quả
         let resultUrl = BASEURL;
         if (path) {
-            resultUrl += "/" + path;
+            resultUrl += "/" + path + "/" ;
         }
         
         if (page > 1) {
-            resultUrl += "/page/" + page;
+            resultUrl += "/page/" + page + "/";
         }
         
         // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
