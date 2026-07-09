@@ -4,7 +4,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.3",
+        "version": "1.4",
         "BASEURL": "https://heovl.im",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -366,7 +366,7 @@ function parseEmbedResponse(html, sourceUrl) {
         var customjs = textJS(html, sourceUrl);
         customjs += `
         function runScript($msg){
-            showToast("${sourceUrl}", duration = 60000)
+            //showToast("${sourceUrl}", duration = 60000)
         }
         function decodeBase64ToHtml(base64String) {
             const binaryString = atob(base64String);
@@ -465,7 +465,7 @@ function initCustomVideoFix() {
     
     style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
     document.head.appendChild(style);
-    showToast("Chèn css mới", duration = 3000)
+    //showToast("Chèn css mới", duration = 3000)
     if (typeof jwplayer === "function") {
         const player = jwplayer("previewPlayer");
         if (player && typeof player.getMute === "function") {
@@ -504,7 +504,7 @@ function initCustomVideoFix() {
             // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
         }
     }, 250); // 250ms là khoảng thời gian vừa đủ, không gây lag trình duyệt
-    runScript("sssssssss");
+    //runScript("sssssssss");
 }
 
 if (document.readyState === 'loading') {
