@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.2",             
+        "version": "1.1",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -206,18 +206,17 @@ function parseDetailResponse(html, url) {
     try {
         // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
 // Quét lấy link nhúng theo domain đã tối ưu
-
+var customjs = textJS(html, url);
+customjs += `
+        function runScript($msg){
+            //showToast("Buớc 1: ${url}", duration = 10000)
+        }
+        `
         
-        var streamUrl = url;
+        var streamUrl = "";
         var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
         if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
         
-        var customjs = textJS(html, url);
-        customjs += `
-                function runScript($msg){
-                    showToast("Buớc 1: ${streamUrl}", duration = 10000)
-                }
-        `
         return JSON.stringify({
             url: streamUrl,
             isEmbed: true, // Vẫn cần fetch tiếp
@@ -239,14 +238,12 @@ function parseEmbedResponse(html, sourceUrl) {
     var customjs = textJS(html, sourceUrl);
     customjs += `
         function runScript($msg){
-            showToast("Buớc 2: ${sourceUrl}", duration = 10000)
+            //showToast("Buớc 2: ${sourceUrl}", duration = 10000)
         }
         `
-    var streamUrl = sourceUrl;
-    var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
-    if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
+    
     return JSON.stringify({
-        url: streamUrl,
+        url: sourceUrl,
         isEmbed: false, // Kết thúc, đây là link stream cuối
         mimeType: "application/x-mpegURL", // Báo App đây là HLS
         headers: {
@@ -329,7 +326,7 @@ function initCustomVideoFix() {
     const style = document.createElement('style');
     
     // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-    var customcss = '';
+    var customcss = 'body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline--block}';
     
     style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
     document.head.appendChild(style);
