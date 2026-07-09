@@ -229,17 +229,16 @@ function parseMovieDetail(html,$url) {
     var epi = [];
     var $linkURL = html.match(/responsive-player[\s\S]*?iframe\ssrc=["']([^"']+)["']/i);
     if($linkURL && $linkURL[1]){
-        $stream = $linkURL[1];
+        $stream = $url;
         epi.push({ id: $stream, name: "Xem Ngay 1", slug: "full" });
-        epi.push({ id: $stream, name: "Xem Ngay 2", slug: "full" });
     }
     
     return JSON.stringify({
-        id: "https://koreanpornmovie.com/wp-content/plugins/clean-tube-player/public/player-x.php?q=cG9zdF9pZD0xMDMyMyZ0eXBlPXZpZGVvJnRhZz0lM0N2aWRlbyUyMGNsYXNzJTNEJTIydmlkZW8tanMlMjB2anMtYmlnLXBsYXktY2VudGVyZWQlMjIlMjBjb250cm9scyUyMHByZWxvYWQlM0QlMjJhdXRvJTIyJTIwd2lkdGglM0QlMjI2NDAlMjIlMjBoZWlnaHQlM0QlMjIyNjQlMjIlMjBwb3N0ZXIlM0QlMjJodHRwcyUzQSUyRiUyRmtvcmVhbnBvcm5tb3ZpZS5jb20lMkZ3cC1jb250ZW50JTJGdXBsb2FkcyUyRjIwMjYlMkYwNyUyRldvbWVuLVBlcmZlY3QtU2VydmljZS0yMDI2LTY0MHgzNjAuanBnJTIyJTNFJTNDc291cmNlJTIwc3JjJTNEJTIyaHR0cHMlM0ElMkYlMkZrb3JlYW5wb3JuLnN0cmVhbSUyRldvbWVuJTI1MjAtJTI1MjBQZXJmZWN0JTI1MjBTZXJ2aWNlJTI1MjAlMjgyMDI2JTI5Lm1wNCUyMiUyMHR5cGUlM0QlMjJ2aWRlbyUyRm1wNCUyMiUyMCUyRiUzRSUzQyUyRnZpZGVvJTNF",
+        id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + limg + "\r\n\r\n" + $stream + "\r\n\r\n" + JSON.stringify(epi),
+        description: ldes + "\r\n\r\n" + limg + "\r\n\r\n"  + "\r\n\r\n" + JSON.stringify(epi),
         servers: [
             {
                 name: "Servers: ",
@@ -266,31 +265,20 @@ JSON.parse(parseMovieDetail(html,$url))
 function parseDetailResponse(html,url) {
     try {
     // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
-        var customjs = textJS(html, $url);
-        customjs += `
-        function runScript($msg){
-            showToast($msg, duration = 3000)
-        }
-        function decodeBase64ToHtml(base64String) {
-            const binaryString = atob(base64String);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
+        var $stream = "";
+        var $linkURL = html.match(/responsive-player[\s\S]*?iframe\ssrc=["']([^"']+)["']/i);
+        if ($linkURL && $linkURL[1]) {
+            $stream = $url;
+            epi.push({ id: $stream, name: "Xem Ngay 1", slug: "full" });
         }
         
-        `
-        var videoUrl = url;
-        var linkvid = html.match(/source\ssrc=["']([^"']+)["']/i);
-        if(linkvid && linkvid[1]){
-            videoUrl = linkvid[1];
-        }
+
         return JSON.stringify({
-            "url": videoUrl, 
+            "url": $stream, 
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
+                isEmbed: true,
                 "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
           // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
@@ -300,8 +288,7 @@ function parseDetailResponse(html,url) {
 // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
                 "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim()
+                "X-Requested-With": "com.android.chrome"
             },
             "subtitles": []
         });
@@ -311,6 +298,24 @@ function parseDetailResponse(html,url) {
     }
 }
 
+
+function parseEmbedResponse(html, sourceUrl) {
+        var customjs = textJS(html, sourceUrl);
+        var videoUrl = sourceUrl;
+        var linkvid = html.match(/source\ssrc=["']([^"']+)["']/i);
+        if (linkvid && linkvid[1]) {
+            videoUrl = linkvid[1];
+        }
+        return JSON.stringify({
+            url: videoUrl,
+            isEmbed: false, // Kết thúc, đây là link stream cuối
+            mimeType: "application/x-mpegURL", // Báo App đây là HLS
+            headers: { "Referer": sourceUrl },
+            "Custom-Js": customJs.trim()
+        });
+    
+    return JSON.stringify({ url: "", isEmbed: false });
+}
 
 function textJS(html, $url) {
 // ĐÃ SỬA: Chuẩn hóa lại cú pháp escape ký tự \$ trong Template Literals
