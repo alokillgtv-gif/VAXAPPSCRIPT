@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.7",
+        "version": "1.0",
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
         "isEnabled": true,
@@ -264,7 +264,8 @@ function parseDetailResponse(html,url) {
         var customjs = textJS(html, url);
         customjs += `
         function runScript($msg){
-            showToast("Bước 1", 60000)
+            showToast("Tải video thành công, coi vui nhé bạn", 10000);
+            document.getElementById("mediaplayer").click();
         }
         `
     // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
@@ -398,7 +399,7 @@ function initCustomVideoFix() {
     
     style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
     document.head.appendChild(style);
-    showToast("Chèn css mới", duration = 3000)
+    //showToast("Chèn css mới", duration = 3000)
     if (typeof jwplayer === "function") {
         const player = jwplayer("previewPlayer");
         if (player && typeof player.getMute === "function") {
