@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.6",
+        "version": "1.7",
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
         "isEnabled": true,
@@ -255,10 +255,10 @@ JSON.parse(parseMovieDetail(html,$url))
 function parseDetailResponse(html,url) {
     try {
         var link = url;
-        if(html.indexOf("embed_url") > -1){
+        //if(html.indexOf("embed_url") > -1){
             var $embed = JSON.parse(html);
             link = $embed.embed_url;
-        }
+       // }
         
         
         var customjs = textJS(html, url);
@@ -270,12 +270,25 @@ function parseDetailResponse(html,url) {
     // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
     // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
         return JSON.stringify({
-            url: link,
-            isEmbed: true, // Báo App đây là HLS
-            headers: { "Referer": url,
-            "Custom-Js": customjs.trim()
-            }
-        });
+    "url": link,
+    "headers": {
+        "Referer": BASEURL,
+        "Origin": BASEURL,
+        isEmbed: true,
+        "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+        // Đánh lừa thuật toán Client Hints của tường lửa
+        "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+        "Sec-Ch-Ua-Mobile": "?1",
+        "Sec-Ch-Ua-Platform": '"Android"',
+        
+        // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+        "Accept": "*/*",
+        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+        "X-Requested-With": "com.android.chrome",
+        "Custom-Js": customjs.trim()
+    },
+    "subtitles": []
+});
 
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
@@ -285,10 +298,10 @@ function parseDetailResponse(html,url) {
 function parseEmbedResponse(html, sourceUrl) {
         
         var link = sourceUrl;
-        if (html.indexOf("embed_url") > -1) {
+       // if (html.indexOf("embed_url") > -1) {
             var $embed = JSON.parse(html);
             link = $embed.embed_url;
-        }
+       // }
 
         var customjs = textJS(html, sourceUrl);
         customjs += `
