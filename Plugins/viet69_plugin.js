@@ -163,7 +163,7 @@ function parseMovieDetail(html) {
     if (rmatch) { lurl = rmatch[1] || rmatch[2]; }
 
     rmatch = html.match(/property="og:image" content="([^"]+)"/i);
-    if (rmatch && rmatch[1]) { limg = rmatch[1]; }
+if (rmatch && rmatch[1]) { limg = rmatch[1].replace(/\?[\s\S]*?$/i, ""); }
 
     rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lname = rmatch[1]; }
