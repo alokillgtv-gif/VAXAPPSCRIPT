@@ -5,7 +5,7 @@ function getManifest() {
         "id": "koreaporn",          
         "name": "Sex Hàn",
         "description": "Nguồn XXX Hay",
-        "version": "1.1",             
+        "version": "1.2",             
         "BASEURL": "https://koreanpornmovie.com",
         "iconUrl": "https://koreanpornmovie.com/wp-content/uploads/2025/01/sadasdasdasdas.png", 
         "isEnabled": true,
