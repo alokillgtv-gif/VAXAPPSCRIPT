@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -202,23 +202,18 @@ if (rmatch && rmatch[1]) { limg = rmatch[1].replace(/\?[\s\S]*?$/i, ""); }
     return JSON.stringify($return);
 }
 
+
 function parseDetailResponse(html, url) {
     try {
-        var customjs = textJS(html, url);
-        // Thêm hàm runScript, chú ý dùng nối chuỗi thay vì nhúng trực tiếp để tránh lỗi compile
-          var streamUrl = "";
-          var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
-          if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
-        customjs += "\nfunction runScript($msg){\n    //showToast('Bước 1: ' + $msg, 10000);\n}\n";
-        
+        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        var streamUrl = "";
+        var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
+        if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
+
         
         return JSON.stringify({
             url: streamUrl,
-            isEmbed: true, // Vẫn cần fetch tiếp sang hàm parseEmbedResponse
-            headers: {
-                "Referer": url,
-                "Custom-Js": customjs.trim()
-            }
+            isEmbed: true // Vẫn cần fetch tiếp
         });
         
     } catch (e) {
@@ -226,28 +221,36 @@ function parseDetailResponse(html, url) {
     }
 }
 
+
 function parseEmbedResponse(html, sourceUrl) {
-    try {
-        var streamUrl = "";
-        var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
-        if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
-        
-        var customjs = textJS(html, sourceUrl);
-        // ĐÃ SỬA: Chuẩn hóa lại hàm runScript nhận tham số $msg từ App đẩy về và in ra chính xác
-        customjs += "\nfunction runScript($msg){\n    showToast('Bước 2: ' + $msg, 10000);\n}\n";
-        
-        return JSON.stringify({
-            url: streamUrl,
-            isEmbed: false, // Kết thúc, đây là link stream cuối cùng
-            mimeType: "application/x-mpegURL", // Định dạng HLS (.m3u8)
-            headers: {
-                "Referer": sourceUrl,
-                "Custom-Js": customjs.trim()
+    
+    
+    var customjs = textJS(html, sourceUrl);
+    customjs += `
+        function runScript($msg){
+            showToast("${sourceUrl}", duration = 60000)
+        }
+        function decodeBase64ToHtml(base64String) {
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
             }
-        });
-    } catch (e) {
-        return JSON.stringify({ url: "", isEmbed: false });
-    }
+            return new TextDecoder().decode(bytes);
+        }
+        `
+    
+    return JSON.stringify({
+        url: sourceUrl,
+        isEmbed: false, // Kết thúc, đây là link stream cuối
+        mimeType: "application/x-mpegURL", // Báo App đây là HLS
+        headers: {
+            "Referer": sourceUrl,
+            "Custom-Js": customjs.trim()
+        },
+    });
+    
+    return JSON.stringify({ url: "", isEmbed: false });
 }
 
 function textJS(html, $url) {
