@@ -272,8 +272,7 @@ function parseDetailResponse(html,url) {
     // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
         return JSON.stringify({
             url: $link,
-            isEmbed: true,
-            mimeType: "application/x-mpegURL", // Báo App đây là HLS
+            isEmbed: true, // Báo App đây là HLS
             headers: { "Referer": url,
             "Custom-Js": customjs.trim()
             }
@@ -286,7 +285,7 @@ function parseDetailResponse(html,url) {
 
 function parseEmbedResponse(html, sourceUrl) {
         
-        var link = url;
+        var link = sourceUrl;
         if (html.indexOf("embed_url") > -1) {
             var $embed = JSON.parse(html);
             var link = $embed.embed_url;
