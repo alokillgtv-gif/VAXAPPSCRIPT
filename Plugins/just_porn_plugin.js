@@ -4,7 +4,7 @@ function getManifest() {
         "id": "justporn",          
         "name": "Just Porn",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.0",             
         "baseUrl": "https://www.justporn.com",
         "iconUrl": "https://c847a9a666.mjedge.net/contents/pkehlvuovbaw/theme/logo.png", 
         "isEnabled": true,
@@ -181,20 +181,38 @@ function parseMovieDetail(html,$url) {
     var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com", BASEURL); }
 
-    rmatch = html.match(/rel=["']preload["'][^>]+href=["']([^"']+)["']/i);
+    rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
 
-    rmatch = html.match(/<title>([^<]+)/i);
+    rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lname = rmatch[1]; }
 
-    rmatch = html.match(/meta\s+name="description"\s+content="([^"]+)"/i);
+    rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
+    
+    var stream1 = "";
+    var stream2 = "";
+    var streamname1 = "";
+    var streamname2 = "";
     var epi = [];
-    var mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
-    if(mathser && mathser[1]){
-        epi.push({ id: mathser[2], name: "Độ Phân Giải Cao", slug: "full" });
-         epi.push({ id: mathser[1], name: "Độ Phân Giải Thấp", slug: "full" })
+    var script = html.match(/var\s+flashvars\s+=\s+({[\s\S]*?}\;)/i);
+    if(script && script[1]){
+    var jsonObj = new Function(`return ${script[1]}`)();
+        if(jsonObj.video_alt_url && jsonObj.video_alt_url.match(/http|.mp4/)){
+            stream1 = jsonObj.video_alt_url;
+            streamname1 = "Độ Phân Giải: " + jsonObj.video_alt_url_text;
+            stream2 = jsonObj.video_url;
+            streamname2 = "Độ Phân Giải: " + jsonObj.video_url_text;
+            epi.push({ id: stream1, name: streamname1, slug: "full" });
+            epi.push({ id: stream2, name: streamname2, slug: "full" })
+        }
+        else{
+            stream1 = jsonObj.video_url;
+            streamname1 = "Độ Phân Giải: " + jsonObj.video_url_text;
+            epi.push({ id: stream1, name: streamname1, slug: "full" });
+        }
     }
+        
     return JSON.stringify({
         id: $url,
         title: lname,
@@ -217,11 +235,10 @@ function parseMovieDetail(html,$url) {
         category: "18+"
     });
 }
-//BASEURL = "https://www.tranny.one";
+//BASEURL = "https://www.justporn.com";
 //var html = $("html")[0].outerHTML;
-//var $url = "https://www.tranny.one/view/1204465";
+//var $url = "https://www.justporn.com/video/18058/hot-babe-remy-cheats-with-bbc/";
 //JSON.parse(parseMovieDetail(html,$url))
-//mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
 // var flashvars = {
 
 function parseDetailResponse(html, url) {
