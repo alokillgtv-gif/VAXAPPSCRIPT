@@ -139,16 +139,14 @@ function parseDetailResponse(html,url) {
         var videoUrl = BaseJSON.link || "";
         var refUrl = BaseJSON.ref || "";
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
-        var customjs = BaseJSON.codec || "";
-        customjs += `
+        var customJs = BaseJSON.codec || "";
+        customJs += `
         function runScript($msg){
             showToast($msg, duration = 7000)
         }
  
-        
         `
-        // "Custom-Js": customjs.trim();
-        var injectedHtml = html + "<script>" + customjs + "</script>";
+        
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
@@ -164,8 +162,8 @@ function parseDetailResponse(html,url) {
     // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
                 "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome"
-                
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customJs.trim()
             },
             "subtitles": []
         });
