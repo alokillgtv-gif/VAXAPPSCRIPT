@@ -45,7 +45,7 @@ function getFilterConfig() {
 function getUrlList(slug, filtersJson) {
     try {
         // 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
-        if (slug && slug.indexOf("search") > -1) {
+        if (slug && slug.indexOf("http") > -1) {
             // thường là link search sẽ bị trả về ở đây
             return slug;
         }
@@ -99,6 +99,8 @@ function getUrlList(slug, filtersJson) {
         return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
 }
+
+
 // --- KHU VỰC TEST CÁC TRƯỜNG HỢP ---
 // https://www.tranny.one/c2096/shemale-anal/?mix=true&pageId=4
 // https://www.tranny.one/search/blacked/?mix=true&pageId=5
