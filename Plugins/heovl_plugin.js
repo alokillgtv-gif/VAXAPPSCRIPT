@@ -332,16 +332,67 @@ function parseMovieDetail(html,ourl) {
 }
 //var html = document.getElementsByTagName("html")[0].outerHTML;
 //JSON.parse(parseMovieDetail(html,""))
-
+//var iframeRegex = /class="[^"]*video-player[^"]*"[\s\S]*?iframe\s+src="([^"]+)"/i;
+//var iframeMatch = html.match(iframeRegex);
 
 
 // =================================================================
 // TẦNG 1: Xử lý trang xem phim gốc (link_xem_phim)
 // =================================================================
-function parseDetailResponse(html, url) {
+function parseDetailResponse(html,url) {
     try {
-        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
-        var customjs =  `
+    // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        var $stream = url;
+        var iframeRegex = /class="[^"]*video-player[^"]*"[\s\S]*?iframe\s+src="([^"]+)"/i;
+        var iframeMatch = html.match(iframeRegex);
+        if(iframeMatch && iframeMatch[1]){
+            $stream = iframeMatch[1];
+        }
+
+        return JSON.stringify({
+            url: $stream,
+            isEmbed: true // Vẫn cần fetch tiếp
+        });
+
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
+    }
+}
+
+
+function parseEmbedResponse(html, sourceUrl) {
+        
+
+        var customjs = textJS(html, sourceUrl);
+        customjs += `
+        function runScript($msg){
+            showToast("${sourceUrl}", duration = 60000)
+        }
+        function decodeBase64ToHtml(base64String) {
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return new TextDecoder().decode(bytes);
+        }
+        `
+
+        return JSON.stringify({
+            url: sourceUrl,
+            isEmbed: false, // Kết thúc, đây là link stream cuối
+            mimeType: "application/x-mpegURL", // Báo App đây là HLS
+            headers: { "Referer": sourceUrl,
+            "Custom-Js": customjs.trim()
+            },
+        });
+    
+    return JSON.stringify({ url: "", isEmbed: false });
+}
+
+function textJS(html, $url) {
+// ĐÃ SỬA: Chuẩn hóa lại cú pháp escape ký tự \$ trong Template Literals
+    return `
 function showToast(message, duration = 7000) {
     // 1. Kiểm tra xem trên màn hình đã có "khung chứa" Toast chưa, nếu chưa thì tự tạo bằng JS
     let container = document.getElementById('global-toast-container');
@@ -462,45 +513,9 @@ if (document.readyState === 'loading') {
     initCustomVideoFix();
 }
 
-        function runScript($msg){
-            showToast($msg, duration = 3000)
-        }
-        function decodeBase64ToHtml(base64String) {
-            const binaryString = atob(base64String);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
-        }
-        
-        `;
-        var iframeRegex = /class="[^"]*video-player[^"]*"[\s\S]*?iframe\s+src="([^"]+)"/i;
-        var iframeMatch = html.match(iframeRegex);
-        return JSON.stringify({
-            "url": iframeMatch[1],
-            "headers": {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-                // Đánh lừa thuật toán Client Hints của tường lửa
-                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                "Sec-Ch-Ua-Mobile": "?1",
-                "Sec-Ch-Ua-Platform": '"Android"',
-                
-                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-                "Accept": "*/*",
-                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim()
-            },
-            "subtitles": []
-        });
-        
-    } catch (e) {
-        return JSON.stringify({ "url": "", "headers": {} });
-    }
+`;
 }
+
 // KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
 //function parseCategoriesResponse(html) { return "[]"}
 function parseCategoriesResponse(apiResponseJson) {
