@@ -4,7 +4,7 @@ function getManifest() {
         "id": "justporn",          
         "name": "Just Porn",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://www.justporn.com",
         "iconUrl": "https://c847a9a666.mjedge.net/contents/pkehlvuovbaw/theme/logo.png", 
         "isEnabled": true,
