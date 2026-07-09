@@ -340,22 +340,24 @@ function parseMovieDetail(html,ourl) {
 // =================================================================
 function parseDetailResponse(html, url) {
     try {
-
-        var customjs = customJQ();
+        var customJsCode = customJQ();
+        
+        // Chèn trực tiếp script vào cuối thẻ body của HTML để WebView tự kích hoạt
+        var injectedHtml = html + "<script>" + customJsCode + "</script>";
+        
         return JSON.stringify({
             url: url,
+            html: injectedHtml, // Trả về nội dung HTML đã được "độ" sẵn script
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             }
         });
     } catch (error) {
         return JSON.stringify({ url: "", headers: {} });
     }
 }
-
 // KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
 //function parseCategoriesResponse(html) { return "[]"}
 function parseCategoriesResponse(apiResponseJson) {
