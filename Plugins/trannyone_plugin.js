@@ -113,7 +113,7 @@ function getUrlList(slug, filtersJson) {
 
 
 function getUrlSearch(keyword, filtersJson) {
-    return "/search/" + encodeURIComponent(keyword) + "/";
+    return BASEURL + "/search/" + encodeURIComponent(keyword) + "/";
 }
 
 function getUrlDetail(slug) {
