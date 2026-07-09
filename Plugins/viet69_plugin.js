@@ -180,7 +180,7 @@ if (rmatch && rmatch[1]) { limg = rmatch[1].replace(/\?[\s\S]*?$/i, ""); }
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes  + "\r\n\r\n" + lurl + "\r\n\r\n" + streamUrl,
+        description: ldes  + "\r\n\r\n" +limg+ "\r\n\r\n" + lurl + "\r\n\r\n" + streamUrl,
         servers: [
             {
                 name: "Server",
@@ -204,13 +204,24 @@ function parseDetailResponse(html, url) {
     try {
         // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
 // Quét lấy link nhúng theo domain đã tối ưu
+var customjs = textJS(html, url);
+customjs += `
+        function runScript($msg){
+            showToast("Buớc 1: ${url}", duration = 10000)
+        }
+        `
+        
         var streamUrl = "";
-        var iframeMatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
+        var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
         if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
         
         return JSON.stringify({
             url: streamUrl,
-            isEmbed: true // Vẫn cần fetch tiếp
+            isEmbed: true, // Vẫn cần fetch tiếp
+            headers: {
+                "Referer": url,
+                "Custom-Js": customjs.trim()
+            }
         });
         
     } catch (e) {
@@ -225,15 +236,7 @@ function parseEmbedResponse(html, sourceUrl) {
     var customjs = textJS(html, sourceUrl);
     customjs += `
         function runScript($msg){
-            //showToast("${sourceUrl}", duration = 60000)
-        }
-        function decodeBase64ToHtml(base64String) {
-            const binaryString = atob(base64String);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
+            showToast("Buớc 2: ${sourceUrl}", duration = 10000)
         }
         `
     
@@ -244,7 +247,7 @@ function parseEmbedResponse(html, sourceUrl) {
         headers: {
             "Referer": sourceUrl,
             "Custom-Js": customjs.trim()
-        },
+        }
     });
     
     return JSON.stringify({ url: "", isEmbed: false });
