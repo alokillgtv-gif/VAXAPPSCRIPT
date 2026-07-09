@@ -345,28 +345,28 @@ function parseYearsResponse(html) { return "[]"; }
 
 function getLISTmenu() {
     return `
+/c2047/asian-ladyboys/@@Asian Ladyboy
 /c2096/shemale-anal/@@Anal
-/c2042/shemales-fuck-guys/@@Shemales with Guys
+/c2061/asian/@@Asian
+/c2094/black/@@Black
 /c2106/amateur-trans/@@Amateur
 /c2100/hardcore/@@Hardcore
 /c2052/big-tits/@@Big Tits
-/c2049/shemales-fuck-shemales/@@Shemale with Shemale
 /c2081/big-cock/@@Big Cock
 /c2381/sissy-femboy-porn/@@Sissy
-/c2048/shemales-fuck-girls/@@Shemales with Girls
 /c2097/tits/@@Tits
 /c2062/threesome/@@Threesome
 /c2060/interracial/@@Interracial
 /c2063/masturbation/@@Masturbation
-/c2061/asian/@@Asian
-/c2047/asian-ladyboys/@@Asian Ladyboys
-/c2094/black/@@Black
 /c2050/stockings/@@Stockings
 /c2064/bareback/@@Bareback
 /c2059/lingerie/@@Lingerie
 /c2147/crossdressing/@@Crossdressing
 /c2199/cum-in-mouth/@@Cum In Mouth
 /c2095/creampie/@@Creampie
+/c2042/shemales-fuck-guys/@@Shemales with Guys
+/c2048/shemales - fuck - girls / @ @Shemales with Girls /
+    c2049 / shemales - fuck - shemales / @ @Shemale with Shemale
 /c2110/ebony/@@Ebony
 /c2103/bdsm/@@BDSM
 /c2067/small-tits/@@Small Tits
