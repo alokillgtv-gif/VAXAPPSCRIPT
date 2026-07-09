@@ -1,5 +1,5 @@
 
-BASEURL = "https://sexdeplon.com";
+BASEURL = "https://sexdep.vip";
 BASEIMG = "https://sexdeplon.com/resize/50/2025/02/04/16c0e67dcf0acbc0be5e7ef611c410b76820a26b490a9d790f758fbe851607bc.png";
 
 // https://sexdep.vip/?page=2
@@ -9,8 +9,8 @@ function getManifest() {
         "id": "sexdep",
         "name": "sexdep",
         "description": "XXX Hay",
-        "version": "1.0",
-        "BASEURL": BASEURL,
+        "version": "1.1",
+        "BASEURL": "https://sexdep.vip",
         "iconUrl": BASEIMG,
         "isEnabled": true,
         "isAdult": true,
