@@ -230,7 +230,8 @@ function parseMovieDetail(html,$url) {
     var $linkURL = html.match(/responsive-player[\s\S]*?iframe\ssrc=["']([^"']+)["']/i);
     if($linkURL && $linkURL[1]){
         $stream = $linkURL[1];
-        epi.push({ id: $stream, name: "Xem Ngay", slug: "full" });
+        epi.push({ id: $stream, name: "Xem Ngay 1", slug: "full" });
+        epi.push({ id: $stream, name: "Xem Ngay 2", slug: "full" });
     }
     
     return JSON.stringify({
