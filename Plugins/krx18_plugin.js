@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",          
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.2",             
+        "version": "1.3",             
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png", 
         "isEnabled": true,
@@ -258,20 +258,20 @@ function parseDetailResponse(html,url) {
         var link = url;
         if(html.indexOf("embed_url") > -1){
             var $embed = JSON.parse(html);
-            var link = $embed.embed_url;
+            link = $embed.embed_url;
         }
         
         
         var customjs = textJS(html, url);
         customjs += `
         function runScript($msg){
-            showToast("Bước 1", duration = 60000)
+            showToast("Bước 1", 60000)
         }
         `
     // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
     // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
         return JSON.stringify({
-            url: $link,
+            url: link,
             isEmbed: true, // Báo App đây là HLS
             headers: { "Referer": url,
             "Custom-Js": customjs.trim()
@@ -288,13 +288,13 @@ function parseEmbedResponse(html, sourceUrl) {
         var link = sourceUrl;
         if (html.indexOf("embed_url") > -1) {
             var $embed = JSON.parse(html);
-            var link = $embed.embed_url;
+            link = $embed.embed_url;
         }
 
         var customjs = textJS(html, sourceUrl);
         customjs += `
         function runScript($msg){
-            showToast("Bước 2", duration = 60000)
+            showToast("Bước 2", 60000)
         }
         `
 
