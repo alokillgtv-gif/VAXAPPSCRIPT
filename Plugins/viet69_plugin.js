@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.3",             
+        "version": "1.6",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -174,13 +174,12 @@ if (rmatch && rmatch[1]) { limg = rmatch[1].replace(/\?[\s\S]*?$/i, ""); }
     var streamUrl = "";
     var iframeMatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
    	if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
-     
-    return JSON.stringify({
+    var $return = {
         id: lurl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes  + "\r\n\r\n" +limg+ "\r\n\r\n" + lurl + "\r\n\r\n" + streamUrl,
+        description: ldes,
         servers: [
             {
                 name: "Server",
@@ -197,7 +196,10 @@ if (rmatch && rmatch[1]) { limg = rmatch[1].replace(/\?[\s\S]*?$/i, ""); }
         casts: "N/A",
         director: "N/A",
         category: "18+"
-    });
+    };
+    var jsonreturn = JSON.stringify($return);
+    $return.description = jsonreturn;
+    return JSON.stringify($return);
 }
 
 function parseDetailResponse(html, url) {
