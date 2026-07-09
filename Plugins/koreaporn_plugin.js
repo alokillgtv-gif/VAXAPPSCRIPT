@@ -284,18 +284,34 @@ function parseDetailResponse(html,url) {
 
 
 function parseEmbedResponse(html, sourceUrl) {
-        var customjs = textJS(html, sourceUrl);
+        
         var videoUrl = sourceUrl;
         var linkvid = html.match(/source\ssrc=["']([^"']+)["']/i);
         if (linkvid && linkvid[1]) {
             videoUrl = linkvid[1];
         }
+
+        var customjs = textJS(html, sourceUrl);
+        customjs += `
+        function runScript($msg){
+            showToast("${videoUrl}", duration = 60000)
+        }
+        function decodeBase64ToHtml(base64String) {
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return new TextDecoder().decode(bytes);
+        }
+        `
+
         return JSON.stringify({
             url: videoUrl,
             isEmbed: false, // Kết thúc, đây là link stream cuối
             mimeType: "application/x-mpegURL", // Báo App đây là HLS
             headers: { "Referer": sourceUrl },
-            "Custom-Js": customJs.trim()
+            "Custom-Js": customjs.trim()
         });
     
     return JSON.stringify({ url: "", isEmbed: false });
