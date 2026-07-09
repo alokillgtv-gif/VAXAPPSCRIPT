@@ -283,7 +283,7 @@ function parseDetailResponse(html,url) {
         var videoUrl = url;
         var linkvid = html.match(/source\ssrc=["']([^"']+)["']/i);
         if(linkvid && linkvid[1]){
-            videoUrl = linkvid;
+            videoUrl = linkvid[1];
         }
         return JSON.stringify({
             "url": videoUrl, 
