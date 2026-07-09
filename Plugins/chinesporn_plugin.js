@@ -252,11 +252,13 @@ customjs += `
         }
         `
     // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        return JSON.stringify({
             url: "",
             mimeType: "application/x-mpegURL", // Báo App đây là HLS
             headers: { "Referer": url,
             "Custom-Js": customjs.trim()
-        }
+            }
+        });
 
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
