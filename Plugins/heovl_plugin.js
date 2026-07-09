@@ -4,7 +4,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://heovl.im",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -341,69 +341,7 @@ function parseMovieDetail(html,ourl) {
 function parseDetailResponse(html, url) {
     try {
         // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
-        var customjs = customJQ();
-        customjs += `
-        function runScript($msg){
-            showToast($msg, duration = 3000)
-        }
-        function decodeBase64ToHtml(base64String) {
-            const binaryString = atob(base64String);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
-        }
-        
-        `
-        return JSON.stringify({
-            "url": videoUrl,
-            "headers": {
-                "Referer": refUrl,
-                "Origin": refUrl,
-                "User-Agent": agent,
-                // Đánh lừa thuật toán Client Hints của tường lửa
-                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                "Sec-Ch-Ua-Mobile": "?1",
-                "Sec-Ch-Ua-Platform": '"Android"',
-                
-                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-                "Accept": "*/*",
-                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim()
-            },
-            "subtitles": []
-        });
-        
-    } catch (e) {
-        return JSON.stringify({ "url": "", "headers": {} });
-    }
-}
-// KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
-//function parseCategoriesResponse(html) { return "[]"}
-function parseCategoriesResponse(apiResponseJson) {
-    var listurl = `
-categories/viet-nam@@Việt Nam
-categories/nga-russia@@Nga(Russia)
-categories/vu-to@@Vú To
-categories/tap-the@@Tập Thể
-categories/hiep-dam@@Hiếp Dâm
-categories/loan-luan@@Loạn Luân
-categories/phim-cap-3@@Phim Cap 3
-categories/vietsub@@Vietsub
-categories/choi-lo-dit-anal-sex@@Chơi lỗ đít(Anal Sex
-categories/nhat-ban@@Nhật Bản
-`
-    var menulist = buildMenu(listurl);
-    
-    return JSON.stringify(menulist);
-}
-function parseCountriesResponse(html) { return "[]"}
-function parseYearsResponse(html) { return "[]"}
-
-function customJQ(){
-    return `
+        var customjs =  `
 function showToast(message, duration = 7000) {
     // 1. Kiểm tra xem trên màn hình đã có "khung chứa" Toast chưa, nếu chưa thì tự tạo bằng JS
     let container = document.getElementById('global-toast-container');
@@ -524,5 +462,61 @@ if (document.readyState === 'loading') {
     initCustomVideoFix();
 }
 
-`;
+        function runScript($msg){
+            showToast($msg, duration = 3000)
+        }
+        function decodeBase64ToHtml(base64String) {
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return new TextDecoder().decode(bytes);
+        }
+        
+        `
+        return JSON.stringify({
+            "url": videoUrl,
+            "headers": {
+                "Referer": refUrl,
+                "Origin": refUrl,
+                "User-Agent": agent,
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs.trim()
+            },
+            "subtitles": []
+        });
+        
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
+    }
 }
+// KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
+//function parseCategoriesResponse(html) { return "[]"}
+function parseCategoriesResponse(apiResponseJson) {
+    var listurl = `
+categories/viet-nam@@Việt Nam
+categories/nga-russia@@Nga(Russia)
+categories/vu-to@@Vú To
+categories/tap-the@@Tập Thể
+categories/hiep-dam@@Hiếp Dâm
+categories/loan-luan@@Loạn Luân
+categories/phim-cap-3@@Phim Cap 3
+categories/vietsub@@Vietsub
+categories/choi-lo-dit-anal-sex@@Chơi lỗ đít(Anal Sex
+categories/nhat-ban@@Nhật Bản
+`
+    var menulist = buildMenu(listurl);
+    
+    return JSON.stringify(menulist);
+}
+function parseCountriesResponse(html) { return "[]"}
+function parseYearsResponse(html) { return "[]"}
