@@ -2150,7 +2150,7 @@ $btnQuickExtract.on('click', function(e) {
     const $input = $('#extract-type-input');
     $input.focus().select();
 
-    // Hàm xử lý chính khi người dùng nhấn Xác nhận
+    // Hàm xử lý chính khi người dùng nhấn Xác nhận // Hàm trích xuất url list
     function processExtraction() {
         let extractType = $input.val().trim().toLowerCase();
         if (!options.includes(extractType)) {
@@ -2181,6 +2181,7 @@ $btnQuickExtract.on('click', function(e) {
 
         // Xóa popup sau khi chạy xong
         $popup.remove();
+        $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
     }
 
     // --- BẮT SỰ KIỆN NHẤN ENTER ---
