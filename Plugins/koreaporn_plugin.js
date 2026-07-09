@@ -235,7 +235,7 @@ function parseMovieDetail(html,$url) {
     }
     
     return JSON.stringify({
-        id: $stream,
+        id: "https://koreanpornmovie.com/wp-content/plugins/clean-tube-player/public/player-x.php?q=cG9zdF9pZD0xMDMyMyZ0eXBlPXZpZGVvJnRhZz0lM0N2aWRlbyUyMGNsYXNzJTNEJTIydmlkZW8tanMlMjB2anMtYmlnLXBsYXktY2VudGVyZWQlMjIlMjBjb250cm9scyUyMHByZWxvYWQlM0QlMjJhdXRvJTIyJTIwd2lkdGglM0QlMjI2NDAlMjIlMjBoZWlnaHQlM0QlMjIyNjQlMjIlMjBwb3N0ZXIlM0QlMjJodHRwcyUzQSUyRiUyRmtvcmVhbnBvcm5tb3ZpZS5jb20lMkZ3cC1jb250ZW50JTJGdXBsb2FkcyUyRjIwMjYlMkYwNyUyRldvbWVuLVBlcmZlY3QtU2VydmljZS0yMDI2LTY0MHgzNjAuanBnJTIyJTNFJTNDc291cmNlJTIwc3JjJTNEJTIyaHR0cHMlM0ElMkYlMkZrb3JlYW5wb3JuLnN0cmVhbSUyRldvbWVuJTI1MjAtJTI1MjBQZXJmZWN0JTI1MjBTZXJ2aWNlJTI1MjAlMjgyMDI2JTI5Lm1wNCUyMiUyMHR5cGUlM0QlMjJ2aWRlbyUyRm1wNCUyMiUyMCUyRiUzRSUzQyUyRnZpZGVvJTNF",
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
