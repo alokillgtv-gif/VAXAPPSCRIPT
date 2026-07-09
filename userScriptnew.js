@@ -1248,21 +1248,27 @@
         $(document).on('keydown.closeQuickMenu', function(e) { if (e.key === 'Escape') $quickMenu.hide(); });
 
         function showQuickCssMenu(selector, clientX, clientY) {
+            // 🛠️ ĐÃ SỬA: Chuẩn hóa selector nếu nó chứa nhiều class cách nhau bằng khoảng trắng
+            if (selector && selector.startsWith('.')) {
+                // Tách chuỗi theo khoảng trắng và gộp lại bằng dấu chấm
+                selector = selector.trim().split(/\s+/).join('.');
+            }
+            
             $quickMenu.data('target-selector', selector);
             $quickMenu.find('#labQuickMenuTarget').text(selector);
-
+            
             $quickMenu.show();
             const menuW = $quickMenu.outerWidth();
             const menuH = $quickMenu.outerHeight();
             const winW = window.innerWidth;
             const winH = window.innerHeight;
-
+            
             let posX = clientX + 10;
             let posY = clientY + 10;
-
+            
             if (posX + menuW > winW) posX = clientX - menuW - 10;
             if (posY + menuH > winH) posY = winH - menuH - 10;
-
+            
             $quickMenu.css({ top: Math.max(5, posY) + 'px', left: Math.max(5, posX) + 'px' });
         }
 
@@ -2696,22 +2702,22 @@ const htmlSourceStyle = document.createElement('style');
 
             $viewSourceBtn.on('click', function(e) {
                 e.stopPropagation();
-                
+
                 // KHU VỰC TỐI ƯU: Nếu đã phân tích dữ liệu trước đó rồi, chỉ cần mở lại Modal mà không fetch lại
                 if (parsedHtmlDocument) {
                     $modal.addClass('lab-html-modal-active');
                     return; // Dừng hàm tại đây, giữ nguyên trạng thái cây DOM cũ
                 }
-                
+
                 // --- LẦN ĐẦU TIÊN NHẤN NÚT: Tiến hành fetch và dựng cây DOM ---
                 $treeContainer.html('<div style="color:#aaa; padding:10px;">⌛ Đang phân tích và dựng bản đồ DOM Tree nguồn...</div>');
-                
+
                 fetch(window.location.href)
                     .then(response => response.text())
                     .then(html => {
                         parsedHtmlDocument = new DOMParser().parseFromString(html, 'text/html');
                         $treeContainer.empty();
-                        
+
                         // Dựng cây từ thẻ HTML gốc
                         const treeRoot = createTreeDOM(parsedHtmlDocument.documentElement);
                         if (treeRoot) {
@@ -2719,7 +2725,7 @@ const htmlSourceStyle = document.createElement('style');
                             // Mở sẵn tầng đầu tiên cho thân thiện
                             $(treeRoot).children('.lab-dom-header').trigger('click');
                         }
-                        
+
                         $modal.addClass('lab-html-modal-active');
                         $searchInput.val('');
                         lastSearchQuery = '';
