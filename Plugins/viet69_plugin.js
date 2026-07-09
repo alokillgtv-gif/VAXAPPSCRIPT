@@ -213,6 +213,17 @@ function parseDetailResponse(html, url) {
         customjs += `
             function runScript($msg){
                 showToast("Bước 1: ${streamUrl}", 10000)
+                var iframe = document.getElementsByTagName("iframe")[0];
+                iframe.style.height = "100%";
+                iframe.style.width = "100%";
+                iframe.style.position = "fixed";
+                iframe.style.top = "0";
+                iframe.style.bottom = "0";
+                var framehtml = iframe.outerHTML;
+                var body = document.getElementsByTagName("html")[0];
+                body.style.height = "100%";
+                body.style.width = "100%";
+                body.innerHTML = framehtml;
             }
         `
         
