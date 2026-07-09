@@ -142,12 +142,16 @@ function getUrlYears() { return ""; }
 function parseListResponse(html,$url) {
     try {
         var items = [];
-        var regexList = /class="video-item[\s\S]*?title="([^"']+)"[^>]+href="([^"']+)"[\s\S]*?src="([^"']+)"/g;
+        //data-original
+        var regexList = /class="video-item[\s\S]*?title="([^"']+)"[^>]+href="([^"']+)"[\s\S]*?src="([^"']+)"[\s\S]*?data-original="([^"']+)"/g;
         var matchList;
         
         while ((matchList = regexList.exec(html)) !== null) {
             if (matchList[2] && matchList[2].indexOf("http") > -1) {
                 var cleanThumb = matchList[3].replace(/&amp;/g, '&');
+                if(matchList[4]){
+                    cleanThumb = matchList[4];
+                }
                 items.push({
                     "id": matchList[2],
                     "title": matchList[1].trim(),
@@ -207,11 +211,11 @@ function parseMovieDetail(html,$url) {
     rmatch = html.match(/class=["']video-player[\s\S]*?iframe[^>]+src=["']([^"']+)"/i);
     if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
     var epi = [
-        { id: streamUrl, name: "Server 1", slug: "full" }, { id: streamUrl + "2", name: "Server 2", slug: "full" }, { id: streamUrl + "3", name: "Server 3", slug: "full" }
+        { id: $url + "?server=1", name: "Server 1", slug: "full" }, { id: $url + "?server=2", name: "Server 2", slug: "full" }, { id: $url + "?server=3", name: "Server 3", slug: "full" }
     ];    
         
     return JSON.stringify({
-        id: streamUrl,
+        id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -239,20 +243,53 @@ function parseMovieDetail(html,$url) {
 
 function parseDetailResponse(html, url) {
     try {
-        var customJs = textJS(html, url);
-
+        //var customJs = textJS(html, url);
+        var $server = "1";
+        rmatch = html.match(/post-id=["']([^"]+)["']/i);
+        if (rmatch && rmatch[1]) { postID = rmatch[1]; }
+        $server = url.replace(/[\s\S]*?server=(\d+)/i, "$1");
         return JSON.stringify({
-            url: url,
+            url: BASEURL + "/wp-admin/admin-ajax.php",
+            method: "POST", // Khai báo rõ phương thức POST
+            isEmbed: true,
+            postBody: "player_server=" + postID + "&server=" + $server, // Giữ nguyên chuỗi query string
             headers: {
                 "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
+                "Content-Type": "application/x-www-form-urlencoded" // Bắt buộc phải có khi gửi dạng Form Data
             }
         });
+        
     } catch (error) {
         return JSON.stringify({ url: "", headers: {} });
     }
+}
+
+function parseEmbedResponse(html, sourceUrl) {
+    // Bước trung gian: trích iframe URL từ AJAX response
+    if (sourceUrl.indexOf('ajax') !== -1) {
+        var stream = "";
+        var iframe = $data.match(/src=["']([^"']+)["']/i);
+        if (iframe && iframe[1]) {
+            var stream = iframe[1]
+        }
+        return JSON.stringify({
+            url: stream,
+            isEmbed: false // Vẫn cần fetch tiếp
+        });
+    }
+    /*
+    // Bước cuối: trích direct stream URL từ embed page
+    var fileMatch = html.match(/"file"\s*:\s*"(https?[^"]+)"/);
+    if (fileMatch) {
+        return JSON.stringify({
+            url: fileMatch[1],
+            isEmbed: false,  // Kết thúc, đây là link stream cuối
+            mimeType: "application/x-mpegURL",  // Báo App đây là HLS
+            headers: { "Referer": "https://embed-server.com/" }
+        });
+    }
+    */
+    return JSON.stringify({ url: "", isEmbed: false });
 }
 
 function textJS(html, $url) {

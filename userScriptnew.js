@@ -2695,14 +2695,22 @@ const htmlSourceStyle = document.createElement('style');
 
             $viewSourceBtn.on('click', function(e) {
                 e.stopPropagation();
+                
+                // KHU VỰC TỐI ƯU: Nếu đã phân tích dữ liệu trước đó rồi, chỉ cần mở lại Modal mà không fetch lại
+                if (parsedHtmlDocument) {
+                    $modal.addClass('lab-html-modal-active');
+                    return; // Dừng hàm tại đây, giữ nguyên trạng thái cây DOM cũ
+                }
+                
+                // --- LẦN ĐẦU TIÊN NHẤN NÚT: Tiến hành fetch và dựng cây DOM ---
                 $treeContainer.html('<div style="color:#aaa; padding:10px;">⌛ Đang phân tích và dựng bản đồ DOM Tree nguồn...</div>');
-
+                
                 fetch(window.location.href)
                     .then(response => response.text())
                     .then(html => {
                         parsedHtmlDocument = new DOMParser().parseFromString(html, 'text/html');
                         $treeContainer.empty();
-
+                        
                         // Dựng cây từ thẻ HTML gốc
                         const treeRoot = createTreeDOM(parsedHtmlDocument.documentElement);
                         if (treeRoot) {
@@ -2710,17 +2718,18 @@ const htmlSourceStyle = document.createElement('style');
                             // Mở sẵn tầng đầu tiên cho thân thiện
                             $(treeRoot).children('.lab-dom-header').trigger('click');
                         }
-
+                        
                         $modal.addClass('lab-html-modal-active');
                         $searchInput.val('');
                         lastSearchQuery = '';
                         clearSearch();
                     })
                     .catch(err => {
+                        // Nếu lỗi, reset lại biến để lần sau người dùng nhấn lại có thể thử fetch lại
+                        parsedHtmlDocument = null;
                         $treeContainer.html('<div style="color:#c0392b; padding:10px;">❌ Lỗi nạp nguồn mã: ' + err + '</div>');
                     });
             });
-
             // CHỨC NĂNG CLICK SAO CHÉP VÀ ĐỒNG BỘ VỚI HỆ THỐNG GỐC CỦA BẠN
             $treeContainer.on('click', '.tag-name, .tag-attr, .lab-dom-text, .lab-dom-pure-text', function(e) {
                 e.stopPropagation();
@@ -2728,7 +2737,7 @@ const htmlSourceStyle = document.createElement('style');
 
                 // [CẬP NHẬT MỚI] Chỉ lấy giá trị thuộc tính bên trong data-val
                 if ($(this).hasClass('tag-attr')) {
-                    copyText = $(this).attr('data-val') || ''; 
+                    copyText = $(this).attr('data-val') || '';
                 } else {
                     copyText = $(this).text();
                 }
