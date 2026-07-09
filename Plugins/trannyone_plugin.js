@@ -192,7 +192,7 @@ function parseMovieDetail(html,$url) {
     var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com", BASEURL); }
 
-    rmatch = html.match(/rel=["']preload["'][^>]+href=["']([^"']+)["']/i);
+    rmatch = html.match(/rel=["']preload["'][^>]+as=["']image["'][^>]+href=["']([^"']+)["']/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
 
     rmatch = html.match(/<title>([^<]+)/i);
