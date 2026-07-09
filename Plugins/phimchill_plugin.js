@@ -1,4 +1,4 @@
-BASEURL = "https://phimchillhdc.im";
+BASEURL = "https://phimchillhdv.im";
 BASESCRIPT = "https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rHhyjhWYZbSvuX5eqJntT-f2ayEvwKFUI4qOrdUTZ8/exec?check=phimchill&url=";
 
 function getManifest() {
@@ -6,8 +6,8 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.0",             
-        "baseUrl": "https://phimchillhdc.im",
+        "version": "1.1",             
+        "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
         "isAdult": true,
