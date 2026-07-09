@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.1",             
+        "version": "1.21",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -139,19 +139,26 @@ function parseDetailResponse(html,url) {
         var videoUrl = BaseJSON.link || "";
         var refUrl = BaseJSON.ref || "";
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
-        var customJs = BaseJSON.codec || "";
-        customJs += `
+        var customjs = BaseJSON.codec || "";
+        customjs += `
         function runScript($msg){
-            showToast($msg, duration = 7000)
+            showToast($msg, duration = 3000)
         }
-        `
+        function decodeBase64ToHtml(base64String) {
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return new TextDecoder().decode(bytes);
+        }
         
+        `
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
                 "Referer": refUrl,
                 "Origin": refUrl,
-                "html": injectedHtml,
                 "User-Agent": agent,
               // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
@@ -162,7 +169,7 @@ function parseDetailResponse(html,url) {
                 "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
                 "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customJs.trim()
+                "Custom-Js": customjs.trim()
             },
             "subtitles": []
         });
@@ -206,3 +213,4 @@ function base64Encode(str) {
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
+ˋ
