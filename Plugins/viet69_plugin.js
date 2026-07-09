@@ -209,7 +209,12 @@ function parseDetailResponse(html, url) {
         var streamUrl = "";
         var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
         if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
-
+        var customjs = textJS(html, sourceUrl);
+        customjs += `
+            function runScript($msg){
+                showToast("Bước 1", 10000)
+            }
+        `
         
         return JSON.stringify({
             url: streamUrl,
@@ -228,17 +233,9 @@ function parseEmbedResponse(html, sourceUrl) {
     var customjs = textJS(html, sourceUrl);
     customjs += `
         function runScript($msg){
-            showToast("${sourceUrl}", duration = 60000)
+            showToast("Bước 2", 10000)
         }
-        function decodeBase64ToHtml(base64String) {
-            const binaryString = atob(base64String);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
-        }
-        `
+    `
     
     return JSON.stringify({
         url: sourceUrl,
