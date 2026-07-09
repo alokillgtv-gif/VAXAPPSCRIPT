@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",          
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.0",             
+        "version": "1.1",             
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png", 
         "isEnabled": true,
@@ -193,22 +193,22 @@ function parseMovieDetail(html,$url) {
     var ldes = "Không có mô tả.";
     var streamUrl = ""; // ĐÃ SỬA: Khai báo rõ ràng biến streamUrl tránh lỗi Global leak
 
-    var rmatch = html.match(/link\s+rel="canonical"\s+href=["']([^"]+)["']/i);
+    var rmatch = html.match(/link\s+rel="canonical"\s+href=["']([^"']+)["']/i);
     if (rmatch && rmatch[1]) { lurl = rmatch[1] }
 
-    rmatch = html.match(/property=["']og:image["']\s+content=["']([^"]+)["']/i);
+    rmatch = html.match(/property=["']og:image["']\s+content=["']([^"']+)["']/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
 
     rmatch = html.match(/<title>([^<]+)/i);
     if (rmatch && rmatch[1]) { lname = rmatch[1]; }
 
-    rmatch = html.match(/meta\s+property=["']og:description["']\s+content=["']([^"]+)["']/i);
+    rmatch = html.match(/meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
     // https://krx18.com/wp-json/dooplayer/v2/85671/movie/1
     // <meta id="dooplay-ajax-counter" data-postid="85671" />
     var idvideo = "";
     var $linkser = "";
-    rmatch = html.match(/id=["']dooplay-ajax-counter["']\s+data-postid=["']([^"]+)["']/i);
+    rmatch = html.match(/id=["']dooplay-ajax-counter["']\s+data-postid=["']([^"']+)["']/i);
     if (rmatch && rmatch[1]) { 
         idvideo = rmatch[1];
         $linkser = "https://krx18.com/wp-json/dooplayer/v2/"+idvideo+"/movie/";
@@ -245,6 +245,7 @@ function parseMovieDetail(html,$url) {
     $return.description = ldes + "\r\n\r\n\r\n\r\n\r\n\r\n" + JSON.stringify($objreturn);
     return JSON.stringify($return);
 }
+
 /*
 BASEURL = "https://www.justporn.com";
 var html = $("html")[0].outerHTML;
