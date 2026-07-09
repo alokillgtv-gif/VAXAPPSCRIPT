@@ -204,22 +204,17 @@ if (rmatch && rmatch[1]) { limg = rmatch[1].replace(/\?[\s\S]*?$/i, ""); }
 
 function parseDetailResponse(html, url) {
     try {
-        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
-// Quét lấy link nhúng theo domain đã tối ưu
-var customjs = textJS(html, url);
-customjs += `
-        function runScript($msg){
-            //showToast("Buớc 1: ${url}", duration = 10000)
-        }
-        `
+        var customjs = textJS(html, url);
+        // Thêm hàm runScript, chú ý dùng nối chuỗi thay vì nhúng trực tiếp để tránh lỗi compile
+          var streamUrl = "";
+          var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
+          if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
+        customjs += "\nfunction runScript($msg){\n    //showToast('Bước 1: ' + $msg, 10000);\n}\n";
         
-        var streamUrl = "";
-        var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
-        if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
         
         return JSON.stringify({
             url: streamUrl,
-            isEmbed: true, // Vẫn cần fetch tiếp
+            isEmbed: true, // Vẫn cần fetch tiếp sang hàm parseEmbedResponse
             headers: {
                 "Referer": url,
                 "Custom-Js": customjs.trim()
@@ -231,30 +226,28 @@ customjs += `
     }
 }
 
-
 function parseEmbedResponse(html, sourceUrl) {
-    
-    var streamUrl = "";
-    var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
-    if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
-    var customjs = textJS(html, sourceUrl);
-    customjs += `
-        function runScript($msg){
-            showToast("Buớc 2: ${streamUrl}", duration = 10000)
-        }
-        `
-    
-    return JSON.stringify({
-        url: streamUrl,
-        isEmbed: false, // Kết thúc, đây là link stream cuối
-        mimeType: "application/x-mpegURL", // Báo App đây là HLS
-        headers: {
-            "Referer": sourceUrl,
-            "Custom-Js": customjs.trim()
-        }
-    });
-    
-    return JSON.stringify({ url: "", isEmbed: false });
+    try {
+        var streamUrl = "";
+        var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
+        if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
+        
+        var customjs = textJS(html, sourceUrl);
+        // ĐÃ SỬA: Chuẩn hóa lại hàm runScript nhận tham số $msg từ App đẩy về và in ra chính xác
+        customjs += "\nfunction runScript($msg){\n    showToast('Bước 2: ' + $msg, 10000);\n}\n";
+        
+        return JSON.stringify({
+            url: streamUrl,
+            isEmbed: false, // Kết thúc, đây là link stream cuối cùng
+            mimeType: "application/x-mpegURL", // Định dạng HLS (.m3u8)
+            headers: {
+                "Referer": sourceUrl,
+                "Custom-Js": customjs.trim()
+            }
+        });
+    } catch (e) {
+        return JSON.stringify({ url: "", isEmbed: false });
+    }
 }
 
 function textJS(html, $url) {
@@ -328,7 +321,7 @@ function initCustomVideoFix() {
     const style = document.createElement('style');
     
     // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-    var customcss = 'body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline--block}';
+    var customcss = 'body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline-block}';
     
     style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
     document.head.appendChild(style);
