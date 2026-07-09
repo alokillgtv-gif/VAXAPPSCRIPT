@@ -141,24 +141,20 @@ function parseDetailResponse(html,url) {
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
         var customjs = BaseJSON.codec || "";
         customjs += `
-        function runScript($title,$msg){
-            customAlert($msg + $title, $msg);
+        function runScript($msg){
+            showToast($msg, duration = 7000)
         }
-        function decodeBase64ToHtml(base64String) {
-            const binaryString = atob(base64String);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
-        }
+ 
         
         `
+        // "Custom-Js": customjs.trim();
+        var injectedHtml = html + "<script>" + customjs + "</script>";
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
                 "Referer": refUrl,
                 "Origin": refUrl,
+                "html": injectedHtml,
                 "User-Agent": agent,
               // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
@@ -168,8 +164,8 @@ function parseDetailResponse(html,url) {
     // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
                 "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim()
+                "X-Requested-With": "com.android.chrome"
+                
             },
             "subtitles": []
         });
