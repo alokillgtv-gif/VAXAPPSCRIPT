@@ -264,8 +264,9 @@ function parseDetailResponse(html,url) {
         var customjs = textJS(html, url);
         customjs += `
         function runScript($msg){
-            showToast("Tải video thành công, coi vui nhé bạn", 10000);
-            document.getElementById("mediaplayer").click();
+            showToast("Tải video thành công, coi vui nhé bạn nhé.\r\nNếu màn hình đen hãy nhấn vào nó để chạy.", 10000);
+            
+            setTimeout(() => { document.getElementById("mediaplayer").click(); }, 5000);
         }
         `
     // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
