@@ -1,8 +1,8 @@
 var BASEURL = "https://www.justporn.com";
 function getManifest() {
     return JSON.stringify({
-        "id": "clipsexvn",          
-        "name": "Clip Sex Hay",
+        "id": "justporn",          
+        "name": "Just Porn",
         "description": "XXX Hay",
         "version": "1.0",             
         "baseUrl": "https://www.justporn.com",
