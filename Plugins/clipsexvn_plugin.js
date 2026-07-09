@@ -252,7 +252,10 @@ function parseDetailResponse(html, url) {
             url: BASEURL + "/wp-admin/admin-ajax.php",
             method: "POST", // Khai báo rõ phương thức POST
             isEmbed: true,
-            postBody: "player_server=" + postID + "&server=" + $server, // Giữ nguyên chuỗi query string
+            postBody: JSON.stringify({
+                "player_server": postID,
+                "server": $server
+            }),
             headers: {
                 "Referer": BASEURL,
                 "Content-Type": "application/x-www-form-urlencoded" // Bắt buộc phải có khi gửi dạng Form Data
@@ -267,7 +270,7 @@ function parseDetailResponse(html, url) {
 function parseEmbedResponse(html, sourceUrl) {
     // Bước trung gian: trích iframe URL từ AJAX response
     if (sourceUrl.indexOf('ajax') !== -1) {
-        var stream = "";
+        var stream = sourceUrl;
         var iframe = html.match(/src=["']([^"']+)["']/i);
         if (iframe && iframe[1]) {
             var stream = iframe[1]
