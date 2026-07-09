@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -234,16 +234,18 @@ customjs += `
 
 function parseEmbedResponse(html, sourceUrl) {
     
-    
+    var streamUrl = "";
+    var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
+    if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
     var customjs = textJS(html, sourceUrl);
     customjs += `
         function runScript($msg){
-            //showToast("Buớc 2: ${sourceUrl}", duration = 10000)
+            showToast("Buớc 2: ${streamUrl}", duration = 10000)
         }
         `
     
     return JSON.stringify({
-        url: sourceUrl,
+        url: streamUrl,
         isEmbed: false, // Kết thúc, đây là link stream cuối
         mimeType: "application/x-mpegURL", // Báo App đây là HLS
         headers: {
