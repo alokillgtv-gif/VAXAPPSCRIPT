@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.8",             
+        "version": "1.0",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -212,7 +212,7 @@ function parseDetailResponse(html, url) {
         var customjs = textJS(html, url);
         customjs += `
             function runScript($msg){
-                showToast("Bước 1", 10000)
+                showToast("Bước 1: ${streamUrl}", 10000)
             }
         `
         
