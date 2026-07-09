@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.7",             
+        "version": "1.8",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -220,7 +220,7 @@ function parseDetailResponse(html, url) {
             url: streamUrl,
             isEmbed: true, // Vẫn cần fetch tiếp
             headers: {
-                "Referer": sourceUrl,
+                "Referer": url,
                 "Custom-Js": customjs.trim()
             }
         });
