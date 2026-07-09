@@ -206,17 +206,18 @@ function parseDetailResponse(html, url) {
     try {
         // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
 // Quét lấy link nhúng theo domain đã tối ưu
-var customjs = textJS(html, url);
-customjs += `
-        function runScript($msg){
-            showToast("Buớc 1: ${url}", duration = 10000)
-        }
-        `
+
         
-        var streamUrl = "";
+        var streamUrl = url;
         var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
         if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
         
+        var customjs = textJS(html, url);
+        customjs += `
+                function runScript($msg){
+                    showToast("Buớc 1: ${streamUrl}", duration = 10000)
+                }
+        `
         return JSON.stringify({
             url: streamUrl,
             isEmbed: true, // Vẫn cần fetch tiếp
@@ -326,11 +327,11 @@ function initCustomVideoFix() {
     const style = document.createElement('style');
     
     // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-    var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
+    var customcss = '';
     
     style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
     document.head.appendChild(style);
-    showToast("Chèn css mới", duration = 3000)
+    //showToast("Chèn css mới", duration = 3000)
     if (typeof jwplayer === "function") {
         const player = jwplayer("previewPlayer");
         if (player && typeof player.getMute === "function") {
