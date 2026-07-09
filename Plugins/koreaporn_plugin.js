@@ -5,7 +5,7 @@ function getManifest() {
         "id": "koreaporn",          
         "name": "Sex Hàn",
         "description": "Nguồn XXX Hay",
-        "version": "1.4",             
+        "version": "1.5",             
         "BASEURL": "https://koreanpornmovie.com",
         "iconUrl": "https://koreanpornmovie.com/wp-content/uploads/2025/01/sadasdasdasdas.png", 
         "isEnabled": true,
@@ -268,28 +268,13 @@ function parseDetailResponse(html,url) {
         var $stream = "";
         var $linkURL = html.match(/responsive-player[\s\S]*?iframe\ssrc=["']([^"']+)["']/i);
         if ($linkURL && $linkURL[1]) {
-            $stream = $url;
+            $stream = $linkURL[1];
         }
         
 
         return JSON.stringify({
-            "url": $stream, 
-            "headers": {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                isEmbed: true,
-                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-          // Đánh lừa thuật toán Client Hints của tường lửa
-                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                "Sec-Ch-Ua-Mobile": "?1",
-                "Sec-Ch-Ua-Platform": '"Android"',
-    
-// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-                "Accept": "*/*",
-                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome"
-            },
-            "subtitles": []
+            url: $stream,
+            isEmbed: true // Vẫn cần fetch tiếp
         });
 
     } catch (e) {
