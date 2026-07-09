@@ -340,22 +340,44 @@ function parseMovieDetail(html,ourl) {
 // =================================================================
 function parseDetailResponse(html, url) {
     try {
-        var customJsCode = customJQ();
-        
-        // Chèn trực tiếp script vào cuối thẻ body của HTML để WebView tự kích hoạt
-        var injectedHtml = html + "<script>" + customJsCode + "</script>";
-        
-        return JSON.stringify({
-            url: url,
-            html: injectedHtml, // Trả về nội dung HTML đã được "độ" sẵn script
-            headers: {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        var customjs = customJQ();
+        customjs += `
+        function runScript($msg){
+            showToast($msg, duration = 3000)
+        }
+        function decodeBase64ToHtml(base64String) {
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
             }
+            return new TextDecoder().decode(bytes);
+        }
+        
+        `
+        return JSON.stringify({
+            "url": videoUrl,
+            "headers": {
+                "Referer": refUrl,
+                "Origin": refUrl,
+                "User-Agent": agent,
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs.trim()
+            },
+            "subtitles": []
         });
-    } catch (error) {
-        return JSON.stringify({ url: "", headers: {} });
+        
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
     }
 }
 // KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
@@ -382,8 +404,6 @@ function parseYearsResponse(html) { return "[]"}
 
 function customJQ(){
     return `
-// Script chạy cho server heovl
-
 function showToast(message, duration = 7000) {
     // 1. Kiểm tra xem trên màn hình đã có "khung chứa" Toast chưa, nếu chưa thì tự tạo bằng JS
     let container = document.getElementById('global-toast-container');
@@ -468,24 +488,34 @@ function initCustomVideoFix() {
         }
     }
     
+    // Biến cờ (flag) để tránh việc hiển thị Toast liên tục gây rác màn hình khi nút đang được nhấn
+    let isSkipping = false;
+
     const checkAndClick = setInterval(() => {
         const skipButton = document.getElementById("skip-ad");
         
         if (skipButton) {
+            // Kiểm tra xem nút có bị ẩn bằng CSS không (nếu có thuộc tính display: none hoặc opacity: 0 thì bỏ qua)
+            const style = window.getComputedStyle(skipButton);
+            if (style.display === 'none' || style.visibility === 'hidden') return;
+
             skipButton.click();
-            console.log("🎯 Đã tìm thấy và bấm nút thành công! Dừng script.");
-            showToast("Đã bỏ qua quảng cáo", duration = 3000)
-            clearInterval(checkAndClick); // Dừng lại ngay lập tức
-        } else {
-            //showToast("Đang tìm nút", duration = 3000)
+            console.log("🎯 Đã phát hiện và kích hoạt nút bỏ qua quảng cáo!");
+
+            // Chỉ hiện toast 1 lần cho mỗi đợt skip để đỡ spam giao diện
+            if (!isSkipping) {
+                isSkipping = true;
+                showToast("Đã bỏ qua quảng cáo", 3000);
+                
+                // Reset lại trạng thái sau 2 giây để sẵn sàng cho quảng cáo tiếp theo (nếu có)
+                setTimeout(() => { isSkipping = false; }, 2000);
+            }
+            
+            // LƯU Ý: ĐÃ XÓA clearInterval(checkAndClick) ở đây để script tiếp tục chạy
+            // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
         }
-    }, 200);
-    // Giới hạn tối đa 20 giây để tự động dọn dẹp bộ nhớ nếu nút không bao giờ xuất hiện
-    setTimeout(() => {
-        clearInterval(checkAndClick);
-        //console.log("⏱️ Đã quá 20 giây, dừng tìm kiếm.");
-    }, 20000);
-    
+    }, 250); // 250ms là khoảng thời gian vừa đủ, không gây lag trình duyệt
+    runScript("sssssssss");
 }
 
 if (document.readyState === 'loading') {
