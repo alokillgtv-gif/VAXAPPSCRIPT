@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -200,57 +200,181 @@ function parseMovieDetail(html) {
     });
 }
 
-function parseDetailResponse(html) {
+function parseDetailResponse(html, url) {
     try {
-var customJs = `
-function initCustomVideoFix() {
-  const style = document.createElement('style');
-  
-  // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-  var customcss = 'body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline--block}';
-                  
-  style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
-  document.head.appendChild(style);
-  
-  if (typeof jwplayer === "function") {
-    const player = jwplayer("previewPlayer");
-    if (player && typeof player.getMute === "function") {
-        if (player.getMute()) {
-            player.setMute(false);
-            console.log("Đã bật tiếng video!");
-        }
-        player.setVolume(100); 
+        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+// Quét lấy link nhúng theo domain đã tối ưu
+        var streamUrl = url;
+        var rmatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
+        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+        
+        return JSON.stringify({
+            url: $stream,
+            isEmbed: true // Vẫn cần fetch tiếp
+        });
+        
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
     }
-  }
+}
+
+
+function parseEmbedResponse(html, sourceUrl) {
+    
+    
+    var customjs = textJS(html, sourceUrl);
+    customjs += `
+        function runScript($msg){
+            //showToast("${sourceUrl}", duration = 60000)
+        }
+        function decodeBase64ToHtml(base64String) {
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return new TextDecoder().decode(bytes);
+        }
+        `
+    
+    return JSON.stringify({
+        url: sourceUrl,
+        isEmbed: false, // Kết thúc, đây là link stream cuối
+        mimeType: "application/x-mpegURL", // Báo App đây là HLS
+        headers: {
+            "Referer": sourceUrl,
+            "Custom-Js": customjs.trim()
+        },
+    });
+    
+    return JSON.stringify({ url: "", isEmbed: false });
+}
+
+function textJS(html, $url) {
+    // ĐÃ SỬA: Chuẩn hóa lại cú pháp escape ký tự \$ trong Template Literals
+    return `
+function showToast(message, duration = 7000) {
+    // 1. Kiểm tra xem trên màn hình đã có "khung chứa" Toast chưa, nếu chưa thì tự tạo bằng JS
+    let container = document.getElementById('global-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'global-toast-container';
+        
+        // Ép CSS trực tiếp bằng JS để đặt khung ở góc dưới bên phải màn hình
+        Object.assign(container.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            zIndex: '99999',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px'
+        });
+        document.body.appendChild(container);
+    }
+    
+    // 2. Tạo phần tử Toast mới hoàn toàn bằng JS
+    const toast = document.createElement('div');
+    toast.innerText = message;
+    
+    // Ép CSS giao diện cho cục Toast (màu bo góc, bóng mờ, hiệu ứng hiện hình)
+    Object.assign(toast.style, {
+        background: 'rgba(50, 50, 50, 0.95)',
+        color: '#fff',
+        padding: '12px 24px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+        fontFamily: 'sans-serif',
+        fontSize: '14px',
+        minWidth: '200px',
+        transition: 'all 0.3s ease',
+        transform: 'translateX(120%)', // Ban đầu nằm ẩn bên ngoài màn hình
+        opacity: '0'
+    });
+    
+    // Đưa cục Toast vào khung chứa
+    container.appendChild(toast);
+    
+    // 3. Tạo hiệu ứng bay từ bên phải vào (Slide In) sau 10 mili-giây
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+        toast.style.opacity = '1';
+    }, 10);
+    
+    // 4. Tạo hiệu ứng mờ dần (Fade Out) và XÓA HOÀN TOÀN khỏi màn hình khi hết thời gian
+    setTimeout(() => {
+        toast.style.transform = 'translateX(120%)';
+        toast.style.opacity = '0';
+        
+        // Chờ hiệu ứng ẩn chạy xong 300ms rồi xóa hẳn thẻ HTML này đi cho sạch bộ nhớ
+        setTimeout(() => {
+            toast.remove();
+            // Nếu không còn thông báo nào nữa thì xóa luôn cái khung lớn cho gọn
+            if (container.childElementCount === 0) {
+                container.remove();
+            }
+        }, 300);
+    }, duration);
+}
+
+function initCustomVideoFix() {
+    const style = document.createElement('style');
+    
+    // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
+    var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
+    
+    style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
+    document.head.appendChild(style);
+    showToast("Chèn css mới", duration = 3000)
+    if (typeof jwplayer === "function") {
+        const player = jwplayer("previewPlayer");
+        if (player && typeof player.getMute === "function") {
+            if (player.getMute()) {
+                player.setMute(false);
+                showToast("Đã bật tiếng", duration = 3000)
+            }
+            player.setVolume(100);
+        }
+    }
+    
+    // Biến cờ (flag) để tránh việc hiển thị Toast liên tục gây rác màn hình khi nút đang được nhấn
+    let isSkipping = false;
+
+    const checkAndClick = setInterval(() => {
+        const skipButton = document.getElementById("skip-ad");
+        
+        if (skipButton) {
+            // Kiểm tra xem nút có bị ẩn bằng CSS không (nếu có thuộc tính display: none hoặc opacity: 0 thì bỏ qua)
+            const style = window.getComputedStyle(skipButton);
+            if (style.display === 'none' || style.visibility === 'hidden') return;
+
+            skipButton.click();
+            console.log("🎯 Đã phát hiện và kích hoạt nút bỏ qua quảng cáo!");
+
+            // Chỉ hiện toast 1 lần cho mỗi đợt skip để đỡ spam giao diện
+            if (!isSkipping) {
+                isSkipping = true;
+                showToast("Đã bỏ qua quảng cáo", 3000);
+                
+                // Reset lại trạng thái sau 2 giây để sẵn sàng cho quảng cáo tiếp theo (nếu có)
+                setTimeout(() => { isSkipping = false; }, 2000);
+            }
+            
+            // LƯU Ý: ĐÃ XÓA clearInterval(checkAndClick) ở đây để script tiếp tục chạy
+            // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
+        }
+    }, 250); // 250ms là khoảng thời gian vừa đủ, không gây lag trình duyệt
+    //runScript("sssssssss");
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
-  initCustomVideoFix();
-  }
-`;
-
-
-        // Quét lấy link nhúng theo domain đã tối ưu
-        var streamUrl = "";
-        var rmatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
-        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
-   
-        return JSON.stringify({
-            url: streamUrl,
-            headers: {
-                "Referer": "https://viet69z.me",
-                "Origin": "https://viet69z.me",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
-            }
-        });
-    } catch (error) {
-        return JSON.stringify({ url: "", headers: {} });
-    }
+    initCustomVideoFix();
 }
 
+`;
+}
 function parseCategoriesResponse(html) { return JSON.stringify([
     { "slug": "sinh-vien", "name": "Sinh Viên" },
     { "slug": "may-bay-ba-gia", "name": "Máy Bay" },
@@ -260,3 +384,6 @@ function parseCategoriesResponse(html) { return JSON.stringify([
 ])}
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
+/*
+
+*/
