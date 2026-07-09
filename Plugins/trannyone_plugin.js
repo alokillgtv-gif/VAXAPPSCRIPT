@@ -4,7 +4,7 @@ function getManifest() {
         "id": "trannyone",          
         "name": "Tranny One",
         "description": "XXX dành cho người có sở thích đặc biệt",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://www.tranny.one",
         "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png", 
         "isEnabled": true,
@@ -192,44 +192,27 @@ function parseMovieDetail(html,$url) {
     var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com", BASEURL); }
 
-    rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+    rmatch = html.match(/rel=["']preload["'][^>]+href=["']([^"']+)["']/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
 
-    rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
+    rmatch = html.match(/<title>([^<]+)/i);
     if (rmatch && rmatch[1]) { lname = rmatch[1]; }
 
-    rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
+    rmatch = html.match(/meta\s+name="description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
     //<div id="videoContainer" data-rand-niche="2096" data-low="https://stream.tranny.one/key=G0Vd1aEH1gt3lR2Ei3GE9A,end=1783582334/speed=9999999/3185091.mp4" data-high="https://stream.tranny.one/key=Ft1X-736mTlKfCxl6PihsA,end=1783582334/speed=485859/3185091.mp4">
-    var stream1 = "";
-    var stream2 = "";
-    var streamname1 = "";
-    var streamname2 = "";
     var epi = [];
-    var script = html.match(/var\s+flashvars\s+=\s+({[\s\S]*?}\;)/i);
-    if(script && script[1]){
-    var jsonObj = new Function(`return ${script[1]}`)();
-        if(jsonObj.video_alt_url && jsonObj.video_alt_url.match(/http|.mp4/)){
-            stream1 = jsonObj.video_alt_url;
-            streamname1 = "Độ Phân Giải: " + jsonObj.video_alt_url_text;
-            stream2 = jsonObj.video_url;
-            streamname2 = "Độ Phân Giải: " + jsonObj.video_url_text;
-            epi.push({ id: stream1, name: streamname1, slug: "full" });
-            epi.push({ id: stream2, name: streamname2, slug: "full" })
-        }
-        else{
-            stream1 = jsonObj.video_url;
-            streamname1 = "Độ Phân Giải: " + jsonObj.video_url_text;
-            epi.push({ id: stream1, name: streamname1, slug: "full" });
-        }
+    var mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
+    if(mathser && mathser[1]){
+        epi.push({ id: mathser[2], name: "Độ Phân Giải Cao", slug: "full" });
+         epi.push({ id: mathser[1], name: "Độ Phân Giải Thấp", slug: "full" })
     }
-        
     return JSON.stringify({
         id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n\r\n" + streamUrl + "\r\n\r\n" + lurl+ "\r\n\r\n" + JSON.stringify(epi),
+        description: ldes + "\r\n\r\n" + "\r\n\r\n" + lurl+ "\r\n\r\n" + JSON.stringify(epi),
         servers: [
             {
                 name: "Servers: ",
