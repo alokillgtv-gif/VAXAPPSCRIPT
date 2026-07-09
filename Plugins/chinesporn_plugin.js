@@ -5,7 +5,7 @@ function getManifest() {
         "id": "chinesporn",          
         "name": "Sex Trung",
         "description": "Nguồn XXX trung quốc Hay",
-        "version": "1.0",             
+        "version": "1.1",             
         "BASEURL": "https://ppp.porn",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/chinesporn.jpg", 
         "isEnabled": true,
@@ -84,7 +84,7 @@ function getUrlList(slug, filtersJson) {
         }
         // https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
         if (page > 1 && resultUrl.indexOf("filter=latest") == -1) {
-            resultUrl += "page/" + page + "/";
+            resultUrl += "/" + page + "/";
         }
         // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
         return resultUrl.replace(/([^:]\/)\/+/g, "$1");
