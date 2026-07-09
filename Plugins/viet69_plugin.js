@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.5",             
+        "version": "1.6",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -218,7 +218,11 @@ function parseDetailResponse(html, url) {
         
         return JSON.stringify({
             url: streamUrl,
-            isEmbed: true // Vẫn cần fetch tiếp
+            isEmbed: true, // Vẫn cần fetch tiếp
+            headers: {
+                "Referer": sourceUrl,
+                "Custom-Js": customjs.trim()
+            }
         });
         
     } catch (e) {
@@ -244,7 +248,7 @@ function parseEmbedResponse(html, sourceUrl) {
         headers: {
             "Referer": sourceUrl,
             "Custom-Js": customjs.trim()
-        },
+        }
     });
     
     return JSON.stringify({ url: "", isEmbed: false });
@@ -321,11 +325,11 @@ function initCustomVideoFix() {
     const style = document.createElement('style');
     
     // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-    var customcss = 'body { #jsHandleFavoritePost,a[rel="tag"],#comments,footer,.custom-logo-link,.top-menu,.entry-content.mt-2,.space-y-4.p-2,#jsCommentContainer,#related-posts,.entry-header,.entry-header{display:none!important;}body,.py-1{background:black;color:black;overflow: hidden;}.cursor-pointer{color:white}.#jsListServers{text-align: center;display:block!important;width:100%}#jsListServers li{display:inline-block}';
+    var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
     
     style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
     document.head.appendChild(style);
-    //showToast("Chèn css mới", duration = 3000)
+    showToast("Chèn css mới", duration = 3000)
     if (typeof jwplayer === "function") {
         const player = jwplayer("previewPlayer");
         if (player && typeof player.getMute === "function") {
@@ -372,6 +376,7 @@ if (document.readyState === 'loading') {
 } else {
     initCustomVideoFix();
 }
+
 
 `;
 }
