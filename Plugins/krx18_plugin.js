@@ -1,5 +1,19 @@
 BASEURL = "https://krx18.com";
 
+function getManifest() {
+    return JSON.stringify({
+        "id": "krx18",
+        "name": "Phim 18+ Hàn",
+        "description": "Nguồn XXX hàn quốc Hay",
+        "version": "1.6",
+        "BASEURL": "https://krx18.com",
+        "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
+        "isEnabled": true,
+        "isAdult": true,
+        "type": "VIDEO",
+        "playerType": "embed"
+    });
+}
 // https://krx18.com/movies/page/2/
 function getHomeSections() {
     return JSON.stringify([
@@ -487,17 +501,3 @@ function buildMenu(listurl) {
 }
 
 
-function getManifest() {
-    return JSON.stringify({
-        "id": "krx18",
-        "name": "Phim 18+ Hàn",
-        "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.5",
-        "BASEURL": "https://krx18.com",
-        "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
-        "isEnabled": true,
-        "isAdult": true,
-        "type": "VIDEO",
-        "playerType": "embed"
-    });
-}
