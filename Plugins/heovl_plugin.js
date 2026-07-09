@@ -4,7 +4,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://heovl.im",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -480,9 +480,9 @@ if (document.readyState === 'loading') {
         return JSON.stringify({
             "url": iframeMatch[1],
             "headers": {
-                "Referer": refUrl,
-                "Origin": refUrl,
-                "User-Agent": agent,
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
                 // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
                 "Sec-Ch-Ua-Mobile": "?1",
