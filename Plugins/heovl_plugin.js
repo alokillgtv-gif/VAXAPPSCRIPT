@@ -4,7 +4,7 @@ function getManifest() {
         "id": "heovl",
         "name": "Heovl",
         "description": "XXX Hay",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://heovl.im",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico",
         "isEnabled": true,
@@ -474,9 +474,11 @@ if (document.readyState === 'loading') {
             return new TextDecoder().decode(bytes);
         }
         
-        `
+        `;
+        var iframeRegex = /class="[^"]*video-player[^"]*"[\s\S]*?iframe\s+src="([^"]+)"/i;
+        var iframeMatch = html.match(iframeRegex);
         return JSON.stringify({
-            "url": videoUrl,
+            "url": iframeMatch[1],
             "headers": {
                 "Referer": refUrl,
                 "Origin": refUrl,
