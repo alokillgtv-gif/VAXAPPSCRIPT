@@ -242,9 +242,11 @@ function parseEmbedResponse(html, sourceUrl) {
             showToast("Buớc 2: ${sourceUrl}", duration = 10000)
         }
         `
-    
+    var streamUrl = sourceUrl;
+    var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
+    if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
     return JSON.stringify({
-        url: sourceUrl,
+        url: streamUrl,
         isEmbed: false, // Kết thúc, đây là link stream cuối
         mimeType: "application/x-mpegURL", // Báo App đây là HLS
         headers: {
