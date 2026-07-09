@@ -255,8 +255,13 @@ JSON.parse(parseMovieDetail(html,$url))
 
 function parseDetailResponse(html,url) {
     try {
-        var $embed = JSON.parse(html);
-        var link = $embed.embed_url;
+        var link = url;
+        if(html.indexOf("embed_url") > -1){
+            var $embed = JSON.parse(html);
+            var link = $embed.embed_url;
+        }
+        
+        
         var customjs = textJS(html, url);
         customjs += `
         function runScript($msg){
@@ -267,6 +272,7 @@ function parseDetailResponse(html,url) {
     // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
         return JSON.stringify({
             url: $link,
+            isEmbed: true,
             mimeType: "application/x-mpegURL", // Báo App đây là HLS
             headers: { "Referer": url,
             "Custom-Js": customjs.trim()
@@ -276,6 +282,34 @@ function parseDetailResponse(html,url) {
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
+}
+
+function parseEmbedResponse(html, sourceUrl) {
+        
+        var link = url;
+        if (html.indexOf("embed_url") > -1) {
+            var $embed = JSON.parse(html);
+            var link = $embed.embed_url;
+        }
+
+        var customjs = textJS(html, sourceUrl);
+        customjs += `
+        function runScript($msg){
+            showToast("${link}", duration = 60000)
+        }
+        `
+
+        return JSON.stringify({
+            url: link,
+            isEmbed: false, // Kết thúc, đây là link stream cuối
+            mimeType: "application/x-mpegURL", // Báo App đây là HLS
+            headers: { "Referer": BASEURL,
+            "Custom-Js": customjs.trim()
+                
+            },
+        });
+    
+    return JSON.stringify({ url: "", isEmbed: false });
 }
 
 function textJS(html, $url) {
