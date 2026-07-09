@@ -310,8 +310,10 @@ function parseEmbedResponse(html, sourceUrl) {
             url: videoUrl,
             isEmbed: false, // Kết thúc, đây là link stream cuối
             mimeType: "application/x-mpegURL", // Báo App đây là HLS
-            headers: { "Referer": sourceUrl },
+            headers: { "Referer": sourceUrl,
             "Custom-Js": customjs.trim()
+                
+            },
         });
     
     return JSON.stringify({ url: "", isEmbed: false });
