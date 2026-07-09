@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -204,12 +204,12 @@ function parseDetailResponse(html, url) {
     try {
         // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
 // Quét lấy link nhúng theo domain đã tối ưu
-        var streamUrl = url;
-        var rmatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
-        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+        var streamUrl = "";
+        var iframeMatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
+        if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
         
         return JSON.stringify({
-            url: $stream,
+            url: streamUrl,
             isEmbed: true // Vẫn cần fetch tiếp
         });
         
