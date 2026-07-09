@@ -243,7 +243,7 @@ function parseMovieDetail(html,$url) {
 
 function parseDetailResponse(html, url) {
     try {
-        //var customJs = textJS(html, url);
+        var customJs = textJS(html, url);
         var $server = "1";
         rmatch = html.match(/post-id=["']([^"]+)["']/i);
         if (rmatch && rmatch[1]) { postID = rmatch[1]; }
@@ -258,7 +258,8 @@ function parseDetailResponse(html, url) {
             }),
             headers: {
                 "Referer": BASEURL,
-                "Content-Type": "application/x-www-form-urlencoded" // Bắt buộc phải có khi gửi dạng Form Data
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Custom-Js": customjs.trim()// Bắt buộc phải có khi gửi dạng Form Data
             }
         });
         
@@ -269,6 +270,7 @@ function parseDetailResponse(html, url) {
 
 function parseEmbedResponse(html, sourceUrl) {
     // Bước trung gian: trích iframe URL từ AJAX response
+    var customJs = textJS(html, url);
     if (sourceUrl.indexOf('ajax') !== -1) {
         var stream = sourceUrl;
         var iframe = html.match(/src=["']([^"']+)["']/i);
@@ -277,7 +279,8 @@ function parseEmbedResponse(html, sourceUrl) {
         }
         return JSON.stringify({
             url: stream,
-            isEmbed: false // Vẫn cần fetch tiếp
+            isEmbed: false,
+            "Custom-Js": customjs.trim()// Vẫn cần fetch tiếp
         });
     }
     /*
@@ -347,6 +350,7 @@ function initCustomVideoFix() {
     } else {
         
     }
+    showToast("Chạy script thành công");
     
 } 
 
