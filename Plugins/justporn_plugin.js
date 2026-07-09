@@ -1,22 +1,23 @@
-var BASEURL = "https://www.justporn.com";
+var BASEURL = "https://www.tranny.one";
 function getManifest() {
     return JSON.stringify({
-        "id": "justporn",          
-        "name": "Just Porn",
-        "description": "XXX Hay",
+        "id": "trannyone",          
+        "name": "Tranny One",
+        "description": "XXX dành cho người có sở thích đặc biệt",
         "version": "1.0",             
-        "baseUrl": "https://www.justporn.com",
-        "iconUrl": "https://c847a9a666.mjedge.net/contents/pkehlvuovbaw/theme/logo.png", 
+        "baseUrl": "https://www.tranny.one",
+        "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
         "playerType": "exoplayer"
     });
 }
-// https://www.justporn.com/latest-updates/1/
+// https://www.tranny.one/recent/
+// https://www.tranny.one/c2096/shemale-anal/?mix=true&pageId=4&_=1783573037242
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "/latest-updates/", "title": "Hàng Mới", "type": "Grid" }
+        { "slug": "/recent/", "title": "Hàng Mới", "type": "Grid" }
     ]);
 }
 
@@ -37,10 +38,9 @@ function getFilterConfig() {
 // =============================================================================
 // URL GENERATION
 // =============================================================================
-// https://www.justporn.com/latest-updates/4/
-// https://www.justporn.com/categories/big-dick/5/
-// https://www.justporn.com/search/blacked/5/
-
+// https://www.tranny.one/c2096/shemale-anal/?mix=true&pageId=4
+// https://www.tranny.one/search/blacked/?mix=true&pageId=5
+// https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
 
 function getUrlList(slug, filtersJson) {
     try {
@@ -57,7 +57,8 @@ function getUrlList(slug, filtersJson) {
             // Nếu có số trang hoặc  có menu categ
             // Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
             let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
-                .replace(/:,/g, ':'); // Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
+                .replace(/:,/g, ':');
+            // Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
             
             try {
                 let filters = JSON.parse(fixedJson);
@@ -83,9 +84,9 @@ function getUrlList(slug, filtersJson) {
         if (path) {
             resultUrl += path;
         }
-        
+        // https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
         if (page > 1) {
-            resultUrl += page + "/";
+            resultUrl += "?mix=true&pageId=" + page;
         }
         
         // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
@@ -98,19 +99,19 @@ function getUrlList(slug, filtersJson) {
         return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
 }
-
 // --- KHU VỰC TEST CÁC TRƯỜNG HỢP ---
-// https://www.justporn.com/latest-updates/4/
-// https://www.justporn.com/categories/big-dick/5/
-// https://www.justporn.com/search/blacked/5/
-//BASEURL = "https://www.justporn.com";
-//filtersJson = '{"page":1,"category":[{"slug":"/categories/big-dick/","name":"big-dick"}]}';
-//filtersJson = '{"page":3}';
-//console.log(getUrlList("/latest-updates/", filtersJson));
+// https://www.tranny.one/c2096/shemale-anal/?mix=true&pageId=4
+// https://www.tranny.one/search/blacked/?mix=true&pageId=5
+// https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
+//BASEURL = "https://www.tranny.one";
+//filtersJson = '{"page":5,"category":[{"slug":"/c2096/shemale-anal/","name":"anal"}]}';
+//filtersJson = '{"page":13}';
+//console.log(getUrlList("/search/blacked/", filtersJson));
+
 
 
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/search/" + encodeURIComponent(keyword);
+    return "/search/" + encodeURIComponent(keyword) + "/";
 }
 
 function getUrlDetail(slug) {
@@ -126,17 +127,22 @@ function getUrlYears() { return ""; }
 // =============================================================================
 // PARSERS
 // =============================================================================
-
 function parseListResponse(html, $url) {
     try {
         var items = [];
         //.thumb_rel item
-        var regexList = /thumb_rel[^"]+item[\s\S]*?href="([^"']+)"[^>]+title="([^"']+)"[\s\S]*?data-webp="([^"']+)"/g;
+        // 
+        var regexList = /class=["'][^"']+movie-[\s\S]*?href="([^"']+)"[\s\S]*?alt="([^"']+)"[\s\S]*?src="([^"']+)"/g;
         var matchList;
         // regexList.exec(html)
         while ((matchList = regexList.exec(html)) !== null) {
-            if (matchList[1] && matchList[1].indexOf("http") > -1) {
+            if (matchList[1] && matchList[1].indexOf("http") > -1) {	
                 var cleanThumb = matchList[3].replace(/&amp;/g, '&');
+                var fullblock = matchList[0].match(/data-src=["']([^"']+)"/i);
+                if(fullblock && fullblock[1]){
+cleanThumb = fullblock[1];
+                }
+                
                 items.push({
                     "id": matchList[1],
                     "title": matchList[2].trim(),
@@ -165,7 +171,12 @@ function parseListResponse(html, $url) {
     }
 }
 //var html = $("html")[0].outerHTML;
+//var regexList = /class=["'][^"']+movie-[\s\S]*?href="([^"']+)"[\s\S]*?alt="([^"']+)"[\s\S]*?src="([^"']+)"/g;
+//var math = html.match(regexList)
+//math
+//regexList.exec(html)
 //JSON.parse(parseListResponse(html))
+
 
 function parseSearchResponse(html) {
     return parseListResponse(html);
@@ -181,20 +192,38 @@ function parseMovieDetail(html,$url) {
     var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com", BASEURL); }
 
-    rmatch = html.match(/rel=["']preload["'][^>]+href=["']([^"']+)["']/i);
+    rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
 
-    rmatch = html.match(/<title>([^<]+)/i);
+    rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lname = rmatch[1]; }
 
-    rmatch = html.match(/meta\s+name="description"\s+content="([^"]+)"/i);
+    rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
+    //<div id="videoContainer" data-rand-niche="2096" data-low="https://stream.tranny.one/key=G0Vd1aEH1gt3lR2Ei3GE9A,end=1783582334/speed=9999999/3185091.mp4" data-high="https://stream.tranny.one/key=Ft1X-736mTlKfCxl6PihsA,end=1783582334/speed=485859/3185091.mp4">
+    var stream1 = "";
+    var stream2 = "";
+    var streamname1 = "";
+    var streamname2 = "";
     var epi = [];
-    var mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
-    if(mathser && mathser[1]){
-        epi.push({ id: mathser[2], name: "Độ Phân Giải Cao", slug: "full" });
-         epi.push({ id: mathser[1], name: "Độ Phân Giải Thấp", slug: "full" })
+    var script = html.match(/var\s+flashvars\s+=\s+({[\s\S]*?}\;)/i);
+    if(script && script[1]){
+    var jsonObj = new Function(`return ${script[1]}`)();
+        if(jsonObj.video_alt_url && jsonObj.video_alt_url.match(/http|.mp4/)){
+            stream1 = jsonObj.video_alt_url;
+            streamname1 = "Độ Phân Giải: " + jsonObj.video_alt_url_text;
+            stream2 = jsonObj.video_url;
+            streamname2 = "Độ Phân Giải: " + jsonObj.video_url_text;
+            epi.push({ id: stream1, name: streamname1, slug: "full" });
+            epi.push({ id: stream2, name: streamname2, slug: "full" })
+        }
+        else{
+            stream1 = jsonObj.video_url;
+            streamname1 = "Độ Phân Giải: " + jsonObj.video_url_text;
+            epi.push({ id: stream1, name: streamname1, slug: "full" });
+        }
     }
+        
     return JSON.stringify({
         id: $url,
         title: lname,
@@ -217,11 +246,10 @@ function parseMovieDetail(html,$url) {
         category: "18+"
     });
 }
-//BASEURL = "https://www.tranny.one";
+//BASEURL = "https://www.justporn.com";
 //var html = $("html")[0].outerHTML;
-//var $url = "https://www.tranny.one/view/1204465";
+//var $url = "https://www.justporn.com/video/18058/hot-babe-remy-cheats-with-bbc/";
 //JSON.parse(parseMovieDetail(html,$url))
-//mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
 // var flashvars = {
 
 function parseDetailResponse(html, url) {
@@ -332,52 +360,189 @@ function parseYearsResponse(html) { return "[]"; }
 
 function getLISTmenu() {
     return `
-/categories/big-tits/@@Big Tits
-/categories/blonde/@@Blonde
-/categories/handjob/@@Handjob
-/categories/cumshot/@@Cumshot
-/categories/milf/@@MILF
-/categories/teen/@@Teen (18+)
-/categories/big-dick/@@Big Dick
-/categories/blowjob/@@Blowjob
-/categories/facial/@@Facial
-/categories/interracial/@@Interracial
-/categories/brunette/@@Brunette
-/categories/bisexual-male/@@Bisexual Male
-/categories/big-ass/@@Big Ass
-/categories/homemade/@@Homemade
-/categories/webcam/@@Webcam
-/categories/asian/@@Asian
-/categories/tattooed-women/@@Tattooed Women
-/categories/creampie/@@Creampie
-/categories/deepthroat/@@Deepthroat
-/categories/small-tits/@@Small Tits
-/categories/casting/@@Casting
-/categories/toys/@@Toys
-/categories/anal/@@Anal
-/categories/cowgirl/@@Cowgirl
-/categories/hentai/@@Hentai
-/categories/amateur/@@Amateur
-/categories/czech/@@Czech
-/categories/hq-porn/@@HQ Porn
-/categories/outdoor/@@Outdoor
-/categories/rimming/@@Rimming
-/categories/public/@@Public
-/categories/lingerie/@@Lingerie
-/categories/pussy-licking/@@Pussy Licking
-/categories/porn-for-women/@@Porn For Women
-/categories/fingering/@@Fingering
-/categories/hairy/@@Hairy
-/categories/pornstars/@@Pornstars
-/categories/old-young/@@Old/Young (18+)
-/categories/solo-female/@@Solo Female
-/categories/petite/@@Petite (18+)
-/categories/rough-sex/@@Rough Sex
-/categories/bondage/@@Bondage
-/categories/latina/@@Latina
-/categories/compilation/@@Compilation
-/categories/bukkake/@@Bukkake
-/categories/threesome/@@Threesome
+/c2096/shemale-anal/@@Anal
+/c2042/shemales-fuck-guys/@@Shemales with Guys
+/c2106/amateur-trans/@@Amateur
+/c2100/hardcore/@@Hardcore
+/c2052/big-tits/@@Big Tits
+/c2049/shemales-fuck-shemales/@@Shemale with Shemale
+/c2081/big-cock/@@Big Cock
+/c2381/sissy-femboy-porn/@@Sissy
+/c2048/shemales-fuck-girls/@@Shemales with Girls
+/c2097/tits/@@Tits
+/c2062/threesome/@@Threesome
+/c2060/interracial/@@Interracial
+/c2063/masturbation/@@Masturbation
+/c2061/asian/@@Asian
+/c2047/asian-ladyboys/@@Asian Ladyboys
+/c2094/black/@@Black
+/c2050/stockings/@@Stockings
+/c2064/bareback/@@Bareback
+/c2059/lingerie/@@Lingerie
+/c2147/crossdressing/@@Crossdressing
+/c2199/cum-in-mouth/@@Cum In Mouth
+/c2095/creampie/@@Creampie
+/c2110/ebony/@@Ebony
+/c2103/bdsm/@@BDSM
+/c2067/small-tits/@@Small Tits
+/c2115/homemade/@@Homemade
+/c2043/black-trannies/@@Black Trannies
+/c2123/mature/@@Mature
+/c2099/teen/@@Teen(18 + )
+/c2201/big-ass/@@Big Ass
+/c2105/japanese/@@Japanese
+/c2085/tattoo/@@Tattoo
+/c2157/futanari/@@Futanari
+/c2101/milf/@@Milf
+/c2054/shemale-domination/@@Shemale Domination
+/c2046/gorgeous-shemales/@@Gorgeous Shemales
+/c2198/cum-compilation/@@Cum Compilation
+/c2104/riding/@@Riding
+/c2133/blowjobs/@@Blowjobs
+/c2077/toys/@@Toys
+/c2058/outdoor/@@Outdoor
+/c2088/big-dick/@@Big Dick
+/c2053/webcams/@@Webcams
+/c2129/fetish/@@Fetish
+/c2300/babes/@@Babes
+/c2044/group-sex/@@Group Sex
+/c2080/massage/@@Massage
+/c2068/blondes/@@Blondes
+/c2203/brazilian/@@Brazilian
+/c2253/shemale-compilations/@@Shemale Compilations
+/c2057/teen-trannies/@@Teen Trannies(18 + )
+/c2078/skinny/@@Skinny
+/c2200/foot-fetish/@@Foot Fetish
+/c2213/doggy-style/@@Doggy Style
+/c2194/indian/@@Indian
+/c2171/bedroom/@@Bedroom
+/c2122/chubby/@@Chubby
+/c2091/public/@@Public
+/c2086/double-penetration/@@Double Penetration
+/c2168/kissing/@@Kissing
+/c2118/cumshots/@@Cumshots
+/c2208/gang-bang/@@Gang Bang
+/c2045/latina-trannies/@@Latina Trannies
+/c2074/latex/@@Latex
+/c2260/thai/@@Thai
+/c2117/pussy/@@Pussy
+/c2143/pissing/@@Pissing
+/c2120/white/@@White
+/c2167/vintage/@@Vintage
+/c2189/femdom/@@Femdom
+/c2223/ass-to-mouth/@@Ass To Mouth
+/c2232/3 d-futanari/@@3D Futanari
+/c2318/cum-swallowing/@@Cum Swallowing
+/c2193/chinese/@@Chinese
+/c2155/european/@@European
+/c2121/pornstars/@@Pornstars
+/c2246/pussy-licking/@@Pussy Licking
+/c2132/russian/@@Russian
+/c2140/foursome/@@Foursome
+/c2144/bondage/@@Bondage
+/c2072/fishnet/@@Fishnet
+/c2237/cosplay/@@Cosplay
+/c2163/german/@@German
+/c2153/fisting/@@Fisting
+/c2314/high-heels/@@High Heels
+/c2145/anime/@@Anime
+/c2146/hentai/@@Hentai
+/c2212/solo-girls/@@Solo Girls
+/c2179/colombian/@@Colombian
+/c2188/bukkake/@@Bukkake
+/c2127/fingering/@@Fingering
+/c2112/party/@@Party
+/c2102/petite/@@Petite
+/c2070/uniform/@@Uniform
+/c2291/granny/@@Granny
+/c2268/face-sitting/@@Face Sitting
+/c2149/kitchen/@@Kitchen
+/c2270/cuckold/@@Cuckold
+/c2107/pantyhose/@@Pantyhose
+/c2134/british/@@British
+/c2209/brunettes/@@Brunettes
+/c2051/office/@@Office
+/c2230/panties/@@Panties
+/c2202/ass-licking/@@Ass Licking
+/c2073/bathroom/@@Bathroom
+/c2154/smoking/@@Smoking
+/c2087/glasses/@@Glasses
+/c2137/brazil/@@Brazil
+/c2329/humiliation/@@Humiliation
+/c2224/facials/@@Facials
+/c2172/beach/@@Beach
+/c2098/babysitter/@@Babysitter
+/c2113/french/@@French
+/c2247/piercing/@@Piercing
+/c2225/redheads/@@Redheads
+/c2191/dildos/@@Dildos
+/c2114/shower/@@Shower
+/c2084/sex-orgy/@@Sex Orgy
+/c2176/italian/@@Italian
+/c2190/handjobs/@@Handjobs
+/c2341/mistress/@@Mistress
+/c2185/latinas/@@Latinas
+/c2187/sport/@@Sport
+/c2119/bikini/@@Bikini
+/c2214/nipples/@@Nipples
+/c2205/prison/@@Prison
+/c2065/tanned/@@Tanned
+/c2166/reality/@@Reality
+/c2344/mexican/@@Mexican
+/c2207/deep-throat/@@Deep Throat
+/c2306/funny/@@Funny
+/c2128/school/@@School
+/c2195/casting/@@Casting
+/c2296/glamour/@@Glamour
+/c2076/nurses/@@Nurses
+/c2226/pick-up/@@Pick up
+/c2196/nylon/@@Nylon
+/c2164/oiled/@@Oiled
+/c2108/boots/@@Boots
+/c2055/strapon/@@Strapon
+/c2243/shemale-pmv/@@Shemale PMV
+/c2382/cougars/@@Cougars
+/c2160/gagging/@@Gagging
+/c2159/spanish/@@Spanish
+/c2340/medical/@@Medical
+/c2204/czech/@@Czech
+/c2175/footjob/@@Footjob
+/c2227/shorts/@@Shorts
+/c2220/assholes/@@Assholes
+/c2126/girlfriends/@@Girlfriends
+/c2289/korean/@@Korean
+/c2258/cum-on-tits/@@Cum on Tits
+/c2261/punishment/@@Punishment
+/c2197/fucking-machines/@@Fucking Machines
+/c2238/shemale-cartoons/@@Shemale Cartoons
+/c2342/prostate/@@Prostate
+/c2335/pregnant/@@Pregnant
+/c2083/christmas/@@Christmas
+/c2333/air-hostesses/@@Air Hostesses
+/c2165/toilet/@@Toilet
+/c2234/maids/@@Maids
+/c2093/glory-hole/@@Glory Hole
+/c2082/xxl-dildos/@@XXL dildos
+/c2345/braces/@@Braces
+/c2323/upskirt/@@Upskirt
+/c2148/club/@@Club
+/c2357/canadian/@@Canadian
+/c2066/bodystocking/@@BodyStocking
+/c2262/forest/@@Forest
+/c2150/spanking/@@Spanking
+/c2152/butts/@@Butts
+/c2321/amateur-bdsm/@@Amateur BDSM
+/c2178/cheerleaders/@@Cheerleaders
+/c2174/whores/@@Whores
+/c2273/closeups/@@Closeups
+/c2229/gonzo/@@Gonzo
+/c2228/locker-room/@@Locker Room
+/c2183/striptease/@@Striptease
+/c2249/3 d-comics/@@3D Comics
+/c2216/cock-selfies/@@Cock selfies
+/c2390/ashemaletube/@@Ashemaletube
+/c2397/shemalez/@@Shemalez
+/c2391/tgtube/@@Tgtube
 `;
 }
 
