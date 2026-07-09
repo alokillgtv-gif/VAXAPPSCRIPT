@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",          
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.1",             
+        "version": "1.2",             
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png", 
         "isEnabled": true,
@@ -265,7 +265,7 @@ function parseDetailResponse(html,url) {
         var customjs = textJS(html, url);
         customjs += `
         function runScript($msg){
-            showToast("${link}", duration = 60000)
+            showToast("Bước 1", duration = 60000)
         }
         `
     // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
@@ -295,7 +295,7 @@ function parseEmbedResponse(html, sourceUrl) {
         var customjs = textJS(html, sourceUrl);
         customjs += `
         function runScript($msg){
-            showToast("${link}", duration = 60000)
+            showToast("Bước 2", duration = 60000)
         }
         `
 
