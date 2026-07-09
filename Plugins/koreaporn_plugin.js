@@ -5,7 +5,7 @@ function getManifest() {
         "id": "koreaporn",          
         "name": "Sex Hàn",
         "description": "Nguồn XXX Hay",
-        "version": "1.3",             
+        "version": "1.4",             
         "BASEURL": "https://koreanpornmovie.com",
         "iconUrl": "https://koreanpornmovie.com/wp-content/uploads/2025/01/sadasdasdasdas.png", 
         "isEnabled": true,
@@ -269,7 +269,6 @@ function parseDetailResponse(html,url) {
         var $linkURL = html.match(/responsive-player[\s\S]*?iframe\ssrc=["']([^"']+)["']/i);
         if ($linkURL && $linkURL[1]) {
             $stream = $url;
-            epi.push({ id: $stream, name: "Xem Ngay 1", slug: "full" });
         }
         
 
