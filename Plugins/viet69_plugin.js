@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.6",             
+        "version": "1.1",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -369,7 +369,7 @@ function initCustomVideoFix() {
             // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
         }
     }, 250); // 250ms là khoảng thời gian vừa đủ, không gây lag trình duyệt
-    //runScript("sssssssss");
+    runScript("sssssssss");
 }
 
 if (document.readyState === 'loading') {
