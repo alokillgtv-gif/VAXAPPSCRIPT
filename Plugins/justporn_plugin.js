@@ -10,7 +10,7 @@ function getManifest() {
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "embed"
+        "playerType": "exoplayer"
     });
 }
 // https://www.justporn.com/latest-updates/1/
