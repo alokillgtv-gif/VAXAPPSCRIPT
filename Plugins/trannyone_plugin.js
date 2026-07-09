@@ -132,12 +132,17 @@ function parseListResponse(html, $url) {
         var items = [];
         //.thumb_rel item
         // 
-        var regexList = /class=["'][^"']+movie-[\s\S]*?href="([^"']+)"[\s\S]*?alt="([^"']+)"[\s\S]*?srcset="([^\s]+)/g;
+        var regexList = /class=["'][^"']+movie-[\s\S]*?href="([^"']+)"[\s\S]*?alt="([^"']+)"[\s\S]*?src="([^"']+)"/g;
         var matchList;
         // regexList.exec(html)
         while ((matchList = regexList.exec(html)) !== null) {
-            if (matchList[1] && matchList[1].indexOf("http") > -1) {
+            if (matchList[1] && matchList[1].indexOf("http") > -1) {	
                 var cleanThumb = matchList[3].replace(/&amp;/g, '&');
+                var fullblock = matchList[0].match(/data-src=["']([^"']+)"/i);
+                if(fullblock && fullblock[1]){
+cleanThumb = fullblock[1];
+                }
+                
                 items.push({
                     "id": matchList[1],
                     "title": matchList[2].trim(),
@@ -166,11 +171,12 @@ function parseListResponse(html, $url) {
     }
 }
 //var html = $("html")[0].outerHTML;
-//var regexList = /class=["']th\s+movie-[\s\S]*?href="([^"']+)"[\s\S]*?alt="([^"']+)"[\s\S]*?srcset="([^\s]+)/g;
+//var regexList = /class=["'][^"']+movie-[\s\S]*?href="([^"']+)"[\s\S]*?alt="([^"']+)"[\s\S]*?src="([^"']+)"/g;
 //var math = html.match(regexList)
-//math[1];
+//math
 //regexList.exec(html)
 //JSON.parse(parseListResponse(html))
+
 
 function parseSearchResponse(html) {
     return parseListResponse(html);
