@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.6",             
+        "version": "1.7",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -209,7 +209,7 @@ function parseDetailResponse(html, url) {
         var streamUrl = "";
         var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
         if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
-        var customjs = textJS(html, sourceUrl);
+        var customjs = textJS(html, url);
         customjs += `
             function runScript($msg){
                 showToast("Bước 1", 10000)
@@ -231,10 +231,10 @@ function parseDetailResponse(html, url) {
 }
 
 
-function parseEmbedResponse(html, sourceUrl) {
+function parseEmbedResponse(html, url) {
     
     
-    var customjs = textJS(html, sourceUrl);
+    var customjs = textJS(html, url);
     customjs += `
         function runScript($msg){
             showToast("Bước 2", 10000)
@@ -242,11 +242,11 @@ function parseEmbedResponse(html, sourceUrl) {
     `
     
     return JSON.stringify({
-        url: sourceUrl,
+        url: url,
         isEmbed: false, // Kết thúc, đây là link stream cuối
         mimeType: "application/x-mpegURL", // Báo App đây là HLS
         headers: {
-            "Referer": sourceUrl,
+            "Referer": url,
             "Custom-Js": customjs.trim()
         }
     });
