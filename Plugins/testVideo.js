@@ -7,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.6",             
+        "version": "2.7",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -107,7 +107,10 @@ function parseMovieDetail(html,url) {
         var decode = "";
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
-            decode = base64Decode(base64[1])
+            base64Decode(chuoi_bi_loi).then(result => {
+                decode = result
+            });
+            
             //decode = base64[1];
         }
         
@@ -238,18 +241,16 @@ function base64Encode(str) {
 }
 
 // 2. Hàm DECODE tương ứng (Thuần JS)
-function base64Decode(encodedStr) {
+async function base64Decode(encodedStr) {
     try {
         var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
         var bytes = [];
         
-        // 1. Làm sạch ký tự lạ và chuẩn hóa độ dài chuỗi
         encodedStr = encodedStr.replace(/[^A-Za-z0-9\+\/\=]/g, "");
         while (encodedStr.length % 4 !== 0) {
             encodedStr += '=';
         }
         
-        // 2. Chuyển Base64 thành mảng Byte (Thêm kiểm tra để không sinh byte lỳ lạ)
         for (var i = 0; i < encodedStr.length; i += 4) {
             var b1 = chars.indexOf(encodedStr.charAt(i));
             var b2 = chars.indexOf(encodedStr.charAt(i + 1));
@@ -270,45 +271,31 @@ function base64Decode(encodedStr) {
             if (encodedStr.charAt(i + 3) !== '=') bytes.push(c3);
         }
         
-        // 3. Giải mã UTF-8 an toàn bằng TextDecoder (Nếu môi trường hỗ trợ)
-        if (typeof TextDecoder !== 'undefined') {
-            var uint8Array = new Uint8Array(bytes);
-            return new TextDecoder('utf-8', { fatal: false }).decode(uint8Array);
-        }
+        var uint8Array = new Uint8Array(bytes);
         
-        // 4. Phương án dự phòng (Fallback) nếu môi trường cũ không có TextDecoder
-        var str = '';
-        var j = 0;
-        while (j < bytes.length) {
-            var b1 = bytes[j++];
-            if (b1 < 128) {
-                str += String.fromCharCode(b1);
-            } else if (b1 > 191 && b1 < 224 && j < bytes.length) {
-                var b2 = bytes[j++];
-                str += String.fromCharCode(((b1 & 31) << 6) | (b2 & 63));
-            } else if (b1 > 223 && b1 < 240 && j + 1 < bytes.length) {
-                var b2 = bytes[j++];
-                var b3 = bytes[j++];
-                str += String.fromCharCode(((b1 & 15) << 12) | ((b2 & 63) << 6) | (b3 & 63));
-            } else if (b1 > 239 && b1 < 245 && j + 2 < bytes.length) {
-                var b2 = bytes[j++];
-                var b3 = bytes[j++];
-                var b4 = bytes[j++];
-                var cp = ((b1 & 7) << 18) | ((b2 & 63) << 12) | ((b3 & 63) << 6) | (b4 & 63);
-                if (cp >= 0 && cp <= 0x10FFFF) {
-                    str += String.fromCodePoint(cp);
-                } else {
-                    str += ""; // Ký tự thay thế nếu code point lỗi
-                }
-            } else {
-                str += ""; // Byte lỗi đơn lẻ
+        // --- BƯỚC KHẮC PHỤC: KIỂM TRA VÀ GIẢI NÉN GZIP / DEFLATE ---
+        // Nhận diện header của GZIP (31 139) hoặc ZLIB/Deflate (120)
+        if ((uint8Array[0] === 31 && uint8Array[1] === 139) || uint8Array[0] === 120) {
+            try {
+                // Xác định định dạng nén
+                const format = (uint8Array[0] === 31) ? 'gzip' : 'deflate';
+                
+                // Sử dụng DecompressionStream có sẵn của hệ thống để giải nén mảng byte
+                const stream = new Response(uint8Array).body.pipeThrough(new DecompressionStream(format));
+                const decompressedArrayBuffer = await new Response(stream).arrayBuffer();
+                
+                // Giải mã mảng byte đã giải nén sang chuỗi tiếng Việt UTF-8 chuẩn
+                return new TextDecoder('utf-8').decode(decompressedArrayBuffer);
+            } catch (decompressError) {
+                console.log("Thử giải nén thất bại, dùng decode thường:", decompressError);
             }
         }
-        return str;
+        
+        // Nếu dữ liệu gốc không nén, giải mã UTF-8 như bình thường
+        return new TextDecoder('utf-8').decode(uint8Array);
     }
     catch (e) {
-        // Nếu vẫn chui vào đây, in hẳn lỗi ra console để debug tận gốc
-        console.error("Lỗi thực tế:", e.message, e.stack);
+        console.error("Lỗi thực tế:", e.message);
         return "Lỗi decode: " + e.message;
     }
 }
