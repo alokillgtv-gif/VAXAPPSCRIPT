@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.3",
+        "version": "1.4",
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
         "isEnabled": true,
@@ -317,6 +317,7 @@ function parseEmbedResponse(html, sourceUrl) {
 function textJS(html, $url) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js"; 
 function showToast(message, duration = 7000) {
     let container = document.getElementById('global-toast-container');
     if (!container) {
@@ -336,7 +337,7 @@ function showToast(message, duration = 7000) {
     }
     
     const toast = document.createElement('div');
-    toast.innerText = message;
+    toast.innerHTML = message;
     
     Object.assign(toast.style, {
         background: 'rgba(50, 50, 50, 0.95)',
@@ -408,10 +409,9 @@ function injectScriptAfterLoad(scriptUrl) {
 
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
-    const url = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js"; 
     
-    if (url && url !== "undefined") {
-        injectScriptAfterLoad(url);
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
     }
     
     const style = document.createElement('style');
