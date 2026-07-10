@@ -1248,29 +1248,36 @@
         $(document).on('keydown.closeQuickMenu', function(e) { if (e.key === 'Escape') $quickMenu.hide(); });
 
         function showQuickCssMenu(selector, clientX, clientY) {
-            // 🛠️ ĐÃ SỬA: Chuẩn hóa selector nếu nó chứa nhiều class cách nhau bằng khoảng trắng
-            if (selector && selector.startsWith('.')) {
-                // Tách chuỗi theo khoảng trắng và gộp lại bằng dấu chấm
-                selector = selector.trim().split(/\s+/).join('.');
-            }
-            
-            $quickMenu.data('target-selector', selector);
-            $quickMenu.find('#labQuickMenuTarget').text(selector);
-            
-            $quickMenu.show();
-            const menuW = $quickMenu.outerWidth();
-            const menuH = $quickMenu.outerHeight();
-            const winW = window.innerWidth;
-            const winH = window.innerHeight;
-            
-            let posX = clientX + 10;
-            let posY = clientY + 10;
-            
-            if (posX + menuW > winW) posX = clientX - menuW - 10;
-            if (posY + menuH > winH) posY = winH - menuH - 10;
-            
-            $quickMenu.css({ top: Math.max(5, posY) + 'px', left: Math.max(5, posX) + 'px' });
+    if (selector) {
+        // 🛠️ FIX TRIỆT ĐỂ:
+        // 1. Nếu selector là chuỗi class thuần có khoảng trắng ".class1 class2" -> ".class1.class2"
+        if (selector.trim().startsWith('.')) {
+            selector = selector.trim().split(/\s+/).join('.');
         }
+        // 2. Nếu selector có dạng "div.class1 class2 class3" -> "div.class1.class2.class3"
+        else if (selector.includes('.')) {
+            // Khử khoảng trắng thừa, sau đó thay thế các khoảng trắng đứng sau class bằng dấu chấm
+            selector = selector.trim().replace(/\s+/g, '.');
+        }
+    }
+
+    $quickMenu.data('target-selector', selector);
+    $quickMenu.find('#labQuickMenuTarget').text(selector);
+
+    $quickMenu.show();
+    const menuW = $quickMenu.outerWidth();
+    const menuH = $quickMenu.outerHeight();
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
+
+    let posX = clientX + 10;
+    let posY = clientY + 10;
+
+    if (posX + menuW > winW) posX = clientX - menuW - 10;
+    if (posY + menuH > winH) posY = winH - menuH - 10;
+
+    $quickMenu.css({ top: Math.max(5, posY) + 'px', left: Math.max(5, posX) + 'px' });
+}
 
         function injectSmartCssRule(targetSelector, cssRuleBody) {
             let currentCss = $cssInput.val() || "";
@@ -1608,7 +1615,7 @@
                     matchBrackets: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true,
                     extraKeys: {
                         'Ctrl-Enter': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
-                        'Ctrl-E': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
+                        'Ctrl-G': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
                         'Ctrl-B': function() { $("#labBtnClearConsole").click(); },
                         'Ctrl-Space': 'autocomplete'
                     }
