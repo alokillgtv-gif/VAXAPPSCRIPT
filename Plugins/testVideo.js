@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2",             
+        "version": "2.1",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -81,7 +81,7 @@ function parseListResponse(html) {
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
         var $url = BaseJSON.url || "";
         var customjs = BaseJSON.codec || "";
-        var $base64 = base64EncodeUnicode(customjs);
+        var $base64 = base64encode(customjs);
         var baselink = paramUrl($url, "base64", $base64);
         var items = [];
         items.push({
@@ -111,7 +111,7 @@ function parseMovieDetail(html,url) {
         var decode = "";
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
-            decode = base64DecodeUnicode(base64[1])
+            decode = base64decode(base64[1])
         }
         
         var title = "Chưa rõ tên phim";
@@ -203,15 +203,56 @@ function paramUrl(url, paramName, paramValue) {
     }
 }
 // Mã hóa chuỗi Tiếng Việt (UTF-8) sang Base64
-function base64EncodeUnicode(str) {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-        return String.fromCharCode('0x' + p1);
-    }));
+function base64encode(encodedStr) {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    var bytes = [];
+    
+    // Loại bỏ các ký tự khoảng trắng nếu có
+    encodedStr = encodedStr.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+    
+    for (var i = 0; i < encodedStr.length; i += 4) {
+        // Lấy giá trị index của 4 ký tự Base64
+        var b1 = chars.indexOf(encodedStr.charAt(i));
+        var b2 = chars.indexOf(encodedStr.charAt(i + 1));
+        var b3 = chars.indexOf(encodedStr.charAt(i + 2));
+        var b4 = chars.indexOf(encodedStr.charAt(i + 3));
+        
+        // Khôi phục lại 3 byte ban đầu từ 4 giá trị Base64
+        var c1 = (b1 << 2) | (b2 >> 4);
+        var c2 = ((b2 & 15) << 4) | (b3 >> 2);
+        var c3 = ((b3 & 3) << 6) | b4;
+        
+        bytes.push(c1);
+        if (b3 !== 64 && encodedStr.charAt(i + 2) !== '=') bytes.push(c2);
+        if (b4 !== 64 && encodedStr.charAt(i + 3) !== '=') bytes.push(c3);
+    }
+    
+    // Bước quan trọng: Giải mã mảng bytes theo chuẩn UTF-8 để hỗ trợ Tiếng Việt
+    return decodeUTF8(bytes);
 }
 
-// Giải mã chuỗi Base64 về lại Tiếng Việt chuẩn
-function base64DecodeUnicode(encodedStr) {
-    return decodeURIComponent(atob(encodedStr).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+// Hàm bổ trợ giải mã UTF-8 từ mảng byte
+function base64decode(bytes) {
+    var str = '';
+    var i = 0;
+    while (i < bytes.length) {
+        var byte1 = bytes[i++];
+        if (byte1 < 128) {
+            str += String.fromCharCode(byte1);
+        } else if (byte1 > 191 && byte1 < 224) {
+            var byte2 = bytes[i++];
+            str += String.fromCharCode(((byte1 & 31) << 6) | (byte2 & 63));
+        } else if (byte1 > 223 && byte1 < 240) {
+            var byte2 = bytes[i++];
+            var byte3 = bytes[i++];
+            str += String.fromCharCode(((byte1 & 15) << 12) | ((byte2 & 63) << 6) | (byte3 & 63));
+        } else {
+            var byte2 = bytes[i++];
+            var byte3 = bytes[i++];
+            var byte4 = bytes[i++];
+            var codepoint = ((byte1 & 7) << 18) | ((byte2 & 63) << 12) | ((byte3 & 63) << 6) | (byte4 & 63);
+            str += String.fromCodePoint(codepoint);
+        }
+    }
+    return str;
 }
