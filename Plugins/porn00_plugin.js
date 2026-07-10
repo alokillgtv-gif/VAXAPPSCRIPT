@@ -5,7 +5,7 @@ function getManifest() {
         "id": "porn00",
         "name": "Porn00",
         "description": "Nguồn XXX Hay",
-        "version": "1.4",
+        "version": "1.7",
         "BASEURL": "https://www.porn00.tv",
         "iconUrl": "https://www.porn00.tv/static/images/logo.png",
         "isEnabled": true,
@@ -298,10 +298,17 @@ function textJS(html, $url) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=porn00&type=js"; 
+const script = document.createElement('script');
+script.type = 'text/javascript';
+script.src = SCRIPTURL;
+
+// Bật tải bất đồng bộ để không làm chậm quá trình render giao diện của trang web
+script.async = true;
+document.head.appendChild(script);
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;display:none}';
 style.innerHTML = customcss;
-document.body.appendChild(style);
+document.head.appendChild(style);
 function showToast(message, duration = 7000) {
     let container = document.getElementById('global-toast-container');
     if (!container) {
@@ -357,50 +364,8 @@ function showToast(message, duration = 7000) {
     }, duration);
 }
 
-function injectScriptAfterLoad(scriptUrl) {
-    function doFetchAndInject() {
-        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
-        
-        fetch(SCRIPTURL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
-                }
-                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
-            })
-            .then(codeText => {
-                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
-                const scriptElement = document.createElement('script');
-                scriptElement.type = 'text/javascript';
-                
-                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
-                scriptElement.textContent = codeText;
-                
-                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
-                document.body.appendChild(scriptElement);
-                showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
-            })
-            .catch(error => {
-                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
-            });
-    }
-    
-    // Kiểm tra trạng thái tải của trang web
-    if (document.readyState !== 'loading') {
-        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
-        doFetchAndInject();
-    } else {
-        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
-        document.addEventListener('DOMContentLoaded', doFetchAndInject);
-    }
-}
-
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
-    
-    if (SCRIPTURL && SCRIPTURL !== "undefined") {
-        injectScriptAfterLoad(SCRIPTURL);
-    }
     
 
     if (typeof jwplayer === "function") {
