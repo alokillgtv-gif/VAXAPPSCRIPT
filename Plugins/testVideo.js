@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.5",             
+        "version": "1.6",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -79,15 +79,15 @@ function parseListResponse(html) {
         // Lưu trữ object đầu tiên trực tiếp vào BaseJSON toàn cục để các hàm sau dùng tiện lợi
         var parsed = JSON.parse(html);
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
-        var customjs = BaseJSON.codec
         var $url = BaseJSON.url || "";
+        var customjs = BaseJSON.codec || "";
         var $base64 = processBase64(customjs, true);
-        $urlbase = paramUrl($url, "base64", $base64);
+        var baselink = paramUrl($url, "base64", $base64);
         var items = [];
         items.push({
-            "id": $urlbase,          
-            "title": $url, 
-            "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",  
+            "id": baselink,
+            "title": $url,
+            "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",
             "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png"
         });
         
@@ -104,21 +104,17 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html,$url) {
+function parseMovieDetail(html) {
     try {
-        var decode = "";
-        var base64 = $url.match(/base64=([^&]+)/i);
-        if(base64 && base64[1]){
-            var decode = processBase64(base64[1],false);
-        }
-        
         var id = BaseURL;
         // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
+        var streamUrl = "";
+        var rmatch = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
+        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         var title = "Chưa rõ tên phim";
         var year = "2026";
-        //var base64 = processBase64($url, false);
-        var des = decode  + "\r\n\r\n\r\n\r\n" + html;
-        var img = "https://img-cdn.phicustomjsmhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
+        var des = streamUrl + "\r\n\r\n" + html;
+        var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
         
         return JSON.stringify({
@@ -132,7 +128,7 @@ function parseMovieDetail(html,$url) {
             "quality": "HD",
             "servers": [{ "name": "Server Vietsub", "episodes": episodes }]
         });
-
+        
     } catch (e) {
         return JSON.stringify({ "id": "error", "title": "Lỗi tải dữ liệu", "servers": [] });
     }
