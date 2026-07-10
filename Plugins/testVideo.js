@@ -7,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.4",             
+        "version": "2.6",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -243,66 +243,72 @@ function base64Decode(encodedStr) {
         var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
         var bytes = [];
         
-        // 1. Làm sạch chuỗi
+        // 1. Làm sạch ký tự lạ và chuẩn hóa độ dài chuỗi
         encodedStr = encodedStr.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-        
-        // 2. Tự động sửa lỗi thiếu padding '=' ở cuối nếu chuỗi bị cắt ngắn
         while (encodedStr.length % 4 !== 0) {
             encodedStr += '=';
         }
         
+        // 2. Chuyển Base64 thành mảng Byte (Thêm kiểm tra để không sinh byte lỳ lạ)
         for (var i = 0; i < encodedStr.length; i += 4) {
-            // Nếu ký tự không tồn tại, mặc định gán index = 64 (tương ứng với dấu '=')
             var b1 = chars.indexOf(encodedStr.charAt(i));
             var b2 = chars.indexOf(encodedStr.charAt(i + 1));
             var b3 = chars.indexOf(encodedStr.charAt(i + 2));
             var b4 = chars.indexOf(encodedStr.charAt(i + 3));
             
-            // Phòng hờ ký tự lạ lọt lưới
-            if (b1 === -1) b1 = 64;
-            if (b2 === -1) b2 = 64;
-            if (b3 === -1) b3 = 64;
-            if (b4 === -1) b4 = 64;
+            if (b1 === -1 || b1 === 64) b1 = 0;
+            if (b2 === -1 || b2 === 64) b2 = 0;
+            if (b3 === -1 || b3 === 64) b3 = 0;
+            if (b4 === -1 || b4 === 64) b4 = 0;
             
-            var c1 = (b1 << 2) | (b2 >> 4);
-            var c2 = ((b2 & 15) << 4) | (b3 >> 2);
-            var c3 = ((b3 & 3) << 6) | b4;
+            var c1 = ((b1 << 2) | (b2 >> 4)) & 255;
+            var c2 = (((b2 & 15) << 4) | (b3 >> 2)) & 255;
+            var c3 = (((b3 & 3) << 6) | b4) & 255;
             
             bytes.push(c1);
-            if (b3 !== 64 && encodedStr.charAt(i + 2) !== '=') bytes.push(c2);
-            if (b4 !== 64 && encodedStr.charAt(i + 3) !== '=') bytes.push(c3);
+            if (encodedStr.charAt(i + 2) !== '=') bytes.push(c2);
+            if (encodedStr.charAt(i + 3) !== '=') bytes.push(c3);
         }
         
-        // Giải mã mảng bytes UTF-8 về lại chuỗi ký tự
+        // 3. Giải mã UTF-8 an toàn bằng TextDecoder (Nếu môi trường hỗ trợ)
+        if (typeof TextDecoder !== 'undefined') {
+            var uint8Array = new Uint8Array(bytes);
+            return new TextDecoder('utf-8', { fatal: false }).decode(uint8Array);
+        }
+        
+        // 4. Phương án dự phòng (Fallback) nếu môi trường cũ không có TextDecoder
         var str = '';
         var j = 0;
         while (j < bytes.length) {
             var b1 = bytes[j++];
             if (b1 < 128) {
                 str += String.fromCharCode(b1);
-            } else if (b1 > 191 && b1 < 224) {
-                if (j >= bytes.length) break; // Thiếu byte dữ liệu UTF-8
+            } else if (b1 > 191 && b1 < 224 && j < bytes.length) {
                 var b2 = bytes[j++];
                 str += String.fromCharCode(((b1 & 31) << 6) | (b2 & 63));
-            } else if (b1 > 223 && b1 < 240) {
-                if (j + 1 >= bytes.length) break;
+            } else if (b1 > 223 && b1 < 240 && j + 1 < bytes.length) {
                 var b2 = bytes[j++];
                 var b3 = bytes[j++];
                 str += String.fromCharCode(((b1 & 15) << 12) | ((b2 & 63) << 6) | (b3 & 63));
-            } else {
-                if (j + 2 >= bytes.length) break;
+            } else if (b1 > 239 && b1 < 245 && j + 2 < bytes.length) {
                 var b2 = bytes[j++];
                 var b3 = bytes[j++];
                 var b4 = bytes[j++];
                 var cp = ((b1 & 7) << 18) | ((b2 & 63) << 12) | ((b3 & 63) << 6) | (b4 & 63);
-                str += String.fromCodePoint(cp);
+                if (cp >= 0 && cp <= 0x10FFFF) {
+                    str += String.fromCodePoint(cp);
+                } else {
+                    str += ""; // Ký tự thay thế nếu code point lỗi
+                }
+            } else {
+                str += ""; // Byte lỗi đơn lẻ
             }
         }
         return str;
     }
     catch (e) {
-        // Log lỗi thực tế ra console xem cụ thể bị gì nếu vẫn lỗi
-        console.error(e);
-        return "Lỗi decode base64";
+        // Nếu vẫn chui vào đây, in hẳn lỗi ra console để debug tận gốc
+        console.error("Lỗi thực tế:", e.message, e.stack);
+        return "Lỗi decode: " + e.message;
     }
 }
