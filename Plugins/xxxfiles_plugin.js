@@ -311,7 +311,7 @@ function parseDetailResponse(html, url) {
         // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
         // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
         return JSON.stringify({
-            "url": url,
+            "url": "",
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
