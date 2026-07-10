@@ -111,7 +111,8 @@ function parseMovieDetail(html,url) {
         var decode = "";
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
-            decode = base64Decode(base64[1])
+            //decode = base64Decode(base64[1])
+            decode = base64[1];
         }
         
         var title = "Chưa rõ tên phim";
