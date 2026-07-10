@@ -5,7 +5,7 @@ function getManifest() {
         "id": "porn00",
         "name": "Porn00",
         "description": "Nguồn XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://www.porn00.tv",
         "iconUrl": "https://www.porn00.tv/static/images/logo.png",
         "isEnabled": true,
@@ -357,32 +357,36 @@ function injectScriptAfterLoad(scriptUrl) {
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
         
-        fetch(scriptUrl)
+        fetch(SCRIPTURL)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
                 }
-                return response.text();
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
             })
             .then(codeText => {
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                // Đổ thẳng nội dung code dạng chữ vào trong thẻ script
-                script.textContent = codeText;
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
                 
-                document.body.appendChild(script);
-                console.log('🎯 Đã fetch và thực thi Script thành công!');
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+                showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
             })
             .catch(error => {
-                console.error('❌ Lỗi không thể fetch hoặc chạy script:', error);
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
             });
     }
     
-    // Thay vì đợi 'load' (quá muộn), ta kiểm tra nếu không còn ở trạng thái 'loading' thì chạy luôn
+    // Kiểm tra trạng thái tải của trang web
     if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
         doFetchAndInject();
     } else {
-        // Nếu web thực sự đang load dữ liệu thô, đợi DOMContentLoaded cho nhanh (không cần đợi ảnh/video tải xong)
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
         document.addEventListener('DOMContentLoaded', doFetchAndInject);
     }
 }
