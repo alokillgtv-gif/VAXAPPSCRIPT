@@ -1,6 +1,4 @@
-// =============================================================================
-// VAAPP Plugin - SUPERPORN (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
-// =============================================================================
+BASEURL = "https://www.superporn.com";
 
 function getManifest() {
     return JSON.stringify({
@@ -63,22 +61,22 @@ function getUrlList(slug, filtersJson) {
         var page = filters.page || 1;
         
         if (page > 1) {
-            return "https://www.superporn.com/" + slug + "/" + page;
+            return BASEURL + "/" + slug + "/" + page;
         }
-        return "https://www.superporn.com/" + slug;
+        return BASEURL + "/" + slug;
     } catch (e) {
-        return "https://www.superporn.com/" + slug;
+        return BASEURL + "/" + slug;
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://www.superporn.com/search?q=" + encodeURIComponent(keyword);
+    return BASEURL + "/search?q=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://superporn.com/" + slug;
+    return BASEURL + "/" + slug;
 }
 
 function getUrlCategories() { return ""; }
@@ -266,7 +264,7 @@ if (document.readyState === 'loading') {
 return JSON.stringify({
     url: decodedUrl,
     headers: {
-        "Referer": "https://www.superporn.com",
+        "Referer": BASEURL,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Custom-Js": customJs.trim()
     }

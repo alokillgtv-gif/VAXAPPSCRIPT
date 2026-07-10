@@ -16,7 +16,7 @@ function getManifest() {
         "name": "Xhamster",
         "description": "XXX Hay",
         "version": "1.3",             
-        "baseUrl": BASEURL,
+        "baseUrl": "https://xhwide.com",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
         "isAdult": true,
