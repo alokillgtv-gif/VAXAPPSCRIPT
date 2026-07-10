@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
         "isEnabled": true,
@@ -373,25 +373,42 @@ function showToast(message, duration = 7000) {
 }
 
 function injectScriptAfterLoad(scriptUrl) {
-    function doInject() {
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = scriptUrl;
-        script.async = true;
-        document.body.appendChild(script);
-        console.log('🎯 Script đã được nhúng vào cuối body sau khi web tải xong:', scriptUrl);
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
+        
+        fetch(scriptUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(codeText => {
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                // Đổ thẳng nội dung code dạng chữ vào trong thẻ script
+                script.textContent = codeText;
+                
+                document.body.appendChild(script);
+                console.log('🎯 Đã fetch và thực thi Script thành công!');
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc chạy script:', error);
+            });
     }
     
-    if (document.readyState === 'complete') {
-        doInject();
+    // Thay vì đợi 'load' (quá muộn), ta kiểm tra nếu không còn ở trạng thái 'loading' thì chạy luôn
+    if (document.readyState !== 'loading') {
+        doFetchAndInject();
     } else {
-        window.addEventListener('load', doInject);
+        // Nếu web thực sự đang load dữ liệu thô, đợi DOMContentLoaded cho nhanh (không cần đợi ảnh/video tải xong)
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
     }
 }
 
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
-    const url = "${$url}"; 
+    const url = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js"; 
     
     if (url && url !== "undefined") {
         injectScriptAfterLoad(url);
