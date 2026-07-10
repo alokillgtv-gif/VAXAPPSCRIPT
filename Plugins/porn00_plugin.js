@@ -304,7 +304,7 @@ var customcss = 'body { background: black; overflow: hidden; }body * {background
 style.innerHTML = customcss;
 document.head.appendChild(style);
 scriptJS = '<script src="'+SCRIPTURL+'" text/javascript></script>';
-document.head.appendChild(scriptJS);
+document.body.appendChild(scriptJS);
 function showToast(message, duration = 7000) {
     let container = document.getElementById('global-toast-container');
     if (!container) {
