@@ -7,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.3",             
+        "version": "2.4",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -239,16 +239,30 @@ function base64Encode(str) {
 
 // 2. Hàm DECODE tương ứng (Thuần JS)
 function base64Decode(encodedStr) {
-    try{
+    try {
         var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
         var bytes = [];
+        
+        // 1. Làm sạch chuỗi
         encodedStr = encodedStr.replace(/[^A-Za-z0-9\+\/\=]/g, "");
         
+        // 2. Tự động sửa lỗi thiếu padding '=' ở cuối nếu chuỗi bị cắt ngắn
+        while (encodedStr.length % 4 !== 0) {
+            encodedStr += '=';
+        }
+        
         for (var i = 0; i < encodedStr.length; i += 4) {
+            // Nếu ký tự không tồn tại, mặc định gán index = 64 (tương ứng với dấu '=')
             var b1 = chars.indexOf(encodedStr.charAt(i));
             var b2 = chars.indexOf(encodedStr.charAt(i + 1));
             var b3 = chars.indexOf(encodedStr.charAt(i + 2));
             var b4 = chars.indexOf(encodedStr.charAt(i + 3));
+            
+            // Phòng hờ ký tự lạ lọt lưới
+            if (b1 === -1) b1 = 64;
+            if (b2 === -1) b2 = 64;
+            if (b3 === -1) b3 = 64;
+            if (b4 === -1) b4 = 64;
             
             var c1 = (b1 << 2) | (b2 >> 4);
             var c2 = ((b2 & 15) << 4) | (b3 >> 2);
@@ -267,13 +281,16 @@ function base64Decode(encodedStr) {
             if (b1 < 128) {
                 str += String.fromCharCode(b1);
             } else if (b1 > 191 && b1 < 224) {
+                if (j >= bytes.length) break; // Thiếu byte dữ liệu UTF-8
                 var b2 = bytes[j++];
                 str += String.fromCharCode(((b1 & 31) << 6) | (b2 & 63));
             } else if (b1 > 223 && b1 < 240) {
+                if (j + 1 >= bytes.length) break;
                 var b2 = bytes[j++];
                 var b3 = bytes[j++];
                 str += String.fromCharCode(((b1 & 15) << 12) | ((b2 & 63) << 6) | (b3 & 63));
             } else {
+                if (j + 2 >= bytes.length) break;
                 var b2 = bytes[j++];
                 var b3 = bytes[j++];
                 var b4 = bytes[j++];
@@ -284,6 +301,8 @@ function base64Decode(encodedStr) {
         return str;
     }
     catch (e) {
+        // Log lỗi thực tế ra console xem cụ thể bị gì nếu vẫn lỗi
+        console.error(e);
         return "Lỗi decode base64";
     }
 }
