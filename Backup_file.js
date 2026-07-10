@@ -1,0 +1,6 @@
+
+⇝function parseCountriesResponse(html) { return "[]"; }
+function parseYearsResponse(html) { return "[]"; }
+
+
+            "title": $url,             "posterUrl": "https://img-cdn.phimhayok.net/filmhayok                /1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7                -2026_a20d108246f140ad8be82acb9bca2606.png",              "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok                /1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7                -2026_a20d108246f140ad8be82acb9bca2606.png"        });                return JSON.stringify({            "items": items,            "pagination": { "currentPage": 1, "totalPages": 1 }        });    } catch (e) {        return JSON.stringify({ "items": [], "pagination": {             "currentPage": 1, "totalPages": 1 } });    }}function parseSearchResponse(html) {    return parseListResponse(html);}function parseMovieDetail(html) {    try {        var id = BaseURL;        // Khai báo trước streamUrl chống lỗi Strict Mode khi eval             thực thi        var streamUrl = "";         var rmatch = html.match(/id="streaming-sv"[^>]*?data-link="            (https?:[^"]*)"/i);        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }

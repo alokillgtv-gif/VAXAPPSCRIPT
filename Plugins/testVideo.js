@@ -79,7 +79,10 @@ function parseListResponse(html) {
         // Lưu trữ object đầu tiên trực tiếp vào BaseJSON toàn cục để các hàm sau dùng tiện lợi
         var parsed = JSON.parse(html);
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
+        var customjs = BaseJSON.codec
         var $url = BaseJSON.url || "";
+        var $base64 = processBase64(customjs, true);
+        $url = paramUrl($url, "base64", $base64);
         var items = [];
         items.push({
             "id": $url,          
@@ -101,17 +104,15 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html) {
+function parseMovieDetail(html,$url) {
     try {
         var id = BaseURL;
         // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
-        var streamUrl = ""; 
-        var rmatch = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
-        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         var title = "Chưa rõ tên phim";
         var year = "2026";
-        var des = streamUrl + "\r\n\r\n" + html;
-        var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
+        //var base64 = processBase64($url, false);
+        var des = $url + "\r\n\r\n\r\n\r\n" + html;
+        var img = "https://img-cdn.phicustomjsmhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
         
         return JSON.stringify({
@@ -213,3 +214,78 @@ function base64Encode(str) {
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
+
+function paramUrl(url, paramName, paramValue) {
+    // Regex này kiểm tra xem trong URL đã có chứa dấu hỏi chấm '?' của Param nào chưa
+    const coParamChua = /\?/.test(url);
+    
+    if (coParamChua) {
+        // Nếu ĐÃ CÓ param phía trước (ví dụ: ?hl=vi), ta nối thêm bằng dấu '&'
+        return `${url}&${paramName}=${paramValue}`;
+    } else {
+        // Nếu CHƯA CÓ param nào, ta chèn dấu '?' vào đầu
+        return `${url}?${paramName}=${paramValue}`;
+    }
+}
+
+// Trước khi gửi đi:
+function processBase64($data, $check) {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    
+    // Kiểm tra dữ liệu đầu vào hợp lệ
+    if (!$data) return '';
+    
+    // ==========================================
+    // TRƯỜNG HỢP 1: $check === true -> ENCODE (Mã hóa)
+    // ==========================================
+    if ($check === true) {
+        var str = String($data);
+        var encoded = '';
+        for (var i = 0; i < str.length; i += 3) {
+            var c1 = str.charCodeAt(i);
+            var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
+            var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
+            
+            var byte1 = c1 >> 2;
+            var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
+            var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
+            var byte4 = isNaN(c3) ? 64 : c3 & 63;
+            
+            encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
+        }
+        return encoded;
+    }
+    
+    // ==========================================
+    // TRƯỜNG HỢP 2: $check === false -> DECODE (Giải mã)
+    // ==========================================
+    else {
+        var str = String($data).replace(/[^A-Za-z0-9\+\/=]/g, ''); // Loại bỏ ký tự lạ nếu có
+        var decoded = '';
+        
+        for (var i = 0; i < str.length; i += 4) {
+            // Lấy vị trí index của 4 ký tự Base64 trong chuỗi chars mẫu
+            var b1 = chars.indexOf(str.charAt(i));
+            var b2 = chars.indexOf(str.charAt(i + 1));
+            var b3 = chars.indexOf(str.charAt(i + 2));
+            var b4 = chars.indexOf(str.charAt(i + 3));
+            
+            // Khôi phục ký tự thứ 1 (Luôn có)
+            var c1 = (b1 << 2) | (b2 >> 4);
+            decoded += String.fromCharCode(c1);
+            
+            // Khôi phục ký tự thứ 2 (Nếu ký tự thứ 3 không phải ký tự bù '=')
+            if (b3 !== 64 && b3 !== -1) {
+                var c2 = ((b2 & 15) << 4) | (b3 >> 2);
+                decoded += String.fromCharCode(c2);
+            }
+            
+            // Khôi phục ký tự thứ 3 (Nếu ký tự thứ 4 không phải ký tự bù '=')
+            if (b4 !== 64 && b4 !== -1) {
+                var c3 = ((b3 & 3) << 6) | b4;
+                decoded += String.fromCharCode(c3);
+            }
+        }
+        return decoded;
+    }
+}
