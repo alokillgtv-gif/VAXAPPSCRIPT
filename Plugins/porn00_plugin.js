@@ -298,13 +298,10 @@ function textJS(html, $url) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=porn00&type=js"; 
-
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
 document.head.appendChild(style);
-scriptJS = '<script src="'+SCRIPTURL+'" text/javascript></script>';
-document.body.appendChild(scriptJS);
 function showToast(message, duration = 7000) {
     let container = document.getElementById('global-toast-container');
     if (!container) {
@@ -359,7 +356,7 @@ function showToast(message, duration = 7000) {
         }, 300);
     }, duration);
 }
-/*
+
 function injectScriptAfterLoad(scriptUrl) {
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
@@ -397,7 +394,7 @@ function injectScriptAfterLoad(scriptUrl) {
         document.addEventListener('DOMContentLoaded', doFetchAndInject);
     }
 }
-*/
+
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
     
