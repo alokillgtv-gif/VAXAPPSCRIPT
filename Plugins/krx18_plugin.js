@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
         "isEnabled": true,
@@ -315,16 +315,14 @@ function parseEmbedResponse(html, sourceUrl) {
 }
 
 function textJS(html, $url) {
-// ĐÃ SỬA: Chuẩn hóa lại cú pháp escape ký tự \$ trong Template Literals
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 function showToast(message, duration = 7000) {
-    // 1. Kiểm tra xem trên màn hình đã có "khung chứa" Toast chưa, nếu chưa thì tự tạo bằng JS
     let container = document.getElementById('global-toast-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'global-toast-container';
         
-        // Ép CSS trực tiếp bằng JS để đặt khung ở góc dưới bên phải màn hình
         Object.assign(container.style, {
             position: 'fixed',
             bottom: '20px',
@@ -337,11 +335,9 @@ function showToast(message, duration = 7000) {
         document.body.appendChild(container);
     }
     
-    // 2. Tạo phần tử Toast mới hoàn toàn bằng JS
     const toast = document.createElement('div');
     toast.innerText = message;
     
-    // Ép CSS giao diện cho cục Toast (màu bo góc, bóng mờ, hiệu ứng hiện hình)
     Object.assign(toast.style, {
         background: 'rgba(50, 50, 50, 0.95)',
         color: '#fff',
@@ -352,28 +348,23 @@ function showToast(message, duration = 7000) {
         fontSize: '14px',
         minWidth: '200px',
         transition: 'all 0.3s ease',
-        transform: 'translateX(120%)', // Ban đầu nằm ẩn bên ngoài màn hình
+        transform: 'translateX(120%)',
         opacity: '0'
     });
     
-    // Đưa cục Toast vào khung chứa
     container.appendChild(toast);
     
-    // 3. Tạo hiệu ứng bay từ bên phải vào (Slide In) sau 10 mili-giây
     setTimeout(() => {
         toast.style.transform = 'translateX(0)';
         toast.style.opacity = '1';
     }, 10);
     
-    // 4. Tạo hiệu ứng mờ dần (Fade Out) và XÓA HOÀN TOÀN khỏi màn hình khi hết thời gian
     setTimeout(() => {
         toast.style.transform = 'translateX(120%)';
         toast.style.opacity = '0';
         
-        // Chờ hiệu ứng ẩn chạy xong 300ms rồi xóa hẳn thẻ HTML này đi cho sạch bộ nhớ
         setTimeout(() => {
             toast.remove();
-            // Nếu không còn thông báo nào nữa thì xóa luôn cái khung lớn cho gọn
             if (container.childElementCount === 0) {
                 container.remove();
             }
@@ -382,84 +373,71 @@ function showToast(message, duration = 7000) {
 }
 
 function injectScriptAfterLoad(scriptUrl) {
-    // Hàm thực hiện chèn script
     function doInject() {
         const script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = scriptUrl;
-        
-        // Đảm bảo script tải bất đồng bộ để không chặn các tiến trình khác của trình duyệt
         script.async = true;
-        
-        // Chèn vào cuối cùng của thẻ body
         document.body.appendChild(script);
-        
         console.log('🎯 Script đã được nhúng vào cuối body sau khi web tải xong:', scriptUrl);
     }
     
-    // Kiểm tra nếu website đã tải xong hoàn toàn (hoặc đang tải dở)
     if (document.readyState === 'complete') {
         doInject();
     } else {
-        // Nếu web chưa tải xong, đợi sự kiện 'load' kích hoạt rồi mới chèn
         window.addEventListener('load', doInject);
     }
 }
 
-// --- CÁCH SỬ DỤNG ---
-
-
 function initCustomVideoFix() {
-    const url = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js";
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    const url = "${$url}"; 
     
-    injectScriptAfterLoad(url);
+    if (url && url !== "undefined") {
+        injectScriptAfterLoad(url);
+    }
+    
     const style = document.createElement('style');
-    
-    // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
     var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
     
-    style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
+    style.innerHTML = customcss;
     document.head.appendChild(style);
-    //showToast("Chèn css mới", duration = 3000)
+
     if (typeof jwplayer === "function") {
         const player = jwplayer("previewPlayer");
         if (player && typeof player.getMute === "function") {
             if (player.getMute()) {
                 player.setMute(false);
-                showToast("Đã bật tiếng", duration = 3000)
+                showToast("Đã bật tiếng", 3000); // SỬA: Bỏ "duration ="
             }
             player.setVolume(100);
         }
     }
     
-    // Biến cờ (flag) để tránh việc hiển thị Toast liên tục gây rác màn hình khi nút đang được nhấn
     let isSkipping = false;
 
     const checkAndClick = setInterval(() => {
         const skipButton = document.getElementById("skip-ad");
         
         if (skipButton) {
-            // Kiểm tra xem nút có bị ẩn bằng CSS không (nếu có thuộc tính display: none hoặc opacity: 0 thì bỏ qua)
             const style = window.getComputedStyle(skipButton);
             if (style.display === 'none' || style.visibility === 'hidden') return;
 
             skipButton.click();
             console.log("🎯 Đã phát hiện và kích hoạt nút bỏ qua quảng cáo!");
 
-            // Chỉ hiện toast 1 lần cho mỗi đợt skip để đỡ spam giao diện
             if (!isSkipping) {
                 isSkipping = true;
-                showToast("Đã bỏ qua quảng cáo", 3000);
-                
-                // Reset lại trạng thái sau 2 giây để sẵn sàng cho quảng cáo tiếp theo (nếu có)
+                showToast("Đã bỏ qua quảng cáo", 3000); // SỬA: Bỏ "duration ="
                 setTimeout(() => { isSkipping = false; }, 2000);
             }
-            
-            // LƯU Ý: ĐÃ XÓA clearInterval(checkAndClick) ở đây để script tiếp tục chạy
-            // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
         }
-    }, 250); // 250ms là khoảng thời gian vừa đủ, không gây lag trình duyệt
-    runScript("sssssssss");
+    }, 250);
+    
+    // Lưu ý: Đảm bảo hàm runScript() này đã được định nghĩa ở đâu đó trong hệ thống của bạn
+    if (typeof runScript === "function") {
+        runScript("sssssssss");
+    }
 }
 
 if (document.readyState === 'loading') {
@@ -467,7 +445,6 @@ if (document.readyState === 'loading') {
 } else {
     initCustomVideoFix();
 }
-
 `;
 }
 
