@@ -305,29 +305,75 @@ function parseMovieDetail(html, url) {
 
 function parseDetailResponse(html, url) {
     try {
-        
+        // 1. Lấy đoạn script Custom-JS của bạn
         var customjs = textJS(html, url);
         
-        // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
-        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        // SỬA BẪY CSS: Ép đoạn mã CSS trong textJS không được ẩn thẻ video và các thẻ điều khiển của player
+        customjs = customjs.replace(
+            "body * {background: black;display:none!important}",
+            "body *:not(video):not(source):not(script):not(style) {background: black;display:none!important}"
+        );
+        
+        // 2. Kiểm tra xem link truyền vào là MP4 hay luồng phát HLS (.m3u8)
+        var isHls = url.indexOf(".m3u8") > -1 || url.indexOf("manifest") > -1;
+        
+        // 3. Tự chế trang HTML hoàn chỉnh
+        // Nếu là HLS, tự động lách luật bằng cách nhúng thêm thư viện cdn hls.js để tự phát trên Android
+        var htmlFake = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAX Player Premium</title>
+    <style>
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+    </style>
+    ${isHls ? '<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>' : ''}
+</head>
+<body>
+
+    <video id="vax-video-player" controls autoplay playsinline></video>
+
+    <script>
+        var video = document.getElementById('vax-video-player');
+        var videoSrc = '${url}';
+
+        if (${isHls} && Hls.isSupported()) {
+            var hls = new Hls({
+                maxMaxBufferLength: 30 // Giới hạn buffer tránh tràn RAM trên máy yếu
+            });
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+        } else {
+            // Nếu là MP4 hoặc môi trường hỗ trợ HLS gốc (như iOS)
+            video.src = videoSrc;
+        }
+    </script>
+</body>
+</html>
+        `;
+        
+        // 4. Mã hóa trang HTML tự chế này sang chuỗi Base64
+        // Dùng mã hóa an toàn để không bị lỗi font chữ hoặc ký tự đặc biệt
+        var base64Url = "data:text/html;base64," + btoa(unescape(encodeURIComponent(htmlFake)));
+        
+        // 5. Trả kết quả về cho App
         return JSON.stringify({
-            "url": "",
+            "url": base64Url,
+            "isEmbed": true, // Bắt buộc để true để App kích hoạt mở WebView ẩn chạy trang này
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
-                mimeType: "application/x-mpegURL",
-                isEmbed: true,
                 "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-                // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
                 "Sec-Ch-Ua-Mobile": "?1",
                 "Sec-Ch-Ua-Platform": '"Android"',
-                
-                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
                 "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
                 "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim()
+                "Custom-Js": customjs.trim() // Mã JS đã sửa lỗi né player vẫn sẽ được tiêm vào trang này
             },
             "subtitles": []
         });
