@@ -7,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.7",             
+        "version": "2.8",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -107,9 +107,7 @@ function parseMovieDetail(html,url) {
         var decode = "";
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
-            base64Decode(chuoi_bi_loi).then(result => {
-                decode = result
-            });
+                decode = base64Decode(base64[1])
             
             //decode = base64[1];
         }
@@ -241,61 +239,43 @@ function base64Encode(str) {
 }
 
 // 2. Hàm DECODE tương ứng (Thuần JS)
-async function base64Decode(encodedStr) {
+function base64Decode(encodedStr) {
     try {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-        var bytes = [];
-        
+        // 1. Giải mã Base64 sang chuỗi nhị phân bằng hàm hệ thống (nhanh và chuẩn nhất)
+        // Nếu chuỗi thiếu padding '=', tự động bù vào
         encodedStr = encodedStr.replace(/[^A-Za-z0-9\+\/\=]/g, "");
         while (encodedStr.length % 4 !== 0) {
             encodedStr += '=';
         }
         
-        for (var i = 0; i < encodedStr.length; i += 4) {
-            var b1 = chars.indexOf(encodedStr.charAt(i));
-            var b2 = chars.indexOf(encodedStr.charAt(i + 1));
-            var b3 = chars.indexOf(encodedStr.charAt(i + 2));
-            var b4 = chars.indexOf(encodedStr.charAt(i + 3));
-            
-            if (b1 === -1 || b1 === 64) b1 = 0;
-            if (b2 === -1 || b2 === 64) b2 = 0;
-            if (b3 === -1 || b3 === 64) b3 = 0;
-            if (b4 === -1 || b4 === 64) b4 = 0;
-            
-            var c1 = ((b1 << 2) | (b2 >> 4)) & 255;
-            var c2 = (((b2 & 15) << 4) | (b3 >> 2)) & 255;
-            var c3 = (((b3 & 3) << 6) | b4) & 255;
-            
-            bytes.push(c1);
-            if (encodedStr.charAt(i + 2) !== '=') bytes.push(c2);
-            if (encodedStr.charAt(i + 3) !== '=') bytes.push(c3);
+        var binaryString = atob(encodedStr);
+        
+        // 2. Chuyển chuỗi nhị phân thành chuỗi mã hóa URI (%XX) để giải mã UTF-8 tiếng Việt
+        var uriString = '';
+        for (var i = 0; i < binaryString.length; i++) {
+            var hex = binaryString.charCodeAt(i).toString(16);
+            uriString += '%' + ('00' + hex).slice(-2);
         }
         
-        var uint8Array = new Uint8Array(bytes);
-        
-        // --- BƯỚC KHẮC PHỤC: KIỂM TRA VÀ GIẢI NÉN GZIP / DEFLATE ---
-        // Nhận diện header của GZIP (31 139) hoặc ZLIB/Deflate (120)
-        if ((uint8Array[0] === 31 && uint8Array[1] === 139) || uint8Array[0] === 120) {
-            try {
-                // Xác định định dạng nén
-                const format = (uint8Array[0] === 31) ? 'gzip' : 'deflate';
-                
-                // Sử dụng DecompressionStream có sẵn của hệ thống để giải nén mảng byte
-                const stream = new Response(uint8Array).body.pipeThrough(new DecompressionStream(format));
-                const decompressedArrayBuffer = await new Response(stream).arrayBuffer();
-                
-                // Giải mã mảng byte đã giải nén sang chuỗi tiếng Việt UTF-8 chuẩn
-                return new TextDecoder('utf-8').decode(decompressedArrayBuffer);
-            } catch (decompressError) {
-                console.log("Thử giải nén thất bại, dùng decode thường:", decompressError);
+        // 3. Giải mã URI về Tiếng Việt chuẩn. 
+        // Dùng vòng lặp phòng hờ nếu có đoạn byte rác ở đuôi gây lỗi URI Malformed
+        try {
+            return decodeURIComponent(uriString);
+        } catch (e) {
+            // Nếu lỗi mã hóa URI ở một phân đoạn, bóc tách từng ký tự an toàn
+            var result = '';
+            var parts = uriString.split('%');
+            for (var j = 1; j < parts.length; j++) {
+                try {
+                    result += decodeURIComponent('%' + parts[j]);
+                } catch (err) {
+                    // Gặp đoạn byte lỗi/bị mã hóa rối thì bỏ qua hoặc giữ nguyên dạng ký tự gốc
+                    result += String.fromCharCode(parseInt(parts[j], 16));
+                }
             }
+            return result;
         }
-        
-        // Nếu dữ liệu gốc không nén, giải mã UTF-8 như bình thường
-        return new TextDecoder('utf-8').decode(uint8Array);
-    }
-    catch (e) {
-        console.error("Lỗi thực tế:", e.message);
-        return "Lỗi decode: " + e.message;
+    } catch (e) {
+        return "Lỗi cấu trúc Base64 đầu vào: " + e.message;
     }
 }
