@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.3",             
+        "version": "1.5",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -82,10 +82,10 @@ function parseListResponse(html) {
         var customjs = BaseJSON.codec
         var $url = BaseJSON.url || "";
         var $base64 = processBase64(customjs, true);
-        $url = paramUrl($url, "base64", $base64);
+        $urlbase = paramUrl($url, "base64", $base64);
         var items = [];
         items.push({
-            "id": $url,          
+            "id": $urlbase,          
             "title": $url, 
             "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",  
             "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png"
@@ -186,36 +186,6 @@ function parseDetailResponse(html,url) {
     }
 }
 
-function getAllLinks(html) {
-  // Lấy toàn bộ HTML của trang hiện tạ
- const linkRegex = /(https?:\/\/[^\s"'<>]+|(?<![\w/])[a-zA-Z0-9.-]+\.(?:com|net|org|edu|gov|mil|biz|info|vn|me|io)[^\s"'<>]*)/gi;
-  const matches = html.match(linkRegex);
-
-  if (!matches) {
-    return "";
-  }
-
-  return matches.join('\n');
-}
-
-
-function base64Encode(str) {
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    var encoded = '';
-    for (var i = 0; i < str.length; i += 3) {
-        var c1 = str.charCodeAt(i);
-        var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
-        var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
-        
-        var byte1 = c1 >> 2;
-        var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
-        var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
-        var byte4 = isNaN(c3) ? 64 : c3 & 63;
-        
-        encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
-    }
-    return encoded;
-}
 
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
