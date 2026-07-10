@@ -7,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "3.1",             
+        "version": "1.0",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -76,7 +76,7 @@ function parseListResponse(html) {
         var parsed = JSON.parse(html);
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
         var $url = BaseJSON.url || "";
-        var customjs = BaseJSON.codec || "";
+        var customjs = BaseJSON.coded || "";
         var $base64 = stringToHex(customjs);
         var baselink = paramUrl($url, "base64", $base64);
         var items = [];
