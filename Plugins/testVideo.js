@@ -112,7 +112,7 @@ function parseMovieDetail(html,url) {
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
             decode = processBase64(base64[1], false)
-        )
+        }
         
         var title = "Chưa rõ tên phim";
         var year = "2026";
