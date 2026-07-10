@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -238,7 +238,6 @@ function paramUrl(url, paramName, paramValue) {
 function processBase64($data, $check) {
     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
     
-    // Kiểm tra dữ liệu đầu vào hợp lệ
     if (!$data) return '';
     
     // ==========================================
@@ -246,11 +245,17 @@ function processBase64($data, $check) {
     // ==========================================
     if ($check === true) {
         var str = String($data);
+        
+        // HỖ TRỢ TIẾNG VIỆT: Chuyển chuỗi chữ thành mảng byte mã hóa UTF-8
+        var encoder = new TextEncoder();
+        var byteArray = encoder.encode(str);
+        
         var encoded = '';
-        for (var i = 0; i < str.length; i += 3) {
-            var c1 = str.charCodeAt(i);
-            var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
-            var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
+        // Vòng lặp bây giờ duyệt qua mảng byte thô thay vì duyệt chuỗi chữ
+        for (var i = 0; i < byteArray.length; i += 3) {
+            var c1 = byteArray[i];
+            var c2 = i + 1 < byteArray.length ? byteArray[i + 1] : NaN;
+            var c3 = i + 2 < byteArray.length ? byteArray[i + 2] : NaN;
             
             var byte1 = c1 >> 2;
             var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
@@ -266,32 +271,33 @@ function processBase64($data, $check) {
     // TRƯỜNG HỢP 2: $check === false -> DECODE (Giải mã)
     // ==========================================
     else {
-        var str = String($data).replace(/[^A-Za-z0-9\+\/=]/g, ''); // Loại bỏ ký tự lạ nếu có
-        var decoded = '';
+        var str = String($data).replace(/[^A-Za-z0-9\+\/=]/g, '');
+        
+        // Mảng trung gian để chứa các byte thô bóc được từ bit
+        var byteArrayOut = [];
         
         for (var i = 0; i < str.length; i += 4) {
-            // Lấy vị trí index của 4 ký tự Base64 trong chuỗi chars mẫu
             var b1 = chars.indexOf(str.charAt(i));
             var b2 = chars.indexOf(str.charAt(i + 1));
             var b3 = chars.indexOf(str.charAt(i + 2));
             var b4 = chars.indexOf(str.charAt(i + 3));
             
-            // Khôi phục ký tự thứ 1 (Luôn có)
             var c1 = (b1 << 2) | (b2 >> 4);
-            decoded += String.fromCharCode(c1);
+            byteArrayOut.push(c1);
             
-            // Khôi phục ký tự thứ 2 (Nếu ký tự thứ 3 không phải ký tự bù '=')
             if (b3 !== 64 && b3 !== -1) {
                 var c2 = ((b2 & 15) << 4) | (b3 >> 2);
-                decoded += String.fromCharCode(c2);
+                byteArrayOut.push(c2);
             }
             
-            // Khôi phục ký tự thứ 3 (Nếu ký tự thứ 4 không phải ký tự bù '=')
             if (b4 !== 64 && b4 !== -1) {
                 var c3 = ((b3 & 3) << 6) | b4;
-                decoded += String.fromCharCode(c3);
+                byteArrayOut.push(c3);
             }
         }
-        return decoded;
+        
+        // HỖ TRỢ TIẾNG VIỆT: Khôi phục mảng byte thô ngược lại thành chuỗi UTF-8 hoàn chỉnh
+        var decoder = new TextDecoder();
+        return decoder.decode(new Uint8Array(byteArrayOut));
     }
 }
