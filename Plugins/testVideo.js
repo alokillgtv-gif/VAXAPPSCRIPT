@@ -7,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -105,14 +105,18 @@ function parseMovieDetail(html,url) {
         var id = BaseURL;
         // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
         var decode = "";
+        var $title = "";
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
-                decode = hexToString(base64[1])
-            
+            decode = hexToString(base64[1])
+            var error =  safeEval(decode)
+            if(typeOf(error) == "string"){
+                $title = error;
+            }
             //decode = base64[1];
         }
         
-        var title = "Chưa rõ tên phim";
+        var title = $title;
         var year = "2026";
         var des = decode + "\r\n\r\n\r\n\r\n" + html;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
@@ -275,5 +279,28 @@ function hexToString(hexStr) {
         return result;
     } catch (e) {
         return "Lỗi giải mã Hex: " + e.message;
+    }
+}
+
+function safeEval(codeString) {
+    if (!codeString || typeof codeString !== 'string') return null;
+    
+    // Bước 1: Kiểm tra xem chuỗi có lỗi cú pháp (Syntax Error) hay không
+    // Việc khởi tạo "new Function" chỉ biên dịch code chứ CHƯA thực thi nó.
+    // Nếu cú pháp lỗi (thiếu dấu ngoặc, sai từ khóa...), nó sẽ nhảy vào catch ngay lập tức.
+    try {
+        new Function(codeString);
+    } catch (syntaxError) {
+        return "Lỗi cú pháp: " + syntaxError.message;
+    }
+    
+    // Bước 2: Khi cú pháp đã chuẩn, tiến hành eval trong môi trường try...catch 
+    // để phòng hờ lỗi Runtime (ví dụ: gọi hàm không tồn tại, biến chưa định nghĩa...)
+    try {
+        // Sử dụng một biến cục bộ để hứng kết quả trả về từ eval nếu có
+        var result = eval(codeString);
+        return result;
+    } catch (runtimeError) {
+        return "Lỗi thực thi: " + runtimeError.message;
     }
 }
