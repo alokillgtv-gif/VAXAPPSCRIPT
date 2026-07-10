@@ -202,7 +202,7 @@ function parseMovieDetail(html,$url) {
 
     rmatch = html.match(/meta\s+name="description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
-    //<div id="videoContainer" data-rand-niche="2096" data-low="https://stream.tranny.one/key=G0Vd1aEH1gt3lR2Ei3GE9A,end=1783582334/speed=9999999/3185091.mp4" data-high="https://stream.tranny.one/key=Ft1X-736mTlKfCxl6PihsA,end=1783582334/speed=485859/3185091.mp4">
+    
     var epi = [];
     var mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
     if(mathser && mathser[1]){
