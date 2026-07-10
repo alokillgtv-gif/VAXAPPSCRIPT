@@ -7,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.8",             
+        "version": "3",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -77,7 +77,7 @@ function parseListResponse(html) {
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
         var $url = BaseJSON.url || "";
         var customjs = BaseJSON.codec || "";
-        var $base64 = base64Encode(customjs);
+        var $base64 = stringToHex(customjs);
         var baselink = paramUrl($url, "base64", $base64);
         var items = [];
         items.push({
@@ -107,7 +107,7 @@ function parseMovieDetail(html,url) {
         var decode = "";
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
-                decode = base64Decode(base64[1])
+                decode = hexToString(base64[1])
             
             //decode = base64[1];
         }
@@ -201,81 +201,45 @@ function paramUrl(url, paramName, paramValue) {
     }
 }
 // 1. Hàm ENCODE hỗ trợ Tiếng Việt (Thuần JS)
-function base64Encode(str) {
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    var encoded = '';
-    
-    // Bước bắt buộc: Chuyển chuỗi Tiếng Việt thành mảng byte UTF-8 trước
-    var bytes = [];
-    for (var i = 0; i < str.length; i++) {
-        var code = str.charCodeAt(i);
-        if (code < 0x80) {
-            bytes.push(code);
-        } else if (code < 0x800) {
-            bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f));
-        } else if (code < 0xd800 || code >= 0xe000) {
-            bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
-        } else {
-            i++;
-            code = 0x10000 + (((code & 0x3ff) << 10) | (str.charCodeAt(i) & 0x3ff));
-            bytes.push(0xf0 | (code >> 18), 0x80 | ((code >> 12) & 0x3f), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
+// 1. Hàm mã hóa: Chuỗi Tiếng Việt -> Chuỗi mã Hex
+function stringToHex(str) {
+    try {
+        // Chuyển chuỗi Tiếng Việt sang mảng byte mã hóa UTF-8 bằng TextEncoder
+        var encoder = new TextEncoder();
+        var view = encoder.encode(str);
+        var hexStr = '';
+        
+        for (var i = 0; i < view.length; i++) {
+            var hex = view[i].toString(16);
+            // Đảm bảo mỗi byte luôn có đủ 2 ký tự (ví dụ: '0a' thay vì 'a')
+            hexStr += (hex.length === 1 ? '0' + hex : hex);
         }
+        return hexStr;
+    } catch (e) {
+        return "Lỗi mã hóa Hex";
     }
-    
-    // Tiến hành mã hóa Base64 từ mảng byte
-    for (var i = 0; i < bytes.length; i += 3) {
-        var c1 = bytes[i];
-        var c2 = i + 1 < bytes.length ? bytes[i + 1] : NaN;
-        var c3 = i + 2 < bytes.length ? bytes[i + 2] : NaN;
-        
-        var byte1 = c1 >> 2;
-        var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
-        var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
-        var byte4 = isNaN(c3) ? 64 : c3 & 63;
-        
-        encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
-    }
-    return encoded;
 }
 
-// 2. Hàm DECODE tương ứng (Thuần JS)
-function base64Decode(encodedStr) {
+// 2. Hàm giải mã: Chuỗi mã Hex -> Chuỗi Tiếng Việt chuẩn
+function hexToString(hexStr) {
     try {
-        // 1. Giải mã Base64 sang chuỗi nhị phân bằng hàm hệ thống (nhanh và chuẩn nhất)
-        // Nếu chuỗi thiếu padding '=', tự động bù vào
-        encodedStr = encodedStr.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-        while (encodedStr.length % 4 !== 0) {
-            encodedStr += '=';
+        // Loại bỏ mọi ký tự khoảng trắng hoặc ký tự lạ lỡ lọt vào chuỗi Hex
+        hexStr = hexStr.replace(/[^0-9A-Fa-f]/g, '');
+        
+        // Chuỗi mã Hex hợp lệ bắt buộc phải có số ký tự là số chẵn (2 ký tự = 1 byte)
+        if (hexStr.length % 2 !== 0) {
+            return "Lỗi: Chuỗi mã Hex có độ dài không hợp lệ";
         }
         
-        var binaryString = atob(encodedStr);
-        
-        // 2. Chuyển chuỗi nhị phân thành chuỗi mã hóa URI (%XX) để giải mã UTF-8 tiếng Việt
-        var uriString = '';
-        for (var i = 0; i < binaryString.length; i++) {
-            var hex = binaryString.charCodeAt(i).toString(16);
-            uriString += '%' + ('00' + hex).slice(-2);
+        var bytes = new Uint8Array(hexStr.length / 2);
+        for (var i = 0; i < hexStr.length; i += 2) {
+            bytes[i / 2] = parseInt(hexStr.substring(i, i + 2), 16);
         }
         
-        // 3. Giải mã URI về Tiếng Việt chuẩn. 
-        // Dùng vòng lặp phòng hờ nếu có đoạn byte rác ở đuôi gây lỗi URI Malformed
-        try {
-            return decodeURIComponent(uriString);
-        } catch (e) {
-            // Nếu lỗi mã hóa URI ở một phân đoạn, bóc tách từng ký tự an toàn
-            var result = '';
-            var parts = uriString.split('%');
-            for (var j = 1; j < parts.length; j++) {
-                try {
-                    result += decodeURIComponent('%' + parts[j]);
-                } catch (err) {
-                    // Gặp đoạn byte lỗi/bị mã hóa rối thì bỏ qua hoặc giữ nguyên dạng ký tự gốc
-                    result += String.fromCharCode(parseInt(parts[j], 16));
-                }
-            }
-            return result;
-        }
+        // Giải mã mảng byte UTF-8 về lại Tiếng Việt chuẩn chỉnh
+        var decoder = new TextDecoder('utf-8');
+        return decoder.decode(bytes);
     } catch (e) {
-        return "Lỗi cấu trúc Base64 đầu vào: " + e.message;
+        return "Lỗi giải mã Hex: " + e.message;
     }
 }
