@@ -299,10 +299,10 @@ function textJS(html, $url) {
     return `
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=porn00&type=js"; 
 
-const style = document.createElement('style');
-var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;display:none!important}';
-style.innerHTML = customcss;
-document.head.appendChild(style);
+//const style = document.createElement('style');
+//var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;display:none!important}';
+//style.innerHTML = customcss;
+//document.head.appendChild(style);
 function showToast(message, duration = 7000) {
     let container = document.getElementById('global-toast-container');
     if (!container) {
