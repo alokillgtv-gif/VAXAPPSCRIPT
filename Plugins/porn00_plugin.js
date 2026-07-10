@@ -5,7 +5,7 @@ function getManifest() {
         "id": "porn00",
         "name": "Porn00",
         "description": "Nguồn XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://www.porn00.tv",
         "iconUrl": "https://www.porn00.tv/static/images/logo.png",
         "isEnabled": true,
@@ -299,10 +299,12 @@ function textJS(html, $url) {
     return `
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=porn00&type=js"; 
 
-//const style = document.createElement('style');
-//var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;display:none!important}';
-//style.innerHTML = customcss;
-//document.head.appendChild(style);
+const style = document.createElement('style');
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
+document.head.appendChild(style);
+scriptJS = '<script src="'+SCRIPTURL+'" text/javascript></script>';
+document.head.appendChild(scriptJS);
 function showToast(message, duration = 7000) {
     let container = document.getElementById('global-toast-container');
     if (!container) {
@@ -357,7 +359,7 @@ function showToast(message, duration = 7000) {
         }, 300);
     }, duration);
 }
-
+/*
 function injectScriptAfterLoad(scriptUrl) {
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
@@ -379,7 +381,7 @@ function injectScriptAfterLoad(scriptUrl) {
                 
                 // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
                 document.body.appendChild(scriptElement);
-                showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
             })
             .catch(error => {
                 console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
@@ -395,7 +397,7 @@ function injectScriptAfterLoad(scriptUrl) {
         document.addEventListener('DOMContentLoaded', doFetchAndInject);
     }
 }
-
+*/
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
     
