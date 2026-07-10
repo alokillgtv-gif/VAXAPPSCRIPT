@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.6",             
+        "version": "1.7",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -81,7 +81,7 @@ function parseListResponse(html) {
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
         var $url = BaseJSON.url || "";
         var customjs = BaseJSON.codec || "";
-        var $base64 = processBase64(customjs, true);
+        var $base64 = base64Encode(customjs);
         var baselink = paramUrl($url, "base64", $base64);
         var items = [];
         items.push({
@@ -199,7 +199,23 @@ function paramUrl(url, paramName, paramValue) {
         return `${url}?${paramName}=${paramValue}`;
     }
 }
-
+function base64Encode(str) {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    var encoded = '';
+    for (var i = 0; i < str.length; i += 3) {
+        var c1 = str.charCodeAt(i);
+        var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
+        var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
+        
+        var byte1 = c1 >> 2;
+        var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
+        var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
+        var byte4 = isNaN(c3) ? 64 : c3 & 63;
+        
+        encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
+    }
+    return encoded;
+}
 // Trước khi gửi đi:
 function processBase64($data, $check) {
     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
