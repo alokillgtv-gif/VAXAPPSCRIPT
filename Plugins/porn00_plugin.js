@@ -7,7 +7,7 @@ function getManifest() {
         "description": "Nguồn XXX Hay",
         "version": "1.0",
         "BASEURL": "https://www.porn00.tv",
-        "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
+        "iconUrl": "https://www.porn00.tv/static/images/logo.png",
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
@@ -205,6 +205,8 @@ function parseMovieDetail(html,$url) {
     rmatch = html.match(/meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
     var epi = [];
+    var stream1 = "";
+    var stream2 = "";
     var script = html.match(/var\s+flashvars\s+=\s+({[\s\S]*?}\;)/i);
     if(script && script[1]){
     var jsonObj = new Function(`return ${script[1]}`)();
@@ -224,7 +226,7 @@ function parseMovieDetail(html,$url) {
     }
     // var stream = 'https://agokda.cdnlab.live/stream/X9mBBkyCNC1euSox903wew/1783632790/0/431/431.m3u8';
     var $return = {
-        id: $url,
+        id: stream1,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
