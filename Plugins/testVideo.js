@@ -7,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "3",             
+        "version": "3.1",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -202,17 +202,32 @@ function paramUrl(url, paramName, paramValue) {
 }
 // 1. Hàm ENCODE hỗ trợ Tiếng Việt (Thuần JS)
 // 1. Hàm mã hóa: Chuỗi Tiếng Việt -> Chuỗi mã Hex
+// 1. Hàm mã hóa: Chuỗi Tiếng Việt -> Chuỗi mã Hex (Không dùng TextEncoder)
 function stringToHex(str) {
     try {
-        // Chuyển chuỗi Tiếng Việt sang mảng byte mã hóa UTF-8 bằng TextEncoder
-        var encoder = new TextEncoder();
-        var view = encoder.encode(str);
         var hexStr = '';
-        
-        for (var i = 0; i < view.length; i++) {
-            var hex = view[i].toString(16);
-            // Đảm bảo mỗi byte luôn có đủ 2 ký tự (ví dụ: '0a' thay vì 'a')
-            hexStr += (hex.length === 1 ? '0' + hex : hex);
+        for (var i = 0; i < str.length; i++) {
+            var code = str.charCodeAt(i);
+            var bytes = [];
+            
+            // Tự phân tách ký tự Unicode thành các byte UTF-8 thủ công
+            if (code < 0x80) {
+                bytes.push(code);
+            } else if (code < 0x800) {
+                bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f));
+            } else if (code < 0xd800 || code >= 0xe000) {
+                bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
+            } else {
+                i++;
+                code = 0x10000 + (((code & 0x3ff) << 10) | (str.charCodeAt(i) & 0x3ff));
+                bytes.push(0xf0 | (code >> 18), 0x80 | ((code >> 12) & 0x3f), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
+            }
+            
+            // Chuyển mảng byte vừa tách sang chuỗi Hex
+            for (var j = 0; j < bytes.length; j++) {
+                var hex = bytes[j].toString(16);
+                hexStr += (hex.length === 1 ? '0' + hex : hex);
+            }
         }
         return hexStr;
     } catch (e) {
@@ -220,25 +235,44 @@ function stringToHex(str) {
     }
 }
 
-// 2. Hàm giải mã: Chuỗi mã Hex -> Chuỗi Tiếng Việt chuẩn
+// 2. Hàm giải mã: Chuỗi mã Hex -> Chuỗi Tiếng Việt (Không dùng TextDecoder)
 function hexToString(hexStr) {
     try {
-        // Loại bỏ mọi ký tự khoảng trắng hoặc ký tự lạ lỡ lọt vào chuỗi Hex
+        // Làm sạch chuỗi hex, loại bỏ ký tự lạ
         hexStr = hexStr.replace(/[^0-9A-Fa-f]/g, '');
-        
-        // Chuỗi mã Hex hợp lệ bắt buộc phải có số ký tự là số chẵn (2 ký tự = 1 byte)
         if (hexStr.length % 2 !== 0) {
-            return "Lỗi: Chuỗi mã Hex có độ dài không hợp lệ";
+            return "Lỗi: Độ dài mã Hex không hợp lệ";
         }
         
-        var bytes = new Uint8Array(hexStr.length / 2);
+        // Chuyển chuỗi Hex thành mảng các byte số nguyên
+        var bytes = [];
         for (var i = 0; i < hexStr.length; i += 2) {
-            bytes[i / 2] = parseInt(hexStr.substring(i, i + 2), 16);
+            bytes.push(parseInt(hexStr.substring(i, i + 2), 16));
         }
         
-        // Giải mã mảng byte UTF-8 về lại Tiếng Việt chuẩn chỉnh
-        var decoder = new TextDecoder('utf-8');
-        return decoder.decode(bytes);
+        // Gộp các byte UTF-8 lại thành chữ Tiếng Việt có dấu chuẩn
+        var result = '';
+        var j = 0;
+        while (j < bytes.length) {
+            var b1 = bytes[j++];
+            if (b1 < 128) {
+                result += String.fromCharCode(b1);
+            } else if (b1 > 191 && b1 < 224 && j < bytes.length) {
+                var b2 = bytes[j++];
+                result += String.fromCharCode(((b1 & 31) << 6) | (b2 & 63));
+            } else if (b1 > 223 && b1 < 240 && j + 1 < bytes.length) {
+                var b2 = bytes[j++];
+                var b3 = bytes[j++];
+                result += String.fromCharCode(((b1 & 15) << 12) | ((b2 & 63) << 6) | (b3 & 63));
+            } else if (b1 > 239 && b1 < 245 && j + 2 < bytes.length) {
+                var b2 = bytes[j++];
+                var b3 = bytes[j++];
+                var b4 = bytes[j++];
+                var cp = ((b1 & 7) << 18) | ((b2 & 63) << 12) | ((b3 & 63) << 6) | (b4 & 63);
+                if (cp <= 0x10FFFF) result += String.fromCodePoint(cp);
+            }
+        }
+        return result;
     } catch (e) {
         return "Lỗi giải mã Hex: " + e.message;
     }
