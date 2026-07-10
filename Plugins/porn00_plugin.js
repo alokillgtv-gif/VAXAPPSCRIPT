@@ -5,7 +5,7 @@ function getManifest() {
         "id": "porn00",
         "name": "Porn00",
         "description": "Nguồn XXX Hay",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://www.porn00.tv",
         "iconUrl": "https://www.porn00.tv/static/images/logo.png",
         "isEnabled": true,
@@ -205,28 +205,12 @@ function parseMovieDetail(html,$url) {
     rmatch = html.match(/meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
     var epi = [];
+    epi.push({ id: $url, name: "Xem Ngay", slug: "full" });
     var stream1 = "";
     var stream2 = "";
-    var script = html.match(/var\s+flashvars\s+=\s+({[\s\S]*?}\;)/i);
-    if(script && script[1]){
-    var jsonObj = new Function(`return ${script[1]}`)();
-        if(jsonObj.video_alt_url && jsonObj.video_alt_url.match(/http|.mp4/)){
-            stream1 = jsonObj.video_alt_url;
-            streamname1 = "Độ Phân Giải: " + jsonObj.video_alt_url_text;
-            stream2 = jsonObj.video_url;
-            streamname2 = "Độ Phân Giải: " + jsonObj.video_url_text;
-            epi.push({ id: stream1, name: streamname1, slug: "full" });
-            epi.push({ id: stream2, name: streamname2, slug: "full" })
-        }
-        else{
-            stream1 = jsonObj.video_url;
-            streamname1 = "Độ Phân Giải: " + jsonObj.video_url_text;
-            epi.push({ id: stream1, name: streamname1, slug: "full" });
-        }
-    }
     // var stream = 'https://agokda.cdnlab.live/stream/X9mBBkyCNC1euSox903wew/1783632790/0/431/431.m3u8';
     var $return = {
-        id: stream1,
+        id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
