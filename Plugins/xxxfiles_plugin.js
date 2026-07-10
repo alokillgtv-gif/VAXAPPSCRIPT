@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.7",
+        "version": "1.8",
         "BASEURL": "https://www.xxxfiles.com",
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -305,51 +305,178 @@ function parseMovieDetail(html, url) {
 
 function parseDetailResponse(html, url) {
     try {
-        var customJs = `
-function initCustomVideoFix() {
-    const style = document.createElement('style');
-    var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
-    style.innerHTML = customcss;
-    document.head.appendChild(style);
+        
+        var customjs = textJS(html, url);
+        
+        // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
+        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        return JSON.stringify({
+            "url": url,
+            "headers": {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                mimeType: "application/x-mpegURL",
+                isEmbed: true,
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs.trim()
+            },
+            "subtitles": []
+        });
+        
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
+    }
+}
+
+function parseEmbedResponse(html, sourceUrl) {
     
-    if (typeof jwplayer === "function") {
-        const player = jwplayer("previewPlayer");
-        if (player && typeof player.getMute === "function") {
-            if (player.getMute()) {
-                player.setMute(false);
-            }
-            player.setVolume(100);
-        }
+    var link = sourceUrl;
+    var customjs = textJS(html, sourceUrl);
+    
+    return JSON.stringify({
+        url: link,
+        isEmbed: false, // Kết thúc, đây là link stream cuối
+        mimeType: "application/x-mpegURL", // Báo App đây là HLS
+        headers: {
+            "Referer": BASEURL,
+            "Custom-Js": customjs.trim()
+            
+        },
+    });
+    
+    return JSON.stringify({ url: "", isEmbed: false });
+}
+
+function textJS(html, $url) {
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+    return `
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=xxxfiles&type=js"; 
+const style = document.createElement('style');
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
+document.head.appendChild(style);
+showToast("Đang tải video cho bạn.", 7000)
+function showToast(message, duration = 7000) {
+    let container = document.getElementById('global-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'global-toast-container';
+        
+        Object.assign(container.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            zIndex: '99999',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px'
+        });
+        document.body.appendChild(container);
     }
     
-    const checkAndClick = setInterval(() => {
-        const skipButton = document.getElementById("skip-ad");
-        if (skipButton) {
-            skipButton.click();
-            clearInterval(checkAndClick);
-        }
-    }, 200);
+    const toast = document.createElement('div');
+    toast.innerHTML = message;
     
-    setTimeout(() => { clearInterval(checkAndClick); }, 20000);
+    Object.assign(toast.style, {
+        background: 'rgba(50, 50, 50, 0.95)',
+        color: '#fff',
+        padding: '12px 24px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+        fontFamily: 'sans-serif',
+        fontSize: '14px',
+        minWidth: '200px',
+        transition: 'all 0.3s ease',
+        transform: 'translateX(120%)',
+        opacity: '0'
+    });
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+        toast.style.opacity = '1';
+    }, 10);
+    
+    setTimeout(() => {
+        toast.style.transform = 'translateX(120%)';
+        toast.style.opacity = '0';
+        
+        setTimeout(() => {
+            toast.remove();
+            if (container.childElementCount === 0) {
+                container.remove();
+            }
+        }, 300);
+    }, duration);
 }
+
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
+        
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
+    }
+    
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
+    } else {
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    }
+}
+
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
+    }
+    
+    // Lưu ý: Đảm bảo hàm runScript() này đã được định nghĩa ở đâu đó trong hệ thống của bạn
+    if (typeof runScript === "function") {
+        runScript("sssssssss");
+    }
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
     initCustomVideoFix();
-}`;
-        
-        return JSON.stringify({
-            url: "",
-            headers: {
-                "Referer": url,
-                "Origin": url,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
-            }
-        });
-    } catch (error) {
-        return JSON.stringify({ url: "", headers: {} });
-    }
+}
+`;
 }
 
 function parseCategoriesResponse(apiResponseJson) {
