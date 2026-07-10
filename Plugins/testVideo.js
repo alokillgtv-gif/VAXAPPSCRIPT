@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.7",             
+        "version": "1.8",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -104,16 +104,19 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html) {
+function parseMovieDetail(html,url) {
     try {
         var id = BaseURL;
         // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
-        var streamUrl = "";
-        var rmatch = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
-        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+        var decode = "";
+        var base64 = url.match(/base64=([^&]+)/i);
+        if(base64 && base64[1]){
+            decode = processBase64(base64[1], false)
+        )
+        
         var title = "Chưa rõ tên phim";
         var year = "2026";
-        var des = streamUrl + "\r\n\r\n" + html;
+        var des = decode + "\r\n\r\n\r\n\r\n" + html;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
         
