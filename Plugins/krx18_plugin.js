@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.4",
+        "version": "1.5",
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
         "isEnabled": true,
@@ -317,7 +317,7 @@ function parseEmbedResponse(html, sourceUrl) {
 function textJS(html, $url) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js"; 
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=krx18&type=js"; 
 function showToast(message, duration = 7000) {
     let container = document.getElementById('global-toast-container');
     if (!container) {
