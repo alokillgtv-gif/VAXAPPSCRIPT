@@ -1,7 +1,3 @@
-// =============================================================================
-// VAAPP Plugin - Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
-// Tên file bắt buộc khi lưu: crophim_plugin.js
-// =============================================================================
 BaseURL = "https://script.google.com/macros/s/AKfycbydwasfO9sUsP7nSduOON6yKVZUMpSraNRFb58knwl_AKpb6vixCuPe-uptcpaGIiXBEw/exec";
 BaseJSON = "";
 BaseJSON2 = "";
@@ -11,7 +7,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.2",             
+        "version": "2.3",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -111,8 +107,8 @@ function parseMovieDetail(html,url) {
         var decode = "";
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
-            //decode = base64Decode(base64[1])
-            decode = base64[1];
+            decode = base64Decode(base64[1])
+            //decode = base64[1];
         }
         
         var title = "Chưa rõ tên phim";
@@ -243,46 +239,51 @@ function base64Encode(str) {
 
 // 2. Hàm DECODE tương ứng (Thuần JS)
 function base64Decode(encodedStr) {
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    var bytes = [];
-    encodedStr = encodedStr.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-    
-    for (var i = 0; i < encodedStr.length; i += 4) {
-        var b1 = chars.indexOf(encodedStr.charAt(i));
-        var b2 = chars.indexOf(encodedStr.charAt(i + 1));
-        var b3 = chars.indexOf(encodedStr.charAt(i + 2));
-        var b4 = chars.indexOf(encodedStr.charAt(i + 3));
+    try{
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        var bytes = [];
+        encodedStr = encodedStr.replace(/[^A-Za-z0-9\+\/\=]/g, "");
         
-        var c1 = (b1 << 2) | (b2 >> 4);
-        var c2 = ((b2 & 15) << 4) | (b3 >> 2);
-        var c3 = ((b3 & 3) << 6) | b4;
-        
-        bytes.push(c1);
-        if (b3 !== 64 && encodedStr.charAt(i + 2) !== '=') bytes.push(c2);
-        if (b4 !== 64 && encodedStr.charAt(i + 3) !== '=') bytes.push(c3);
-    }
-    
-    // Giải mã mảng bytes UTF-8 về lại chuỗi ký tự
-    var str = '';
-    var j = 0;
-    while (j < bytes.length) {
-        var b1 = bytes[j++];
-        if (b1 < 128) {
-            str += String.fromCharCode(b1);
-        } else if (b1 > 191 && b1 < 224) {
-            var b2 = bytes[j++];
-            str += String.fromCharCode(((b1 & 31) << 6) | (b2 & 63));
-        } else if (b1 > 223 && b1 < 240) {
-            var b2 = bytes[j++];
-            var b3 = bytes[j++];
-            str += String.fromCharCode(((b1 & 15) << 12) | ((b2 & 63) << 6) | (b3 & 63));
-        } else {
-            var b2 = bytes[j++];
-            var b3 = bytes[j++];
-            var b4 = bytes[j++];
-            var cp = ((b1 & 7) << 18) | ((b2 & 63) << 12) | ((b3 & 63) << 6) | (b4 & 63);
-            str += String.fromCodePoint(cp);
+        for (var i = 0; i < encodedStr.length; i += 4) {
+            var b1 = chars.indexOf(encodedStr.charAt(i));
+            var b2 = chars.indexOf(encodedStr.charAt(i + 1));
+            var b3 = chars.indexOf(encodedStr.charAt(i + 2));
+            var b4 = chars.indexOf(encodedStr.charAt(i + 3));
+            
+            var c1 = (b1 << 2) | (b2 >> 4);
+            var c2 = ((b2 & 15) << 4) | (b3 >> 2);
+            var c3 = ((b3 & 3) << 6) | b4;
+            
+            bytes.push(c1);
+            if (b3 !== 64 && encodedStr.charAt(i + 2) !== '=') bytes.push(c2);
+            if (b4 !== 64 && encodedStr.charAt(i + 3) !== '=') bytes.push(c3);
         }
+        
+        // Giải mã mảng bytes UTF-8 về lại chuỗi ký tự
+        var str = '';
+        var j = 0;
+        while (j < bytes.length) {
+            var b1 = bytes[j++];
+            if (b1 < 128) {
+                str += String.fromCharCode(b1);
+            } else if (b1 > 191 && b1 < 224) {
+                var b2 = bytes[j++];
+                str += String.fromCharCode(((b1 & 31) << 6) | (b2 & 63));
+            } else if (b1 > 223 && b1 < 240) {
+                var b2 = bytes[j++];
+                var b3 = bytes[j++];
+                str += String.fromCharCode(((b1 & 15) << 12) | ((b2 & 63) << 6) | (b3 & 63));
+            } else {
+                var b2 = bytes[j++];
+                var b3 = bytes[j++];
+                var b4 = bytes[j++];
+                var cp = ((b1 & 7) << 18) | ((b2 & 63) << 12) | ((b3 & 63) << 6) | (b4 & 63);
+                str += String.fromCodePoint(cp);
+            }
+        }
+        return str;
     }
-    return str;
+    catch (e) {
+        return "Lỗi decode base64";
+    }
 }
