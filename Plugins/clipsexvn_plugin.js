@@ -5,7 +5,7 @@ function getManifest() {
         "name": "Clip Sex Hay",
         "description": "XXX Hay",
         "version": "1.0",             
-        "baseUrl": BASEURL,
+        "baseUrl": "https://clipsexvn.mobi",
         "iconUrl": "https://clipsexvn.mobi/wp-content/themes/video3x/images/favicon.ico", 
         "isEnabled": true,
         "isAdult": true,

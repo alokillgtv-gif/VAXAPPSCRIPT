@@ -11,7 +11,7 @@ function getManifest() {
         "description": "XXX Hay",
         "version": "1.1",
         "BASEURL": "https://sexdep.vip",
-        "iconUrl": BASEIMG,
+        "iconUrl": "https://sexdeplon.com/resize/50/2025/02/04/16c0e67dcf0acbc0be5e7ef611c410b76820a26b490a9d790f758fbe851607bc.png",
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",

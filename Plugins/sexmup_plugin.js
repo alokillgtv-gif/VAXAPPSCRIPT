@@ -1,13 +1,14 @@
 // =============================================================================
 // VAAPP Plugin - SEX MUP (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
 // =============================================================================
+BASEURL = "https://sexmupxinh.net";
 
 function getManifest() {
     return JSON.stringify({
         "id": "sexmup",          
         "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -62,22 +63,22 @@ function getUrlList(slug, filtersJson) {
         var page = filters.page || 1;
         
         if (page > 1) {
-            return "https://sexmupxinh.net/" + slug + "/page/" + page + "/";
+            return BASEURL + "/" + slug + "/page/" + page + "/";
         }
-        return "https://sexmupxinh.net/" + slug;
+        return BASEURL + "/" + slug;
     } catch (e) {
-        return "https://sexmupxinh.net/" + slug;
+        return BASEURL + "/" + slug;
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://sexmupxinh.net/search/?do=search&qh=" + encodeURIComponent(keyword);
+    return BASEURL + "/search/?do=search&qh=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://sexmupxinh.net/" + slug;
+    return BASEURL + "/" + slug;
 }
 
 function getUrlCategories() { return ""; }

@@ -6,7 +6,7 @@ function getManifest() {
         "name": "Motherless",
         "description": "XXX Hay",
         "version": "1.0",
-        "baseUrl": BASEURL,
+        "baseUrl": "https://motherless.xxx",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless.jpg",
         "isEnabled": true,
         "isAdult": true,
