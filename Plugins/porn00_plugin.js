@@ -5,7 +5,7 @@ function getManifest() {
         "id": "porn00",
         "name": "Porn00",
         "description": "Nguồn XXX Hay",
-        "version": "1.3",
+        "version": "1.5",
         "BASEURL": "https://www.porn00.tv",
         "iconUrl": "https://www.porn00.tv/static/images/logo.png",
         "isEnabled": true,
@@ -358,40 +358,121 @@ function showToast(message, duration = 7000) {
 }
 
 function injectScriptAfterLoad(scriptUrl) {
-    function doFetchAndInject() {
-        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
-        
-        fetch(SCRIPTURL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
-                }
-                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
-            })
-            .then(codeText => {
-                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
-                const scriptElement = document.createElement('script');
-                scriptElement.type = 'text/javascript';
-                
-                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
-                scriptElement.textContent = codeText;
-                
-                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
-                document.body.appendChild(scriptElement);
-               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
-            })
-            .catch(error => {
-                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
-            });
+        // 1. Trích xuất URL từ mã nguồn trang web (giữ nguyên logic của bạn)
+    var htmlTAG = document.getElementsByTagName("html")[0];
+    var htmltext = htmlTAG.outerHTML;
+    var stream1 = '';
+    var script = htmltext.match(/var\s+flashvars\s+=\s+({[\s\S]*?};)/i);
+    
+    if (script && script[1]) {
+        try {
+            var jsonObj = new Function('return ' + script[1])();
+            if (jsonObj.video_alt_url && jsonObj.video_alt_url.match(/http|\.mp4/)) {
+                stream1 = jsonObj.video_alt_url;
+            } else {
+                stream1 = jsonObj.video_url;
+            }
+        } catch (e) {
+            console.error("Lỗi khi đọc flashvars:", e);
+        }
     }
     
-    // Kiểm tra trạng thái tải của trang web
-    if (document.readyState !== 'loading') {
-        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
-        doFetchAndInject();
-    } else {
-        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
-        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    // 2. Dọn dẹp toàn bộ trang web hiện tại để tạo không gian trống cho Player
+    document.documentElement.innerHTML = '<head><title>Trình Phát Video Trực Tiếp</title></head><body style="margin: 0; padding: 0; background-color: #000; overflow: hidden; height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center;"></body>';
+    
+    // 3. Khởi tạo Video Player
+    const video = document.createElement('video');
+    video.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1;';
+    video.setAttribute('playsinline', 'true');
+    video.setAttribute('webkit-playsinline', 'true');
+    video.controls = true; // Bật thanh điều khiển (cho phép chọn vùng, chỉnh âm lượng)
+    video.src = stream1;
+    
+    // Cài đặt âm lượng và chuẩn bị autoplay
+    video.volume = 1.0;
+    video.muted = false;
+    document.body.appendChild(video);
+    
+    // Xử lý Autoplay thông minh (Vượt qua chính sách chặn âm lượng)
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(() => {
+            console.log("Trình duyệt chặn phát âm thanh tự động. Đang chuyển sang chế độ Mute để tiếp tục Autoplay.");
+            video.muted = true; // Chấp nhận tắt tiếng để được autoplay
+            video.play();
+        });
+    }
+    
+    // 4. Tạo Nút Reload (Tải lại video giữ nguyên thời gian hiện tại)
+    const reloadBtn = document.createElement('button');
+    reloadBtn.innerHTML = '🔄 Tải lại Nguồn';
+    reloadBtn.style.cssText = 'opacity:0.4;position: fixed; top: 20px; left: 20px; z-index: 9999; padding: 10px 15px; background: rgba(0, 0, 0, 0.6); color: white; border: 1px solid white; border-radius: 6px; cursor: pointer; font-family: sans-serif; font-size: 14px; transition: 0.3s;';
+    reloadBtn.onmouseover = () => reloadBtn.style.background = 'rgba(0, 0, 0, 0.9)';
+    reloadBtn.onmouseout = () => reloadBtn.style.background = 'rgba(0, 0, 0, 0.6)';
+    reloadBtn.onclick = () => {
+        const currentTime = video.currentTime; // Lưu lại mốc thời gian đang xem
+        video.load();
+        video.currentTime = currentTime; // Trả lại mốc thời gian
+        video.play();
+    };
+    document.body.appendChild(reloadBtn);
+    
+    // 5. Tính năng Tua bằng bàn phím (Mũi tên trái/phải và Phím Cách)
+    document.addEventListener('keydown', (e) => {
+        const skipTime = 10; // Tua 10 giây mỗi lần bấm
+        if (e.key === 'ArrowRight') {
+            video.currentTime = Math.min(video.duration, video.currentTime + skipTime);
+            showFeedback("⏩ +10s");
+        } else if (e.key === 'ArrowLeft') {
+            video.currentTime = Math.max(0, video.currentTime - skipTime);
+            showFeedback("⏪ -10s");
+        } else if (e.key === ' ') { // Phím cách để Play/Pause
+            e.preventDefault();
+            video.paused ? video.play() : video.pause();
+        }
+    });
+    
+    // 6. Tính năng Tua bằng vuốt (Swipe) cho điện thoại/màn hình cảm ứng
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    video.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    video.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+        const swipeDistance = touchEndX - touchStartX;
+        const minSwipeDistance = 50; // Quãng đường vuốt tối thiểu để nhận diện (px)
+        const skipTime = 15; // Tua 15 giây khi vuốt
+        
+        if (swipeDistance > minSwipeDistance) {
+            // Vuốt sang phải -> Tua tới
+            video.currentTime = Math.min(video.duration, video.currentTime + skipTime);
+            showFeedback("⏩ +15s");
+        } else if (swipeDistance < -minSwipeDistance) {
+            // Vuốt sang trái -> Tua lùi
+            video.currentTime = Math.max(0, video.currentTime - skipTime);
+            showFeedback("⏪ -15s");
+        }
+    }
+    
+    // 7. Hiệu ứng hiển thị chữ nổi lên (Feedback) khi tua
+    function showFeedback(text) {
+        const feedback = document.createElement('div');
+        feedback.innerText = text;
+        feedback.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 15px 30px; border-radius: 8px; font-size: 24px; font-weight: bold; z-index: 9999; pointer-events: none; transition: opacity 0.4s ease-out; font-family: sans-serif;';
+        document.body.appendChild(feedback);
+        
+        // Tự động mờ dần và xóa sau 500ms
+        setTimeout(() => {
+            feedback.style.opacity = '0';
+            setTimeout(() => feedback.remove(), 400);
+        }, 500);
     }
 }
 
