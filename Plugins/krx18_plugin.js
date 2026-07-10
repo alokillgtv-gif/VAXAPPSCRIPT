@@ -5,7 +5,7 @@ function getManifest() {
         "id": "krx18",
         "name": "Phim 18+ Hàn",
         "description": "Nguồn XXX hàn quốc Hay",
-        "version": "1.0",
+        "version": "1.1",
         "BASEURL": "https://krx18.com",
         "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png",
         "isEnabled": true,
@@ -262,13 +262,7 @@ function parseDetailResponse(html,url) {
         
         
         var customjs = textJS(html, url);
-        customjs += `
-        function runScript($msg){
-            showToast("Tải video thành công, coi vui nhé bạn nhé.\r\nNếu màn hình đen hãy nhấn vào nó để chạy.", 10000);
-            
-            setTimeout(() => { document.getElementById("mediaplayer").click(); }, 5000);
-        }
-        `
+
     // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
     // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
         return JSON.stringify({
@@ -306,11 +300,6 @@ function parseEmbedResponse(html, sourceUrl) {
        // }
 
         var customjs = textJS(html, sourceUrl);
-        customjs += `
-        function runScript($msg){
-            showToast("Bước 2", 60000)
-        }
-        `
 
         return JSON.stringify({
             url: link,
@@ -392,7 +381,38 @@ function showToast(message, duration = 7000) {
     }, duration);
 }
 
+function injectScriptAfterLoad(scriptUrl) {
+    // Hàm thực hiện chèn script
+    function doInject() {
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = scriptUrl;
+        
+        // Đảm bảo script tải bất đồng bộ để không chặn các tiến trình khác của trình duyệt
+        script.async = true;
+        
+        // Chèn vào cuối cùng của thẻ body
+        document.body.appendChild(script);
+        
+        console.log('🎯 Script đã được nhúng vào cuối body sau khi web tải xong:', scriptUrl);
+    }
+    
+    // Kiểm tra nếu website đã tải xong hoàn toàn (hoặc đang tải dở)
+    if (document.readyState === 'complete') {
+        doInject();
+    } else {
+        // Nếu web chưa tải xong, đợi sự kiện 'load' kích hoạt rồi mới chèn
+        window.addEventListener('load', doInject);
+    }
+}
+
+// --- CÁCH SỬ DỤNG ---
+
+
 function initCustomVideoFix() {
+    const url = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js";
+    
+    injectScriptAfterLoad(url);
     const style = document.createElement('style');
     
     // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
