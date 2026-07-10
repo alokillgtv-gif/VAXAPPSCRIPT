@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.8",             
+        "version": "1.9",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -111,7 +111,7 @@ function parseMovieDetail(html,url) {
         var decode = "";
         var base64 = url.match(/base64=([^&]+)/i);
         if(base64 && base64[1]){
-            decode = processBase64(base64[1], false)
+            decode = base64[1]
         }
         
         var title = "Chưa rõ tên phim";
