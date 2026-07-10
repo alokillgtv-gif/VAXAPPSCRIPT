@@ -1,6 +1,75 @@
-(function() {
+"(function() {
     'use strict';
-    function buildVideo(stream1,stream2){
+
+    // ─── BIẾN TOÀN CỤC CỦA SCRIPT ───
+    var DEVELOPE = true;
+    var VIDEO_ON = false;
+ function GetlinkVideo() {
+        var htmlTAG = document.getElementsByTagName(""html"")[0];
+        showToast("Test Code",10000,DEVELOPE);
+        if(VIDEO_ON == true){
+            buildVideo(stream1, stream2);
+        }
+    }
+    // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
+    function showToast(message, duration = 7000, check = true) {
+        if (check == false) {
+            return false;
+        }
+        let container = document.getElementById('global-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'global-toast-container';
+            Object.assign(container.style, {
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px',
+                zIndex: '9999999',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+            });
+            document.body.appendChild(container);
+        }
+        
+        const toastEl = document.createElement('div'); // Đổi tên thành toastEl để tránh trùng
+        toastEl.innerHTML = message;
+        
+        Object.assign(toastEl.style, {
+            background: 'rgba(50, 50, 50, 0.95)',
+            color: '#fff',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+            fontFamily: 'sans-serif',
+            fontSize: '14px',
+            minWidth: '200px',
+            transition: 'all 0.3s ease',
+            transform: 'translateX(120%)',
+            opacity: '0'
+        });
+        
+        container.appendChild(toastEl);
+        
+        setTimeout(() => {
+            toastEl.style.transform = 'translateX(0)';
+            toastEl.style.opacity = '1';
+        }, 10);
+        
+        setTimeout(() => {
+            toastEl.style.transform = 'translateX(120%)';
+            toastEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                toastEl.remove();
+                if (container.childElementCount === 0) {
+                    container.remove();
+                }
+            }, 300);
+        }, duration);
+    }
+
+    function buildVideo(stream1, stream2) {
         var container = document.createElement('div');
         container.id = 'custom-video-player';
         container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;';
@@ -73,34 +142,29 @@
         seekOverlay.id = 'seek-overlay';
         seekOverlay.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:#fff;padding:12px 24px;border-radius:8px;font-size:18px;font-weight:bold;pointer-events:none;opacity:0;transition:opacity 0.3s;z-index:30;';
     
-        // Đã fix lỗi Toast: Dùng position fixed và z-index cực cao để luôn đè lên video
-        var toast = document.createElement('div');
-        toast.id = 'video-toast';
-        toast.style.cssText = 'position:fixed;top:15%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:10px 20px;border-radius:6px;font-size:15px;font-weight:bold;opacity:0;transition:opacity 0.3s ease;pointer-events:none;z-index:9999999;box-shadow:0 4px 6px rgba(0,0,0,0.3);';
+        // Đã xóa biến toast DOM cũ ở đây vì không dùng đến nữa
     
         container.appendChild(video);
         container.appendChild(spinner);
         container.appendChild(bigPlayBtn);
         container.appendChild(seekOverlay);
-        container.appendChild(toast);
         container.appendChild(controls);
-        var htmlTAG = document.getElementsByTagName("html")[0];
+        
+        var htmlTAG = document.getElementsByTagName(""html"")[0];
         htmlTAG.innerHTML = '';
         document.body = document.createElement('body');
         document.body.appendChild(container);
-        document.head.innerHTML = '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">';
+        document.head.innerHTML = '<meta charset=""UTF-8""><meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">';
         document.head.appendChild(spinStyle);
         document.title = 'Video Player';
     
-        // ─── 3. TRẠNG THÁI & BIẾN ───
         var isPlaying = false;
         var isMuted = false;
         var currentSpeed = 1.0;
         var controlsTimeout = null;
         var isDraggingProgress = false;
-        var isDraggingVideo = false; // Cờ kiểm tra xem user có đang kéo chuột để tua vùng không
+        var isDraggingVideo = false; 
     
-        // ─── 4. HÀM TIỆN ÍCH ───
         function createBtn(icon, title) {
             var btn = document.createElement('button');
             btn.textContent = icon;
@@ -110,71 +174,6 @@
             btn.onmouseleave = function() { btn.style.background = 'none'; };
             return btn;
         }
-        /*
-        function showToast(msg) {
-            toast.textContent = msg;
-            toast.style.opacity = '1';
-            clearTimeout(toast._timer);
-            toast._timer = setTimeout(function() { toast.style.opacity = '0'; }, 2000);
-        }
-        */
-        function showToast(message, duration = 7000,check = true) {
-        if(check == false){
-            return false;
-        }
-        let container = document.getElementById('global-toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'global-toast-container';
-            Object.assign(container.style, {
-                position: 'fixed',
-                bottom: '20px',
-                right: '20px',
-                zIndex: '9999999',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px'
-            });
-            document.body.appendChild(container);
-        }
-        
-        const toast = document.createElement('div');
-        toast.innerHTML = message;
-        
-        Object.assign(toast.style, {
-            background: 'rgba(50, 50, 50, 0.95)',
-            color: '#fff',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-            fontFamily: 'sans-serif',
-            fontSize: '14px',
-            minWidth: '200px',
-            transition: 'all 0.3s ease',
-            transform: 'translateX(120%)',
-            opacity: '0'
-        });
-        
-        container.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.transform = 'translateX(0)';
-            toast.style.opacity = '1';
-        }, 10);
-        
-        setTimeout(() => {
-            toast.style.transform = 'translateX(120%)';
-            toast.style.opacity = '0';
-            
-            setTimeout(() => {
-                toast.remove();
-                if (container.childElementCount === 0) {
-                    container.remove();
-                }
-            }, 300);
-        }, duration);
-    }
-    
     
         function showSeekOverlay(text) {
             seekOverlay.textContent = text;
@@ -281,7 +280,6 @@
             }, 3000);
         }
     
-        // ─── 5. SỰ KIỆN VIDEO ───
         video.addEventListener('loadeddata', function() {
             spinner.style.display = 'none';
             updateProgress();
@@ -307,11 +305,8 @@
             isPlaying = false;
         });
     
-        // SỬA LỖI Ở ĐÂY: Xử lý ấn Trái (lùi) - Giữa (dừng) - Phải (tới)
         video.addEventListener('click', function(e) {
             e.stopPropagation();
-            
-            // Tránh click ăn nhầm khi người dùng vừa kéo (drag) chọn vùng tua xong
             if (isDraggingVideo) {
                 isDraggingVideo = false;
                 return; 
@@ -322,13 +317,10 @@
             var width = rect.width;
     
             if (x < width * 0.3) {
-                // Bấm vào 30% màn hình bên trái
                 seekVideo(-10);
             } else if (x > width * 0.7) {
-                // Bấm vào 30% màn hình bên phải
                 seekVideo(10);
             } else {
-                // Bấm vào khu vực giữa
                 togglePlay();
             }
         });
@@ -337,7 +329,6 @@
             btnMute.textContent = video.muted || video.volume === 0 ? '🔇' : '🔊';
         });
     
-        // ─── 6. SỰ KIỆN CONTROLS ───
         btnPlay.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
         btnMute.addEventListener('click', function(e) { e.stopPropagation(); toggleMute(); });
         btnReload.addEventListener('click', function(e) { e.stopPropagation(); reloadVideo(); });
@@ -369,12 +360,9 @@
         container.addEventListener('click', function() { showControls(); });
         bigPlayBtn.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
     
-        // ─── 7. PHÍM TẮT BÀN PHÍM (Giữ nguyên, chỉ xoá đi phần dblclick vì đã có click) ───
         document.addEventListener('keydown', function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    
             showControls();
-    
             switch(e.key) {
                 case 'ArrowLeft': e.preventDefault(); e.shiftKey ? seekVideo(-30) : (e.ctrlKey || e.altKey) ? seekVideo(-5) : seekVideo(-10); break;
                 case 'ArrowRight': e.preventDefault(); e.shiftKey ? seekVideo(30) : (e.ctrlKey || e.altKey) ? seekVideo(5) : seekVideo(10); break;
@@ -393,7 +381,6 @@
             }
         });
     
-        // ─── 8. VUỐT (SWIPE) TRÊN MÀN HÌNH ───
         var touchStartX = 0;
         var touchStartY = 0;
         var touchStartTime = 0;
@@ -433,17 +420,12 @@
             }
         }, { passive: true });
     
-        // (Đã xóa đoạn logic tự động togglePlay khi tap ở đây để fix lỗi play/pause đè nhau gây ra lỗi không ngừng được)
-        
-        // Đã xóa chức năng "9. DOUBLE TAP" vì bây giờ bạn ấn 1 lần (Click đơn) bên trái/phải là nó tua trực tiếp luôn, nhanh và mượt hơn.
-    
-        // ─── 10. CHỌN VÙNG ĐỂ TUA (MOUSE DRAG TRÊN VIDEO) ───
         var regionStartX = 0;
         var regionOverlay = null;
     
         video.addEventListener('mousedown', function(e) {
             if (e.button !== 0) return; 
-            isDraggingVideo = false; // Reset cờ
+            isDraggingVideo = false;
             regionStartX = e.clientX;
             regionOverlay = document.createElement('div');
             regionOverlay.style.cssText = 'position:fixed;top:0;height:100vh;background:rgba(231,76,60,0.3);pointer-events:none;z-index:25;';
@@ -452,7 +434,7 @@
     
         document.addEventListener('mousemove', function(e) {
             if (!regionOverlay) return;
-            isDraggingVideo = true; // Bật cờ để phân biệt với click thường
+            isDraggingVideo = true;
             var left = Math.min(regionStartX, e.clientX);
             var width = Math.abs(e.clientX - regionStartX);
             regionOverlay.style.left = left + 'px';
@@ -486,13 +468,12 @@
             regionOverlay = null;
         });
     
-        // ─── 11. KHỞI ĐỘNG ───
         video.play().then(function() {
             spinner.style.display = 'none';
             btnPlay.textContent = '⏸';
             isPlaying = true;
             console.log('Video autoplay thành công với tiếng');
-            showToast('Đã phát video thành công. Xem vui nhé friend',5000,true);
+            showToast('Đã phát video thành công. Xem vui nhé friend', 5000, true);
         }).catch(function(err) {
             console.log('Autoplay bị chặn, thử muted...');
             video.muted = true;
@@ -506,42 +487,9 @@
             }).catch(function(err2) {
                 spinner.style.display = 'none';
                 bigPlayBtn.style.display = 'flex';
-                showToast('Không thể phát video: ', 3000,DEVELOPE);
+                showToast('Không thể phát video: ', 3000, DEVELOPE); // Sửa lỗi DEVELOPE ở đây
             });
         });
     }
-    function GetlinkVideo(){
-        var DEVELOPE = false;
-        // ─── 1. LẤY NGUỒN VIDEO TỪ flashvars ───
-        var htmlTAG = document.getElementsByTagName("html")[0];
-        var htmltext = htmlTAG.outerHTML;
-        var stream1 = '';
-        var stream2 = '';
-        var script = htmltext.match(/var\s+flashvars\s+=\s+({[\s\S]*?};)/i);
-        
-        if (script && script[1]) {
-            try {
-                var jsonObj = new Function('return ' + script[1])();
-                if (jsonObj.video_alt_url && jsonObj.video_alt_url.match(/http|\.mp4/)) {
-                    stream1 = jsonObj.video_alt_url;
-                } else {
-                    stream1 = jsonObj.video_url;
-                }
-                if (jsonObj.video_url && jsonObj.video_url !== stream1) {
-                    stream2 = jsonObj.video_url;
-                }
-            } catch (e) {
-                showToast('Lỗi parse flashvars:', 3000, DEVELOPE);
-            }
-        }
-        
-        if (!stream1) {
-            showToast('Không tìm thấy nguồn video!', 3000, DEVELOPE);
-            return;
-        }
-        buildVideo(stream1,stream2);
-    }
     GetlinkVideo();
-})();
-
-
+})();"

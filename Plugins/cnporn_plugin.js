@@ -6,7 +6,7 @@ function getManifest() {
         "id": "cnporn",
         "name": "Porn Gái Trung",
         "description": "Nguồn XXX Hay",
-        "version": "1.0",
+        "version": "1.1",
         "BASEURL": "https://cnporn.org",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -258,54 +258,38 @@ var $url = "https://www.justporn.com/video/18058/hot-babe-remy-cheats-with-bbc/"
 JSON.parse(parseMovieDetail(html,$url))
 */
 
-function parseDetailResponse(html,url) {
+function parseDetailResponse(html, url) {
     try {
         
         var customjs = textJS(html, url);
-
-    // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
-    // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
-        return JSON.stringify({
-    "url": "",
-    "headers": {
-        "Referer": BASEURL,
-        "Origin": BASEURL,
-        mimeType: "application/x-mpegURL",
-        isEmbed: true,
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-        // Đánh lừa thuật toán Client Hints của tường lửa
-        "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-        "Sec-Ch-Ua-Mobile": "?1",
-        "Sec-Ch-Ua-Platform": '"Android"',
         
-        // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-        "Accept": "*/*",
-        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-        "X-Requested-With": "com.android.chrome",
-        "Custom-Js": customjs.trim()
-    },
-    "subtitles": []
-});
-
+        // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
+        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        return JSON.stringify({
+            "url": "",
+            "headers": {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                mimeType: "application/x-mpegURL",
+                isEmbed: true,
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs.trim()
+            },
+            "subtitles": []
+        });
+        
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
-}
-
-function parseEmbedResponse(html, sourceUrl) {
-        var customjs = textJS(html, sourceUrl);
-
-        return JSON.stringify({
-            url: sourceUrl,
-            isEmbed: false, // Kết thúc, đây là link stream cuối
-            mimeType: "application/x-mpegURL", // Báo App đây là HLS
-            headers: { "Referer": BASEURL,
-            "Custom-Js": customjs.trim()
-                
-            },
-        });
-    
-    return JSON.stringify({ url: "", isEmbed: false });
 }
 
 function textJS(html, $url) {
