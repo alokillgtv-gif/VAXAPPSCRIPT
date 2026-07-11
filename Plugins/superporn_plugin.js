@@ -5,7 +5,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "3.0",             
+        "version": "3.1",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -210,7 +210,7 @@ function parseMovieDetail(html,$url) {
 function parseDetailResponse(html, url) {
     try {
         var $link = "";
-        var serverMatches = html.match(/video[\s\S]*?src=["']([^"']+)["'][\s\S]*?<\/video>/i);
+        var serverMatches = html.match(/<video[^>]*>[\s\S]*?\bsrc=["']([^"']+)["']/i);
         if (serverMatches && serverMatches[1]) {
             $link = serverMatches[1]
         }
