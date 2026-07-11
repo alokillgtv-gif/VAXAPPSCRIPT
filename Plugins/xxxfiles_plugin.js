@@ -268,7 +268,7 @@ function parseMovieDetail(html, $url) {
         if (serverMatches && serverMatches[1]) {
             lurl = serverMatches[1];
             episodes.push({
-                id: serverMatches[1],
+                id: $url,
                 name: "Xem Ngay",
                 slug: "tap-1"
             });
