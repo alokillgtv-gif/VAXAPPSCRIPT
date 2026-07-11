@@ -1,44 +1,45 @@
-(function() {
-    'use strict';
-    // ─── BIẾN TOÀN CỤC CỦA SCRIPT ───
     var DEVELOPE = false;
-    
+
     function GetlinkVideo() {
         var playlist = scanSources();
         var stream1 = playlist.activeSrc || '';
         var stream2 = window.location.href;
         showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
-        if(LINKVIDEO && LINKVIDEO.length > 0){
-            VideoPlayerAPI.clearServers();
-            for(var $j = 0;$j < LINKVIDEO.length;$j++){
+        if (LINKVIDEO && LINKVIDEO.length > 0) {
+            var $server = [];
+            for (var $j = 0; $j < LINKVIDEO.length; $j++) {
                 var $line = LINKVIDEO[$j];
                 var $link = $line.link;
                 var $name = $line.name;
-                if($j == 0){
-                    stream1 = $link;
+                var $item = {
+                    label: $name,
+                    src: $link,
+                    type: "server"
                 }
-                VideoPlayerAPI.addServer({ label: $name, src: $link })
+                $server.push($item);
+                if ($j == 0) {
+                    playlist.activeSrc = $link;
+                }
             }
+            playlist.servers = $server
         }
-        var $server = VideoPlayerAPI.getServers();
-        buildVideo(stream1, stream2, $server);
+        buildVideo(stream1, stream2, playlist);
     }
 
-/*
-VideoPlayerAPI.addServer({ label: 'Server 2', src: '...' }) Thêm server vào cuối danh sách
-VideoPlayerAPI.addServerAt(0, { label: 'VIP', src: '...' }) Thêm server vào vị trí bất kỳ(ví dụ 0 là đầu tiên)
-VideoPlayerAPI.addEpisode({ label: 'Tập 5', src: '...' }) Thêm tập phim vào cuối
-VideoPlayerAPI.addEpisodeAt(2, { label: 'Tập 3', src: '...' }) Thêm tập vào vị trí chỉ định
-VideoPlayerAPI.removeServer('Server 2') Xóa server theo label
-VideoPlayerAPI.removeEpisode('Tập 5') Xóa tập theo label
-VideoPlayerAPI.clearServers() Xóa toàn bộ server
-VideoPlayerAPI.clearEpisodes() Xóa toàn bộ tập phim
-VideoPlayerAPI.getServers() / getEpisodes() Lấy mảng hiện tại
-VideoPlayerAPI.switchSource('https://...') Đổi nguồn phát ngay lập tức
-VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
+    /*
+    VideoPlayerAPI.addServer({ label: 'Server 2', src: '...' }) Thêm server vào cuối danh sách
+    VideoPlayerAPI.addServerAt(0, { label: 'VIP', src: '...' }) Thêm server vào vị trí bất kỳ(ví dụ 0 là đầu tiên)
+    VideoPlayerAPI.addEpisode({ label: 'Tập 5', src: '...' }) Thêm tập phim vào cuối
+    VideoPlayerAPI.addEpisodeAt(2, { label: 'Tập 3', src: '...' }) Thêm tập vào vị trí chỉ định
+    VideoPlayerAPI.removeServer('Server 2') Xóa server theo label
+    VideoPlayerAPI.removeEpisode('Tập 5') Xóa tập theo label
+    VideoPlayerAPI.clearServers() Xóa toàn bộ server
+    VideoPlayerAPI.clearEpisodes() Xóa toàn bộ tập phim
+    VideoPlayerAPI.getServers() / getEpisodes() Lấy mảng hiện tại
+    VideoPlayerAPI.switchSource('https://...') Đổi nguồn phát ngay lập tức
+    VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
 
-*/
-
+    */
 
     // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST TRƯỚC KHI XÓA DOM ───
     function scanSources() {
@@ -56,13 +57,19 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                 var s = el.querySelector('source');
                 if (s) src = s.src || s.getAttribute('src') || '';
             }
-            if (src && (src.indexOf('.mp4') > -1 || src.indexOf('.m3u8') > -1 || src.indexOf('embed') > -1)) {
+            if (src && (src.indexOf('.mp4') > -1 || src.indexOf('.m3u8') > -1 || src.indexOf(
+                        'embed') >
+                    -1)) {
                 if (!activeSrc) activeSrc = src;
                 if (!seen.has(src)) {
                     seen.add(src);
                     var lbl = 'Server ' + (servers.length + 1);
                     if (src.indexOf('embed') > -1) lbl = 'Nhúng ' + (servers.length + 1);
-                    servers.push({ label: lbl, src: src, type: 'server' });
+                    servers.push({
+                        label: lbl,
+                        src: src,
+                        type: 'server'
+                    });
                 }
             }
         }
@@ -71,13 +78,20 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
         var allLinks = document.querySelectorAll('a, button, [role="button"], [data-link]');
         for (var k = 0; k < allLinks.length; k++) {
             var el2 = allLinks[k];
-            var href = el2.href || el2.getAttribute('href') || el2.getAttribute('data-src') || el2.getAttribute('data-link') || '';
+            var href = el2.href || el2.getAttribute('href') || el2.getAttribute('data-src') || el2
+                .getAttribute('data-link') || '';
             var txt = (el2.textContent || el2.innerText || '').trim();
             if (!href || href === '#' || href === window.location.href || seen.has(href)) continue;
             if (/(server|sv|nguồn|source|embed|link)/i.test(txt + ' ' + el2.className)) {
-                if (href.indexOf('.mp4') > -1 || href.indexOf('.m3u8') > -1 || href.indexOf('embed') > -1) {
+                if (href.indexOf('.mp4') > -1 || href.indexOf('.m3u8') > -1 || href.indexOf(
+                        'embed') > -
+                    1) {
                     seen.add(href);
-                    servers.push({ label: txt || 'Server ' + (servers.length + 1), src: href, type: 'server' });
+                    servers.push({
+                        label: txt || 'Server ' + (servers.length + 1),
+                        src: href,
+                        type: 'server'
+                    });
                 }
             }
         }
@@ -92,13 +106,23 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             var isEpisode = false;
             if (/(tập|tap|ep|episode|chap|part)\s*(\d+|[ivx]+)/i.test(aTxt)) isEpisode = true;
             if (/(tập|tap|ep|episode|chap|part)[-\s]?(\d+|[ivx]+)/i.test(aHref)) isEpisode = true;
-            if (a.className && /(^|\s)(ep|episode|tap|chapter|part|tapphim)(\d+|$)/i.test(a.className)) isEpisode = true;
+            if (a.className && /(^|\s)(ep|episode|tap|chapter|part|tapphim)(\d+|$)/i.test(a
+                    .className))
+                isEpisode = true;
             if (isEpisode) {
-                episodes.push({ label: aTxt || 'Tập ' + (episodes.length + 1), src: aHref, type: 'episode' });
+                episodes.push({
+                    label: aTxt || 'Tập ' + (episodes.length + 1),
+                    src: aHref,
+                    type: 'episode'
+                });
             }
         }
 
-        return { activeSrc: activeSrc, servers: servers, episodes: episodes };
+        return {
+            activeSrc: activeSrc,
+            servers: servers,
+            episodes: episodes
+        };
     }
 
     // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
@@ -110,12 +134,14 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
         if (!container) {
             container = document.createElement('div');
             container.id = 'global-toast-container';
-            container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
+            container.style.cssText =
+                'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
             document.body.appendChild(container);
         }
         var toastEl = document.createElement('div');
         toastEl.innerHTML = message;
-        toastEl.style.cssText = 'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
+        toastEl.style.cssText =
+            'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
         container.appendChild(toastEl);
         setTimeout(function() {
             toastEl.style.transform = 'translateX(0)';
@@ -134,11 +160,13 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
     function buildVideo(stream1, stream2, playlistData) {
         var container = document.createElement('div');
         container.id = 'custom-video-player';
-        container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;';
+        container.style.cssText =
+            'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;';
 
         var video = document.createElement('video');
         video.id = 'main-video';
-        video.style.cssText = 'width:100%;height:100%;object-fit:contain;cursor:pointer;background:#000;';
+        video.style.cssText =
+            'width:100%;height:100%;object-fit:contain;cursor:pointer;background:#000;';
         video.setAttribute('playsinline', 'true');
         video.setAttribute('webkit-playsinline', 'true');
         video.src = stream1;
@@ -148,25 +176,35 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
 
         var spinner = document.createElement('div');
         spinner.id = 'video-spinner';
-        spinner.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:4px solid rgba(255,255,255,0.3);border-top:4px solid #fff;border-radius:50%;animation:spin 1s linear infinite;z-index:10;pointer-events:none;';
+        spinner.style.cssText =
+            'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:4px solid rgba(255,255,255,0.3);border-top:4px solid #fff;border-radius:50%;animation:spin 1s linear infinite;z-index:10;pointer-events:none;';
         var spinStyle = document.createElement('style');
-        spinStyle.textContent = '@keyframes spin{0%{transform:translate(-50%,-50%) rotate(0deg);}100%{transform:translate(-50%,-50%) rotate(360deg);}}';
+        spinStyle.textContent =
+            '@keyframes spin{0%{transform:translate(-50%,-50%) rotate(0deg);}100%{transform:translate(-50%,-50%) rotate(360deg);}}';
         document.head.appendChild(spinStyle);
 
         var controls = document.createElement('div');
         controls.id = 'video-controls';
-        controls.style.cssText = 'position:absolute;bottom:0;left:0;width:100%;background:linear-gradient(transparent,rgba(0,0,0,0.85));padding:12px 16px 20px;box-sizing:border-box;transition:opacity 0.3s;opacity:0;z-index:20;';
+        controls.style.cssText =
+            'position:absolute;bottom:0;left:0;width:100%;background:linear-gradient(transparent,rgba(0,0,0,0.85));padding:12px 16px 20px;box-sizing:border-box;transition:opacity 0.3s;opacity:0;z-index:20;';
 
         var progressWrap = document.createElement('div');
-        progressWrap.style.cssText = 'width:100%;height:6px;background:rgba(255,255,255,0.3);border-radius:3px;cursor:pointer;position:relative;margin-bottom:12px;';
+        progressWrap.style.cssText =
+            'width:100%;height:6px;background:rgba(255,255,255,0.3);border-radius:3px;cursor:pointer;position:relative;margin-bottom:12px;';
         var progressBar = document.createElement('div');
-        progressBar.style.cssText = 'height:100%;background:#e74c3c;width:0%;border-radius:3px;position:relative;pointer-events:none;';
+        progressBar.style.cssText =
+            'height:100%;background:#e74c3c;width:0%;border-radius:3px;position:relative;pointer-events:none;';
         var progressHandle = document.createElement('div');
-        progressHandle.style.cssText = 'position:absolute;right:-6px;top:-4px;width:14px;height:14px;background:#e74c3c;border-radius:50%;opacity:0;transition:opacity 0.2s;pointer-events:none;';
+        progressHandle.style.cssText =
+            'position:absolute;right:-6px;top:-4px;width:14px;height:14px;background:#e74c3c;border-radius:50%;opacity:0;transition:opacity 0.2s;pointer-events:none;';
         progressBar.appendChild(progressHandle);
         progressWrap.appendChild(progressBar);
-        progressWrap.onmouseenter = function() { progressHandle.style.opacity = '1'; };
-        progressWrap.onmouseleave = function() { progressHandle.style.opacity = '0'; };
+        progressWrap.onmouseenter = function() {
+            progressHandle.style.opacity = '1';
+        };
+        progressWrap.onmouseleave = function() {
+            progressHandle.style.opacity = '0';
+        };
 
         var btnRow = document.createElement('div');
         btnRow.style.cssText = 'display:flex;align-items:center;gap:12px;';
@@ -199,24 +237,32 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
         var bigPlayBtn = document.createElement('div');
         bigPlayBtn.id = 'big-play-btn';
         bigPlayBtn.textContent = '▶';
-        bigPlayBtn.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;background:rgba(0,0,0,0.6);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:36px;cursor:pointer;z-index:15;';
+        bigPlayBtn.style.cssText =
+            'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;background:rgba(0,0,0,0.6);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:36px;cursor:pointer;z-index:15;';
 
         var seekOverlay = document.createElement('div');
         seekOverlay.id = 'seek-overlay';
-        seekOverlay.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:#fff;padding:12px 24px;border-radius:8px;font-size:18px;font-weight:bold;pointer-events:none;opacity:0;transition:opacity 0.3s;z-index:30;';
+        seekOverlay.style.cssText =
+            'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:#fff;padding:12px 24px;border-radius:8px;font-size:18px;font-weight:bold;pointer-events:none;opacity:0;transition:opacity 0.3s;z-index:30;';
 
         // Playlist Panel
         var playlistPanel = document.createElement('div');
         playlistPanel.id = 'playlist-panel';
-        playlistPanel.style.cssText = 'position:fixed;top:0;right:0;width:300px;max-width:80%;height:100%;background:rgba(15,15,15,0.97);z-index:40;transform:translateX(100%);transition:transform 0.25s ease;overflow-y:auto;padding:20px;box-sizing:border-box;color:#fff;font-family:Segoe UI,Roboto,sans-serif;';
+        playlistPanel.style.cssText =
+            'position:fixed;top:0;right:0;width:300px;max-width:80%;height:100%;background:rgba(15,15,15,0.97);z-index:40;transform:translateX(100%);transition:transform 0.25s ease;overflow-y:auto;padding:20px;box-sizing:border-box;color:#fff;font-family:Segoe UI,Roboto,sans-serif;';
 
         var plHeader = document.createElement('div');
-        plHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2);';
+        plHeader.style.cssText =
+            'display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2);';
         plHeader.innerHTML = '<span style="font-size:16px;font-weight:bold;">📋 Playlist</span>';
         var plClose = document.createElement('button');
         plClose.textContent = '✕';
-        plClose.style.cssText = 'background:none;border:none;color:#fff;font-size:18px;cursor:pointer;';
-        plClose.onclick = function(e) { if(e)e.stopPropagation(); playlistPanel.style.transform = 'translateX(100%)'; };
+        plClose.style.cssText =
+            'background:none;border:none;color:#fff;font-size:18px;cursor:pointer;';
+        plClose.onclick = function(e) {
+            if (e) e.stopPropagation();
+            playlistPanel.style.transform = 'translateX(100%)';
+        };
         plHeader.appendChild(plClose);
         playlistPanel.appendChild(plHeader);
 
@@ -236,16 +282,25 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             sec.style.cssText = 'margin-bottom:20px;';
             var secTitle = document.createElement('div');
             secTitle.textContent = title;
-            secTitle.style.cssText = 'font-size:13px;text-transform:uppercase;opacity:0.6;margin-bottom:10px;';
+            secTitle.style.cssText =
+                'font-size:13px;text-transform:uppercase;opacity:0.6;margin-bottom:10px;';
             sec.appendChild(secTitle);
             for (var i = 0; i < items.length; i++) {
                 (function(item) {
                     var btn = document.createElement('button');
                     btn.textContent = item.label;
-                    btn.style.cssText = 'display:block;width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,0.08);border:none;border-radius:6px;color:#fff;font-size:14px;cursor:pointer;transition:background 0.2s;';
-                    btn.onmouseenter = function() { btn.style.background = 'rgba(231,76,60,0.3)'; };
-                    btn.onmouseleave = function() { btn.style.background = 'rgba(255,255,255,0.08)'; };
-                    btn.onclick = function(e) { if(e)e.stopPropagation(); onClick(item); };
+                    btn.style.cssText =
+                        'display:block;width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,0.08);border:none;border-radius:6px;color:#fff;font-size:14px;cursor:pointer;transition:background 0.2s;';
+                    btn.onmouseenter = function() {
+                        btn.style.background = 'rgba(231,76,60,0.3)';
+                    };
+                    btn.onmouseleave = function() {
+                        btn.style.background = 'rgba(255,255,255,0.08)';
+                    };
+                    btn.onclick = function(e) {
+                        if (e) e.stopPropagation();
+                        onClick(item);
+                    };
                     sec.appendChild(btn);
                 })(items[i]);
             }
@@ -293,7 +348,8 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
         htmlTAG.innerHTML = '';
         document.body = document.createElement('body');
         document.body.appendChild(container);
-        document.head.innerHTML = '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">';
+        document.head.innerHTML =
+            '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">';
         document.head.appendChild(spinStyle);
         document.title = 'Video Player';
 
@@ -316,7 +372,8 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             lastSaveTime = now;
             try {
                 // Chỉ lưu nếu đã xem quá 5s và còn hơn 5s cuối
-                if (video.currentTime > 5 && (!video.duration || isNaN(video.duration) || video.currentTime < video.duration - 5)) {
+                if (video.currentTime > 5 && (!video.duration || isNaN(video.duration) || video
+                        .currentTime < video.duration - 5)) {
                     localStorage.setItem(saveKey, JSON.stringify({
                         time: video.currentTime,
                         duration: video.duration || 0,
@@ -340,7 +397,8 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                     // Chỉ cần có data.time > 5 là cho phép tua
                     if (data && data.time && data.time > 5) {
                         // Nếu video đã load được duration, check xem có phải đang ở 5s cuối không
-                        if (video.duration && !isNaN(video.duration) && data.time >= video.duration - 5) {
+                        if (video.duration && !isNaN(video.duration) && data.time >= video
+                            .duration - 5) {
                             return false;
                         }
                         video.currentTime = data.time;
@@ -351,6 +409,7 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             } catch (e) {}
             return false;
         }
+
         function switchSource(newSrc) {
             var wasPlaying = !video.paused;
             var prevTime = video.currentTime;
@@ -378,9 +437,14 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             var btn = document.createElement('button');
             btn.textContent = icon;
             btn.title = title;
-            btn.style.cssText = 'background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:background 0.2s;outline:none;';
-            btn.onmouseenter = function() { btn.style.background = 'rgba(255,255,255,0.2)'; };
-            btn.onmouseleave = function() { btn.style.background = 'none'; };
+            btn.style.cssText =
+                'background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:background 0.2s;outline:none;';
+            btn.onmouseenter = function() {
+                btn.style.background = 'rgba(255,255,255,0.2)';
+            };
+            btn.onmouseleave = function() {
+                btn.style.background = 'none';
+            };
             return btn;
         }
 
@@ -388,7 +452,9 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             seekOverlay.textContent = text;
             seekOverlay.style.opacity = '1';
             clearTimeout(seekOverlay._timer);
-            seekOverlay._timer = setTimeout(function() { seekOverlay.style.opacity = '0'; }, 800);
+            seekOverlay._timer = setTimeout(function() {
+                seekOverlay.style.opacity = '0';
+            }, 800);
         }
 
         function formatTime(sec) {
@@ -403,13 +469,16 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                 var pct = (video.currentTime / video.duration) * 100;
                 progressBar.style.width = pct + '%';
             }
-            timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
+            timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video
+                .duration);
         }
 
         function seekVideo(seconds) {
             var newTime = video.currentTime + seconds;
             if (newTime < 0) newTime = 0;
-            if (video.duration && !isNaN(video.duration) && newTime > video.duration) newTime = video.duration;
+            if (video.duration && !isNaN(video.duration) && newTime > video.duration) newTime =
+                video
+                .duration;
             video.currentTime = newTime;
             showSeekOverlay((seconds > 0 ? '+' : '') + seconds + 's');
         }
@@ -502,7 +571,7 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             // Khôi phục vị trí đã lưu
             restorePosition();
         });
-        
+
         // Giữ nguyên cụm loadeddata cũ để ẩn spinner
         video.addEventListener('loadeddata', function() {
             spinner.style.display = 'none';
@@ -513,13 +582,15 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                 btnMute.textContent = '🔊';
             }
         });
-        
+
         // THÊM SỰ KIỆN NÀY ĐỂ CHUYÊN LÀM NHIỆM VỤ TUA VIDEO
         video.addEventListener('loadedmetadata', function() {
             restorePosition();
         });
 
-        video.addEventListener('waiting', function() { spinner.style.display = 'block'; });
+        video.addEventListener('waiting', function() {
+            spinner.style.display = 'block';
+        });
         video.addEventListener('playing', function() {
             spinner.style.display = 'none';
             bigPlayBtn.style.display = 'none';
@@ -563,10 +634,22 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             btnMute.textContent = video.muted || video.volume === 0 ? '🔇' : '🔊';
         });
 
-        btnPlay.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
-        btnMute.addEventListener('click', function(e) { e.stopPropagation(); toggleMute(); });
-        btnReload.addEventListener('click', function(e) { e.stopPropagation(); reloadVideo(); });
-        btnFullscreen.addEventListener('click', function(e) { e.stopPropagation(); toggleFullscreen(); });
+        btnPlay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            togglePlay();
+        });
+        btnMute.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMute();
+        });
+        btnReload.addEventListener('click', function(e) {
+            e.stopPropagation();
+            reloadVideo();
+        });
+        btnFullscreen.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleFullscreen();
+        });
         btnPlaylist.addEventListener('click', function(e) {
             e.stopPropagation();
             playlistPanel.style.transform = 'translateX(0)';
@@ -594,30 +677,109 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                 updateProgress();
             }
         });
-        document.addEventListener('mouseup', function() { isDraggingProgress = false; });
+        document.addEventListener('mouseup', function() {
+            isDraggingProgress = false;
+        });
 
         container.addEventListener('mousemove', showControls);
-        container.addEventListener('click', function() { showControls(); });
-        bigPlayBtn.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
+        container.addEventListener('click', function() {
+            showControls();
+        });
+        bigPlayBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            togglePlay();
+        });
 
         document.addEventListener('keydown', function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             showControls();
-            switch(e.key) {
-                case 'ArrowLeft': e.preventDefault(); e.shiftKey ? seekVideo(-30) : (e.ctrlKey || e.altKey) ? seekVideo(-5) : seekVideo(-10); break;
-                case 'ArrowRight': e.preventDefault(); e.shiftKey ? seekVideo(30) : (e.ctrlKey || e.altKey) ? seekVideo(5) : seekVideo(10); break;
-                case ' ': case 'k': case 'K': e.preventDefault(); togglePlay(); break;
-                case 'ArrowUp': e.preventDefault(); video.volume = Math.min(1, video.volume + 0.1); showToast('Âm lượng: ' + Math.round(video.volume * 100) + '%'); break;
-                case 'ArrowDown': e.preventDefault(); video.volume = Math.max(0, video.volume - 0.1); showToast('Âm lượng: ' + Math.round(video.volume * 100) + '%'); break;
-                case 'm': case 'M': e.preventDefault(); toggleMute(); break;
-                case 'f': case 'F': e.preventDefault(); toggleFullscreen(); break;
-                case 'r': case 'R': e.preventDefault(); reloadVideo(); break;
-                case 'Home': e.preventDefault(); video.currentTime = 0; showToast('Về đầu video'); break;
-                case 'End': e.preventDefault(); if (video.duration && !isNaN(video.duration)) video.currentTime = video.duration - 1; break;
-                case '>': case '.': e.preventDefault(); currentSpeed = Math.min(4, currentSpeed + 0.25); video.playbackRate = currentSpeed; speedIndicator.textContent = currentSpeed.toFixed(1) + 'x'; showToast('Tốc độ: ' + currentSpeed.toFixed(1) + 'x'); break;
-                case '<': case ',': e.preventDefault(); currentSpeed = Math.max(0.25, currentSpeed - 0.25); video.playbackRate = currentSpeed; speedIndicator.textContent = currentSpeed.toFixed(1) + 'x'; showToast('Tốc độ: ' + currentSpeed.toFixed(1) + 'x'); break;
-                case '0': e.preventDefault(); video.currentTime = 0; break;
-                case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': e.preventDefault(); if (video.duration && !isNaN(video.duration)) { video.currentTime = video.duration * (parseInt(e.key) / 10); } break;
+            switch (e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    e.shiftKey ? seekVideo(-30) : (e.ctrlKey || e.altKey) ? seekVideo(-5) :
+                        seekVideo(-
+                            10);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    e.shiftKey ? seekVideo(30) : (e.ctrlKey || e.altKey) ? seekVideo(5) :
+                        seekVideo(10);
+                    break;
+                case ' ':
+                case 'k':
+                case 'K':
+                    e.preventDefault();
+                    togglePlay();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    video.volume = Math.min(1, video.volume + 0.1);
+                    showToast('Âm lượng: ' + Math.round(video.volume * 100) + '%');
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    video.volume = Math.max(0, video.volume - 0.1);
+                    showToast('Âm lượng: ' + Math.round(video.volume * 100) + '%');
+                    break;
+                case 'm':
+                case 'M':
+                    e.preventDefault();
+                    toggleMute();
+                    break;
+                case 'f':
+                case 'F':
+                    e.preventDefault();
+                    toggleFullscreen();
+                    break;
+                case 'r':
+                case 'R':
+                    e.preventDefault();
+                    reloadVideo();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    video.currentTime = 0;
+                    showToast('Về đầu video');
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    if (video.duration && !isNaN(video.duration)) video.currentTime = video
+                        .duration - 1;
+                    break;
+                case '>':
+                case '.':
+                    e.preventDefault();
+                    currentSpeed = Math.min(4, currentSpeed + 0.25);
+                    video.playbackRate = currentSpeed;
+                    speedIndicator.textContent = currentSpeed.toFixed(1) + 'x';
+                    showToast('Tốc độ: ' + currentSpeed.toFixed(1) + 'x');
+                    break;
+                case '<':
+                case ',':
+                    e.preventDefault();
+                    currentSpeed = Math.max(0.25, currentSpeed - 0.25);
+                    video.playbackRate = currentSpeed;
+                    speedIndicator.textContent = currentSpeed.toFixed(1) + 'x';
+                    showToast('Tốc độ: ' + currentSpeed.toFixed(1) + 'x');
+                    break;
+                case '0':
+                    e.preventDefault();
+                    video.currentTime = 0;
+                    break;
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    e.preventDefault();
+                    if (video.duration && !isNaN(video.duration)) {
+                        video.currentTime = video.duration * (parseInt(e.key) / 10);
+                    }
+                    break;
             }
         });
 
@@ -631,7 +793,9 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             touchStartY = e.touches[0].clientY;
             touchStartTime = Date.now();
             isSwiping = false;
-        }, { passive: true });
+        }, {
+            passive: true
+        });
 
         container.addEventListener('touchmove', function(e) {
             if (e.touches.length !== 1) return;
@@ -656,7 +820,9 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                     touchStartY = e.touches[0].clientY;
                 }
             }
-        }, { passive: true });
+        }, {
+            passive: true
+        });
 
         var regionStartX = 0;
         var regionOverlay = null;
@@ -666,7 +832,8 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
             isDraggingVideo = false;
             regionStartX = e.clientX;
             regionOverlay = document.createElement('div');
-            regionOverlay.style.cssText = 'position:fixed;top:0;height:100vh;background:rgba(231,76,60,0.3);pointer-events:none;z-index:25;';
+            regionOverlay.style.cssText =
+                'position:fixed;top:0;height:100vh;background:rgba(231,76,60,0.3);pointer-events:none;z-index:25;';
             document.body.appendChild(regionOverlay);
         });
 
@@ -692,7 +859,8 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                 var endTime = endPct * video.duration;
                 if (deltaX > 0) {
                     video.currentTime = startTime;
-                    showToast('▶ Phát vùng ' + formatTime(startTime) + ' - ' + formatTime(endTime));
+                    showToast('▶ Phát vùng ' + formatTime(startTime) + ' - ' + formatTime(
+                        endTime));
                 } else {
                     video.currentTime = startTime;
                     showToast('⏩ Tua đến ' + formatTime(startTime));
@@ -757,11 +925,15 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                 showToast('Đã thêm tập [' + index + ']: ' + (item.label || item.src));
             },
             removeServer: function(label) {
-                playlistState.servers = playlistState.servers.filter(function(s) { return s.label !== label; });
+                playlistState.servers = playlistState.servers.filter(function(s) {
+                    return s.label !== label;
+                });
                 renderPlaylist();
             },
             removeEpisode: function(label) {
-                playlistState.episodes = playlistState.episodes.filter(function(s) { return s.label !== label; });
+                playlistState.episodes = playlistState.episodes.filter(function(s) {
+                    return s.label !== label;
+                });
                 renderPlaylist();
             },
             clearServers: function() {
@@ -772,10 +944,18 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
                 playlistState.episodes = [];
                 renderPlaylist();
             },
-            getServers: function() { return playlistState.servers.slice(); },
-            getEpisodes: function() { return playlistState.episodes.slice(); },
-            switchSource: function(src) { switchSource(src); },
-            refresh: function() { renderPlaylist(); }
+            getServers: function() {
+                return playlistState.servers.slice();
+            },
+            getEpisodes: function() {
+                return playlistState.episodes.slice();
+            },
+            switchSource: function(src) {
+                switchSource(src);
+            },
+            refresh: function() {
+                renderPlaylist();
+            }
         };
     }
 
@@ -784,4 +964,3 @@ VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
     } else {
         GetlinkVideo();
     }
-})();
