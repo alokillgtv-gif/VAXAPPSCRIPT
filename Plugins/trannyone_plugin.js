@@ -10,7 +10,7 @@ function getManifest() {
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "emmbed"
+        "playerType": "embed"
     });
 }
 // https://www.tranny.one/recent/
