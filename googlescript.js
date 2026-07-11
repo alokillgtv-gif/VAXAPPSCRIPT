@@ -63,12 +63,13 @@
         // --- CÁCH SỬ DỤNG ---
         // Đảm bảo iframe đang chạy. Gọi hàm này:
         keepOnlyElementWithoutReload('#jsVideoIframe');
-    
+        document.querySelectorAll('style').forEach(tag => tag.remove());
         
         setTimeout(function() {
             document.getElementById("jsVideoIframe").click();
         }, 3000)
-        showToast("Xem ít thôi mấy bác :\)\)", 5000, true);
+        showToast("Xem ít thôi mấy bác, nhấn vào video để chạy nha.\)\)", 10000, true);
+        
         let isSkipping = false;
     
         const checkAndClick = setInterval(() => {
