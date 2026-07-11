@@ -247,7 +247,7 @@ function parseDetailResponse(html, url) {
             $link.push($item);
         }
         if (mathser && mathser[2]) {
-            var $item = { "link":mathser[2], "name": "Độ Phân Giải Cao" }
+            var $item = { "link":mathser[2], "name": "Độ Phân Giải Thấp" }
             $link.push($item);
         }
         var customjs = textJS($link);
