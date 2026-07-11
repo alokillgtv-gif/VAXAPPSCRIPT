@@ -4,13 +4,13 @@ function getManifest() {
         "id": "trannymovs",          
         "name": "Trannymovs",
         "description": "XXX dành cho người có sở thích đặc biệt",
-        "version": "1.0",             
+        "version": "1.2",             
         "baseUrl": "https://www.trannymovs.com",
         "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "exoplayer"
+        "playerType": "embed"
     });
 }
 // https://www.trannymovs.com/latest-updates/2/
@@ -217,11 +217,11 @@ function parseMovieDetail(html,$url) {
     var $linkURL = html.match(/video_url[^"']+'([^"']+)'/i);
     if($linkURL && $linkURL[1]){
         $stream = $linkURL[1];
-        epi.push({ id: $stream, name: "Xem Ngay", slug: "full" });
+        epi.push({ id: $url, name: "Xem Ngay", slug: "full" });
     }
     
     return JSON.stringify({
-        id: $stream,
+        id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -250,91 +250,91 @@ function parseMovieDetail(html,$url) {
 
 function parseDetailResponse(html, url) {
     try {
-        
-        var customjs = textJS(html, url);
+          var $stream = "";
+          var epi = [];
+          var $linkURL = html.match(/video_url[^"']+'([^"']+)'/i);
+          if ($linkURL && $linkURL[1]) {
+              $stream = $linkURL[1];
+              epi.push({ id: $stream, name: "Xem Ngay", slug: "full" });
+          }
+        var customjs = textJS(epi);
         return JSON.stringify({
-            url: url,
-            headers: {
+            "url": $stream,
+            "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
-                "mimeType": "application/x-mpegURL",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
-            }
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs.trim()
+            },
+            "subtitles": []
         });
-    } catch (error) {
-        return JSON.stringify({ url: "", headers: {} });
+        
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
     }
 }
 
-function textJS(html, $url) {
-    // ĐÃ SỬA: Chuẩn hóa lại cú pháp escape ký tự \$ trong Template Literals
+function textJS($lists) {
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
-// 1. Tự động chèn CSS vào <head> khi file JS này được tải
+LINKVIDEO = ${JSON.stringify($lists)};
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=trannymovs&type=js"; 
 const style = document.createElement('style');
-style.textContent = "#toast-container {position: fixed;top: 20px;right: 20px;z-index: 9999;display: flex;flex-direction: column;gap: 10px;}.toast-bubble {background-color: #333;color: #fff;padding: 12px 24px;border-radius: 8px;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);font-family: sans-serif;font-size: 14px;min-width: 200px;max-width: 350px;opacity: 0;transform: translateX(100%);transition: all 0.4s ease;}.toast-bubble.show {opacity: 1;transform: translateX(0);}.toast-bubble.hide {opacity: 0;transform: translateX(100%);}";
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
 document.head.appendChild(style);
-
-// 2. Tự động tạo container chứa thông báo và chèn vào <body>
-let toastContainer = document.getElementById('toast-container');
-if (!toastContainer) {
-    toastContainer = document.createElement('div');
-    toastContainer.id = 'toast-container';
-    document.body.appendChild(toastContainer);
-}
-
-// 3. Hàm hiển thị thông báo (Bạn gọi hàm này ở bất cứ đâu)
-function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast-bubble';
-    toast.innerText = message;
-    
-    toastContainer.appendChild(toast);
-    
-    // Hiển thị (Slide in)
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 10);
-    
-    // Tự động xóa sau 5 giây
-    setTimeout(() => {
-        toast.classList.remove('show');
-        toast.classList.add('hide');
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
         
-        // Chờ hiệu ứng ẩn kết thúc rồi xóa khỏi DOM
-        setTimeout(() => {
-            toast.remove();
-        }, 400);
-    }, 5000);
-}
-function initCustomVideoFix() {
-    const style = document.createElement('style');
-    var customcss = 'body { background: black; overflow: hidden; }';
-    style.innerHTML = customcss;
-    document.head.appendChild(style);
-    const video = document.querySelector('video');
-    if (video) {
-        video.addEventListener('click', () => { autoFullscreenLoop(video); });
-            autoFullscreenLoop(video);
-    } else {
-        
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
     }
-    showToast("Chạy script thành công");
     
-} 
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
+    } else {
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    }
+}
 
-function autoFullscreenLoop(videoElement) {
-    if (!videoElement) return;
-    const checkInterval = setInterval(() => {
-        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-        if (isFullscreen) { clearInterval(checkInterval); return; }
-        videoElement.muted = false;
-        if (videoElement.paused) { videoElement.play().catch(err => {}); }
-        if (videoElement.requestFullscreen) { videoElement.requestFullscreen().catch(err => {}); }
-    }, 100);
-    jwplayer("player").setFullscreen(true);
-    jwplayer("player").setMute(false);
-    showToast("Đã bật tiếng và toàn màn hình");
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
+    }
 }
 
 if (document.readyState === 'loading') {
@@ -342,9 +342,9 @@ if (document.readyState === 'loading') {
 } else {
     initCustomVideoFix();
 }
+
 `;
 }
-
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
