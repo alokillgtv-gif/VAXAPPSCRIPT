@@ -4,7 +4,7 @@ function getManifest() {
         "id": "trannyone",          
         "name": "Tranny One",
         "description": "XXX dành cho người có sở thích đặc biệt",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": "https://www.tranny.one",
         "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png", 
         "isEnabled": true,
@@ -280,7 +280,7 @@ SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS5
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
-document.head.appendChild(style);
+//document.head.appendChild(style);
 function injectScriptAfterLoad(scriptUrl) {
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
