@@ -210,7 +210,7 @@ function parseMovieDetail(html,$url) {
 function parseDetailResponse(html, url) {
     try {
         var $link = "";
-        var serverMatches = html.match(/superporn_player_html5_api[\s\S]*?src=["']([^"']+)["'][\s\S]*?<\/video>/i);
+        var serverMatches = html.match(/video[\s\S]*?src=["']([^"']+)["'][\s\S]*?<\/video>/i);
         if (serverMatches && serverMatches[1]) {
             $link = serverMatches[1]
         }
