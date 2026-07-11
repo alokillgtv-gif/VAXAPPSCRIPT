@@ -1926,6 +1926,7 @@
                     z-index: 2147483647 !important;
                     border: 2px solid #f1c40f !important;
                     box-shadow: 0 0 28px rgba(0,0,0,0.85) !important;
+                    color:white;
                 }
 
                 #labLayoutEngine.has-v163-floating-console #panelConsole.lab-v163-floating-console {

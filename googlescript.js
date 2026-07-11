@@ -4,14 +4,15 @@
     var DEVELOPE = false;
 
     function GetlinkVideo() {
-      var playlist = scanSources();
-      var stream1 = playlist.activeSrc || '';
-      var stream2 = window.location.href;
-      showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
-      buildVideo(stream1, stream2, playlist);
+        var playlist = scanSources();
+        var stream1 = playlist.activeSrc || '';
+        var stream2 = window.location.href;
+        showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
+        buildVideo(stream1, stream2, playlist);
     }
 
-     /*
+
+/*
      // === THÊM SERVER VÀ TẬP PHIM TÙY CHỈNH ===
     window.customPlaylist = {
       servers: [
@@ -26,12 +27,14 @@
     };
     
     // Hardcode server & tập phim
-    servers.push({ label: 'Server 2', src: 'https://.../link2.mp4' });
-    servers.push({ label: 'Server 3', src: 'https://.../link3.mp4' });
-    episodes.push({ label: 'Tập 1', src: 'https://.../tap-1' });
-    episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
+servers.push({ label: 'Server 2', src: 'https://.../link2.mp4' });
+servers.push({ label: 'Server 3', src: 'https://.../link3.mp4' });
+episodes.push({ label: 'Tập 1', src: 'https://.../tap-1' });
+episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
     // === KẾT THÚC CUSTOM ===
      */
+// ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST TRƯỚC KHI XÓA DOM ───
+
     // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST TRƯỚC KHI XÓA DOM ───
     function scanSources() {
         var activeSrc = '';
@@ -300,26 +303,34 @@
         var isDraggingVideo = false;
 
         // ─── LOCALSTORAGE: LƯU / KHÔI PHỤC VỊ TRÍ ───
-        // Tạo key ổn định: bỏ các path segment chứa '=' (key=, state=, speed=, reftag=...)
-        // chỉ giữ lại các phần thuần túy của link gốc
-        function getStableKey(url) {
-            try {
-                var u = new URL(url);
-                var parts = u.pathname.split('/').filter(function(p) { return p.length && p.indexOf('=') === -1; });
-                var path = parts.length ? '/' + parts.join('/') : '/';
-                return 'videoPlayer_lastPos_' + encodeURIComponent(u.origin + path);
-            } catch (e) {
-                return 'videoPlayer_lastPos_' + encodeURIComponent(url.split('?')[0].split('#')[0]);
-            }
+        // Key dựa trên thời lượng video: VIDEO_<phút>_<giây>
+        // Cùng 1 URL (remote_control.php) nhưng video khác nhau sẽ có duration khác nhau -> key khác nhau
+        function getDurationKey(duration) {
+            if (!duration || isNaN(duration)) return null;
+            var totalSec = Math.round(duration);
+            var min = Math.floor(totalSec / 60);
+            var sec = totalSec % 60;
+            return 'VIDEO_' + min + '_' + sec;
         }
 
-        var saveKey = getStableKey(stream1);
+        var saveKey = null;
         var lastSaveTime = 0;
         var pendingRestoreTime = null;
         var hasRestored = false;
 
+        function updateSaveKey() {
+            if (video && video.duration && !isNaN(video.duration)) {
+                var newKey = getDurationKey(video.duration);
+                if (newKey && newKey !== saveKey) {
+                    saveKey = newKey;
+                    console.log('[Player] saveKey updated to:', saveKey);
+                }
+            }
+        }
+
         function savePosition(force) {
             if (!video || video.ended || !video.currentTime || isNaN(video.currentTime)) return;
+            if (!saveKey) return; // chưa có key thì chưa lưu
             if (!force) {
                 var now = Date.now();
                 if (now - lastSaveTime < 3000) return; // debounce 3 giây
@@ -343,6 +354,7 @@
 
         function restorePosition() {
             if (hasRestored) { console.log('[Player] already restored'); return true; }
+            if (!saveKey) { console.log('[Player] no saveKey yet, will retry when duration known'); return false; }
             try {
                 var saved = localStorage.getItem(saveKey);
                 console.log('[Player] saveKey:', saveKey, 'saved:', saved ? 'found' : 'null');
@@ -350,6 +362,15 @@
                     var data = JSON.parse(saved);
                     console.log('[Player] parsed data:', JSON.stringify(data));
                     if (data && data.time && data.time > 3) {
+                        // Nếu đã biết duration, kiểm tra xem đây có phải cùng phim không
+                        if (video.duration && !isNaN(video.duration) && data.duration && !isNaN(data.duration)) {
+                            var durDiff = Math.abs(video.duration - data.duration);
+                            if (durDiff > 3) {
+                                console.log('[Player] duration mismatch (saved:', data.duration, 'current:', video.duration, '), this is a different movie');
+                                clearSavedPosition(); // xóa data cũ của phim khác
+                                return false;
+                            }
+                        }
                         if (!video.duration || isNaN(video.duration)) {
                             pendingRestoreTime = data.time;
                             console.log('[Player] duration not ready, pending:', data.time);
@@ -376,6 +397,21 @@
 
         function applyPendingRestore() {
             if (pendingRestoreTime !== null && video.duration && !isNaN(video.duration)) {
+                // Kiểm tra duration khớp trước khi apply
+                try {
+                    var saved = localStorage.getItem(saveKey);
+                    if (saved) {
+                        var data = JSON.parse(saved);
+                        if (data.duration && !isNaN(data.duration)) {
+                            var durDiff = Math.abs(video.duration - data.duration);
+                            if (durDiff > 3) {
+                                console.log('[Player] pending restore rejected: duration mismatch');
+                                pendingRestoreTime = null;
+                                return false;
+                            }
+                        }
+                    }
+                } catch (e) {}
                 if (pendingRestoreTime < video.duration - 5) {
                     try {
                         video.currentTime = pendingRestoreTime;
@@ -403,7 +439,7 @@
             // Lưu vị trí cũ trước khi đổi
             savePosition(true);
             stream1 = newSrc;
-            saveKey = getStableKey(stream1);
+            saveKey = null; // reset key, sẽ cập nhật lại khi có duration mới
             hasRestored = false;
             pendingRestoreTime = null;
             video.src = newSrc;
@@ -411,6 +447,7 @@
             spinner.style.display = 'block';
             video.onloadeddata = function() {
                 spinner.style.display = 'none';
+                updateSaveKey();
                 if (!restorePosition() && prevTime > 0) {
                     video.currentTime = prevTime;
                 }
@@ -556,21 +593,25 @@
                 isMuted = false;
                 btnMute.textContent = '🔊';
             }
+            updateSaveKey();
             restorePosition();
         });
 
         video.addEventListener('loadedmetadata', function() {
             console.log('[Player] loadedmetadata, duration:', video.duration);
+            updateSaveKey();
             applyPendingRestore();
         });
 
         video.addEventListener('durationchange', function() {
             console.log('[Player] durationchange, duration:', video.duration);
+            updateSaveKey();
             applyPendingRestore();
         });
 
         video.addEventListener('canplay', function() {
             console.log('[Player] canplay, readyState:', video.readyState, 'currentTime:', video.currentTime, 'seekable:', video.seekable ? video.seekable.length : 0);
+            updateSaveKey();
             if (!hasRestored) {
                 if (pendingRestoreTime !== null) {
                     applyPendingRestore();

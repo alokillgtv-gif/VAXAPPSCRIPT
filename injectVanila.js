@@ -127,7 +127,7 @@
             .CodeMirror-hint-active { background: #3498db !important; color: #fff !important; }
 
             /* Giao diện Console Output */
-            .lab-console-output { flex: 1; background: #0d0d0d; border: 1px solid #333; border-radius: 4px; overflow: auto; font-family: 'Consolas', monospace; font-size: 12px; padding: 6px; display: flex; flex-direction: column; }
+            .lab-console-output { color:white;flex: 1; background: #0d0d0d; border: 1px solid #333; border-radius: 4px; overflow: auto; font-family: 'Consolas', monospace; font-size: 12px; padding: 6px; display: flex; flex-direction: column; }
             .lab-log-item { margin-bottom: 4px; padding: 2px 4px; border-bottom: 1px solid #1a1a1a; white-space: pre-wrap; word-break: break-all; flex-shrink: 0; }
             .lab-log-error { color: #ff6b6b; background: rgba(255,107,107,0.1); }
             .lab-log-return { color: #f1c40f; font-weight: bold; }
