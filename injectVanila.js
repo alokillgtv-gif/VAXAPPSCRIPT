@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    // --- Danh sách thư viện cần tải trước ---
+    // --- Danh sách thư viện cần tải trước --- VERSION 1.2
     const LIBS = [
         'https://code.jquery.com/jquery-3.7.1.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js',
