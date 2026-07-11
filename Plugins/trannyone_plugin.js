@@ -4,7 +4,7 @@ function getManifest() {
         "id": "trannyone",          
         "name": "Tranny One",
         "description": "XXX dành cho người có sở thích đặc biệt",
-        "version": "1.5",             
+        "version": "1.6",             
         "baseUrl": "https://www.tranny.one",
         "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png", 
         "isEnabled": true,
@@ -239,12 +239,13 @@ function parseMovieDetail(html,$url) {
 function parseDetailResponse(html, url) {
     try {
         var $link = [];
-        var $strem = url;
+        var $stream = url;
         var $item = {"link":false};
         $link.push($item);
         var mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
         if (mathser && mathser[1]) {
             var $item = {"link":mathser[1],"name":"Độ Phân Giải Cao"}
+            $stream = mathser[1];
             $link.push($item);
         }
         if (mathser && mathser[2]) {
