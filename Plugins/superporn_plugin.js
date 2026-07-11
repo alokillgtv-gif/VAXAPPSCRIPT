@@ -5,7 +5,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "2.7",             
+        "version": "2.8",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -214,7 +214,7 @@ function parseDetailResponse(html, url) {
         if (serverMatches && serverMatches[1]) {
             $link = serverMatches[1]
         }
-        var customjs = textJS();
+        var customjs = textJS($link);
         return JSON.stringify({
             "url": $link,
             "headers": {
@@ -240,9 +240,10 @@ function parseDetailResponse(html, url) {
     }
 }
 
-function textJS() {
+function textJS($link) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
+LINKVIDEO = '${$link}';
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=superporn&type=js"; 
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
