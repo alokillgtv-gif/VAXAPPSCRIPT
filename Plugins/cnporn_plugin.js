@@ -6,7 +6,7 @@ function getManifest() {
         "id": "cnporn",
         "name": "Porn Gái Trung",
         "description": "Nguồn XXX Hay",
-        "version": "1.3",
+        "version": "1.1",
         "BASEURL": "https://cnporn.org",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -227,7 +227,7 @@ function parseMovieDetail(html,$url) {
     }
 
     var $return = {
-        id: stream1,
+        id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -260,22 +260,12 @@ JSON.parse(parseMovieDetail(html,$url))
 
 function parseDetailResponse(html, url) {
     try {
-        
-        var customjs = textJS(html, url);
-        
-        var stream1 = "";
-        const regex = /data-server\s*=\s*["']([^"']+)["']/g;
-        // 2. Lấy kết quả bằng matchAll và map
-        const servers = Array.from(html.matchAll(regex), match => match[1]);
-        stream1 = BASEURL + servers[0];
-
+        var customjs = textJS();
         return JSON.stringify({
-            "url": stream1,
+            "url": url,
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
-                mimeType: "application/x-mpegURL",
-                isEmbed: true,
                 "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
                 // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
@@ -295,8 +285,7 @@ function parseDetailResponse(html, url) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
 }
-
-function textJS(html, $url) {
+function textJS() {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=cnporn&type=js"; 
