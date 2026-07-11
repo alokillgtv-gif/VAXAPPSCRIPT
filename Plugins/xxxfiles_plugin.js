@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://www.xxxfiles.com",
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -302,78 +302,25 @@ function parseMovieDetail(html, url) {
 //JSON.parse(parseMovieDetail(html));
 
 
-
 function parseDetailResponse(html, url) {
     try {
-        // 1. Lấy đoạn script Custom-JS của bạn
-        var customjs = textJS(html, url);
-        
-        // SỬA BẪY CSS: Ép đoạn mã CSS trong textJS không được ẩn thẻ video và các thẻ điều khiển của player
-        customjs = customjs.replace(
-            "body * {background: black;display:none!important}",
-            "body *:not(video):not(source):not(script):not(style) {background: black;display:none!important}"
-        );
-        
-        // 2. Kiểm tra xem link truyền vào là MP4 hay luồng phát HLS (.m3u8)
-        var isHls = url.indexOf(".m3u8") > -1 || url.indexOf("manifest") > -1;
-        
-        // 3. Tự chế trang HTML hoàn chỉnh
-        // Nếu là HLS, tự động lách luật bằng cách nhúng thêm thư viện cdn hls.js để tự phát trên Android
-        var htmlFake = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VAX Player Premium</title>
-    <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-    </style>
-    ${isHls ? '<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>' : ''}
-</head>
-<body>
-
-    <video id="vax-video-player" controls autoplay playsinline></video>
-
-    <script>
-        var video = document.getElementById('vax-video-player');
-        var videoSrc = '${url}';
-
-        if (${isHls} && Hls.isSupported()) {
-            var hls = new Hls({
-                maxMaxBufferLength: 30 // Giới hạn buffer tránh tràn RAM trên máy yếu
-            });
-            hls.loadSource(videoSrc);
-            hls.attachMedia(video);
-        } else {
-            // Nếu là MP4 hoặc môi trường hỗ trợ HLS gốc (như iOS)
-            video.src = videoSrc;
-        }
-    </script>
-</body>
-</html>
-        `;
-        
-        // 4. Mã hóa trang HTML tự chế này sang chuỗi Base64
-        // Dùng mã hóa an toàn để không bị lỗi font chữ hoặc ký tự đặc biệt
-        var base64Url = "data:text/html;base64," + btoa(unescape(encodeURIComponent(htmlFake)));
-        
-        // 5. Trả kết quả về cho App
+        var customjs = textJS();
         return JSON.stringify({
-            "url": base64Url,
-            "isEmbed": true, // Bắt buộc để true để App kích hoạt mở WebView ẩn chạy trang này
+            "url": url,
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
                 "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
                 "Sec-Ch-Ua-Mobile": "?1",
                 "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
                 "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
                 "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim() // Mã JS đã sửa lỗi né player vẫn sẽ được tiêm vào trang này
+                "Custom-Js": customjs.trim()
             },
             "subtitles": []
         });
@@ -383,89 +330,14 @@ function parseDetailResponse(html, url) {
     }
 }
 
-function parseEmbedResponse(html, sourceUrl) {
-    
-    var link = sourceUrl;
-    var customjs = textJS(html, sourceUrl);
-    
-    return JSON.stringify({
-        url: link,
-        isEmbed: false, // Kết thúc, đây là link stream cuối
-        mimeType: "application/x-mpegURL", // Báo App đây là HLS
-        headers: {
-            "Referer": BASEURL,
-            "Custom-Js": customjs.trim()
-            
-        },
-    });
-    
-    return JSON.stringify({ url: "", isEmbed: false });
-}
-
-function textJS(html, $url) {
+function textJS() {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=xxxfiles&type=js"; 
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
-document.head.appendChild(style);
-showToast("Đang tải video cho bạn.", 7000)
-function showToast(message, duration = 7000) {
-    let container = document.getElementById('global-toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'global-toast-container';
-        
-        Object.assign(container.style, {
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            zIndex: '99999',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px'
-        });
-        document.body.appendChild(container);
-    }
-    
-    const toast = document.createElement('div');
-    toast.innerHTML = message;
-    
-    Object.assign(toast.style, {
-        background: 'rgba(50, 50, 50, 0.95)',
-        color: '#fff',
-        padding: '12px 24px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-        fontFamily: 'sans-serif',
-        fontSize: '14px',
-        minWidth: '200px',
-        transition: 'all 0.3s ease',
-        transform: 'translateX(120%)',
-        opacity: '0'
-    });
-    
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.transform = 'translateX(0)';
-        toast.style.opacity = '1';
-    }, 10);
-    
-    setTimeout(() => {
-        toast.style.transform = 'translateX(120%)';
-        toast.style.opacity = '0';
-        
-        setTimeout(() => {
-            toast.remove();
-            if (container.childElementCount === 0) {
-                container.remove();
-            }
-        }, 300);
-    }, duration);
-}
-
+//document.head.appendChild(style);
 function injectScriptAfterLoad(scriptUrl) {
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
@@ -506,14 +378,8 @@ function injectScriptAfterLoad(scriptUrl) {
 
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
-    
     if (SCRIPTURL && SCRIPTURL !== "undefined") {
         injectScriptAfterLoad(SCRIPTURL);
-    }
-    
-    // Lưu ý: Đảm bảo hàm runScript() này đã được định nghĩa ở đâu đó trong hệ thống của bạn
-    if (typeof runScript === "function") {
-        runScript("sssssssss");
     }
 }
 
@@ -522,6 +388,7 @@ if (document.readyState === 'loading') {
 } else {
     initCustomVideoFix();
 }
+
 `;
 }
 

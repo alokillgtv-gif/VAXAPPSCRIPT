@@ -5,14 +5,19 @@
     var DEVELOPE = false;
  function GetlinkVideo() {
         var htmlTAG = document.getElementsByTagName("html")[0];
-        var htmltext = htmlTAG.outerHTML;
-        var videoSrc = window.location.href;
-        if(videoSrc.match(/m3u8|mp4/)){
-            showToast("Đang tải video....", 7000, true);
-            buildVideo(videoSrc, stream2);
-            showToast("Đã cấu hình video xong. Xem vui nhé bạn", 7000, true);
-        }
-        //buildVideo(stream1, stream2);
+        const source = document.querySelectorAll('[class*="video"], [class*="player"], video, iframe');
+        var stream1 = "";
+        var stream2 = window.location.href;
+        showToast("wqeweqwe\r\n", 17000, true)
+        source.forEach(el => {
+            // Lọc ra các phần tử thực sự có chứa link nguồn (src)
+            let src = el.src || el.getAttribute('data-src') || el.querySelector('source')?.src;
+            if (src && (src.includes('.mp4') || src.includes('.m3u8') || src.includes('embed'))) {
+                stream1 = src;
+            }
+        });
+        //showToast(stream1 + "\r\n" + stream2, 17000, check = true)
+        buildVideo(stream1, stream2);
     }
     // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
     function showToast(message, duration = 7000, check = true) {
@@ -93,7 +98,7 @@
         var spinStyle = document.createElement('style');
         spinStyle.textContent = '@keyframes spin{0%{transform:translate(-50%,-50%) rotate(0deg);}100%{transform:translate(-50%,-50%) rotate(360deg);}}';
         document.head.appendChild(spinStyle);
-    
+    document.body.appendChild(spinner);
         var controls = document.createElement('div');
         controls.id = 'video-controls';
         controls.style.cssText = 'position:absolute;bottom:0;left:0;width:100%;background:linear-gradient(transparent,rgba(0,0,0,0.85));padding:12px 16px 20px;box-sizing:border-box;transition:opacity 0.3s;opacity:0;z-index:20;';
