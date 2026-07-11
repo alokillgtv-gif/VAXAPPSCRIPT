@@ -368,14 +368,6 @@ function parseEmbedResponse(html, sourceUrl) {
         function runScript($msg){
             //showToast("${sourceUrl}", duration = 60000)
         }
-        function decodeBase64ToHtml(base64String) {
-            const binaryString = atob(base64String);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
-        }
         `
 
         return JSON.stringify({

@@ -5,7 +5,7 @@ function getManifest() {
         "id": "newporn",          
         "name": "18porn",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://www.18porn.sex",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg", 
         "isEnabled": true,
@@ -250,7 +250,7 @@ function parseMovieDetail(html) {
   ];
 
   return JSON.stringify({
-   id: dlink || elink || "",
+   id: elink,
    title: lname,
    originName: lname || "",
    posterUrl: limg,
@@ -274,27 +274,114 @@ function parseMovieDetail(html) {
 /**
  * SỬA ĐÚNG CHUẨN: Trả về trực tiếp đường dẫn ID truyền vào để phát video
  */
-function parseDetailResponse(html) {
- // linkId chính là cái id (dlink hoặc elink) được chọn từ cấu trúc episodes bên trên truyền vào
- return JSON.stringify({
-  url: "", 
-  headers: { 
-    "Referer": BaseURL,
-    "Origin": BaseURL,
-    "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+
+function parseDetailResponse(html, url) {
+ try {
+ // video_url: 'https://www.18porn.sex/get_file/1/a1dfdc42b228e9e4ce0ce20e74aa2d97/1656000/1656262/1656262.mp4/?v-acctoken=MzI0M3wxfDB8MTVmZDU1OWM5MWQ4ZGU3ZTkwNThhNjUwMmZiMWIzOTE2b8fc59a9bef042a&embed=true
+  var $link = "";
+  var serverMatches = html.match(/video_url:\s+["']([^"']+)["']/i);
+  var customjs = textJS();
+  var $return = {
+   "url": $link,
+   "headers": {
+    "Referer": url,
+    "Origin": url,
+    "isEmbed": true,
+    "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
     // Đánh lừa thuật toán Client Hints của tường lửa
     "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
     "Sec-Ch-Ua-Mobile": "?1",
     "Sec-Ch-Ua-Platform": '"Android"',
-    
+    "Custom-Js": customjs.trim(),
     // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
     "Accept": "*/*",
     "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
     "X-Requested-With": "com.android.chrome"
-  }, 
-  subtitles: [] 
- });
+   },
+   "subtitles": []
+  }
+  if (serverMatches && serverMatches[1]) {
+   $link = serverMatches[1]
+  }
+  if ($link == "") {
+   $link = url
+  }
+  $return.url = $link;
+  return JSON.stringify($return);
+  
+ } catch (e) {
+  return JSON.stringify({
+   "url": "",
+   "headers": {}
+  });
+ }
 }
+
+
+
+function textJS() {
+ // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+ return `
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=18porn&type=js"; 
+const style = document.createElement('style');
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
+//document.head.appendChild(style);
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
+        
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
+    }
+    
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
+    } else {
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    }
+}
+
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+    initCustomVideoFix();
+}
+
+`;
+}
+
+
 function parseCategoriesResponse(apiResponseJson) {
  var listurl = getLISTmenu();
  var menulist = buildMenu(listurl);
@@ -376,114 +463,6 @@ function buildMenu(listurl) {
  }
  return menulist;
 }
-
-function CustomjQ(html, url) {
- var $cutom1 = `
-    function runBegin(){
-        customAlert("2412421", "Alo alo");
-    }
-    `;
- var $custom2 = `
-    function customAlert(title, message) {
-        const overlay = document.createElement('div');
-        Object.assign(overlay.style, {
-            position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center',
-            alignItems: 'center', zIndex: '99999', opacity: '0', transition: 'opacity 0.2s ease'
-        });
-        
-        const box = document.createElement('div');
-        Object.assign(box.style, {
-            backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.25)', maxWidth: '380px', width: '85%',
-            boxSizing: 'border-box', fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-            transform: 'scale(0.8)', transition: 'transform 0.2s ease'
-        });
-        
-        const titleEl = document.createElement('input');
-        titleEl.type = 'text'; 
-        titleEl.value = title;
-        Object.assign(titleEl.style, {
-            display: 'block', width: '100%', boxSizing: 'border-box',
-            margin: '0 0 12px 0', padding: '6px 10px', color: '#222222',
-            fontSize: '15px', fontWeight: '600', border: '1px solid #ddd', borderRadius: '6px'
-        });
-        
-        const msgEl = document.createElement('textarea');
-        msgEl.value = message;
-        Object.assign(msgEl.style, {
-            display: 'block', width: '100%', boxSizing: 'border-box',
-            margin: '0 0 20px 0', padding: '8px 10px', color: '#555555',
-            fontSize: '14px', height: '200px', lineHeight: '1.5',
-            border: '1px solid #ddd', borderRadius: '6px', resize: 'none'
-        });
-        
-        const btn = document.createElement('button');
-        btn.innerText = 'OK';
-        Object.assign(btn.style, {
-            display: 'block', margin: '0 auto', padding: '10px 28px',
-            fontSize: '15px', fontWeight: '600', color: '#ffffff',
-            backgroundColor: '#007bff', border: 'none', borderRadius: '6px',
-            cursor: 'pointer', outline: 'none', transition: 'background-color 0.1s'
-        });
-        
-        btn.onmouseover = () => btn.style.backgroundColor = '#0056b3';
-        btn.onmouseout = () => btn.style.backgroundColor = '#007bff';
-        
-        const closeAlert = () => {
-            overlay.style.opacity = '0';
-            box.style.transform = 'scale(0.8)';
-            setTimeout(() => { overlay.remove(); }, 200);
-        };
-        
-        btn.onclick = closeAlert;
-        overlay.onclick = (e) => { if (e.target === overlay) closeAlert(); };
-        
-        box.appendChild(titleEl);
-        box.appendChild(msgEl);
-        box.appendChild(btn);
-        overlay.appendChild(box);
-        document.body.appendChild(overlay);
-        
-        setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'scale(1)'; }, 10);
-    }
-
-    function initCustomVideoFix() {
-        const style = document.createElement('style');
-        var customcss = 'body {overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
-        style.innerHTML = customcss;
-        document.head.appendChild(style);
-        
-        if (typeof jwplayer === "function") {
-            const player = jwplayer("previewPlayer");
-            if (player && typeof player.getMute === "function") {
-                if (player.getMute()) {
-                    player.setMute(false);
-                }
-                player.setVolume(100);
-            }
-        }
-        
-        const checkAndClick = setInterval(() => {
-            const skipButton = document.getElementById("skip-ad");
-            if (skipButton) {
-                skipButton.click();
-                clearInterval(checkAndClick);
-            }
-        }, 200);
-        
-        setTimeout(() => { clearInterval(checkAndClick); }, 20000);
-        runBegin();
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCustomVideoFix);
-    } else {
-        initCustomVideoFix();
-    }
-`
- return $cutom1 + $cutom2;
-}
-
 
 function trimHTML(inhtml) {
  var result = inhtml.replace(/<[^>]*>/g, '');
