@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.4",
+        "version": "1.5",
         "BASEURL": "https://www.xxxfiles.com",
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -304,9 +304,14 @@ function parseMovieDetail(html, $url) {
 
 function parseDetailResponse(html, url) {
     try {
+    var $link = "";
+    var serverMatches = html.match(/video\s+id=["']video[[\s\S]*?src=["']([\s\S]*?)["']/i);
+    if (serverMatches && serverMatches[1]) {
+        $link = serverMatches[1]
+    }
         var customjs = textJS();
         return JSON.stringify({
-            "url": url,
+            "url": $link,
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
