@@ -10,30 +10,27 @@
         showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
         buildVideo(stream1, stream2, playlist);
     }
-
-
-/*
-     // === THÊM SERVER VÀ TẬP PHIM TÙY CHỈNH ===
-    window.customPlaylist = {
-      servers: [
-        { label: 'Server VIP', src: 'https://vip.example.com/video.mp4' },
-        { label: 'Server Backup', src: 'https://backup.example.com/video.mp4' }
-      ],
-      episodes: [
-        { label: 'Tập 1', src: 'https://site.com/phim/tap-1' },
-        { label: 'Tập 2', src: 'https://site.com/phim/tap-2' },
-        { label: 'Tập 3', src: 'https://site.com/phim/tap-3' }
-      ]
-    };
+    /*
     
-    // Hardcode server & tập phim
-servers.push({ label: 'Server 2', src: 'https://.../link2.mp4' });
-servers.push({ label: 'Server 3', src: 'https://.../link3.mp4' });
-episodes.push({ label: 'Tập 1', src: 'https://.../tap-1' });
-episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
-    // === KẾT THÚC CUSTOM ===
-     */
-// ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST TRƯỚC KHI XÓA DOM ───
+    // Sau khi trang load, server mới xuất hiện
+    VideoPlayerAPI.addServer({ label: 'Server 4K', src: 'https://example.com/video.mp4' });
+
+    // Hoặc chèn lên đầu tiên
+    VideoPlayerAPI.addServerAt(0, { label: 'Server VIP', src: 'https://vip.com/video.mp4' });
+    
+    VideoPlayerAPI.addServer({ label: 'Server 2', src: '...' }) Thêm server vào cuối danh sách
+    VideoPlayerAPI.addServerAt(0, { label: 'VIP', src: '...' }) Thêm server vào vị trí bất kỳ(ví dụ 0 là đầu tiên)
+    VideoPlayerAPI.addEpisode({ label: 'Tập 5', src: '...' }) Thêm tập phim vào cuối
+    VideoPlayerAPI.addEpisodeAt(2, { label: 'Tập 3', src: '...' }) Thêm tập vào vị trí chỉ định
+    VideoPlayerAPI.removeServer('Server 2') Xóa server theo label
+    VideoPlayerAPI.removeEpisode('Tập 5') Xóa tập theo label
+    VideoPlayerAPI.clearServers() Xóa toàn bộ server
+    VideoPlayerAPI.clearEpisodes() Xóa toàn bộ tập phim
+    VideoPlayerAPI.getServers() / getEpisodes() Lấy mảng hiện tại
+    VideoPlayerAPI.switchSource('https://...') Đổi nguồn phát ngay lập tức
+    VideoPlayerAPI.refresh()
+    
+    */
 
     // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST TRƯỚC KHI XÓA DOM ───
     function scanSources() {
@@ -93,29 +90,10 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
             }
         }
 
-        // Merge custom servers & episodes từ window.customPlaylist (nếu có)
-        if (typeof window.customPlaylist !== 'undefined' && window.customPlaylist) {
-            if (window.customPlaylist.servers) {
-                for (var s = 0; s < window.customPlaylist.servers.length; s++) {
-                    var cs = window.customPlaylist.servers[s];
-                    if (cs && cs.src && !seen.has(cs.src)) {
-                        seen.add(cs.src);
-                        servers.push({ label: cs.label || 'Custom Server', src: cs.src, type: 'server' });
-                    }
-                }
-            }
-            if (window.customPlaylist.episodes) {
-                for (var e = 0; e < window.customPlaylist.episodes.length; e++) {
-                    var ce = window.customPlaylist.episodes[e];
-                    if (ce && ce.src) {
-                        episodes.push({ label: ce.label || ('Custom Tập ' + (episodes.length + 1)), src: ce.src, type: 'episode' });
-                    }
-                }
-            }
-        }
-
         return { activeSrc: activeSrc, servers: servers, episodes: episodes };
     }
+
+
 
     // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
     function showToast(message, duration, check) {
@@ -209,12 +187,6 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
         btnRow.appendChild(btnReload);
         btnRow.appendChild(btnFullscreen);
 
-        // Chỉ hiện nút playlist nếu có nội dung
-        var hasPlaylist = (playlistData && ((playlistData.servers && playlistData.servers.length > 1) || (playlistData.episodes && playlistData.episodes.length > 0)));
-        if (hasPlaylist) {
-            btnRow.appendChild(btnPlaylist);
-        }
-
         controls.appendChild(progressWrap);
         controls.appendChild(btnRow);
 
@@ -242,7 +214,17 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
         plHeader.appendChild(plClose);
         playlistPanel.appendChild(plHeader);
 
-        function buildSection(title, items, onClick) {
+        var plContent = document.createElement('div');
+        plContent.id = 'playlist-content';
+        playlistPanel.appendChild(plContent);
+
+        // Playlist state & API
+        var playlistState = {
+            servers: (playlistData && playlistData.servers) ? playlistData.servers.slice() : [],
+            episodes: (playlistData && playlistData.episodes) ? playlistData.episodes.slice() : []
+        };
+
+        function buildSection(title, items, onClick, parent) {
             if (!items || items.length === 0) return;
             var sec = document.createElement('div');
             sec.style.cssText = 'margin-bottom:20px;';
@@ -261,20 +243,36 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
                     sec.appendChild(btn);
                 })(items[i]);
             }
-            playlistPanel.appendChild(sec);
+            parent.appendChild(sec);
         }
 
-        if (playlistData) {
-            if (playlistData.servers && playlistData.servers.length > 1) {
-                buildSection('🎥 Chuyển Server', playlistData.servers, function(item) {
+        function renderPlaylist() {
+            plContent.innerHTML = '';
+            var hasAny = false;
+            if (playlistState.servers.length > 1) {
+                buildSection('🎥 Chuyển Server', playlistState.servers, function(item) {
                     switchSource(item.src);
-                });
+                }, plContent);
+                hasAny = true;
             }
-            if (playlistData.episodes && playlistData.episodes.length > 0) {
-                buildSection('📁 Tập phim', playlistData.episodes, function(item) {
+            if (playlistState.episodes.length > 0) {
+                buildSection('📁 Tập phim', playlistState.episodes, function(item) {
                     savePosition();
                     window.location.href = item.src;
-                });
+                }, plContent);
+                hasAny = true;
+            }
+            if (hasAny) {
+                if (!btnPlaylist.parentNode) {
+                    btnRow.appendChild(btnPlaylist);
+                }
+                if (!playlistPanel.parentNode) {
+                    container.appendChild(playlistPanel);
+                }
+            } else {
+                if (btnPlaylist.parentNode) {
+                    btnPlaylist.parentNode.removeChild(btnPlaylist);
+                }
             }
         }
 
@@ -283,9 +281,7 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
         container.appendChild(bigPlayBtn);
         container.appendChild(seekOverlay);
         container.appendChild(controls);
-        if (hasPlaylist) {
-            container.appendChild(playlistPanel);
-        }
+        container.appendChild(playlistPanel);
 
         var htmlTAG = document.getElementsByTagName("html")[0];
         htmlTAG.innerHTML = '';
@@ -303,151 +299,62 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
         var isDraggingVideo = false;
 
         // ─── LOCALSTORAGE: LƯU / KHÔI PHỤC VỊ TRÍ ───
-        // Key dựa trên thời lượng video: VIDEO_<phút>_<giây>
-        // Cùng 1 URL (remote_control.php) nhưng video khác nhau sẽ có duration khác nhau -> key khác nhau
-        function getDurationKey(duration) {
-            if (!duration || isNaN(duration)) return null;
-            var totalSec = Math.round(duration);
-            var min = Math.floor(totalSec / 60);
-            var sec = totalSec % 60;
-            return 'VIDEO_' + min + '_' + sec;
-        }
-
-        var saveKey = null;
+        var cleanStreamURL = stream1.split('?')[0];
+        var saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(cleanStreamURL);
         var lastSaveTime = 0;
-        var pendingRestoreTime = null;
-        var hasRestored = false;
 
-        function updateSaveKey() {
-            if (video && video.duration && !isNaN(video.duration)) {
-                var newKey = getDurationKey(video.duration);
-                if (newKey && newKey !== saveKey) {
-                    saveKey = newKey;
-                    console.log('[Player] saveKey updated to:', saveKey);
-                }
-            }
-        }
-
-        function savePosition(force) {
+        function savePosition() {
             if (!video || video.ended || !video.currentTime || isNaN(video.currentTime)) return;
-            if (!saveKey) return; // chưa có key thì chưa lưu
-            if (!force) {
-                var now = Date.now();
-                if (now - lastSaveTime < 3000) return; // debounce 3 giây
-                lastSaveTime = now;
-            }
+            var now = Date.now();
+            if (now - lastSaveTime < 4000) return; // debounce 4 giây
+            lastSaveTime = now;
             try {
-                // Chỉ lưu nếu đã xem quá 3s và còn hơn 5s cuối
-                if (video.currentTime > 3 && (!video.duration || isNaN(video.duration) || video.currentTime < video.duration - 5)) {
+                // Chỉ lưu nếu đã xem quá 5s và còn hơn 5s cuối
+                if (video.currentTime > 5 && (!video.duration || isNaN(video.duration) || video.currentTime < video.duration - 5)) {
                     localStorage.setItem(saveKey, JSON.stringify({
                         time: video.currentTime,
                         duration: video.duration || 0,
-                        savedAt: Date.now()
+                        savedAt: now
                     }));
                 }
             } catch (e) {}
         }
 
         function clearSavedPosition() {
-            try { localStorage.removeItem(saveKey); } catch (e) {}
+            try {
+                localStorage.removeItem(saveKey);
+            } catch (e) {}
         }
 
         function restorePosition() {
-            if (hasRestored) { console.log('[Player] already restored'); return true; }
-            if (!saveKey) { console.log('[Player] no saveKey yet, will retry when duration known'); return false; }
             try {
                 var saved = localStorage.getItem(saveKey);
-                console.log('[Player] saveKey:', saveKey, 'saved:', saved ? 'found' : 'null');
                 if (saved) {
                     var data = JSON.parse(saved);
-                    console.log('[Player] parsed data:', JSON.stringify(data));
-                    if (data && data.time && data.time > 3) {
-                        // Nếu đã biết duration, kiểm tra xem đây có phải cùng phim không
-                        if (video.duration && !isNaN(video.duration) && data.duration && !isNaN(data.duration)) {
-                            var durDiff = Math.abs(video.duration - data.duration);
-                            if (durDiff > 3) {
-                                console.log('[Player] duration mismatch (saved:', data.duration, 'current:', video.duration, '), this is a different movie');
-                                clearSavedPosition(); // xóa data cũ của phim khác
-                                return false;
-                            }
-                        }
-                        if (!video.duration || isNaN(video.duration)) {
-                            pendingRestoreTime = data.time;
-                            console.log('[Player] duration not ready, pending:', data.time);
+                    // Chỉ cần có data.time > 5 là cho phép tua
+                    if (data && data.time && data.time > 5) {
+                        // Nếu video đã load được duration, check xem có phải đang ở 5s cuối không
+                        if (video.duration && !isNaN(video.duration) && data.time >= video.duration - 5) {
                             return false;
                         }
-                        if (data.time < video.duration - 5) {
-                            try {
-                                video.currentTime = data.time;
-                                hasRestored = true;
-                                console.log('[Player] restored to:', data.time);
-                                showToast('⏩ Đã tiếp tục phát từ ' + formatTime(data.time), 4000, true);
-                                return true;
-                            } catch (seekErr) {
-                                console.warn('[Player] seek failed, will retry on canplay:', seekErr);
-                                pendingRestoreTime = data.time;
-                                return false;
-                            }
-                        }
+                        video.currentTime = data.time;
+                        showToast('⏩ Đã tiếp tục phát từ ' + formatTime(data.time), 4000, true);
+                        return true;
                     }
                 }
-            } catch (e) { console.error('[Player] restore error:', e); }
+            } catch (e) {}
             return false;
         }
-
-        function applyPendingRestore() {
-            if (pendingRestoreTime !== null && video.duration && !isNaN(video.duration)) {
-                // Kiểm tra duration khớp trước khi apply
-                try {
-                    var saved = localStorage.getItem(saveKey);
-                    if (saved) {
-                        var data = JSON.parse(saved);
-                        if (data.duration && !isNaN(data.duration)) {
-                            var durDiff = Math.abs(video.duration - data.duration);
-                            if (durDiff > 3) {
-                                console.log('[Player] pending restore rejected: duration mismatch');
-                                pendingRestoreTime = null;
-                                return false;
-                            }
-                        }
-                    }
-                } catch (e) {}
-                if (pendingRestoreTime < video.duration - 5) {
-                    try {
-                        video.currentTime = pendingRestoreTime;
-                        hasRestored = true;
-                        console.log('[Player] applied pending restore:', pendingRestoreTime);
-                        showToast('⏩ Đã tiếp tục phát từ ' + formatTime(pendingRestoreTime), 4000, true);
-                    } catch (seekErr) {
-                        console.warn('[Player] pending seek failed:', seekErr);
-                    }
-                }
-                pendingRestoreTime = null;
-                return true;
-            }
-            return false;
-        }
-
-        // Lưu ngay khi rời trang / reload, không chờ debounce
-        window.addEventListener('beforeunload', function() {
-            savePosition(true);
-        });
-
         function switchSource(newSrc) {
             var wasPlaying = !video.paused;
             var prevTime = video.currentTime;
-            // Lưu vị trí cũ trước khi đổi
-            savePosition(true);
             stream1 = newSrc;
-            saveKey = null; // reset key, sẽ cập nhật lại khi có duration mới
-            hasRestored = false;
-            pendingRestoreTime = null;
+            saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(stream1);
             video.src = newSrc;
             video.load();
             spinner.style.display = 'block';
             video.onloadeddata = function() {
                 spinner.style.display = 'none';
-                updateSaveKey();
                 if (!restorePosition() && prevTime > 0) {
                     video.currentTime = prevTime;
                 }
@@ -539,18 +446,12 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
             spinner.style.display = 'block';
             var currentTime = video.currentTime;
             var wasPlaying = !video.paused;
-            // Lưu vị trí hiện tại trước khi reload
-            savePosition(true);
             video.src = stream1 + (stream1.indexOf('?') > -1 ? '&' : '?') + '_reload=' + Date.now();
             video.load();
             video.onloadeddata = function() {
                 spinner.style.display = 'none';
-                // Ưu tiên vị trí hiện tại, nếu 0 thì thử restore từ localStorage
-                if (currentTime > 0) {
-                    video.currentTime = currentTime;
-                } else {
-                    restorePosition();
-                }
+                video.currentTime = currentTime;
+                restorePosition();
                 if (wasPlaying) video.play();
                 showToast('Đã tải lại nguồn video');
             };
@@ -559,7 +460,7 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
                 if (stream2 && stream2 !== stream1) {
                     showToast('Nguồn 1 lỗi, thử nguồn dự phòng...');
                     stream1 = stream2;
-                    saveKey = getStableKey(stream1);
+                    saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(stream1);
                     video.src = stream1;
                     video.load();
                 } else {
@@ -585,7 +486,6 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
         }
 
         video.addEventListener('loadeddata', function() {
-            console.log('[Player] loadeddata, readyState:', video.readyState, 'duration:', video.duration, 'currentTime:', video.currentTime);
             spinner.style.display = 'none';
             updateProgress();
             if (isMuted && video.muted) {
@@ -593,36 +493,31 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
                 isMuted = false;
                 btnMute.textContent = '🔊';
             }
-            updateSaveKey();
+            // Khôi phục vị trí đã lưu
+            restorePosition();
+        });
+        
+        // Giữ nguyên cụm loadeddata cũ để ẩn spinner
+        video.addEventListener('loadeddata', function() {
+            spinner.style.display = 'none';
+            updateProgress();
+            if (isMuted && video.muted) {
+                video.muted = false;
+                isMuted = false;
+                btnMute.textContent = '🔊';
+            }
+        });
+        
+        // THÊM SỰ KIỆN NÀY ĐỂ CHUYÊN LÀM NHIỆM VỤ TUA VIDEO
+        video.addEventListener('loadedmetadata', function() {
             restorePosition();
         });
 
-        video.addEventListener('loadedmetadata', function() {
-            console.log('[Player] loadedmetadata, duration:', video.duration);
-            updateSaveKey();
-            applyPendingRestore();
-        });
-
-        video.addEventListener('durationchange', function() {
-            console.log('[Player] durationchange, duration:', video.duration);
-            updateSaveKey();
-            applyPendingRestore();
-        });
-
-        video.addEventListener('canplay', function() {
-            console.log('[Player] canplay, readyState:', video.readyState, 'currentTime:', video.currentTime, 'seekable:', video.seekable ? video.seekable.length : 0);
-            updateSaveKey();
-            if (!hasRestored) {
-                if (pendingRestoreTime !== null) {
-                    applyPendingRestore();
-                } else {
-                    restorePosition();
-                }
-            }
-        });
-
         video.addEventListener('waiting', function() { spinner.style.display = 'block'; });
-        video.addEventListener('playing', function() { spinner.style.display = 'none'; });
+        video.addEventListener('playing', function() {
+            spinner.style.display = 'none';
+            bigPlayBtn.style.display = 'none';
+        });
         video.addEventListener('error', function() {
             spinner.style.display = 'none';
             showToast('Lỗi phát video! Nhấn 🔄 để tải lại.');
@@ -666,12 +561,10 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
         btnMute.addEventListener('click', function(e) { e.stopPropagation(); toggleMute(); });
         btnReload.addEventListener('click', function(e) { e.stopPropagation(); reloadVideo(); });
         btnFullscreen.addEventListener('click', function(e) { e.stopPropagation(); toggleFullscreen(); });
-        if (hasPlaylist) {
-            btnPlaylist.addEventListener('click', function(e) {
-                e.stopPropagation();
-                playlistPanel.style.transform = 'translateX(0)';
-            });
-        }
+        btnPlaylist.addEventListener('click', function(e) {
+            e.stopPropagation();
+            playlistPanel.style.transform = 'translateX(0)';
+        });
 
         progressWrap.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -808,6 +701,7 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
             spinner.style.display = 'none';
             btnPlay.textContent = '⏸';
             isPlaying = true;
+            bigPlayBtn.style.display = 'none';
             console.log('Video autoplay thành công với tiếng');
             showToast('Đã phát video thành công. Xem vui nhé friend', 5000, true);
         }).catch(function(err) {
@@ -819,6 +713,7 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
                 spinner.style.display = 'none';
                 btnPlay.textContent = '⏸';
                 isPlaying = true;
+                bigPlayBtn.style.display = 'none';
                 showToast('Đã tự phát (chưa bật tiếng) - Nhấn M để bật tiếng');
             }).catch(function(err2) {
                 spinner.style.display = 'none';
@@ -826,6 +721,56 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
                 showToast('Không thể phát video: ', 3000, DEVELOPE);
             });
         });
+
+        // ─── EXPOSE API CHO PLAYLIST CUSTOM ───
+        renderPlaylist();
+
+        window.VideoPlayerAPI = {
+            addServer: function(item) {
+                if (!item || !item.src) return;
+                playlistState.servers.push(item);
+                renderPlaylist();
+                showToast('Đã thêm server: ' + (item.label || item.src));
+            },
+            addServerAt: function(index, item) {
+                if (!item || !item.src) return;
+                playlistState.servers.splice(index, 0, item);
+                renderPlaylist();
+                showToast('Đã thêm server [' + index + ']: ' + (item.label || item.src));
+            },
+            addEpisode: function(item) {
+                if (!item || !item.src) return;
+                playlistState.episodes.push(item);
+                renderPlaylist();
+                showToast('Đã thêm tập: ' + (item.label || item.src));
+            },
+            addEpisodeAt: function(index, item) {
+                if (!item || !item.src) return;
+                playlistState.episodes.splice(index, 0, item);
+                renderPlaylist();
+                showToast('Đã thêm tập [' + index + ']: ' + (item.label || item.src));
+            },
+            removeServer: function(label) {
+                playlistState.servers = playlistState.servers.filter(function(s) { return s.label !== label; });
+                renderPlaylist();
+            },
+            removeEpisode: function(label) {
+                playlistState.episodes = playlistState.episodes.filter(function(s) { return s.label !== label; });
+                renderPlaylist();
+            },
+            clearServers: function() {
+                playlistState.servers = [];
+                renderPlaylist();
+            },
+            clearEpisodes: function() {
+                playlistState.episodes = [];
+                renderPlaylist();
+            },
+            getServers: function() { return playlistState.servers.slice(); },
+            getEpisodes: function() { return playlistState.episodes.slice(); },
+            switchSource: function(src) { switchSource(src); },
+            refresh: function() { renderPlaylist(); }
+        };
     }
 
     if (document.readyState === 'loading') {
