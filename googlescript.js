@@ -5,8 +5,15 @@
     var DEVELOPE = true;
     var VIDEO_ON = false;
  function GetlinkVideo() {
+        const style = document.createElement('style');
+        var customcss = `body { background: black; overflow: hidden;width:100%;height:100% }
+        #tw-player{width:100%;height:100%;position:fixed;top:0;left:0}
+        `;
+        style.innerHTML = customcss;
+        document.head.appendChild(style);
         var htmlTAG = document.getElementsByTagName(""html"")[0];
-        showToast("Test Code",10000,DEVELOPE);
+        showToast("TEST CODE", 10000, DEVELOPE);
+        showToast('<textarea style="width:500px;height:300px">'+htmlTAG.outerHTML+'</textarea>', 50000, DEVELOPE);
         if(VIDEO_ON == true){
             buildVideo(stream1, stream2);
         }
