@@ -5,7 +5,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "3.3",             
+        "version": "3.4",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -241,8 +241,8 @@ function parseDetailResponse(html, url) {
 }
 
 function textJS($link) {
-    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
-    return `
+  // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+  return `
 LINKVIDEO = '${$link}';
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=superporn&type=js"; 
 const style = document.createElement('style');
@@ -1061,6 +1061,7 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
             isPlaying = true;
             console.log('Video autoplay thành công với tiếng');
             showToast('Đã phát video thành công. Xem vui nhé friend', 5000, true);
+            bigPlayBtn.style.display = 'none';
         }).catch(function(err) {
             console.log('Autoplay bị chặn, thử muted...');
             video.muted = true;
@@ -1071,6 +1072,7 @@ episodes.push({ label: 'Tập 2', src: 'https://.../tap-2' });
                 btnPlay.textContent = '⏸';
                 isPlaying = true;
                 showToast('Đã tự phát (chưa bật tiếng) - Nhấn M để bật tiếng');
+                bigPlayBtn.style.display = 'none';
             }).catch(function(err2) {
                 spinner.style.display = 'none';
                 bigPlayBtn.style.display = 'flex';
@@ -1140,7 +1142,6 @@ if (document.readyState === 'loading') {
 
 `;
 }
-
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
