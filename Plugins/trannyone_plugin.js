@@ -4,13 +4,13 @@ function getManifest() {
         "id": "trannyone",          
         "name": "Tranny One",
         "description": "XXX dành cho người có sở thích đặc biệt",
-        "version": "1.4",             
+        "version": "1.5",             
         "baseUrl": "https://www.tranny.one",
         "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "exoplayer"
+        "playerType": "emmbed"
     });
 }
 // https://www.tranny.one/recent/
@@ -206,8 +206,7 @@ function parseMovieDetail(html,$url) {
     var epi = [];
     var mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
     if(mathser && mathser[1]){
-        epi.push({ id: $url, name: "Độ Phân Giải Cao", slug: "full" });
-         epi.push({ id: $url, name: "Độ Phân Giải Thấp", slug: "full" })
+         epi.push({ id: $url, name: "Xem Ngay", slug: "full" });
     }
     return JSON.stringify({
         id: $url,
