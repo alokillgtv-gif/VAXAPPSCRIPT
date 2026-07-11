@@ -6,7 +6,7 @@ function getManifest() {
         "id": "cnporn",
         "name": "Porn Gái Trung",
         "description": "Nguồn XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://cnporn.org",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -263,10 +263,14 @@ function parseDetailResponse(html, url) {
         
         var customjs = textJS(html, url);
         
-        // {"embed_url":"https:\/\/play.playkrx18.site\/play\/6a4f1c63ee633ccb0191a32f","type":"iframe"}
-        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        var stream1 = "";
+        const regex = /data-server\s*=\s*["']([^"']+)["']/g;
+        // 2. Lấy kết quả bằng matchAll và map
+        const servers = Array.from(html.matchAll(regex), match => match[1]);
+        stream1 = BASEURL + servers[0];
+
         return JSON.stringify({
-            "url": "",
+            "url": stream1,
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
