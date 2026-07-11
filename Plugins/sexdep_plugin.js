@@ -9,7 +9,7 @@ function getManifest() {
         "id": "sexdep",
         "name": "sexdep",
         "description": "XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://sexdeplon.blog",
         "iconUrl": "https://sexdeplon.blog/resize/50/2025/02/04/16c0e67dcf0acbc0be5e7ef611c410b76820a26b490a9d790f758fbe851607bc.png",
         "isEnabled": true,
@@ -317,21 +317,93 @@ function parseMovieDetail(html, url) {
 
 function parseDetailResponse(html, url) {
     try {
-        var customJs = CustomjQ(html, url);
+        var customjs = textJS();
         return JSON.stringify({
-            url: "",
-            headers: {
+            "url": url,
+            "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
-            }
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs.trim()
+            },
+            "subtitles": []
         });
-    } catch (error) {
-        return JSON.stringify({ url: "", headers: {} });
+        
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
     }
 }
 
+function textJS() {
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+    return `
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=sexdep&type=js"; 
+const style = document.createElement('style');
+var customcss = '';
+style.innerHTML = customcss;
+//document.head.appendChild(style);
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
+        
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
+    }
+    
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
+    } else {
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    }
+}
+
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+    initCustomVideoFix();
+}
+
+`;
+}
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
@@ -396,114 +468,6 @@ function trimHTML(inhtml) {
         .replace(/\s+/gi, ' ')
         .replace(/^,+|,+$/g, "");
     return result;
-}
-
-function CustomjQ(html, url){
-    var $custom1 = `
-    function runBegin(){
-        customAlert("2412421", "Alo alo");
-    }
-    `;
-    var $custom2 =  `
-    function customAlert(title, message) {
-        const overlay = document.createElement('div');
-        Object.assign(overlay.style, {
-            position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center',
-            alignItems: 'center', zIndex: '99999', opacity: '0', transition: 'opacity 0.2s ease'
-        });
-        
-        const box = document.createElement('div');
-        Object.assign(box.style, {
-            backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.25)', maxWidth: '380px', width: '85%',
-            boxSizing: 'border-box', fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-            transform: 'scale(0.8)', transition: 'transform 0.2s ease'
-        });
-        
-        const titleEl = document.createElement('input');
-        titleEl.type = 'text'; 
-        titleEl.value = title;
-        Object.assign(titleEl.style, {
-            display: 'block', width: '100%', boxSizing: 'border-box',
-            margin: '0 0 12px 0', padding: '6px 10px', color: '#222222',
-            fontSize: '15px', fontWeight: '600', border: '1px solid #ddd', borderRadius: '6px'
-        });
-        
-        const msgEl = document.createElement('textarea');
-        msgEl.value = message;
-        Object.assign(msgEl.style, {
-            display: 'block', width: '100%', boxSizing: 'border-box',
-            margin: '0 0 20px 0', padding: '8px 10px', color: '#555555',
-            fontSize: '14px', height: '200px', lineHeight: '1.5',
-            border: '1px solid #ddd', borderRadius: '6px', resize: 'none'
-        });
-        
-        const btn = document.createElement('button');
-        btn.innerText = 'OK';
-        Object.assign(btn.style, {
-            display: 'block', margin: '0 auto', padding: '10px 28px',
-            fontSize: '15px', fontWeight: '600', color: '#ffffff',
-            backgroundColor: '#007bff', border: 'none', borderRadius: '6px',
-            cursor: 'pointer', outline: 'none', transition: 'background-color 0.1s'
-        });
-        
-        btn.onmouseover = () => btn.style.backgroundColor = '#0056b3';
-        btn.onmouseout = () => btn.style.backgroundColor = '#007bff';
-        
-        const closeAlert = () => {
-            overlay.style.opacity = '0';
-            box.style.transform = 'scale(0.8)';
-            setTimeout(() => { overlay.remove(); }, 200);
-        };
-        
-        btn.onclick = closeAlert;
-        overlay.onclick = (e) => { if (e.target === overlay) closeAlert(); };
-        
-        box.appendChild(titleEl);
-        box.appendChild(msgEl);
-        box.appendChild(btn);
-        overlay.appendChild(box);
-        document.body.appendChild(overlay);
-        
-        setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'scale(1)'; }, 10);
-    }
-
-    function initCustomVideoFix() {
-        const style = document.createElement('style');
-        var customcss = 'body {overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
-        style.innerHTML = customcss;
-        document.head.appendChild(style);
-        
-        if (typeof jwplayer === "function") {
-            const player = jwplayer("previewPlayer");
-            if (player && typeof player.getMute === "function") {
-                if (player.getMute()) {
-                    player.setMute(false);
-                }
-                player.setVolume(100);
-            }
-        }
-        
-        const checkAndClick = setInterval(() => {
-            const skipButton = document.getElementById("skip-ad");
-            if (skipButton) {
-                skipButton.click();
-                clearInterval(checkAndClick);
-            }
-        }, 200);
-        
-        setTimeout(() => { clearInterval(checkAndClick); }, 20000);
-        runBegin();
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCustomVideoFix);
-    } else {
-        initCustomVideoFix();
-    }
-`
-
-return $custom1 + $custom2;
 }
 
 
