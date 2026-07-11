@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://www.xxxfiles.com",
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -226,7 +226,7 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html, url) {
+function parseMovieDetail(html, $url) {
     var lurl = "";
     var limg = "";
     var lname = "Đang cập nhật...";
@@ -283,7 +283,7 @@ function parseMovieDetail(html, url) {
     }
     
     return JSON.stringify({
-        id: lurl,
+        id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
