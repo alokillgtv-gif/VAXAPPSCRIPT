@@ -4,7 +4,7 @@ function getManifest() {
         "id": "trannyone",          
         "name": "Tranny One",
         "description": "XXX dành cho người có sở thích đặc biệt",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": "https://www.tranny.one",
         "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png", 
         "isEnabled": true,
@@ -239,14 +239,22 @@ function parseMovieDetail(html,$url) {
 
 function parseDetailResponse(html, url) {
     try {
-        var $link = "";
+        var $link = [];
+        var $strem = url;
+        var $item = {"link":false};
+        $link.push($item);
         var mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
         if (mathser && mathser[1]) {
-            $link = mathser[2];
+            var $item = {"link":mathser[1],"name":"Độ Phân Giải Cao"}
+            $link.push($item);
         }
-        var customjs = textJS(mathser[2],mathser[1]);
+        if (mathser && mathser[2]) {
+            var $item = { "link":mathser[2], "name": "Độ Phân Giải Cao" }
+            $link.push($item);
+        }
+        var customjs = textJS($link);
         return JSON.stringify({
-            "url": $link,
+            "url": $stream,
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
@@ -270,11 +278,10 @@ function parseDetailResponse(html, url) {
     }
 }
 
-function textJS($link1,$link2) {
+function textJS($links) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
-LINKVIDEO1 = '${$link1}';
-LINKVIDEO2 = '${$link2}';
+LINKVIDEO = ${JSON.stringify($links)}
 
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=trannyone&type=js"; 
 const style = document.createElement('style');
