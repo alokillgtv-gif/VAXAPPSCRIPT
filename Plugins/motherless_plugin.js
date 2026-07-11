@@ -5,7 +5,7 @@ function getManifest() {
         "id": "motherless",
         "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.1",
+        "version": "1.2",
         "baseUrl": "https://motherless.xxx",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless.jpg",
         "isEnabled": true,
@@ -401,7 +401,7 @@ function parseMovieDetail(html, $url) {
     
     try {
         var rmatch;
-        var idvideo = url.replace(BASEURL + "/", "");
+        var idvideo = $url.replace(BASEURL + "/", "");
         var limg = "https://cdn5-thumbs.motherlessmedia.com/thumbs/" + idvideo + "-small-7.jpg";
         //rmatch = html.match(/meta\s+property=\["']og:image["']\s+content=["']([^"']+)["']/i);
         // if (rmatch && rmatch[1]) { limg = rmatch[1]; }
@@ -429,7 +429,7 @@ function parseMovieDetail(html, $url) {
         }];
         
     } catch (e) {
-        console.error("Lỗi parse dữ liệu: ", e);
+        //console.error("Lỗi parse dữ liệu: ", e);
     }
     
     return JSON.stringify({
