@@ -5,13 +5,13 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "3.1",             
+        "version": "3.2",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "embed"
+        "playerType": "auto"
     });
 }
 /*
