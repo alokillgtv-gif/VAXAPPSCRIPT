@@ -1,87 +1,112 @@
 (function() {
     'use strict';
-
     // ─── BIẾN TOÀN CỤC CỦA SCRIPT ───
     var DEVELOPE = false;
- function GetlinkVideo() {
-        var htmlTAG = document.getElementsByTagName("html")[0];
-        const source = document.querySelectorAll('[class*="video"], [class*="player"], video, iframe');
-        var stream1 = "";
-        var stream2 = window.location.href;
-        showToast("wqeweqwe\r\n", 17000, true)
-        source.forEach(el => {
-            // Lọc ra các phần tử thực sự có chứa link nguồn (src)
-            let src = el.src || el.getAttribute('data-src') || el.querySelector('source')?.src;
-            if (src && (src.includes('.mp4') || src.includes('.m3u8') || src.includes('embed'))) {
-                stream1 = src;
+
+    // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST TRƯỚC KHI XÓA DOM ───
+    function scanSources() {
+        var activeSrc = '';
+        var servers = [];
+        var episodes = [];
+        var seen = new Set();
+
+        // 1. Quét video, iframe, source
+        var els = document.querySelectorAll('[class*="video"], [class*="player"], video, iframe');
+        for (var i = 0; i < els.length; i++) {
+            var el = els[i];
+            var src = el.src || el.getAttribute('data-src') || '';
+            if (!src) {
+                var s = el.querySelector('source');
+                if (s) src = s.src || s.getAttribute('src') || '';
             }
-        });
-        //showToast(stream1 + "\r\n" + stream2, 17000, check = true)
-        buildVideo(stream1, stream2);
-    }
-    // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
-    function showToast(message, duration = 7000, check = true) {
-        if (check == false) {
-            return false;
+            if (src && (src.indexOf('.mp4') > -1 || src.indexOf('.m3u8') > -1 || src.indexOf('embed') > -1)) {
+                if (!activeSrc) activeSrc = src;
+                if (!seen.has(src)) {
+                    seen.add(src);
+                    var lbl = 'Server ' + (servers.length + 1);
+                    if (src.indexOf('embed') > -1) lbl = 'Nhúng ' + (servers.length + 1);
+                    servers.push({ label: lbl, src: src, type: 'server' });
+                }
+            }
         }
-        let container = document.getElementById('global-toast-container');
+
+        // 2. Quét thêm các nút/data-link chuyển server
+        var allLinks = document.querySelectorAll('a, button, [role="button"], [data-link]');
+        for (var k = 0; k < allLinks.length; k++) {
+            var el2 = allLinks[k];
+            var href = el2.href || el2.getAttribute('href') || el2.getAttribute('data-src') || el2.getAttribute('data-link') || '';
+            var txt = (el2.textContent || el2.innerText || '').trim();
+            if (!href || href === '#' || href === window.location.href || seen.has(href)) continue;
+            if (/(server|sv|nguồn|source|embed|link)/i.test(txt + ' ' + el2.className)) {
+                if (href.indexOf('.mp4') > -1 || href.indexOf('.m3u8') > -1 || href.indexOf('embed') > -1) {
+                    seen.add(href);
+                    servers.push({ label: txt || 'Server ' + (servers.length + 1), src: href, type: 'server' });
+                }
+            }
+        }
+
+        // 3. Quét link tập phim
+        var aTags = document.querySelectorAll('a');
+        for (var j = 0; j < aTags.length; j++) {
+            var a = aTags[j];
+            var aHref = a.href || a.getAttribute('href');
+            var aTxt = (a.textContent || a.innerText || '').trim();
+            if (!aHref || aHref === '#' || aHref === window.location.href) continue;
+            var isEpisode = false;
+            if (/(tập|tap|ep|episode|chap|part)\s*(\d+|[ivx]+)/i.test(aTxt)) isEpisode = true;
+            if (/(tập|tap|ep|episode|chap|part)[-\s]?(\d+|[ivx]+)/i.test(aHref)) isEpisode = true;
+            if (a.className && /(^|\s)(ep|episode|tap|chapter|part|tapphim)(\d+|$)/i.test(a.className)) isEpisode = true;
+            if (isEpisode) {
+                episodes.push({ label: aTxt || 'Tập ' + (episodes.length + 1), src: aHref, type: 'episode' });
+            }
+        }
+
+        return { activeSrc: activeSrc, servers: servers, episodes: episodes };
+    }
+
+    function GetlinkVideo() {
+        var playlist = scanSources();
+        var stream1 = playlist.activeSrc || '';
+        var stream2 = window.location.href;
+        showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
+        buildVideo(stream1, stream2, playlist);
+    }
+
+    // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
+    function showToast(message, duration, check) {
+        if (typeof duration === 'undefined') duration = 7000;
+        if (typeof check === 'undefined') check = true;
+        if (check === false) return;
+        var container = document.getElementById('global-toast-container');
         if (!container) {
             container = document.createElement('div');
             container.id = 'global-toast-container';
-            Object.assign(container.style, {
-                position: 'fixed',
-                bottom: '20px',
-                right: '20px',
-                zIndex: '9999999',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px'
-            });
+            container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
             document.body.appendChild(container);
         }
-        
-        const toastEl = document.createElement('div'); // Đổi tên thành toastEl để tránh trùng
+        var toastEl = document.createElement('div');
         toastEl.innerHTML = message;
-        
-        Object.assign(toastEl.style, {
-            background: 'rgba(50, 50, 50, 0.95)',
-            color: '#fff',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-            fontFamily: 'sans-serif',
-            fontSize: '14px',
-            minWidth: '200px',
-            transition: 'all 0.3s ease',
-            transform: 'translateX(120%)',
-            opacity: '0'
-        });
-        
+        toastEl.style.cssText = 'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
         container.appendChild(toastEl);
-        
-        setTimeout(() => {
+        setTimeout(function() {
             toastEl.style.transform = 'translateX(0)';
             toastEl.style.opacity = '1';
         }, 10);
-        
-        setTimeout(() => {
+        setTimeout(function() {
             toastEl.style.transform = 'translateX(120%)';
             toastEl.style.opacity = '0';
-            
-            setTimeout(() => {
+            setTimeout(function() {
                 toastEl.remove();
-                if (container.childElementCount === 0) {
-                    container.remove();
-                }
+                if (container.childElementCount === 0) container.remove();
             }, 300);
         }, duration);
     }
 
-    function buildVideo(stream1, stream2) {
+    function buildVideo(stream1, stream2, playlistData) {
         var container = document.createElement('div');
         container.id = 'custom-video-player';
         container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;';
-    
+
         var video = document.createElement('video');
         video.id = 'main-video';
         video.style.cssText = 'width:100%;height:100%;object-fit:contain;cursor:pointer;background:#000;';
@@ -89,20 +114,20 @@
         video.setAttribute('webkit-playsinline', 'true');
         video.src = stream1;
         video.autoplay = true;
-        video.muted = false; 
-        video.controls = false; 
-    
+        video.muted = false;
+        video.controls = false;
+
         var spinner = document.createElement('div');
         spinner.id = 'video-spinner';
         spinner.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:4px solid rgba(255,255,255,0.3);border-top:4px solid #fff;border-radius:50%;animation:spin 1s linear infinite;z-index:10;pointer-events:none;';
         var spinStyle = document.createElement('style');
         spinStyle.textContent = '@keyframes spin{0%{transform:translate(-50%,-50%) rotate(0deg);}100%{transform:translate(-50%,-50%) rotate(360deg);}}';
         document.head.appendChild(spinStyle);
-    document.body.appendChild(spinner);
+
         var controls = document.createElement('div');
         controls.id = 'video-controls';
         controls.style.cssText = 'position:absolute;bottom:0;left:0;width:100%;background:linear-gradient(transparent,rgba(0,0,0,0.85));padding:12px 16px 20px;box-sizing:border-box;transition:opacity 0.3s;opacity:0;z-index:20;';
-    
+
         var progressWrap = document.createElement('div');
         progressWrap.style.cssText = 'width:100%;height:6px;background:rgba(255,255,255,0.3);border-radius:3px;cursor:pointer;position:relative;margin-bottom:12px;';
         var progressBar = document.createElement('div');
@@ -113,10 +138,10 @@
         progressWrap.appendChild(progressBar);
         progressWrap.onmouseenter = function() { progressHandle.style.opacity = '1'; };
         progressWrap.onmouseleave = function() { progressHandle.style.opacity = '0'; };
-    
+
         var btnRow = document.createElement('div');
         btnRow.style.cssText = 'display:flex;align-items:center;gap:12px;';
-    
+
         var btnPlay = createBtn('⏸', 'Phát / Tạm dừng');
         var btnMute = createBtn('🔊', 'Tắt / Bật âm lượng');
         var timeDisplay = document.createElement('span');
@@ -129,7 +154,8 @@
         speedIndicator.style.cssText = 'color:#fff;font-size:12px;opacity:0.8;';
         speedIndicator.textContent = '1.0x';
         var btnFullscreen = createBtn('⛶', 'Toàn màn hình');
-    
+        var btnPlaylist = createBtn('☰', 'Danh sách phát / Server');
+
         btnRow.appendChild(btnPlay);
         btnRow.appendChild(btnMute);
         btnRow.appendChild(timeDisplay);
@@ -137,27 +163,85 @@
         btnRow.appendChild(speedIndicator);
         btnRow.appendChild(btnReload);
         btnRow.appendChild(btnFullscreen);
-    
+
+        // Chỉ hiện nút playlist nếu có nội dung
+        var hasPlaylist = (playlistData && ((playlistData.servers && playlistData.servers.length > 1) || (playlistData.episodes && playlistData.episodes.length > 0)));
+        if (hasPlaylist) {
+            btnRow.appendChild(btnPlaylist);
+        }
+
         controls.appendChild(progressWrap);
         controls.appendChild(btnRow);
-    
+
         var bigPlayBtn = document.createElement('div');
         bigPlayBtn.id = 'big-play-btn';
         bigPlayBtn.textContent = '▶';
         bigPlayBtn.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;background:rgba(0,0,0,0.6);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:36px;cursor:pointer;z-index:15;';
-    
+
         var seekOverlay = document.createElement('div');
         seekOverlay.id = 'seek-overlay';
         seekOverlay.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:#fff;padding:12px 24px;border-radius:8px;font-size:18px;font-weight:bold;pointer-events:none;opacity:0;transition:opacity 0.3s;z-index:30;';
-    
-        // Đã xóa biến toast DOM cũ ở đây vì không dùng đến nữa
-    
+
+        // Playlist Panel
+        var playlistPanel = document.createElement('div');
+        playlistPanel.id = 'playlist-panel';
+        playlistPanel.style.cssText = 'position:fixed;top:0;right:0;width:300px;max-width:80%;height:100%;background:rgba(15,15,15,0.97);z-index:40;transform:translateX(100%);transition:transform 0.25s ease;overflow-y:auto;padding:20px;box-sizing:border-box;color:#fff;font-family:Segoe UI,Roboto,sans-serif;';
+
+        var plHeader = document.createElement('div');
+        plHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2);';
+        plHeader.innerHTML = '<span style="font-size:16px;font-weight:bold;">📋 Playlist</span>';
+        var plClose = document.createElement('button');
+        plClose.textContent = '✕';
+        plClose.style.cssText = 'background:none;border:none;color:#fff;font-size:18px;cursor:pointer;';
+        plClose.onclick = function(e) { if(e)e.stopPropagation(); playlistPanel.style.transform = 'translateX(100%)'; };
+        plHeader.appendChild(plClose);
+        playlistPanel.appendChild(plHeader);
+
+        function buildSection(title, items, onClick) {
+            if (!items || items.length === 0) return;
+            var sec = document.createElement('div');
+            sec.style.cssText = 'margin-bottom:20px;';
+            var secTitle = document.createElement('div');
+            secTitle.textContent = title;
+            secTitle.style.cssText = 'font-size:13px;text-transform:uppercase;opacity:0.6;margin-bottom:10px;';
+            sec.appendChild(secTitle);
+            for (var i = 0; i < items.length; i++) {
+                (function(item) {
+                    var btn = document.createElement('button');
+                    btn.textContent = item.label;
+                    btn.style.cssText = 'display:block;width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,0.08);border:none;border-radius:6px;color:#fff;font-size:14px;cursor:pointer;transition:background 0.2s;';
+                    btn.onmouseenter = function() { btn.style.background = 'rgba(231,76,60,0.3)'; };
+                    btn.onmouseleave = function() { btn.style.background = 'rgba(255,255,255,0.08)'; };
+                    btn.onclick = function(e) { if(e)e.stopPropagation(); onClick(item); };
+                    sec.appendChild(btn);
+                })(items[i]);
+            }
+            playlistPanel.appendChild(sec);
+        }
+
+        if (playlistData) {
+            if (playlistData.servers && playlistData.servers.length > 1) {
+                buildSection('🎥 Chuyển Server', playlistData.servers, function(item) {
+                    switchSource(item.src);
+                });
+            }
+            if (playlistData.episodes && playlistData.episodes.length > 0) {
+                buildSection('📁 Tập phim', playlistData.episodes, function(item) {
+                    savePosition();
+                    window.location.href = item.src;
+                });
+            }
+        }
+
         container.appendChild(video);
         container.appendChild(spinner);
         container.appendChild(bigPlayBtn);
         container.appendChild(seekOverlay);
         container.appendChild(controls);
-        
+        if (hasPlaylist) {
+            container.appendChild(playlistPanel);
+        }
+
         var htmlTAG = document.getElementsByTagName("html")[0];
         htmlTAG.innerHTML = '';
         document.body = document.createElement('body');
@@ -165,14 +249,84 @@
         document.head.innerHTML = '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">';
         document.head.appendChild(spinStyle);
         document.title = 'Video Player';
-    
+
         var isPlaying = false;
         var isMuted = false;
         var currentSpeed = 1.0;
         var controlsTimeout = null;
         var isDraggingProgress = false;
-        var isDraggingVideo = false; 
-    
+        var isDraggingVideo = false;
+
+        // ─── LOCALSTORAGE: LƯU / KHÔI PHỤC VỊ TRÍ ───
+        var cleanStreamURL = stream1.split('?')[0];
+        var saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(cleanStreamURL);
+        var lastSaveTime = 0;
+
+        function savePosition() {
+            if (!video || video.ended || !video.currentTime || isNaN(video.currentTime)) return;
+            var now = Date.now();
+            if (now - lastSaveTime < 4000) return; // debounce 4 giây
+            lastSaveTime = now;
+            try {
+                // Chỉ lưu nếu đã xem quá 5s và còn hơn 5s cuối
+                if (video.currentTime > 5 && (!video.duration || isNaN(video.duration) || video.currentTime < video.duration - 5)) {
+                    localStorage.setItem(saveKey, JSON.stringify({
+                        time: video.currentTime,
+                        duration: video.duration || 0,
+                        savedAt: now
+                    }));
+                }
+            } catch (e) {}
+        }
+
+        function clearSavedPosition() {
+            try {
+                localStorage.removeItem(saveKey);
+            } catch (e) {}
+        }
+
+        function restorePosition() {
+            try {
+                var saved = localStorage.getItem(saveKey);
+                if (saved) {
+                    var data = JSON.parse(saved);
+                    // Chỉ cần có data.time > 5 là cho phép tua
+                    if (data && data.time && data.time > 5) {
+                        // Nếu video đã load được duration, check xem có phải đang ở 5s cuối không
+                        if (video.duration && !isNaN(video.duration) && data.time >= video.duration - 5) {
+                            return false;
+                        }
+                        video.currentTime = data.time;
+                        showToast('⏩ Đã tiếp tục phát từ ' + formatTime(data.time), 4000, true);
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+        function switchSource(newSrc) {
+            var wasPlaying = !video.paused;
+            var prevTime = video.currentTime;
+            stream1 = newSrc;
+            saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(stream1);
+            video.src = newSrc;
+            video.load();
+            spinner.style.display = 'block';
+            video.onloadeddata = function() {
+                spinner.style.display = 'none';
+                if (!restorePosition() && prevTime > 0) {
+                    video.currentTime = prevTime;
+                }
+                if (wasPlaying) video.play();
+                showToast('Đã chuyển nguồn phát');
+            };
+            video.onerror = function() {
+                spinner.style.display = 'none';
+                showToast('Không thể phát nguồn này!');
+            };
+            playlistPanel.style.transform = 'translateX(100%)';
+        }
+
         function createBtn(icon, title) {
             var btn = document.createElement('button');
             btn.textContent = icon;
@@ -182,37 +336,37 @@
             btn.onmouseleave = function() { btn.style.background = 'none'; };
             return btn;
         }
-    
+
         function showSeekOverlay(text) {
             seekOverlay.textContent = text;
             seekOverlay.style.opacity = '1';
             clearTimeout(seekOverlay._timer);
             seekOverlay._timer = setTimeout(function() { seekOverlay.style.opacity = '0'; }, 800);
         }
-    
+
         function formatTime(sec) {
             if (!sec || isNaN(sec)) return '0:00';
             var m = Math.floor(sec / 60);
             var s = Math.floor(sec % 60);
             return m + ':' + (s < 10 ? '0' + s : s);
         }
-    
+
         function updateProgress() {
-            if (video.duration && !isDraggingProgress) {
+            if (video.duration && !isNaN(video.duration) && !isDraggingProgress) {
                 var pct = (video.currentTime / video.duration) * 100;
                 progressBar.style.width = pct + '%';
             }
             timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
         }
-    
+
         function seekVideo(seconds) {
             var newTime = video.currentTime + seconds;
             if (newTime < 0) newTime = 0;
-            if (video.duration && newTime > video.duration) newTime = video.duration;
+            if (video.duration && !isNaN(video.duration) && newTime > video.duration) newTime = video.duration;
             video.currentTime = newTime;
             showSeekOverlay((seconds > 0 ? '+' : '') + seconds + 's');
         }
-    
+
         function togglePlay() {
             if (video.paused) {
                 video.play().then(function() {
@@ -239,14 +393,14 @@
                 bigPlayBtn.style.display = 'flex';
             }
         }
-    
+
         function toggleMute() {
             video.muted = !video.muted;
             isMuted = video.muted;
             btnMute.textContent = isMuted ? '🔇' : '🔊';
             showToast(isMuted ? 'Đã tắt tiếng' : 'Đã bật tiếng');
         }
-    
+
         function reloadVideo() {
             spinner.style.display = 'block';
             var currentTime = video.currentTime;
@@ -256,6 +410,7 @@
             video.onloadeddata = function() {
                 spinner.style.display = 'none';
                 video.currentTime = currentTime;
+                restorePosition();
                 if (wasPlaying) video.play();
                 showToast('Đã tải lại nguồn video');
             };
@@ -264,6 +419,7 @@
                 if (stream2 && stream2 !== stream1) {
                     showToast('Nguồn 1 lỗi, thử nguồn dự phòng...');
                     stream1 = stream2;
+                    saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(stream1);
                     video.src = stream1;
                     video.load();
                 } else {
@@ -271,7 +427,7 @@
                 }
             };
         }
-    
+
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 container.requestFullscreen().catch(function() {});
@@ -279,7 +435,7 @@
                 document.exitFullscreen().catch(function() {});
             }
         }
-    
+
         function showControls() {
             controls.style.opacity = '1';
             clearTimeout(controlsTimeout);
@@ -287,7 +443,20 @@
                 if (!isDraggingProgress) controls.style.opacity = '0';
             }, 3000);
         }
-    
+
+        video.addEventListener('loadeddata', function() {
+            spinner.style.display = 'none';
+            updateProgress();
+            if (isMuted && video.muted) {
+                video.muted = false;
+                isMuted = false;
+                btnMute.textContent = '🔊';
+            }
+            // Khôi phục vị trí đã lưu
+            restorePosition();
+        });
+        
+        // Giữ nguyên cụm loadeddata cũ để ẩn spinner
         video.addEventListener('loadeddata', function() {
             spinner.style.display = 'none';
             updateProgress();
@@ -297,7 +466,12 @@
                 btnMute.textContent = '🔊';
             }
         });
-    
+        
+        // THÊM SỰ KIỆN NÀY ĐỂ CHUYÊN LÀM NHIỆM VỤ TUA VIDEO
+        video.addEventListener('loadedmetadata', function() {
+            restorePosition();
+        });
+
         video.addEventListener('waiting', function() { spinner.style.display = 'block'; });
         video.addEventListener('playing', function() { spinner.style.display = 'none'; });
         video.addEventListener('error', function() {
@@ -306,24 +480,26 @@
             btnPlay.textContent = '▶';
             bigPlayBtn.style.display = 'flex';
         });
-        video.addEventListener('timeupdate', updateProgress);
+        video.addEventListener('timeupdate', function() {
+            updateProgress();
+            savePosition();
+        });
         video.addEventListener('ended', function() {
             btnPlay.textContent = '▶';
             bigPlayBtn.style.display = 'flex';
             isPlaying = false;
+            clearSavedPosition();
         });
-    
+
         video.addEventListener('click', function(e) {
             e.stopPropagation();
             if (isDraggingVideo) {
                 isDraggingVideo = false;
-                return; 
+                return;
             }
-    
             var rect = video.getBoundingClientRect();
             var x = e.clientX - rect.left;
             var width = rect.width;
-    
             if (x < width * 0.3) {
                 seekVideo(-10);
             } else if (x > width * 0.7) {
@@ -332,21 +508,29 @@
                 togglePlay();
             }
         });
-    
+
         video.addEventListener('volumechange', function() {
             btnMute.textContent = video.muted || video.volume === 0 ? '🔇' : '🔊';
         });
-    
+
         btnPlay.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
         btnMute.addEventListener('click', function(e) { e.stopPropagation(); toggleMute(); });
         btnReload.addEventListener('click', function(e) { e.stopPropagation(); reloadVideo(); });
         btnFullscreen.addEventListener('click', function(e) { e.stopPropagation(); toggleFullscreen(); });
-    
+        if (hasPlaylist) {
+            btnPlaylist.addEventListener('click', function(e) {
+                e.stopPropagation();
+                playlistPanel.style.transform = 'translateX(0)';
+            });
+        }
+
         progressWrap.addEventListener('click', function(e) {
             e.stopPropagation();
             var rect = progressWrap.getBoundingClientRect();
             var pct = (e.clientX - rect.left) / rect.width;
-            video.currentTime = pct * video.duration;
+            if (video.duration && !isNaN(video.duration)) {
+                video.currentTime = pct * video.duration;
+            }
             updateProgress();
         });
         progressWrap.addEventListener('mousedown', function(e) {
@@ -354,7 +538,7 @@
             showControls();
         });
         document.addEventListener('mousemove', function(e) {
-            if (isDraggingProgress && video.duration) {
+            if (isDraggingProgress && video.duration && !isNaN(video.duration)) {
                 var rect = progressWrap.getBoundingClientRect();
                 var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
                 progressBar.style.width = (pct * 100) + '%';
@@ -363,11 +547,11 @@
             }
         });
         document.addEventListener('mouseup', function() { isDraggingProgress = false; });
-    
+
         container.addEventListener('mousemove', showControls);
         container.addEventListener('click', function() { showControls(); });
         bigPlayBtn.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
-    
+
         document.addEventListener('keydown', function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             showControls();
@@ -381,65 +565,63 @@
                 case 'f': case 'F': e.preventDefault(); toggleFullscreen(); break;
                 case 'r': case 'R': e.preventDefault(); reloadVideo(); break;
                 case 'Home': e.preventDefault(); video.currentTime = 0; showToast('Về đầu video'); break;
-                case 'End': e.preventDefault(); if (video.duration) video.currentTime = video.duration - 1; break;
+                case 'End': e.preventDefault(); if (video.duration && !isNaN(video.duration)) video.currentTime = video.duration - 1; break;
                 case '>': case '.': e.preventDefault(); currentSpeed = Math.min(4, currentSpeed + 0.25); video.playbackRate = currentSpeed; speedIndicator.textContent = currentSpeed.toFixed(1) + 'x'; showToast('Tốc độ: ' + currentSpeed.toFixed(1) + 'x'); break;
                 case '<': case ',': e.preventDefault(); currentSpeed = Math.max(0.25, currentSpeed - 0.25); video.playbackRate = currentSpeed; speedIndicator.textContent = currentSpeed.toFixed(1) + 'x'; showToast('Tốc độ: ' + currentSpeed.toFixed(1) + 'x'); break;
                 case '0': e.preventDefault(); video.currentTime = 0; break;
-                case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': e.preventDefault(); if (video.duration) { video.currentTime = video.duration * (parseInt(e.key) / 10); } break;
+                case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': e.preventDefault(); if (video.duration && !isNaN(video.duration)) { video.currentTime = video.duration * (parseInt(e.key) / 10); } break;
             }
         });
-    
+
         var touchStartX = 0;
         var touchStartY = 0;
         var touchStartTime = 0;
         var isSwiping = false;
-    
+
         container.addEventListener('touchstart', function(e) {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
             touchStartTime = Date.now();
             isSwiping = false;
         }, { passive: true });
-    
+
         container.addEventListener('touchmove', function(e) {
             if (e.touches.length !== 1) return;
             var dx = e.touches[0].clientX - touchStartX;
             var dy = e.touches[0].clientY - touchStartY;
-    
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
                 isSwiping = true;
-                var seekSec = Math.round(dx / 15); 
+                var seekSec = Math.round(dx / 15);
                 if (Math.abs(seekSec) >= 1) {
                     seekVideo(seekSec);
-                    touchStartX = e.touches[0].clientX; 
+                    touchStartX = e.touches[0].clientX;
                 }
             }
-    
             if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 20) {
                 isSwiping = true;
                 var screenWidth = window.innerWidth;
                 var isRightSide = touchStartX > screenWidth / 2;
                 if (isRightSide) {
-                    var volChange = -dy / 200; 
+                    var volChange = -dy / 200;
                     video.volume = Math.max(0, Math.min(1, video.volume + volChange));
                     showToast('🔊 ' + Math.round(video.volume * 100) + '%');
                     touchStartY = e.touches[0].clientY;
                 }
             }
         }, { passive: true });
-    
+
         var regionStartX = 0;
         var regionOverlay = null;
-    
+
         video.addEventListener('mousedown', function(e) {
-            if (e.button !== 0) return; 
+            if (e.button !== 0) return;
             isDraggingVideo = false;
             regionStartX = e.clientX;
             regionOverlay = document.createElement('div');
             regionOverlay.style.cssText = 'position:fixed;top:0;height:100vh;background:rgba(231,76,60,0.3);pointer-events:none;z-index:25;';
             document.body.appendChild(regionOverlay);
         });
-    
+
         document.addEventListener('mousemove', function(e) {
             if (!regionOverlay) return;
             isDraggingVideo = true;
@@ -448,20 +630,18 @@
             regionOverlay.style.left = left + 'px';
             regionOverlay.style.width = width + 'px';
         });
-    
+
         document.addEventListener('mouseup', function(e) {
             if (!regionOverlay) return;
             var endX = e.clientX;
             var deltaX = endX - regionStartX;
-            var minDrag = 50; 
-    
-            if (Math.abs(deltaX) > minDrag && video.duration) {
+            var minDrag = 50;
+            if (Math.abs(deltaX) > minDrag && video.duration && !isNaN(video.duration)) {
                 var screenWidth = window.innerWidth;
                 var startPct = Math.min(regionStartX, endX) / screenWidth;
                 var endPct = Math.max(regionStartX, endX) / screenWidth;
                 var startTime = startPct * video.duration;
                 var endTime = endPct * video.duration;
-    
                 if (deltaX > 0) {
                     video.currentTime = startTime;
                     showToast('▶ Phát vùng ' + formatTime(startTime) + ' - ' + formatTime(endTime));
@@ -471,11 +651,10 @@
                 }
                 if (video.paused) togglePlay();
             }
-    
             regionOverlay.remove();
             regionOverlay = null;
         });
-    
+
         video.play().then(function() {
             spinner.style.display = 'none';
             btnPlay.textContent = '⏸';
@@ -495,9 +674,14 @@
             }).catch(function(err2) {
                 spinner.style.display = 'none';
                 bigPlayBtn.style.display = 'flex';
-                showToast('Không thể phát video: ', 3000, DEVELOPE); // Sửa lỗi DEVELOPE ở đây
+                showToast('Không thể phát video: ', 3000, DEVELOPE);
             });
         });
     }
-    GetlinkVideo();
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', GetlinkVideo);
+    } else {
+        GetlinkVideo();
+    }
 })();

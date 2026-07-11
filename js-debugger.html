@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS Code Debugger & Beautifier</title>
+
+<!-- CodeMirror -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.min.js"></script>
+
+<!-- Acorn Parser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/8.11.3/acorn.min.js"></script>
+<!-- JS Beautify -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: #0b0c10;
+    color: #c5c6c7;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .app { display: flex; flex-direction: column; height: 100vh; }
+
+  /* Topbar */
+  .topbar {
+    height: 52px;
+    background: #1f2833;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    border-bottom: 1px solid #45a29e;
+    flex-shrink: 0;
+  }
+  .topbar h1 {
+    font-size: 17px;
+    color: #66fcf1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topbar .toggles { display: flex; gap: 10px; }
+  .topbar button {
+    background: #1f2833;
+    color: #66fcf1;
+    border: 1px solid #45a29e;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.25s;
+    font-weight: 500;
+  }
+  .topbar button:hover {
+    background: #45a29e;
+    color: #0b0c10;
+    border-color: #66fcf1;
+  }
+
+  /* Main Layout */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+  .col {
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .col-code {
+    flex: 8;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: #0b0c10;
+  }
+  .col-tools {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    min-width: 280px;
+    max-width: 400px;
+    background: #1f2833;
+    border-left: 1px solid #45a29e;
+  }
+  .col.collapsed {
+    flex: 0 !important;
+    min-width: 0 !important;
+    width: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    opacity: 0;
+  }
+
+  /* CodeMirror Custom */
+  .CodeMirror {
+    height: 100%;
+    font-size: 14.5px;
+    line-height: 1.6;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+  }
+  .CodeMirror-gutters { background: #1f2833 !important; border-right: 1px solid #45a29e !important; }
+  .CodeMirror-linenumber { color: #45a29e !important; padding: 0 10px 0 6px; }
+
+  /* Error line highlight */
+  .line-error {
+    background: rgba(231, 76, 60, 0.12) !important;
+    position: relative;
+  }
+  .line-error::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: #e74c3c;
+  }
+  .line-error-active {
+    background: rgba(231, 76, 60, 0.30) !important;
+  }
+
+  /* Tools Sticky Header */
+  .tools-sticky {
+    padding: 14px;
+    background: #1f2833;
+    border-bottom: 1px solid #45a29e;
+    flex-shrink: 0;
+    z-index: 20;
+  }
+  .tool-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .tool-buttons button {
+    background: #0b0c10;
+    color: #66fcf1;
+    border: 1px solid #45a29e;
+    padding: 9px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12.5px;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .tool-buttons button:hover {
+    background: #45a29e;
+    color: #0b0c10;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 252, 241, 0.15);
+  }
+  .tool-buttons button:active { transform: translateY(0); }
+
+  /* Stats */
+  .stats {
+    font-size: 11px;
+    color: #45a29e;
+    text-align: center;
+    margin-top: 6px;
+    font-weight: 600;
+  }
+
+  /* Find & Replace */
+  .find-replace {
+    display: none;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #45a29e;
+    animation: fadeIn 0.2s ease;
+  }
+  .find-replace.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+  .find-replace input {
+    background: #0b0c10;
+    border: 1px solid #45a29e;
+    color: #c5c6c7;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .find-replace input:focus { border-color: #66fcf1; }
+  .find-replace label {
+    font-size: 12px;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+  }
+  .find-replace label input[type="checkbox"] {
+    accent-color: #45a29e;
+    width: 14px; height: 14px;
+  }
+  .fr-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .fr-buttons button {
+    background: #162238;
+    color: #66fcf1;
+    border: 1px solid #45a29e;
+    padding: 7px 4px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s;
+  }
+  .fr-buttons button:hover { background: #45a29e; color: #0b0c10; }
+
+  /* Error Panel */
+  .error-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+  .error-header {
+    font-size: 14px;
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: sticky;
+    top: 0;
+    background: #1f2833;
+    padding: 6px 0;
+    z-index: 10;
+    border-bottom: 1px solid #45a29e;
+  }
+  .error-item {
+    background: #162238;
+    border: 1px solid #2c3e50;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .error-item:hover {
+    border-color: #e74c3c;
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.15);
+  }
+  .error-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: #e74c3c;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .error-item:hover::before { opacity: 1; }
+  .err-line {
+    font-size: 12px;
+    color: #e74c3c;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .err-type {
+    background: rgba(231, 76, 60, 0.15);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .err-msg {
+    font-size: 13px;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .err-fix {
+    font-size: 12px;
+    color: #2ecc71;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .no-error {
+    color: #2ecc71;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(46, 204, 113, 0.08);
+    border-radius: 10px;
+    border: 1px dashed #2ecc71;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1f2833;
+    color: #66fcf1;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 99999;
+    border: 1px solid #45a29e;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0b0c10; }
+  ::-webkit-scrollbar-thumb { background: #45a29e; border-radius: 5px; border: 2px solid #0b0c10; }
+  ::-webkit-scrollbar-thumb:hover { background: #66fcf1; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .col-tools { max-width: 100%; min-width: 200px; }
+    .tool-buttons { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <h1>🚀 JS Code Debugger</h1>
+    <div class="toggles">
+      <button onclick="toggleCol('colCode')">👈 Code</button>
+      <button onclick="toggleCol('colTools')">Công cụ 👉</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Cột Code (8 phần) -->
+    <div class="col col-code" id="colCode">
+      <textarea id="codeEditor"></textarea>
+    </div>
+
+    <!-- Cột Công cụ (2 phần) -->
+    <div class="col col-tools" id="colTools">
+      <div class="tools-sticky">
+        <div class="tool-buttons">
+          <button onclick="checkCode()" title="Kiểm tra lỗi cú pháp & cảnh báo">🔍 Kiểm tra</button>
+          <button onclick="beautifyCode()" title="Làm đẹp & canh chỉnh code">✨ Làm đẹp</button>
+          <button onclick="toggleFindReplace()" title="Tìm & Thay thế">🔎 Tìm/Thay</button>
+          <button onclick="copyCode()" title="Copy toàn bộ code">📋 Copy</button>
+          <button onclick="pasteCode()" title="Paste vào editor">📌 Paste</button>
+          <button onclick="clearCode()" title="Xóa toàn bộ">🗑 Xóa</button>
+        </div>
+
+        <div class="find-replace" id="findReplacePanel">
+          <input type="text" id="frFind" placeholder="🔍 Nhập chuỗi cần tìm...">
+          <input type="text" id="frReplace" placeholder="✏️ Nhập chuỗi thay thế...">
+          <label><input type="checkbox" id="frRegex"> Sử dụng Regex</label>
+          <label><input type="checkbox" id="frCase" checked> Phân biệt hoa/thường</label>
+          <div class="fr-buttons">
+            <button onclick="findNext()">⬇ Tìm tiếp</button>
+            <button onclick="findPrev()">⬆ Tìm trước</button>
+            <button onclick="replaceOne()">🔁 Thay 1</button>
+            <button onclick="replaceAll()">🔂 Thay tất</button>
+          </div>
+        </div>
+
+        <div class="stats" id="stats">0 dòng | 0 ký tự | 0 lỗi</div>
+      </div>
+
+      <div class="error-panel" id="errorPanel">
+        <div class="error-header">🐛 Lỗi & Cảnh báo</div>
+        <div id="errorList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ============================
+     KHỞI TẠO EDITOR
+     ============================ */
+  var editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+    mode: 'javascript',
+    theme: 'dracula',
+    lineNumbers: true,
+    lineWrapping: true,
+    indentUnit: 2,
+    tabSize: 2,
+    autofocus: true,
+    scrollbarStyle: 'overlay'
+  });
+
+  // Code mẫu để demo
+  editor.setValue(`function greet(name) {
+  if(name == null) {
+    console.log("Hello " + name)
+  }
+  var message = 'Welcome';
+  eval("x = 1")
+  return message
+}`);
+
+  /* ============================
+     BIẾN & UTILITIES
+     ============================ */
+  var activeMarks = [];
+  var lastCursorPos = null;
+
+  function showToast(msg, duration) {
+    duration = duration || 2000;
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, duration);
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function clearEditorErrors() {
+    activeMarks.forEach(function(m) { m.clear(); });
+    activeMarks = [];
+    for (var i = 0; i < editor.lineCount(); i++) {
+      editor.removeLineClass(i, 'background', 'line-error');
+      editor.removeLineClass(i, 'background', 'line-error-active');
+    }
+  }
+
+  function highlightLine(line, ch) {
+    clearEditorErrors();
+    editor.addLineClass(line, 'background', 'line-error');
+    editor.addLineClass(line, 'background', 'line-error-active');
+    editor.setCursor(line, ch || 0);
+    editor.scrollIntoView({ line: line, ch: ch || 0 }, 120);
+    // Bỏ active sau 2.5s
+    setTimeout(function() {
+      editor.removeLineClass(line, 'background', 'line-error-active');
+    }, 2500);
+  }
+
+  function updateStats() {
+    var lines = editor.lineCount();
+    var chars = editor.getValue().length;
+    var errCount = document.querySelectorAll('.error-item').length;
+    if (document.querySelector('.no-error')) errCount = 0;
+    document.getElementById('stats').textContent = lines + ' dòng | ' + chars + ' ký tự | ' + errCount + ' lỗi/cảnh báo';
+  }
+
+  /* ============================
+     KIỂM TRA LỖI (LINT)
+     ============================ */
+  function checkCode() {
+    clearEditorErrors();
+    var code = editor.getValue();
+    var list = document.getElementById('errorList');
+    list.innerHTML = '';
+    var errors = [];
+    var lines = code.split('\n');
+
+    // 1. Syntax Check (Acorn hoặc fallback)
+    try {
+      if (typeof acorn !== 'undefined') {
+        acorn.parse(code, { ecmaVersion: 'latest', locations: true, sourceType: 'module' });
+      } else {
+        new Function(code);
+      }
+    } catch (e) {
+      var loc = e.loc || {};
+      var line = (loc.line || 1) - 1;
+      var col = loc.column || 0;
+      errors.push({
+        line: line,
+        col: col,
+        type: 'Syntax Error',
+        severity: 'error',
+        msg: (e.message || 'Lỗi cú pháp').split('\n')[0],
+        fix: 'Kiểm tra cú pháp tại dòng ' + (line + 1) + ', cột ' + col + '. Có thể thiếu dấu đóng ngoặc, dấu chấm phẩy hoặc từ khóa sai.'
+      });
+    }
+
+    // 2. Lint cơ bản (chỉ khi không có syntax error nghiêm trọng)
+    if (errors.length === 0) {
+      for (var i = 0; i < lines.length; i++) {
+        var raw = lines[i];
+        var trimmed = raw.trim();
+        if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) continue;
+
+        // Cảnh báo == (không nên dùng)
+        var matchEq = raw.match(/([^=!])==([^=])/);
+        if (matchEq) {
+          errors.push({
+            line: i,
+            col: matchEq.index + 1,
+            type: 'Warning',
+            severity: 'warn',
+            msg: 'Sử dụng == thay vì ===',
+            fix: 'Thay == bằng === để so sánh nghiêm ngặt kiểu dữ liệu, tránh bug tiềm ẩn.'
+          });
+        }
+
+        // Cảnh báo var
+        var matchVar = raw.match(/\bvar\b/);
+        if (matchVar) {
+          errors.push({
+            line: i,
+            col: matchVar.index,
+            type: 'Best Practice',
+            severity: 'warn',
+            msg: 'Sử dụng var thay vì let/const',
+            fix: 'Thay var bằng let (nếu gán lại) hoặc const (nếu không gán lại) để tránh rò rỉ phạm vi.'
+          });
+        }
+
+        // Cảnh báo console.log
+        var matchLog = raw.match(/console\.log\s*\(/);
+        if (matchLog) {
+          errors.push({
+            line: i,
+            col: matchLog.index,
+            type: 'Cleanup',
+            severity: 'info',
+            msg: 'console.log() còn sót lại trong code',
+            fix: 'Xóa console.log() trước khi đưa lên production để giữ console sạch.'
+          });
+        }
+
+        // Cảnh báo eval
+        var matchEval = raw.match(/\beval\s*\(/);
+        if (matchEval) {
+          errors.push({
+            line: i,
+            col: matchEval.index,
+            type: 'Security',
+            severity: 'error',
+            msg: 'Sử dụng eval() rất nguy hiểm',
+            fix: 'Tránh eval(). Nếu cần parse JSON dùng JSON.parse(). Nếu cần dynamic code dùng new Function() với cảnh báo.'
+          });
+        }
+
+        // Cảnh báo debugger
+        var matchDbg = raw.match(/\bdebugger\b/);
+        if (matchDbg) {
+          errors.push({
+            line: i,
+            col: matchDbg.index,
+            type: 'Cleanup',
+            severity: 'warn',
+            msg: 'Còn từ khóa debugger',
+            fix: 'Xóa debugger trước khi build/release. Nó sẽ dừng execution tại chỗ.'
+          });
+        }
+
+        // Cảnh báo thiếu dấu chấm phẩy (gợi ý)
+        if (trimmed.length > 0 &&
+            !/[;{}\[\(,]$/.test(trimmed) &&
+            !/^(\/\/|\/\*|\*|#|if|else|for|while|function|return|var|let|const|import|export|class|try|catch|finally|switch|case|default|break|continue|throw|with|debugger|do)\b/.test(trimmed)) {
+          // Bỏ qua để tránh false positive quá nhiều
+        }
+      }
+    }
+
+    // Render danh sách lỗi
+    if (errors.length === 0) {
+      list.innerHTML = '<div class="no-error">✅ Không phát hiện lỗi nào!<br>Code của bạn sạch và an toàn.</div>';
+    } else {
+      errors.forEach(function(err) {
+        editor.addLineClass(err.line, 'background', 'line-error');
+        var item = document.createElement('div');
+        item.className = 'error-item';
+        item.innerHTML =
+          '<div class="err-line">Dòng ' + (err.line + 1) + ' <span class="err-type">' + escapeHtml(err.type) + '</span></div>' +
+          '<div class="err-msg">' + escapeHtml(err.msg) + '</div>' +
+          '<div class="err-fix">💡 ' + escapeHtml(err.fix) + '</div>';
+        (function(l, c) {
+          item.onclick = function() { highlightLine(l, c); };
+        })(err.line, err.col);
+        list.appendChild(item);
+      });
+    }
+
+    updateStats();
+
+    if (errors.length > 0) {
+      showToast('🔍 Phát hiện ' + errors.length + ' vấn đề trong code', 3000);
+    } else {
+      showToast('✅ Code sạch! Không có lỗi.', 2500);
+    }
+  }
+
+  /* ============================
+     LÀM ĐẸP CODE
+     ============================ */
+  function beautifyCode() {
+    var code = editor.getValue();
+    if (typeof js_beautify !== 'undefined') {
+      var beautiful = js_beautify(code, {
+        indent_size: 2,
+        indent_char: ' ',
+        max_preserve_newlines: 2,
+        preserve_newlines: true,
+        keep_array_indentation: false,
+        break_chained_methods: false,
+        wrap_line_length: 100,
+        space_in_empty_paren: false,
+        jslint_happy: true
+      });
+      editor.setValue(beautiful);
+      showToast('✨ Code đã được làm đẹp và canh chỉnh!', 2000);
+    } else {
+      showToast('❌ Không tải được thư viện làm đẹp. Kiểm tra kết nối mạng.', 3000);
+    }
+    updateStats();
+  }
+
+  /* ============================
+     FIND & REPLACE
+     ============================ */
+  function toggleFindReplace() {
+    document.getElementById('findReplacePanel').classList.toggle('active');
+  }
+
+  function buildQuery() {
+    var text = document.getElementById('frFind').value;
+    var isRegex = document.getElementById('frRegex').checked;
+    var caseFold = !document.getElementById('frCase').checked;
+    if (!text) return null;
+    if (isRegex) {
+      try { return new RegExp(text, caseFold ? 'gi' : 'g'); } catch(e) { return null; }
+    }
+    return { query: text, caseFold: caseFold };
+  }
+
+  function findNext() {
+    var q = buildQuery();
+    if (!q) { showToast('Nhập chuỗi cần tìm', 2000); return; }
+    var cursor;
+    if (q instanceof RegExp) {
+      cursor = editor.getSearchCursor(q, editor.getCursor(), { caseFold: false });
+    } else {
+      cursor = editor.getSearchCursor(q.query, editor.getCursor(), { caseFold: q.caseFold });
+    }
+    if (cursor.findNext()) {
+      editor.setSelection(cursor.from(), cursor.to());
+      editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 80);
+    } else {
+      // Wrap to đầu
+      if (q instanceof RegExp) {
+        cursor = editor.getSearchCursor(q, null, { caseFold: false });
+      } else {
+        cursor = editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
+      }
+      if (cursor.findNext()) {
+        editor.setSelection(cursor.from(), cursor.to());
+        editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 80);
+      } else {
+        showToast('Không tìm thấy', 2000);
+      }
+    }
+  }
+
+  function findPrev() {
+    var q = buildQuery();
+    if (!q) { showToast('Nhập chuỗi cần tìm', 2000); return; }
+    var start = editor.getCursor('start');
+    var cursor;
+    if (q instanceof RegExp) {
+      cursor = editor.getSearchCursor(q, start, { caseFold: false });
+    } else {
+      cursor = editor.getSearchCursor(q.query, start, { caseFold: q.caseFold });
+    }
+    if (cursor.findPrevious()) {
+      editor.setSelection(cursor.from(), cursor.to());
+      editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 80);
+    } else {
+      // Wrap to cuối
+      var lastLine = editor.lastLine();
+      var lastCh = editor.getLine(lastLine).length;
+      if (q instanceof RegExp) {
+        cursor = editor.getSearchCursor(q, { line: lastLine, ch: lastCh }, { caseFold: false });
+      } else {
+        cursor = editor.getSearchCursor(q.query, { line: lastLine, ch: lastCh }, { caseFold: q.caseFold });
+      }
+      if (cursor.findPrevious()) {
+        editor.setSelection(cursor.from(), cursor.to());
+        editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 80);
+      } else {
+        showToast('Không tìm thấy', 2000);
+      }
+    }
+  }
+
+  function replaceOne() {
+    var q = buildQuery();
+    var rep = document.getElementById('frReplace').value;
+    if (!q) { showToast('Nhập chuỗi cần tìm', 2000); return; }
+    var from = editor.getCursor('start');
+    var cursor;
+    if (q instanceof RegExp) {
+      cursor = editor.getSearchCursor(q, from, { caseFold: false });
+    } else {
+      cursor = editor.getSearchCursor(q.query, from, { caseFold: q.caseFold });
+    }
+    if (cursor.findNext()) {
+      cursor.replace(rep);
+      showToast('🔁 Đã thay 1 chỗ', 1800);
+    } else {
+      showToast('Không tìm thấy để thay', 2000);
+    }
+  }
+
+  function replaceAll() {
+    var q = buildQuery();
+    var rep = document.getElementById('frReplace').value;
+    if (!q) { showToast('Nhập chuỗi cần tìm', 2000); return; }
+    var count = 0;
+    var cursor;
+    if (q instanceof RegExp) {
+      cursor = editor.getSearchCursor(q, null, { caseFold: false });
+    } else {
+      cursor = editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
+    }
+    editor.operation(function() {
+      while (cursor.findNext()) {
+        cursor.replace(rep);
+        count++;
+      }
+    });
+    showToast('🔂 Đã thay ' + count + ' chỗ', 2000);
+    updateStats();
+  }
+
+  /* ============================
+     COPY / PASTE / CLEAR
+     ============================ */
+  function copyCode() {
+    var code = editor.getValue();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(function() { showToast('📋 Đã copy toàn bộ code!', 2000); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('📋 Đã copy toàn bộ code!', 2000);
+    }
+  }
+
+  function pasteCode() {
+    if (navigator.clipboard) {
+      navigator.clipboard.readText().then(function(text) {
+        if (text) {
+          editor.replaceSelection(text);
+          showToast('📌 Đã paste vào vị trí con trỏ!', 2000);
+          updateStats();
+        }
+      }).catch(function() {
+        showToast('Trình duyệt chặn paste. Dùng Ctrl+V', 3000);
+      });
+    } else {
+      showToast('Dùng Ctrl+V để paste', 2000);
+    }
+  }
+
+  function clearCode() {
+    if (confirm('Bạn có chắc muốn xóa toàn bộ code?')) {
+      editor.setValue('');
+      clearEditorErrors();
+      document.getElementById('errorList').innerHTML = '';
+      updateStats();
+      showToast('🗑 Đã xóa toàn bộ', 2000);
+    }
+  }
+
+  /* ============================
+     ẨN / HIỆN CỘT
+     ============================ */
+  function toggleCol(id) {
+    var col = document.getElementById(id);
+    col.classList.toggle('collapsed');
+    setTimeout(function() { editor.refresh(); }, 360);
+  }
+
+  // Cập nhật stats khi gõ
+  editor.on('change', function() { updateStats(); });
+  updateStats();
+</script>
+
+</body>
+</html>
