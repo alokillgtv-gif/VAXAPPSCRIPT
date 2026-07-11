@@ -4,7 +4,7 @@ function getManifest() {
         "id": "justporn",          
         "name": "Just Porn",
         "description": "XXX Hay",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": "https://www.justporn.com",
         "iconUrl": "https://c847a9a666.mjedge.net/contents/pkehlvuovbaw/theme/logo.png", 
         "isEnabled": true,
@@ -291,7 +291,7 @@ SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS5
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
-document.head.appendChild(style);
+//document.head.appendChild(style);
 function injectScriptAfterLoad(scriptUrl) {
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
