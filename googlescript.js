@@ -1,4 +1,4 @@
-"(function() {
+(function() {
     'use strict';
 
     // ─── BIẾN TOÀN CỤC CỦA SCRIPT ───
@@ -11,7 +11,7 @@
         `;
         style.innerHTML = customcss;
         document.head.appendChild(style);
-        var htmlTAG = document.getElementsByTagName(""html"")[0];
+        var htmlTAG = document.getElementsByTagName("html")[0];
         showToast("TEST CODE", 10000, DEVELOPE);
         showToast('<textarea style="width:500px;height:300px">'+htmlTAG.outerHTML+'</textarea>', 50000, DEVELOPE);
         if(VIDEO_ON == true){
@@ -157,11 +157,11 @@
         container.appendChild(seekOverlay);
         container.appendChild(controls);
         
-        var htmlTAG = document.getElementsByTagName(""html"")[0];
+        var htmlTAG = document.getElementsByTagName('html')[0];
         htmlTAG.innerHTML = '';
         document.body = document.createElement('body');
         document.body.appendChild(container);
-        document.head.innerHTML = '<meta charset=""UTF-8""><meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">';
+        document.head.innerHTML = "<meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>";
         document.head.appendChild(spinStyle);
         document.title = 'Video Player';
     
@@ -499,4 +499,4 @@
         });
     }
     GetlinkVideo();
-})();"
+})();
