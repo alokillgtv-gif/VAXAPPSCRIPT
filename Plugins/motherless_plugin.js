@@ -5,7 +5,7 @@ function getManifest() {
         "id": "motherless",
         "name": "Motherless",
         "description": "XXX Hay",
-        "version": "1.0",
+        "version": "1.1",
         "baseUrl": "https://motherless.xxx",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless.jpg",
         "isEnabled": true,
@@ -387,7 +387,7 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html, url) {
+function parseMovieDetail(html, $url) {
     var lurl = "";
     var limg = "";
     var lname = "Đang cập nhật...";
@@ -418,7 +418,7 @@ function parseMovieDetail(html, url) {
         if (serverMatches && serverMatches[1]) {
             lurl = serverMatches[1];
             episodes.push({
-                id: serverMatches[1],
+                id: $url,
                 name: "Xem Ngay",
                 slug: "tap-1"
             });
@@ -433,7 +433,7 @@ function parseMovieDetail(html, url) {
     }
     
     return JSON.stringify({
-        id: lurl,
+        id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -455,52 +455,100 @@ function parseMovieDetail(html, url) {
 
 function parseDetailResponse(html, url) {
     try {
-        var customJs = `
-function initCustomVideoFix() {
-    const style = document.createElement('style');
-    var customcss = 'body { background: black; overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
-    style.innerHTML = customcss;
-    document.head.appendChild(style);
-    
-    if (typeof jwplayer === "function") {
-        const player = jwplayer("previewPlayer");
-        if (player && typeof player.getMute === "function") {
-            if (player.getMute()) {
-                player.setMute(false);
-            }
-            player.setVolume(100);
-        }
+    var $link = "";
+    var episodes = [];
+    var serverMatches = html.match(/<video[\s\S]*?src=["']([^"']+)["']/i);
+    if (serverMatches && serverMatches[1]) {
+        $link = serverMatches[1]
+    }
+        var customjs = textJS();
+        return JSON.stringify({
+            "url": $link,
+            "headers": {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs.trim()
+            },
+            "subtitles": []
+        });
+        
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
+    }
+}
+
+function textJS() {
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+    return `
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=mortherless&type=js"; 
+const style = document.createElement('style');
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
+//document.head.appendChild(style);
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
+        
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
     }
     
-    const checkAndClick = setInterval(() => {
-        const skipButton = document.getElementById("skip-ad");
-        if (skipButton) {
-            skipButton.click();
-            clearInterval(checkAndClick);
-        }
-    }, 200);
-    
-    setTimeout(() => { clearInterval(checkAndClick); }, 20000);
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
+    } else {
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    }
 }
+
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
+    }
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
     initCustomVideoFix();
-}`;
-        
-        return JSON.stringify({
-            url: "",
-            headers: {
-                "Referer": url,
-                "Origin": url,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
-            }
-        });
-    } catch (error) {
-        return JSON.stringify({ url: "", headers: {} });
-    }
 }
+
+`;
+}
+
 
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();

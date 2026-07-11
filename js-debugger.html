@@ -32,31 +32,31 @@
 
   /* Topbar */
   .topbar {
-    height: 52px;
+    height: 44px;
     background: #1f2833;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 18px;
+    padding: 0 14px;
     border-bottom: 1px solid #45a29e;
     flex-shrink: 0;
   }
   .topbar h1 {
-    font-size: 17px;
+    font-size: 15px;
     color: #66fcf1;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
-  .topbar .toggles { display: flex; gap: 10px; }
+  .topbar .toggles { display: flex; gap: 8px; }
   .topbar button {
     background: #1f2833;
     color: #66fcf1;
     border: 1px solid #45a29e;
-    padding: 7px 14px;
-    border-radius: 6px;
+    padding: 5px 10px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 12px;
     transition: all 0.25s;
     font-weight: 500;
   }
@@ -64,6 +64,12 @@
     background: #45a29e;
     color: #0b0c10;
     border-color: #66fcf1;
+  }
+  #searchCount {
+    font-size: 12px;
+    color: #45a29e;
+    margin-left: 10px;
+    font-weight: 600;
   }
 
   /* Main Layout */
@@ -88,8 +94,8 @@
     flex: 2;
     display: flex;
     flex-direction: column;
-    min-width: 280px;
-    max-width: 400px;
+    min-width: 260px;
+    max-width: 360px;
     background: #1f2833;
     border-left: 1px solid #45a29e;
   }
@@ -105,12 +111,12 @@
   /* CodeMirror Custom */
   .CodeMirror {
     height: 100%;
-    font-size: 14.5px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.5;
     font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
   }
   .CodeMirror-gutters { background: #1f2833 !important; border-right: 1px solid #45a29e !important; }
-  .CodeMirror-linenumber { color: #45a29e !important; padding: 0 10px 0 6px; }
+  .CodeMirror-linenumber { color: #45a29e !important; padding: 0 8px 0 4px; }
 
   /* Error line highlight */
   .line-error {
@@ -128,9 +134,16 @@
     background: rgba(231, 76, 60, 0.30) !important;
   }
 
+  /* Search highlight */
+  .search-highlight {
+    background: #ff4444 !important;
+    color: #000000 !important;
+    border-radius: 2px;
+  }
+
   /* Tools Sticky Header */
   .tools-sticky {
-    padding: 14px;
+    padding: 10px;
     background: #1f2833;
     border-bottom: 1px solid #45a29e;
     flex-shrink: 0;
@@ -138,26 +151,29 @@
   }
   .tool-buttons {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 8px;
   }
   .tool-buttons button {
     background: #0b0c10;
     color: #66fcf1;
     border: 1px solid #45a29e;
-    padding: 9px 6px;
-    border-radius: 6px;
+    padding: 5px 2px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 12.5px;
+    font-size: 16px;
     transition: all 0.2s;
-    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
   }
   .tool-buttons button:hover {
     background: #45a29e;
     color: #0b0c10;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 252, 241, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(102, 252, 241, 0.15);
   }
   .tool-buttons button:active { transform: translateY(0); }
 
@@ -166,7 +182,7 @@
     font-size: 11px;
     color: #45a29e;
     text-align: center;
-    margin-top: 6px;
+    margin-top: 4px;
     font-weight: 600;
   }
 
@@ -174,9 +190,9 @@
   .find-replace {
     display: none;
     flex-direction: column;
-    gap: 7px;
-    margin-top: 10px;
-    padding-top: 12px;
+    gap: 5px;
+    margin-top: 8px;
+    padding-top: 10px;
     border-top: 1px solid #45a29e;
     animation: fadeIn 0.2s ease;
   }
@@ -187,37 +203,37 @@
     background: #0b0c10;
     border: 1px solid #45a29e;
     color: #c5c6c7;
-    padding: 8px 10px;
-    border-radius: 5px;
-    font-size: 13px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 12px;
     outline: none;
     transition: border-color 0.2s;
   }
   .find-replace input:focus { border-color: #66fcf1; }
   .find-replace label {
-    font-size: 12px;
+    font-size: 11px;
     color: #aaa;
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     cursor: pointer;
   }
   .find-replace label input[type="checkbox"] {
     accent-color: #45a29e;
-    width: 14px; height: 14px;
+    width: 13px; height: 13px;
   }
   .fr-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    margin-top: 4px;
+    gap: 5px;
+    margin-top: 3px;
   }
   .fr-buttons button {
     background: #162238;
     color: #66fcf1;
     border: 1px solid #45a29e;
-    padding: 7px 4px;
-    border-radius: 5px;
+    padding: 5px 3px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 11px;
     transition: all 0.2s;
@@ -228,97 +244,108 @@
   .error-panel {
     flex: 1;
     overflow-y: auto;
-    padding: 12px;
+    padding: 8px;
   }
   .error-header {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
     color: #e74c3c;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     position: sticky;
     top: 0;
     background: #1f2833;
-    padding: 6px 0;
+    padding: 4px 0;
     z-index: 10;
     border-bottom: 1px solid #45a29e;
   }
-  .error-item {
-    background: #162238;
+
+  /* Error Group */
+  .error-group {
     border: 1px solid #2c3e50;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
+    border-radius: 6px;
+    margin-bottom: 6px;
     overflow: hidden;
+    background: #162238;
   }
-  .error-item:hover {
-    border-color: #e74c3c;
-    transform: translateX(5px);
-    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.15);
-  }
-  .error-item::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 4px;
-    background: #e74c3c;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-  }
-  .error-item:hover::before { opacity: 1; }
-  .err-line {
-    font-size: 12px;
-    color: #e74c3c;
-    font-weight: bold;
-    margin-bottom: 5px;
+  .error-group-header {
+    padding: 6px 8px;
     display: flex;
     justify-content: space-between;
-  }
-  .err-type {
-    background: rgba(231, 76, 60, 0.15);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-  }
-  .err-msg {
-    font-size: 13px;
-    color: #fff;
-    margin-bottom: 6px;
-    line-height: 1.4;
-  }
-  .err-fix {
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
     font-size: 12px;
+    user-select: none;
+  }
+  .error-group-header:hover { background: #1a2a3a; }
+  .error-group-header .badge {
+    background: #e74c3c;
+    color: #fff;
+    padding: 1px 6px;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+  }
+  .error-group-header .arrow {
+    font-size: 10px;
+    color: #45a29e;
+    transition: transform 0.2s;
+    margin-left: 6px;
+  }
+  .error-group-header.expanded .arrow { transform: rotate(90deg); }
+  .error-group-items {
+    display: none;
+    background: #0b0c10;
+    padding: 4px 8px;
+  }
+  .error-group-items.active { display: block; }
+  .error-group-item {
+    padding: 4px 6px;
+    font-size: 11.5px;
+    color: #c5c6c7;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .error-group-item:hover {
+    background: rgba(231, 76, 60, 0.15);
+    color: #fff;
+  }
+  .error-group-item .fix-hint {
+    font-size: 10px;
     color: #2ecc71;
-    font-style: italic;
-    line-height: 1.4;
+    opacity: 0.8;
   }
   .no-error {
     color: #2ecc71;
-    font-size: 14px;
+    font-size: 13px;
     text-align: center;
-    margin-top: 30px;
-    padding: 20px;
+    margin-top: 20px;
+    padding: 16px;
     background: rgba(46, 204, 113, 0.08);
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px dashed #2ecc71;
   }
 
   /* Toast */
   .toast {
     position: fixed;
-    bottom: 24px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: #1f2833;
     color: #66fcf1;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 12px;
     opacity: 0;
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 99999;
@@ -332,15 +359,14 @@
   }
 
   /* Scrollbar */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: #0b0c10; }
-  ::-webkit-scrollbar-thumb { background: #45a29e; border-radius: 5px; border: 2px solid #0b0c10; }
+  ::-webkit-scrollbar-thumb { background: #45a29e; border-radius: 4px; border: 2px solid #0b0c10; }
   ::-webkit-scrollbar-thumb:hover { background: #66fcf1; }
 
   /* Responsive */
   @media (max-width: 768px) {
     .col-tools { max-width: 100%; min-width: 200px; }
-    .tool-buttons { grid-template-columns: 1fr 1fr 1fr; }
   }
 </style>
 </head>
@@ -348,10 +374,10 @@
 
 <div class="app">
   <div class="topbar">
-    <h1>🚀 JS Code Debugger</h1>
+    <h1>🚀 JS Code Debugger <span id="searchCount"></span></h1>
     <div class="toggles">
-      <button onclick="toggleCol('colCode')">👈 Code</button>
-      <button onclick="toggleCol('colTools')">Công cụ 👉</button>
+      <button onclick="toggleCol('colCode')" title="Ẩn / hiện cột code">👈 Code</button>
+      <button onclick="toggleCol('colTools')" title="Ẩn / hiện cột công cụ">Công cụ 👉</button>
     </div>
   </div>
 
@@ -365,18 +391,18 @@
     <div class="col col-tools" id="colTools">
       <div class="tools-sticky">
         <div class="tool-buttons">
-          <button onclick="checkCode()" title="Kiểm tra lỗi cú pháp & cảnh báo">🔍 Kiểm tra</button>
-          <button onclick="beautifyCode()" title="Làm đẹp & canh chỉnh code">✨ Làm đẹp</button>
-          <button onclick="toggleFindReplace()" title="Tìm & Thay thế">🔎 Tìm/Thay</button>
-          <button onclick="copyCode()" title="Copy toàn bộ code">📋 Copy</button>
-          <button onclick="pasteCode()" title="Paste vào editor">📌 Paste</button>
-          <button onclick="clearCode()" title="Xóa toàn bộ">🗑 Xóa</button>
+          <button onclick="checkCode()" title="Kiểm tra lỗi cú pháp & cảnh báo">🔍</button>
+          <button onclick="beautifyCode()" title="Làm đẹp & canh chỉnh code">✨</button>
+          <button onclick="toggleFindReplace()" title="Tìm & Thay thế">🔎</button>
+          <button onclick="copyCode()" title="Copy toàn bộ code">📋</button>
+          <button onclick="pasteCode()" title="Paste vào editor">📌</button>
+          <button onclick="clearCode()" title="Xóa toàn bộ">🗑</button>
         </div>
 
         <div class="find-replace" id="findReplacePanel">
-          <input type="text" id="frFind" placeholder="🔍 Nhập chuỗi cần tìm...">
-          <input type="text" id="frReplace" placeholder="✏️ Nhập chuỗi thay thế...">
-          <label><input type="checkbox" id="frRegex"> Sử dụng Regex</label>
+          <input type="text" id="frFind" placeholder="Nhập chuỗi cần tìm...">
+          <input type="text" id="frReplace" placeholder="Nhập chuỗi thay thế...">
+          <label><input type="checkbox" id="frRegex"> Regex</label>
           <label><input type="checkbox" id="frCase" checked> Phân biệt hoa/thường</label>
           <div class="fr-buttons">
             <button onclick="findNext()">⬇ Tìm tiếp</button>
@@ -420,7 +446,9 @@
     console.log("Hello " + name)
   }
   var message = 'Welcome';
+  var count = 0;
   eval("x = 1")
+  debugger;
   return message
 }`);
 
@@ -428,6 +456,7 @@
      BIẾN & UTILITIES
      ============================ */
   var activeMarks = [];
+  var searchMarks = [];
   var lastCursorPos = null;
 
   function showToast(msg, duration) {
@@ -453,13 +482,17 @@
     }
   }
 
+  function clearSearchMarks() {
+    searchMarks.forEach(function(m) { m.clear(); });
+    searchMarks = [];
+  }
+
   function highlightLine(line, ch) {
     clearEditorErrors();
     editor.addLineClass(line, 'background', 'line-error');
     editor.addLineClass(line, 'background', 'line-error-active');
     editor.setCursor(line, ch || 0);
     editor.scrollIntoView({ line: line, ch: ch || 0 }, 120);
-    // Bỏ active sau 2.5s
     setTimeout(function() {
       editor.removeLineClass(line, 'background', 'line-error-active');
     }, 2500);
@@ -468,23 +501,26 @@
   function updateStats() {
     var lines = editor.lineCount();
     var chars = editor.getValue().length;
-    var errCount = document.querySelectorAll('.error-item').length;
+    var errCount = 0;
+    var badges = document.querySelectorAll('.error-group-header .badge');
+    badges.forEach(function(b) { errCount += parseInt(b.textContent) || 0; });
     if (document.querySelector('.no-error')) errCount = 0;
     document.getElementById('stats').textContent = lines + ' dòng | ' + chars + ' ký tự | ' + errCount + ' lỗi/cảnh báo';
   }
 
   /* ============================
-     KIỂM TRA LỖI (LINT)
+     KIỂM TRA LỖI (LINT) – GOM NHÓM
      ============================ */
   function checkCode() {
     clearEditorErrors();
+    clearSearchMarks();
     var code = editor.getValue();
     var list = document.getElementById('errorList');
     list.innerHTML = '';
     var errors = [];
     var lines = code.split('\n');
 
-    // 1. Syntax Check (Acorn hoặc fallback)
+    // 1. Syntax Check
     try {
       if (typeof acorn !== 'undefined') {
         acorn.parse(code, { ecmaVersion: 'latest', locations: true, sourceType: 'module' });
@@ -512,106 +548,102 @@
         var trimmed = raw.trim();
         if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) continue;
 
-        // Cảnh báo == (không nên dùng)
         var matchEq = raw.match(/([^=!])==([^=])/);
         if (matchEq) {
-          errors.push({
-            line: i,
-            col: matchEq.index + 1,
-            type: 'Warning',
-            severity: 'warn',
+          errors.push({ line: i, col: matchEq.index + 1, type: 'Warning', severity: 'warn',
             msg: 'Sử dụng == thay vì ===',
-            fix: 'Thay == bằng === để so sánh nghiêm ngặt kiểu dữ liệu, tránh bug tiềm ẩn.'
-          });
+            fix: 'Thay == bằng === để so sánh nghiêm ngặt kiểu dữ liệu.' });
         }
 
-        // Cảnh báo var
         var matchVar = raw.match(/\bvar\b/);
         if (matchVar) {
-          errors.push({
-            line: i,
-            col: matchVar.index,
-            type: 'Best Practice',
-            severity: 'warn',
+          errors.push({ line: i, col: matchVar.index, type: 'Best Practice', severity: 'warn',
             msg: 'Sử dụng var thay vì let/const',
-            fix: 'Thay var bằng let (nếu gán lại) hoặc const (nếu không gán lại) để tránh rò rỉ phạm vi.'
-          });
+            fix: 'Thay var bằng let hoặc const để tránh rò rỉ phạm vi.' });
         }
 
-        // Cảnh báo console.log
         var matchLog = raw.match(/console\.log\s*\(/);
         if (matchLog) {
-          errors.push({
-            line: i,
-            col: matchLog.index,
-            type: 'Cleanup',
-            severity: 'info',
+          errors.push({ line: i, col: matchLog.index, type: 'Cleanup', severity: 'info',
             msg: 'console.log() còn sót lại trong code',
-            fix: 'Xóa console.log() trước khi đưa lên production để giữ console sạch.'
-          });
+            fix: 'Xóa console.log() trước khi đưa lên production.' });
         }
 
-        // Cảnh báo eval
         var matchEval = raw.match(/\beval\s*\(/);
         if (matchEval) {
-          errors.push({
-            line: i,
-            col: matchEval.index,
-            type: 'Security',
-            severity: 'error',
+          errors.push({ line: i, col: matchEval.index, type: 'Security', severity: 'error',
             msg: 'Sử dụng eval() rất nguy hiểm',
-            fix: 'Tránh eval(). Nếu cần parse JSON dùng JSON.parse(). Nếu cần dynamic code dùng new Function() với cảnh báo.'
-          });
+            fix: 'Tránh eval(). Nếu cần parse JSON dùng JSON.parse().' });
         }
 
-        // Cảnh báo debugger
         var matchDbg = raw.match(/\bdebugger\b/);
         if (matchDbg) {
-          errors.push({
-            line: i,
-            col: matchDbg.index,
-            type: 'Cleanup',
-            severity: 'warn',
+          errors.push({ line: i, col: matchDbg.index, type: 'Cleanup', severity: 'warn',
             msg: 'Còn từ khóa debugger',
-            fix: 'Xóa debugger trước khi build/release. Nó sẽ dừng execution tại chỗ.'
-          });
-        }
-
-        // Cảnh báo thiếu dấu chấm phẩy (gợi ý)
-        if (trimmed.length > 0 &&
-            !/[;{}\[\(,]$/.test(trimmed) &&
-            !/^(\/\/|\/\*|\*|#|if|else|for|while|function|return|var|let|const|import|export|class|try|catch|finally|switch|case|default|break|continue|throw|with|debugger|do)\b/.test(trimmed)) {
-          // Bỏ qua để tránh false positive quá nhiều
+            fix: 'Xóa debugger trước khi build/release.' });
         }
       }
     }
 
-    // Render danh sách lỗi
+    // Render: Gom nhóm
     if (errors.length === 0) {
       list.innerHTML = '<div class="no-error">✅ Không phát hiện lỗi nào!<br>Code của bạn sạch và an toàn.</div>';
     } else {
+      // Gom nhóm theo msg
+      var groups = {};
       errors.forEach(function(err) {
-        editor.addLineClass(err.line, 'background', 'line-error');
-        var item = document.createElement('div');
-        item.className = 'error-item';
-        item.innerHTML =
-          '<div class="err-line">Dòng ' + (err.line + 1) + ' <span class="err-type">' + escapeHtml(err.type) + '</span></div>' +
-          '<div class="err-msg">' + escapeHtml(err.msg) + '</div>' +
-          '<div class="err-fix">💡 ' + escapeHtml(err.fix) + '</div>';
-        (function(l, c) {
-          item.onclick = function() { highlightLine(l, c); };
-        })(err.line, err.col);
-        list.appendChild(item);
+        var key = err.msg;
+        if (!groups[key]) {
+          groups[key] = { type: err.type, severity: err.severity, msg: err.msg, fix: err.fix, items: [] };
+        }
+        groups[key].items.push(err);
+      });
+
+      Object.keys(groups).forEach(function(key) {
+        var g = groups[key];
+        var groupDiv = document.createElement('div');
+        groupDiv.className = 'error-group';
+
+        var header = document.createElement('div');
+        header.className = 'error-group-header';
+        var icon = g.severity === 'error' ? '❌' : g.severity === 'warn' ? '⚠️' : 'ℹ️';
+        header.innerHTML = '<span>' + icon + ' ' + escapeHtml(g.msg) + ' <span class="arrow">▶</span></span><span class="badge">' + g.items.length + '</span>';
+        header.onclick = function() { toggleGroup(this); };
+
+        var itemsDiv = document.createElement('div');
+        itemsDiv.className = 'error-group-items';
+        g.items.forEach(function(item) {
+          var lineDiv = document.createElement('div');
+          lineDiv.className = 'error-group-item';
+          lineDiv.innerHTML = '<span>Dòng ' + (item.line + 1) + (item.col ? ', cột ' + item.col : '') + '</span><span class="fix-hint">💡 ' + escapeHtml(g.fix) + '</span>';
+          lineDiv.onclick = function(e) { e.stopPropagation(); highlightLine(item.line, item.col); };
+          itemsDiv.appendChild(lineDiv);
+        });
+
+        groupDiv.appendChild(header);
+        groupDiv.appendChild(itemsDiv);
+        list.appendChild(groupDiv);
+
+        // Mặc định mở nhóm nếu chỉ có 1 item
+        if (g.items.length === 1) {
+          header.classList.add('expanded');
+          itemsDiv.classList.add('active');
+        }
       });
     }
 
     updateStats();
-
     if (errors.length > 0) {
       showToast('🔍 Phát hiện ' + errors.length + ' vấn đề trong code', 3000);
     } else {
       showToast('✅ Code sạch! Không có lỗi.', 2500);
     }
+  }
+
+  function toggleGroup(header) {
+    var items = header.nextElementSibling;
+    items.classList.toggle('active');
+    header.classList.toggle('expanded');
   }
 
   /* ============================
@@ -640,7 +672,7 @@
   }
 
   /* ============================
-     FIND & REPLACE
+     FIND & REPLACE + HIGHLIGHT
      ============================ */
   function toggleFindReplace() {
     document.getElementById('findReplacePanel').classList.toggle('active');
@@ -655,6 +687,42 @@
       try { return new RegExp(text, caseFold ? 'gi' : 'g'); } catch(e) { return null; }
     }
     return { query: text, caseFold: caseFold };
+  }
+
+  function updateSearchCount() {
+    var q = buildQuery();
+    var count = 0;
+    if (q) {
+      var cursor;
+      if (q instanceof RegExp) {
+        cursor = editor.getSearchCursor(q, null, { caseFold: false });
+      } else {
+        cursor = editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
+      }
+      while (cursor.findNext()) count++;
+    }
+    var el = document.getElementById('searchCount');
+    if (count > 0) {
+      el.textContent = '🔍 ' + count + ' kết quả';
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  function updateSearchHighlights() {
+    clearSearchMarks();
+    var q = buildQuery();
+    if (!q) { updateSearchCount(); return; }
+    var cursor;
+    if (q instanceof RegExp) {
+      cursor = editor.getSearchCursor(q, null, { caseFold: false });
+    } else {
+      cursor = editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
+    }
+    while (cursor.findNext()) {
+      searchMarks.push(editor.markText(cursor.from(), cursor.to(), { className: 'search-highlight' }));
+    }
+    updateSearchCount();
   }
 
   function findNext() {
@@ -730,6 +798,7 @@
     if (cursor.findNext()) {
       cursor.replace(rep);
       showToast('🔁 Đã thay 1 chỗ', 1800);
+      updateSearchHighlights();
     } else {
       showToast('Không tìm thấy để thay', 2000);
     }
@@ -753,8 +822,20 @@
       }
     });
     showToast('🔂 Đã thay ' + count + ' chỗ', 2000);
+    updateSearchHighlights();
     updateStats();
   }
+
+  // Enter trong ô tìm kiếm → tìm tiếp
+  document.getElementById('frFind').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); findNext(); }
+  });
+  // Tự động highlight khi gõ
+  document.getElementById('frFind').addEventListener('input', function() {
+    updateSearchHighlights();
+  });
+  document.getElementById('frRegex').addEventListener('change', updateSearchHighlights);
+  document.getElementById('frCase').addEventListener('change', updateSearchHighlights);
 
   /* ============================
      COPY / PASTE / CLEAR
@@ -794,7 +875,9 @@
     if (confirm('Bạn có chắc muốn xóa toàn bộ code?')) {
       editor.setValue('');
       clearEditorErrors();
+      clearSearchMarks();
       document.getElementById('errorList').innerHTML = '';
+      document.getElementById('searchCount').textContent = '';
       updateStats();
       showToast('🗑 Đã xóa toàn bộ', 2000);
     }
