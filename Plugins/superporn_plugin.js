@@ -5,7 +5,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "2.8",             
+        "version": "2.9",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
