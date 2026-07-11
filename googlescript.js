@@ -8,8 +8,36 @@
         var stream1 = playlist.activeSrc || '';
         var stream2 = window.location.href;
         showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
-        buildVideo(stream1, stream2, playlist);
+        if(LINKVIDEO && LINKVIDEO.length > 0){
+            VideoPlayerAPI.clearServers();
+            for(var $j = 0;$j < LINKVIDEO.length;$j++){
+                var $line = LINKVIDEO[$j];
+                var $link = $line.link;
+                var $name = $line.name;
+                if($j == 0){
+                    stream1 = $link;
+                }
+                VideoPlayerAPI.addServer({ label: $name, src: $link })
+            }
+        }
+        var $server = VideoPlayerAPI.getServers();
+        buildVideo(stream1, stream2, $server);
     }
+
+/*
+VideoPlayerAPI.addServer({ label: 'Server 2', src: '...' }) Thêm server vào cuối danh sách
+VideoPlayerAPI.addServerAt(0, { label: 'VIP', src: '...' }) Thêm server vào vị trí bất kỳ(ví dụ 0 là đầu tiên)
+VideoPlayerAPI.addEpisode({ label: 'Tập 5', src: '...' }) Thêm tập phim vào cuối
+VideoPlayerAPI.addEpisodeAt(2, { label: 'Tập 3', src: '...' }) Thêm tập vào vị trí chỉ định
+VideoPlayerAPI.removeServer('Server 2') Xóa server theo label
+VideoPlayerAPI.removeEpisode('Tập 5') Xóa tập theo label
+VideoPlayerAPI.clearServers() Xóa toàn bộ server
+VideoPlayerAPI.clearEpisodes() Xóa toàn bộ tập phim
+VideoPlayerAPI.getServers() / getEpisodes() Lấy mảng hiện tại
+VideoPlayerAPI.switchSource('https://...') Đổi nguồn phát ngay lập tức
+VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
+
+*/
 
 
     // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST TRƯỚC KHI XÓA DOM ───
@@ -71,14 +99,6 @@
         }
 
         return { activeSrc: activeSrc, servers: servers, episodes: episodes };
-    }
-
-    function GetlinkVideo() {
-        var playlist = scanSources();
-        var stream1 = playlist.activeSrc || '';
-        var stream2 = window.location.href;
-        showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
-        buildVideo(stream1, stream2, playlist);
     }
 
     // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
