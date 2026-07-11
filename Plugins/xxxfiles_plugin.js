@@ -342,7 +342,7 @@ SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS5
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
-//document.head.appendChild(style);
+document.head.appendChild(style);
 function injectScriptAfterLoad(scriptUrl) {
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);

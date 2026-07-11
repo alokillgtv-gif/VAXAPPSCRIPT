@@ -5,7 +5,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "2.5",             
+        "version": "2.6",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -158,7 +158,7 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html) {
+function parseMovieDetail(html,$url) {
     var lurl = "";
     var limg = "";
     var lname = "Đang cập nhật...";
@@ -182,7 +182,7 @@ function parseMovieDetail(html) {
         }	
      
     return JSON.stringify({
-        id: lurl,
+        id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -191,7 +191,7 @@ function parseMovieDetail(html) {
             {
                 name: "Full",
                 episodes: [
-                    { id: lurl, name: "Full", slug: "" }
+                    { id: $url, name: "Full", slug: "" }
                 ]
             }
         ],
@@ -207,71 +207,99 @@ function parseMovieDetail(html) {
 }
 //<video id="superporn_player_html5_api" playsinline="playsinline" webkit-playsinline="" preload="none" class="vjs-tech" poster="https://img.superporn.com/videos/356/3560/previews/previews_0012_custom_1654675518.0576.jpg" data-stats-video-id="3560" data-sprites-url="https://img.superporn.com/videos/356/3560/sprites/sprite_[index].jpg" data-video-duration="1146" data-video-preview="https://img.superporn.com/videos/356/3560/previews/previews_0012_custom_1654675518.0576.jpg" tabindex="-1"> <source src="https://cdnst.superporn.com/videos/356/3560/mp4/08742e514343b8c354693ddf5c593d76521831d9e6c586f29da7106393d5bba4.mp4?secure=lptcAIZwqd7MiKvVipxKeg%3D%3D%2C1782908733" type="video/mp4"> </video>
 
-function parseDetailResponse(html) {
+function parseDetailResponse(html, url) {
     try {
-        var streamUrl = "";
-        var rmatch = html.match(/id="superporn_player_html5_api[\s\S]*?source\ssrc="([\s\S]*?)"/i);
-        if (rmatch && rmatch[1]) {
-            streamUrl = rmatch[1];
-        }	
-        var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
+        var $link = "";
+        var serverMatches = html.match(/superporn_player_html5_api[\s\S]*?src=["']([^"']+)["'][\s\S]*?<\/video>/i);
+        if (serverMatches && serverMatches[1]) {
+            $link = serverMatches[1]
+        }
+        var customjs = textJS();
+        return JSON.stringify({
+            "url": $link,
+            "headers": {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                // Đánh lừa thuật toán Client Hints của tường lửa
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                
+                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome",
+                "Custom-Js": customjs.trim()
+            },
+            "subtitles": []
+        });
+        
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
+    }
+}
 
-        var customJs = `
+function textJS() {
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+    return `
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=superporn&type=js"; 
+const style = document.createElement('style');
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
+document.head.appendChild(style);
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
+        
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
+    }
+    
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
+    } else {
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    }
+}
+
 function initCustomVideoFix() {
-  alert('${decodedUrl}');
-
-  // 1. Chèn CSS dọn dẹp giao diện (ẩn footer, sidebar, navbar...)
-  const style = document.createElement('style');
-  style.innerHTML = 'footer,#sidebar,.col-70,#playback,.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-50px}body{overflow:hidden;background:black}div#player {display: block !important}';
-  document.head.appendChild(style);
-
-  // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
-  const checkInterval = setInterval(() => {
-    const theaterButton = document.querySelector('.icon-theater.vjs-control.vjs-button');
-    const video = document.querySelector('video');
-
-    // Chỉ xử lý khi cả nút bấm và thẻ video đều đã xuất hiện trên trang
-    if (theaterButton && video) {
-      clearInterval(checkInterval); // Tìm thấy rồi thì dừng vòng lặp kiểm tra
-
-      // Xử lý nút Cinema mode
-      const buttonText = theaterButton.innerText || theaterButton.textContent || "";
-      if (buttonText.toLowerCase().includes('cinema mode')) {
-        theaterButton.click();
-        console.log("Đã kích hoạt Cinema mode thành công!");
-      }
-
-      // Xử lý bật tiếng video
-      if (video.muted) {
-        video.muted = false;
-        console.log("Đã mở tiếng video thành công!");
-      }
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
     }
-  }, 200); // Cứ mỗi 0.2 giây sẽ kiểm tra lại một lần
-
-  // Bảo hiểm: Tự động dừng kiểm tra sau 10 giây nếu trang bị lỗi không tải được video
-  setTimeout(() => clearInterval(checkInterval), 10000);
 }
 
-// Kiểm tra trạng thái trang để kích hoạt hàm an toàn nhất
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
-  initCustomVideoFix();
+    initCustomVideoFix();
 }
-`;
 
-return JSON.stringify({
-    url: decodedUrl,
-    headers: {
-        "Referer": BASEURL,
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Custom-Js": customJs.trim()
-    }
-});
-    } catch (error) {
-        return JSON.stringify({ url: "", headers: {} });
-    }
+`;
 }
 
 function parseCategoriesResponse(html) { return "[]"; }
