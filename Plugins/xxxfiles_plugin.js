@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.7",
+        "version": "1.8",
         "BASEURL": "https://www.xxxfiles.com",
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -342,7 +342,7 @@ SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS5
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
-document.head.appendChild(style);
+//document.head.appendChild(style);
 
 /* BUILD VIDEO BEGIN*/
 
