@@ -1,4 +1,4 @@
-(function() {
+function runVideo(){
     'use strict';
     var DEVELOPE = false;
     
@@ -654,4 +654,29 @@
     } else {
         GetlinkVideo();
     }
-})();
+}
+let isSkipping = false;
+
+const checkAndClick = setInterval(() => {
+    const skipButton = document.getElementById("resumeBtn");
+    
+    if (skipButton) {
+        // Kiểm tra xem nút có bị ẩn bằng CSS không (nếu có thuộc tính display: none hoặc opacity: 0 thì bỏ qua)
+        const style = window.getComputedStyle(skipButton);
+        if (style.display === 'none' || style.visibility === 'hidden') return;
+        
+        skipButton.click();
+        //console.log("🎯 Đã phát hiện và kích hoạt nút bỏ qua quảng cáo!");
+        if (!isSkipping) {
+            isSkipping = true;
+            clearInterval(checkAndClick);
+             setTimeout(function() {
+                runVideo();
+            }, 5000);
+            // Reset lại trạng thái sau 2 giây để sẵn sàng cho quảng cáo tiếp theo (nếu có)
+           // setTimeout(() => { isSkipping = false; }, 2000);
+        }
+        // LƯU Ý: ĐÃ XÓA clearInterval(checkAndClick) ở đây để script tiếp tục chạy
+        // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
+    }
+}, 250);
