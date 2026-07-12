@@ -1,10 +1,12 @@
+(function() {
+        'use strict';
     var DEVELOPE = false;
     
     function GetlinkVideo() {
         var playlist = scanSources();
         var stream1 = playlist.activeSrc || '';
         var stream2 = window.location.href;
-        showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
+        showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true, true);
         buildVideo(stream1, stream2, playlist);
     }
 
@@ -108,37 +110,107 @@
     }
 
     // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
-    function showToast(message, duration, check) {
-        if (typeof duration === 'undefined') duration = 7000;
-        if (typeof check === 'undefined') check = true;
-        if (check === false) return;
-        var container = document.getElementById('global-toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'global-toast-container';
-            container.style.cssText =
-                'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
-            document.body.appendChild(container);
-        }
-        var toastEl = document.createElement('div');
-        toastEl.innerHTML = message;
-        toastEl.style.cssText =
-            'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
-        container.appendChild(toastEl);
-        setTimeout(function() {
-            toastEl.style.transform = 'translateX(0)';
-            toastEl.style.opacity = '1';
-        }, 10);
-        setTimeout(function() {
-            toastEl.style.transform = 'translateX(120%)';
-            toastEl.style.opacity = '0';
-            setTimeout(function() {
-                toastEl.remove();
-                if (container.childElementCount === 0) container.remove();
-            }, 300);
-        }, duration);
-    }
+    globalThis.toastScrollQueue = globalThis.toastScrollQueue || [];
+globalThis.isToastScrollRunning = globalThis.isToastScrollRunning || false;
 
+globalThis.showToast = function(message, duration, check, scroll) {
+    if (typeof duration === 'undefined') duration = 7000;
+    if (typeof check === 'undefined') check = true;
+    if (typeof scroll === 'undefined') scroll = false;
+    if (check === false) return;
+    
+    // ==========================================
+    // CHẾ ĐỘ 1: CHỮ CHẠY PHÍA TRÊN (SCROLL / TYPING)
+    // ==========================================
+    if (scroll) {
+        // Đưa thông báo vào hàng đợi
+        globalThis.toastScrollQueue.push({ message, duration });
+        
+        // Hàm xử lý hàng đợi
+        function processScrollQueue() {
+            if (globalThis.isToastScrollRunning || globalThis.toastScrollQueue.length === 0) return;
+            globalThis.isToastScrollRunning = true;
+            
+            var current = globalThis.toastScrollQueue.shift();
+            
+            // Tạo container phía trên cùng (nếu chưa có)
+            var topContainer = document.getElementById('global-toast-top-container');
+            if (!topContainer) {
+                topContainer = document.createElement('div');
+                topContainer.id = 'global-toast-top-container';
+                topContainer.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:9999999;background:rgba(0,0,0,0.75);color:#fff;font-family:sans-serif;font-size:13px;padding:6px 15px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:28px;box-shadow:0 2px 10px rgba(0,0,0,0.3);opacity:0;transition:opacity 0.3s ease;';
+                document.body.appendChild(topContainer);
+            }
+            
+            topContainer.innerHTML = ''; // Xóa chữ cũ đi
+            topContainer.style.opacity = '1';
+            
+            var textEl = document.createElement('span');
+            textEl.style.cssText = 'white-space:nowrap;border-right:2px solid transparent;letter-spacing:0.5px;';
+            topContainer.appendChild(textEl);
+            
+            var fullText = current.message;
+            var charIndex = 0;
+            var typingTimer;
+            
+            // Hiệu ứng gõ chữ (Typing Effect)
+            function typeWriter() {
+                if (charIndex < fullText.length) {
+                    textEl.innerHTML += fullText.charAt(charIndex);
+                    charIndex++;
+                    // Tăng từ 40ms lên 75ms để chữ gõ ra chậm rãi, rõ ràng hơn
+                    typingTimer = setTimeout(typeWriter, 40);
+                } else {
+                    // Khi đã gõ xong toàn bộ chữ -> Giữ nguyên hiển thị trong 5 giây (5000ms)
+                    setTimeout(function() {
+                        topContainer.style.opacity = '0'; // Hiệu ứng mờ dần khi tắt
+                        setTimeout(function() {
+                            topContainer.remove();
+                            globalThis.isToastScrollRunning = false;
+                            processScrollQueue(); // Kích hoạt lệnh tiếp theo trong hàng đợi
+                        }, 300);
+                    }, 10000); // 5 giây đứng yên
+                }
+            }
+            
+            // Bắt đầu chạy hiệu ứng gõ chữ
+            typeWriter();
+        }
+        
+        // Kích hoạt hàng đợi
+        processScrollQueue();
+        return;
+    }
+    
+    // ==========================================
+    // CHẾ ĐỘ 2: TOAST NỔI GÓC PHẢI (CODE GỐC CỦA BẠN)
+    // ==========================================
+    var container = document.getElementById('global-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'global-toast-container';
+        container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
+        document.body.appendChild(container);
+    }
+    var toastEl = document.createElement('div');
+    toastEl.innerHTML = message;
+    toastEl.style.cssText = 'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
+    container.appendChild(toastEl);
+    
+    setTimeout(function() {
+        toastEl.style.transform = 'translateX(0)';
+        toastEl.style.opacity = '1';
+    }, 10);
+    
+    setTimeout(function() {
+        toastEl.style.transform = 'translateX(120%)';
+        toastEl.style.opacity = '0';
+        setTimeout(function() {
+            toastEl.remove();
+            if (container.childElementCount === 0) container.remove();
+        }, 300);
+    }, duration);
+}
     function buildVideo(stream1, stream2, playlistData) {
         var container = document.createElement('div');
         container.id = 'custom-video-player';
@@ -859,7 +931,7 @@
             isPlaying = true;
             bigPlayBtn.style.display = 'none';
             console.log('Video autoplay thành công với tiếng');
-            showToast('Đã phát video thành công. Xem vui nhé friend', 5000, true);
+            showToast('Đã phát video thành công. Xem vui nhé friend', 5000, true, true);
         }).catch(function(err) {
             console.log('Autoplay bị chặn, thử muted...');
             video.muted = true;
@@ -946,3 +1018,4 @@
     } else {
         GetlinkVideo();
     }
+})();
