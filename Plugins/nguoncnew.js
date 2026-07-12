@@ -6,7 +6,7 @@ function getManifest() {
     return JSON.stringify({
         "id": "nguoncnew",
         "name": "Phim NguonC Xoá Quảng Cáo",
-        "version": "1.22",
+        "version": "1.24",
         "baseUrl": "https://phim.nguonc.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/nguonC.png",
         "isEnabled": true,
@@ -974,79 +974,14 @@ function runVideo(){
         GetlinkVideo();
     }
 }
-let isSkipping = false;
-
-const checkAndClick = setInterval(() => {
-    const skipButton = document.getElementById("resumeBtn");
-    
-    if (skipButton) {
-        // Kiểm tra xem nút có bị ẩn bằng CSS không (nếu có thuộc tính display: none hoặc opacity: 0 thì bỏ qua)
-        const style = window.getComputedStyle(skipButton);
-        if (style.display === 'none' || style.visibility === 'hidden') return;
-        
-        skipButton.click();
-        //console.log("🎯 Đã phát hiện và kích hoạt nút bỏ qua quảng cáo!");
-        if (!isSkipping) {
-            isSkipping = true;
-            clearInterval(checkAndClick);
-             setTimeout(function() {
-                runVideo();
-            }, 5000);
-            // Reset lại trạng thái sau 2 giây để sẵn sàng cho quảng cáo tiếp theo (nếu có)
-           // setTimeout(() => { isSkipping = false; }, 2000);
-        }
-        // LƯU Ý: ĐÃ XÓA clearInterval(checkAndClick) ở đây để script tiếp tục chạy
-        // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
-    }
-    else{
-        runVideo();
-    }
-}, 250);
-
-
-/* BUILD VIDEO END*/
-
-function injectScriptAfterLoad(scriptUrl) {
-    function doFetchAndInject() {
-        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
-        
-        fetch(SCRIPTURL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
-                }
-                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
-            })
-            .then(codeText => {
-                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
-                const scriptElement = document.createElement('script');
-                scriptElement.type = 'text/javascript';
-                
-                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
-                scriptElement.textContent = codeText;
-                
-                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
-                document.body.appendChild(scriptElement);
-               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
-            })
-            .catch(error => {
-                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
-            });
-    }
-    
-    // Kiểm tra trạng thái tải của trang web
-    if (document.readyState !== 'loading') {
-        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
-        doFetchAndInject();
-    } else {
-        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
-        document.addEventListener('DOMContentLoaded', doFetchAndInject);
-    }
-}
 
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
     if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        document.getElementById("resumeBtn").click();
+        setTimeout(function() {
+            runVideo();
+        }, 2000);
         injectScriptAfterLoad(SCRIPTURL);
     }
 }
