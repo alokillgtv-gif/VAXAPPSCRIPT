@@ -4,7 +4,7 @@
 
 function getManifest() {
     return JSON.stringify({
-        "id": "nguonc",
+        "id": "nguoncnew",
         "name": "Phim NguonC Xoá Quảng Cáo",
         "version": "1.2",
         "baseUrl": "https://phim.nguonc.com",
