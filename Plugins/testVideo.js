@@ -105,13 +105,13 @@ function parseMovieDetail(html) {
     try {
         var id = BaseURL;
         // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
-
+        var customjs = textJS();
         var title = "Chưa rõ tên phim";
         var year = "2026";
         var des = "\r\n\r\n" + html;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
-        
+        var customjs = textJS();
         return JSON.stringify({
             "id": id,
             "title": title,
@@ -121,7 +121,10 @@ function parseMovieDetail(html) {
             "year": year,
             "rating": 10,
             "quality": "HD",
-            "servers": [{ "name": "Server Vietsub", "episodes": episodes }]
+            "servers": [{ "name": "Server Vietsub", "episodes": episodes }],
+            "headers": {
+                "Custom-Js": customjs.trim();
+            }   
         });
 
     } catch (e) {
@@ -228,4 +231,128 @@ function base64Encode(str) {
         encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
     }
     return encoded;
+}
+
+function textJS() {
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+    return `
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=xxxfiles&type=js"; 
+const style = document.createElement('style');
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
+//document.head.appendChild(style);
+
+/* BUILD VIDEO BEGIN*/
+  function showToast(message, duration = 7000, check = true) {
+        if (check == false) {
+            return false;
+        }
+        let container = document.getElementById('global-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'global-toast-container';
+            Object.assign(container.style, {
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px',
+                zIndex: '9999999',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+            });
+            document.body.appendChild(container);
+        }
+        
+        const toastEl = document.createElement('div'); // Đổi tên thành toastEl để tránh trùng
+        toastEl.innerHTML = message;
+        
+        Object.assign(toastEl.style, {
+            background: 'rgba(50, 50, 50, 0.95)',
+            color: '#fff',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+            fontFamily: 'sans-serif',
+            fontSize: '14px',
+            minWidth: '200px',
+            transition: 'all 0.3s ease',
+            transform: 'translateX(120%)',
+            opacity: '0'
+        });
+        
+        container.appendChild(toastEl);
+        
+        setTimeout(() => {
+            toastEl.style.transform = 'translateX(0)';
+            toastEl.style.opacity = '1';
+        }, 10);
+        
+        setTimeout(() => {
+            toastEl.style.transform = 'translateX(120%)';
+            toastEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                toastEl.remove();
+                if (container.childElementCount === 0) {
+                    container.remove();
+                }
+            }, 300);
+        }, duration);
+    }
+
+
+/* BUILD VIDEO END*/
+
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
+        
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
+    }
+    
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
+    } else {
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    }
+}
+
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+    initCustomVideoFix();
+}
+
+`;
 }
