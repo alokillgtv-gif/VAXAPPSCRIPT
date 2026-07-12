@@ -28,7 +28,7 @@ function runVideo(){
         buildVideoWithOriginal(originalVideo, stream1, stream2, playlist);
     }
 
-    // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST (GIỮ NGUYÊN CODE CỦA BẠN) ───
+    // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST (GIỮ NGUYÊN CODE) ───
     function scanSources() {
         var activeSrc = '';
         var servers = [];
@@ -82,7 +82,7 @@ function runVideo(){
         return { activeSrc: activeSrc, servers: servers, episodes: episodes };
     }
 
-    // ─── HÀM TOAST CHỮ CHẠY GÕ PHÍM (GIỮ NGUYÊN CODE CỦA BẠN) ───
+    // ─── HÀM TOAST CHỮ CHẠY GÕ PHÍM ───
     globalThis.toastScrollQueue = globalThis.toastScrollQueue || [];
     globalThis.isToastScrollRunning = globalThis.isToastScrollRunning || false;
     globalThis.showToast = function(message, duration, check, scroll) {
@@ -160,15 +160,19 @@ function runVideo(){
     };
 
     // ─── HÀM GIỮ LẠI THẺ VIDEO GỐC ĐỂ CHỐNG ĐEN MÀN HÌNH ───
+    // ─── ĐOẠN CODE ĐÃ ĐƯỢC CHỈNH SỬA ───
     function buildVideoWithOriginal(video, stream1, stream2, playlistData) {
-        // Hủy bỏ các Event cản trở cũ gắn vào thẻ video (nếu có) bằng cách nhân bản nông class/style chứ không tạo thẻ mới
         video.id = 'main-video';
-        video.style.cssText = 'width:100%;height:100%;object-fit:contain;cursor:pointer;background:#000;';
+        
+        // Đã thay object-fit: contain thành cover (hoặc fill tùy bạn) và thêm outline:none
+        video.style.cssText = 'width:100%;height:100%;object-fit:cover;cursor:pointer;background:#000;outline:none;border:none;box-shadow:none;';
         video.controls = false;
-
+        
         var container = document.createElement('div');
         container.id = 'custom-video-player';
-        container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;';
+        
+        // Thêm outline:none và box-shadow:none cho container để triệt tiêu hoàn toàn viền vàng
+        container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;outline:none;border:none;box-shadow:none;';
 
         var spinner = document.createElement('div');
         spinner.id = 'video-spinner';
@@ -537,7 +541,7 @@ function runVideo(){
         container.addEventListener('click', showControls);
         bigPlayBtn.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
 
-        // LẮP BỘ PHÍM TẮT ĐIỀU KHIỂN XỊN (GIỮ NGUYÊN CODE CỦA BẠN)
+        // LẮP BỘ PHÍM TẮT ĐIỀU KHIỂN XỊN
         document.addEventListener('keydown', function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             showControls();
@@ -655,29 +659,78 @@ function runVideo(){
         GetlinkVideo();
     }
 }
-// ─── THAY THẾ ĐOẠN CUỐI SCRIPT BẰNG ĐOẠN NÀY ───
-let isSkipping = false;
 
-const checkAndClick = setInterval(() => {
-    const skipButton = document.getElementById("resumeBtn");
-    
-    if (skipButton) {
-        // Kiểm tra xem nút có bị ẩn bằng CSS không
-        const style = window.getComputedStyle(skipButton);
-        if (style.display === 'none' || style.visibility === 'hidden') return;
-        
-        // DỪNG KHẨN CẤP: Xóa interval ngay lập tức trước khi chạy player 
-        // để tránh việc quét nhầm trên DOM mới sau khi xóa innerHTML
-        clearInterval(checkAndClick);
-        
-        skipButton.click();
-        console.log("🎯 Đã kích hoạt nút và dừng bộ quét quảng cáo gốc.");
-        
-        if (!isSkipping) {
-            isSkipping = true;
-            setTimeout(function() {
+
+
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+// Thay thế đoạn checkAndClick cũ ở cuối script bằng logic này:
+       // Thay thế đoạn initVideoFlow cũ ở cuối script bằng logic tối ưu này:
+        (function initVideoFlow() {
+            // Bước 1: Kiểm tra nhanh lần đầu tiên xem có video luôn không
+            if (document.querySelector('video')) {
+                console.log("🎯 Tìm thấy thẻ video ngay lập tức. Khởi chạy luôn!");
                 runVideo();
-            }, 5000);
-        }
+                return;
+            }
+            
+            // Bước 2: Nếu chưa có, bắt đầu vòng lặp quét SONG SONG cả video lẫn nút bấm mỗi 1 giây
+            console.log("⏳ Chưa thấy video. Bắt đầu quét tìm video hoặc nút resumeBtn mỗi 1 giây...");
+            let secondsPassed = 0;
+            const maxSeconds = 20;
+            
+            const checkInterval = setInterval(function() {
+                secondsPassed++;
+                
+                // Truy vấn cả 2 phần tử ở mỗi chu kỳ quét
+                const videoElement = document.querySelector('video');
+                const skipButton = document.getElementById("resumeBtn");
+                
+                // ĐIỀU KIỆN 1: Nếu tự nhiên tìm thấy thẻ video xuất hiện
+                if (videoElement) {
+                    clearInterval(checkInterval); // Xóa lặp ngay lập tức để tránh lỗi click ngầm về sau
+                    console.log("✓ Tìm thấy thẻ video xuất hiện trong vòng lặp! Khởi chạy ngay.");
+                    runVideo();
+                    return;
+                }
+                
+                // ĐIỀU KIỆN 2: Nếu tìm thấy nút resumeBtn trước
+                if (skipButton) {
+                    // Kiểm tra ẩn/hiển thị bằng CSS thực tế
+                    const style = window.getComputedStyle(skipButton);
+                    if (style.display !== 'none' && style.visibility !== 'hidden') {
+                        
+                        clearInterval(checkInterval); // Xóa lặp ngay lập tức để an toàn cho DOM mới
+                        console.log("🎯 Đã tìm thấy nút resumeBtn hiển thị! Click và đợi 2s...");
+                        
+                        skipButton.click(); // Click vào nút
+                        
+                        setTimeout(function() {
+                            runVideo(); // Chạy runVideo sau khi click 2 giây
+                        }, 2000);
+                        return;
+                    }
+                }
+                
+                // ĐIỀU KIỆN 3: Đã quét hết 20 giây mà cả video lẫn nút đều "bặt vô âm tín"
+                if (secondsPassed >= maxSeconds) {
+                    clearInterval(checkInterval); // Dừng vòng lặp hẳn
+                    console.log("⏱ Đã hết 20 giây quét mà không tìm thấy gì.");
+                    
+                    // Hiển thị Toast thông báo yêu cầu người dùng tương tác trong 20s
+                    showToast(
+                        "⚠️ Vui lòng nhấn vào màn hình hoặc nút Xem Tiếp để tiếp tục phát phim!",
+                        20000,
+                        true,
+                        false
+                    );
+                    
+                    // Ép chạy hàm runVideo() luôn sau đó để dựng giao diện player custom lên
+                    runVideo();
+                }
+            }, 1000); // Quét lại sau mỗi 1 giây (1000ms)
+        })();
+        injectScriptAfterLoad(SCRIPTURL);
     }
-}, 250);
+}

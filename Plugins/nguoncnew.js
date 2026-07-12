@@ -6,7 +6,7 @@ function getManifest() {
     return JSON.stringify({
         "id": "nguoncnew",
         "name": "Phim NguonC Xoá Quảng Cáo",
-        "version": "1.25",
+        "version": "1.26",
         "baseUrl": "https://phim.nguonc.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/nguonC.png",
         "isEnabled": true,
@@ -479,15 +479,19 @@ function runVideo(){
     };
 
     // ─── HÀM GIỮ LẠI THẺ VIDEO GỐC ĐỂ CHỐNG ĐEN MÀN HÌNH ───
+    // ─── ĐOẠN CODE ĐÃ ĐƯỢC CHỈNH SỬA ───
     function buildVideoWithOriginal(video, stream1, stream2, playlistData) {
-        // Hủy bỏ các Event cản trở cũ gắn vào thẻ video (nếu có) bằng cách nhân bản nông class/style chứ không tạo thẻ mới
         video.id = 'main-video';
-        video.style.cssText = 'width:100%;height:100%;object-fit:contain;cursor:pointer;background:#000;';
+        
+        // Đã thay object-fit: contain thành cover (hoặc fill tùy bạn) và thêm outline:none
+        video.style.cssText = 'width:100%;height:100%;object-fit:cover;cursor:pointer;background:#000;outline:none;border:none;box-shadow:none;';
         video.controls = false;
-
+        
         var container = document.createElement('div');
         container.id = 'custom-video-player';
-        container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;';
+        
+        // Thêm outline:none và box-shadow:none cho container để triệt tiêu hoàn toàn viền vàng
+        container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;outline:none;border:none;box-shadow:none;';
 
         var spinner = document.createElement('div');
         spinner.id = 'video-spinner';
