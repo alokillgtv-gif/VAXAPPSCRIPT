@@ -276,6 +276,12 @@
     top: auto !important;
     bottom: 0;}
 #panelConsole.lab-panel.lab-panel-maximized.lab-panel-hidden {display: none!important;}
+.lab-tree-sync-highlight {
+    background - color: rgba(46, 204, 113, 0.4) !important;
+    outline: 2 px dashed #e74c3c!important;
+    outline - offset: 2 px;
+}
+
         `;
         document.head.appendChild(styleElement);
 
@@ -312,6 +318,7 @@
                     <div class="lab-panel" id="panelTreeDom">
                         <div class="lab-panel-header">
                             <span class="lab-panel-title">[ TREE DOM LAB ]</span>
+                            <input type="text" id="labMiniTreeSearch" placeholder="🔍 Tìm trong cây..." style="background:#111; border:1px solid #333; color:#fff; padding:2px 6px; font-size:10px; margin-left:10px; border-radius:3px; outline:none; width:120px;">
                             <div class="lab-panel-actions">
                                 <button class="lab-mini-btn lab-btn-max" data-target="#panelTreeDom">🔲 </button>
                                 <button class="lab-mini-btn lab-btn-toggle" data-target="#panelTreeDom">Ẩn</button>
@@ -686,55 +693,205 @@
         // ==========================================
         // 8. BỘ MÁY THỰC THI JAVASCRIPT ĐỘNG
         // ==========================================
-        function executeJsEngine() {
-            let userCode = $jsInput.val().trim();
-            if (!userCode) return;
-            const $consoleBox = $('#labConsoleLogBody');
-            $consoleBox.removeClass('flash-success flash-error');
-
-            try {
-                const base64Code = btoa(unescape(encodeURIComponent(userCode)));
-
-                if (isSandboxModeActive) {
-                    if($sandboxIframe[0].contentWindow) {
-                        $sandboxIframe[0].contentWindow.postMessage({ type: 'LAB_EXECUTE_JS', base64: base64Code }, '*');
-                    }
-                } else {
-                    const script = document.createElement('script');
-                    script.textContent = `
-                        try {
-                            (function() {
-                                const decodedCode = decodeURIComponent(escape(atob('${base64Code}')));
-                                let rawResult = eval(decodedCode);
-                                const cBox = jQuery('#labConsoleLogBody');
-                                cBox.removeClass('flash-success flash-error');
-                                if (rawResult !== undefined) {
-                                    if (typeof rawResult === 'object' && rawResult !== null) {
-                                        const $treeNodeElement = window.__labBuildObjectTreeElement(rawResult);
-                                        $treeNodeElement.addClass('lab-log-item').css({ 'padding-left': '14px', 'border-bottom': '1px solid #1a1a1a', 'margin-bottom': '4px' });
-                                        cBox.prepend($treeNodeElement);
-                                    } else {
-                                        window.__labAppendLog(rawResult, 'return');
-                                    }
-                                    cBox.addClass('flash-success');
-                                } else {
-                                    cBox.addClass('flash-success');
-                                }
-                                cBox.scrollTop(0);
-                            })();
-                        } catch(err) {
-                            window.__labAppendLog("[Error]: " + err.message, 'error');
-                            jQuery('#labConsoleLogBody').removeClass('flash-success flash-error').addClass('flash-error').scrollTop(0);
-                        }
-                    `;
-                    document.body.appendChild(script);
-                    document.body.removeChild(script);
-                }
-            } catch (err) {
-                window.__labAppendLog("[Error]: " + err.message, 'error');
-                $consoleBox.addClass('flash-error').scrollTop(0);
+        window.executeJsEngine = function() {
+    var userCode = window.__labJsEditor ? window.__labJsEditor.getValue() : '';
+    if (!userCode || !userCode.trim()) return;
+    
+    const $consoleBox = $('#labConsoleLogBody');
+    $consoleBox.removeClass('flash-success flash-error');
+    
+    function scrollToLine(line, col) {
+        if (window.__labJsEditor && typeof window.__labJsEditor.setCursor === 'function') {
+            let cmLine = Math.max(0, line - 1);
+            let cmCol = Math.max(0, col - 1);
+            
+            window.__labJsEditor.focus();
+            window.__labJsEditor.setCursor(cmLine, cmCol);
+            
+            let charCoords = window.__labJsEditor.charCoords({ line: cmLine, ch: 0 }, "local");
+            let middleHeight = window.__labJsEditor.getScrollerElement().offsetHeight / 2;
+            window.__labJsEditor.scrollTo(null, charCoords.top - middleHeight - 5);
+            
+            window.__labJsEditor.addLineClass(cmLine, 'background', 'CodeMirror-selected');
+            setTimeout(() => {
+                window.__labJsEditor.removeLineClass(cmLine, 'background', 'CodeMirror-selected');
+            }, 2000);
+        }
+    }
+    
+    const execId = Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 5);
+    const sourceUrl = 'lab_dynamic_script_' + execId;
+    
+    const PREFIX = '(function() { try {\n' +
+        '    with (window) {\n' +
+        '        const __lab_original_console = window.console;\n' +
+        '        window.console = {\n' +
+        '            log: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
+        '            error: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
+        '            warn: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
+        '            info: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
+        '            dir: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
+        '            table: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
+        '            time: function() {}, timeEnd: function() {}, group: function() {}, groupEnd: function() {}\n' +
+        '        };\n' +
+        '        window.onerror = function(message, source, lineno, colno, error) {\n' +
+        '            window.postMessage({type:"LAB_JS_ERROR", name: (error && error.name) || "Error", message: message, line: lineno, column: colno}, "*");\n' +
+        '            return true;\n' +
+        '        };\n' +
+        '        try {\n' +
+        '            (function() {\n' +
+        '                "use strict";\n' +
+        '                // USER CODE INJECTION\n';
+    
+    const SUFFIX = '\n' +
+        '            })();\n' +
+        '        } catch(err) {\n' +
+        '            var lineNum = 0, colNum = 0;\n' +
+        '            if (err.stack) {\n' +
+        '                var m = err.stack.match(/:(\\d+):(\\d+)/);\n' +
+        '                if (m) { lineNum = parseInt(m[1], 10); colNum = parseInt(m[2], 10); }\n' +
+        '            } else {\n' +
+        '                lineNum = 1; colNum = 1;\n' +
+        '            }\n' +
+        '            window.postMessage({\n' +
+        '                type: "LAB_JS_ERROR",\n' +
+        '                name: err.name || "Error",\n' +
+        '                message: err.message || "Unknown error",\n' +
+        '                line: lineNum,\n' +
+        '                column: colNum\n' +
+        '    }, "*");\n' +
+        '}\n' +
+        '})();\n' +
+        '//# sourceURL=' + sourceUrl;
+    
+    function countLines(str) { return str.split('\n').length; }
+    const LINE_OFFSET = countLines(PREFIX);
+    
+    // ĐÃ XÓA KHỐI new Function() Ở ĐÂY!
+    
+    // --- Chuẩn bị bắt lỗi Runtime & Syntax qua thẻ Script ---
+    const originalOnError = window.onerror;
+    let errorHandled = false;
+    let isSyncExecuting = true; // Cờ cực kỳ quan trọng để tóm SyntaxError
+    let cleanup = function() {};
+    
+    function restoreEnvironment() {
+        window.onerror = originalOnError;
+        cleanup();
+    }
+    
+    window.onerror = function(message, source, lineno, colno, error) {
+        if (errorHandled) return true;
+        
+        // Nếu lỗi xảy ra ngay lúc đang chèn thẻ Script (SyntaxError) 
+        // HOẶC lỗi runtime có source trùng khớp
+        if (isSyncExecuting || (source && source.includes('lab_dynamic_script'))) {
+            errorHandled = true;
+            const errObj = error || new Error(message);
+            
+            let userLine = (lineno || 1) - LINE_OFFSET + 1;
+            if (userLine < 1) userLine = 1;
+            let userCol = colno || 1;
+            
+            const analysis = LabErrorExpert.analyze(errObj, userCode);
+            const $entry = renderLogEntry(analysis, userLine, userCol);
+            
+            $consoleBox.append($entry);
+            $consoleBox.addClass('flash-error');
+            scrollToLine(userLine, userCol);
+            
+            restoreEnvironment();
+            return true; // Chặn log rác ra devtools của trình duyệt
+        }
+        if (originalOnError) return originalOnError.apply(this, arguments);
+        return false;
+    };
+    
+    const postMsgHandler = function(event) {
+        if (!event.data || event.data.type !== 'LAB_JS_ERROR') return;
+        if (errorHandled) return;
+        errorHandled = true;
+        
+        const rawLine = parseInt(event.data.line || 1, 10);
+        const rawCol = parseInt(event.data.column || 1, 10);
+        
+        let userLine = rawLine - LINE_OFFSET + 1;
+        if (userLine < 1) userLine = 1;
+        let userCol = rawCol;
+        
+        const err = new Error(event.data.message);
+        err.name = event.data.name || 'Error';
+        err.stack = `lab_dynamic_script:${rawLine}:${rawCol}`;
+        
+        const analysis = LabErrorExpert.analyze(err, userCode);
+        const $entry = renderLogEntry(analysis, userLine, userCol);
+        $consoleBox.append($entry);
+        $consoleBox.addClass('flash-error');
+        scrollToLine(userLine, userCol);
+        restoreEnvironment();
+    };
+    window.addEventListener('message', postMsgHandler);
+    cleanup = function() {
+        window.removeEventListener('message', postMsgHandler);
+    };
+    
+    // --- Thực thi ---
+    try {
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.textContent = PREFIX + userCode + SUFFIX;
+        
+        // Quá trình chèn vào DOM là đồng bộ. 
+        // Nếu userCode có SyntaxError, nó sẽ ném vào window.onerror ngay tại dòng này!
+        document.body.appendChild(script);
+        
+        // Nếu vượt qua được dòng trên, nghĩa là không có SyntaxError
+        isSyncExecuting = false;
+        
+        document.body.removeChild(script);
+        
+        if (!errorHandled) {
+            $consoleBox.addClass('flash-success');
+            if (typeof window.__labAppendLog === 'function') {
+                window.__labAppendLog('✅ Thực thi thành công', 'success');
             }
         }
+        setTimeout(restoreEnvironment, 0);
+        
+    } catch (outerErr) {
+        isSyncExecuting = false;
+        const analysis = LabErrorExpert.analyze(outerErr, userCode);
+        const $entry = renderLogEntry(analysis, 1, 1);
+        $consoleBox.append($entry);
+        $consoleBox.addClass('flash-error');
+        restoreEnvironment();
+    }
+};
+
+        // --- MODULE: CUỘN ĐẾN DÒNG BỊ LỖI ---
+        $(document).off('click.errorLink').on('click.errorLink', '.lab-error-line-link', function(e) {
+            e.stopPropagation();
+            let line = parseInt($(this).data('line'), 10);
+            
+            // CodeMirror đếm dòng từ 0, nên phải trừ đi 1
+            if (window.__labJsEditor && !isNaN(line)) {
+                let cmLine = line - 1;
+                
+                window.__labJsEditor.focus();
+                window.__labJsEditor.setCursor(cmLine, 0);
+                
+                // Cuộn màn hình CodeMirror đến giữa dòng đó
+                let t = window.__labJsEditor.charCoords({ line: cmLine, ch: 0 }, "local").top;
+                let middleHeight = window.__labJsEditor.getScrollerElement().offsetHeight / 2;
+                window.__labJsEditor.scrollTo(null, t - middleHeight - 5);
+                
+                // Bôi đỏ dòng lỗi trong 2 giây để gây chú ý
+                window.__labJsEditor.addLineClass(cmLine, 'background', 'CodeMirror-selected');
+                setTimeout(() => {
+                    window.__labJsEditor.removeLineClass(cmLine, 'background', 'CodeMirror-selected');
+                }, 2000);
+            }
+        });
 
         $(document).on('click', '#labBtnRunJs', function(e) { e.preventDefault(); executeJsEngine(); });
         $jsInput.on('keydown', function(e) {
@@ -755,7 +912,7 @@
             if (node.nodeType === 1) {
                 // [UPDATE] Fix lỗi hắt highlight viền cho panel Sniffer  quick-extract-modal #labHtmlSourceModal
                 if ($(node).closest('#labHtmlSourceModal').length || $(node).closest('#quick-extract-modal').length || $(node).closest('#labMainDashboard').length || $(node).hasClass('lab-fab-wrapper') || $(node).is('#labSandboxIframe') || $(node).is('#labCssQuickMenu') || $(node).hasClass('CodeMirror-hints') || $(node).closest('#panelSnifferLab').length) return null;
-
+                
                 const tagName = node.tagName.toLowerCase();
                 let attrStr = '';
                 if (node.attributes) {
@@ -765,25 +922,25 @@
                         attrStr += ` <span class="html-attr">${attr.name}</span>=<span class="html-bracket">"</span><span class="html-val">${escapeHtml(attr.value)}</span><span class="html-bracket">"</span>`;
                     }
                 }
-
-                let $container = $('<div>').addClass('tree-node');
+                
+                // 🌟 ĐÃ SỬA TẠI ĐÂY: Lưu trữ tham chiếu node thật vào biến data jQuery
+                let $container = $('<div>').addClass('tree-node').data('real-node', node);
+                
                 let $toggle = $('<span>').addClass('tree-toggle').html('▼ ');
                 let $children = $('<div>').addClass('tree-children');
-
+                
                 node.childNodes.forEach(child => {
                     let $childTree = buildDomTreeMain(child);
                     if ($childTree) $children.append($childTree);
                 });
-
-                // Xóa blind click trực tiếp tại đây để nhường cho Event Delegation (chống lỗi restore từ localStore)
+                
                 return $container.append($toggle)
-                                 .append(`<span>&lt;<span class="html-tag">${tagName}</span>${attrStr}&gt;</span>`)
-                                 .append($children)
-                                 .append(`<span>&lt;/<span class="html-tag">${tagName}</span>&gt;</span>`);
+                    .append(`<span>&lt;<span class="html-tag">${tagName}</span>${attrStr}&gt;</span>`)
+                    .append($children)
+                    .append(`<span>&lt;/<span class="html-tag">${tagName}</span>&gt;</span>`);
             }
             return null;
         }
-
         function loadElementToTreeMain(element) {
             if (!element) return;
             $treeDomBody.find('.tree-node, div').remove();
@@ -835,6 +992,49 @@
             loadElementToTreeMain(savedTarget);
            $('#panelJs .lab-sub-select').val('#panelTreeDom').trigger('change')
         };
+        
+        // --- MODULE: QUICK HIDE ELEMENT (RIGHT CLICK) ---
+        $('body').append('<div id="lab-quick-hide-menu" style="display:none; position:fixed; background:#e74c3c; color:#fff; padding:6px 12px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer; z-index:2147483647; box-shadow:0 4px 10px rgba(0,0,0,0.5);">🚫 Ẩn phần tử này</div>');
+        
+        $(document).on('contextmenu', function(e) {
+            // Không chặn contextmenu ở trong bảng điều khiển
+            if ($(e.target).closest('#labMainDashboard, #labHtmlSourceModal, #panelSnifferLab').length) return;
+            
+            // Nếu Inspect chưa bật thì bỏ qua
+            if (!isInspectEnabled || isSandboxModeActive) return;
+            
+            let targetEl = e.target;
+            $('#lab-quick-hide-menu').css({ top: e.clientY + 10 + 'px', left: e.clientX + 10 + 'px' }).show().off('click').on('click', function(ev) {
+                ev.stopPropagation();
+                
+                // Sinh bộ chọn thông minh mạnh nhất
+                let selector = '';
+                if (targetEl.id) {
+                    selector = '#' + targetEl.id;
+                } else if (targetEl.className && typeof targetEl.className === 'string') {
+                    selector = '.' + targetEl.className.trim().split(/\s+/).join('.');
+                } else {
+                    const tag = targetEl.tagName.toLowerCase();
+                    const attrKeys = ['title', 'alt', 'name', 'src', 'data-id', 'href', 'style'];
+                    for (let attr of attrKeys) {
+                        if (targetEl.hasAttribute(attr)) {
+                            selector = `${tag}[${attr}="${targetEl.getAttribute(attr).replace(/"/g, '\\"')}"]`;
+                            break;
+                        }
+                    }
+                    if (!selector) selector = tag; // Fallback
+                }
+                
+                // Tự động gán CSS ẩn
+                injectSmartCssRule(selector, "display: none !important;");
+                $(targetEl).css('outline', '2px solid red'); // Chớp đỏ nhận diện
+                setTimeout(() => $(targetEl).css('outline', ''), 500);
+                $('#lab-quick-hide-menu').hide();
+            });
+        });
+        
+        $(document).on('click', () => $('#lab-quick-hide-menu').hide());
+        
         $(document).on('contextmenu', processClickEventMain);
 
         function requestDomInspect(mode) {
@@ -1025,7 +1225,33 @@
             if (typeof window.__labV163UpdateFloatingConsole === 'function') setTimeout(window.__labV163UpdateFloatingConsole, 50); // [UPDATE]
         });
 
+
+        // --- MODULE: DRAGGABLE FAB ---
+        let isFabDragging = false;
+        const $fabWrapper = $('.lab-fab-wrapper');
+        
+        $fabWrapper.on('mousedown', function(e) {
+            if (e.which !== 1) return; // Chỉ kéo bằng chuột trái
+            e.preventDefault();
+            isFabDragging = false;
+            let startX = e.clientX, startY = e.clientY;
+            let startPos = $fabWrapper.offset();
+            let scrollX = $(window).scrollLeft(), scrollY = $(window).scrollTop();
+            
+            // Đổi sang position fixed để kéo theo màn hình
+            $fabWrapper.css({ right: 'auto', bottom: 'auto', left: (startPos.left - scrollX) + 'px', top: (startPos.top - scrollY) + 'px' });
+        
+            $(window).on('mousemove.fabDrag', function(moveEvent) {
+                isFabDragging = true;
+                let dx = moveEvent.clientX - startX;
+                let dy = moveEvent.clientY - startY;
+                $fabWrapper.css({ left: (startPos.left - scrollX + dx) + 'px', top: (startPos.top - scrollY + dy) + 'px' });
+            });
+        
+            $(window).on('mouseup.fabDrag', function() { $(window).off('mousemove.fabDrag mouseup.fabDrag'); });
+        });    
         $fabBtn.on('click', function(e) {
+            if (isFabDragging) return;
             e.stopPropagation();
             if ($dashboard.is(':hidden')) {
                 $dashboard.css('display', 'flex');
@@ -1329,8 +1555,9 @@
 
                 const attrName = $prevAttr.text().trim().toLowerCase();
                 if (attrName === 'class') {
-                    const firstClass = rawVal.split(/\s+/)[0];
-                    if (firstClass) targetSelector = `.` + firstClass;
+                    // Chuyển "class1 class2" thành ".class1.class2"
+                    const allClass = '.' + rawVal.trim().split(/\s+/).join('.');
+                    if (allClass !== '.') targetSelector = allClass;
                 } else if (attrName === 'id') { targetSelector = `#` + rawVal; }
                 else { copyToClipboard(rawVal); }
             }
@@ -2954,4 +3181,73 @@ const htmlSourceStyle = document.createElement('style');
 //[UPDATE 2.0] END Full-screen HTML Source Viewer Feature
 
     });
+    // Cơ chế kích hoạt an toàn cho @run-at document-start
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLabDashboard);
+    } else {
+        initLabDashboard();
+    }
+    // --- MODULE: MINI TREE DOM SEARCH ---
+    let miniSearchMatches = [];
+    let miniSearchIndex = -1;
+    
+    $('#labMiniTreeSearch').on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            let query = $(this).val().trim().toLowerCase();
+            if (!query) return;
+            
+            // Xóa bôi màu cũ
+            $('#labTreeDomBody .lab-mini-highlight').css({ 'background': '', 'color': '' }).removeClass('lab-mini-highlight');
+            
+            // Quét lấy tất cả span text
+            miniSearchMatches = [];
+            $('#labTreeDomBody span').each(function() {
+                if ($(this).text().toLowerCase().includes(query) && !$(this).children().length) {
+                    miniSearchMatches.push(this);
+                }
+            });
+            
+            if (miniSearchMatches.length === 0) {
+                window.__labAppendLog("Không tìm thấy: " + query, 'error');
+                return;
+            }
+            
+            // Chuyển tới mục tiếp theo
+            miniSearchIndex++;
+            if (miniSearchIndex >= miniSearchMatches.length) miniSearchIndex = 0;
+            
+            let target = miniSearchMatches[miniSearchIndex];
+            
+            // Mở các thư mục cha đang bị ẩn
+            $(target).parents('.tree-children.hidden').removeClass('hidden').siblings('.tree-toggle').removeClass('collapsed').html('▼ ');
+            
+            // Bôi màu và cuộn
+            $(target).addClass('lab-mini-highlight').css({ 'background': '#e74c3c', 'color': '#fff', 'border-radius': '2px', 'padding': '2px' });
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Tắt màu sau 5s
+            setTimeout(() => {
+                $(target).css({ 'background': '', 'color': '' }).removeClass('lab-mini-highlight');
+            }, 5000);
+        }
+    }); 
+    
+ // --- MODULE: SYNC TREE HOVER TO WEB ELEMENT ---
+    $('#labTreeDomBody').on('mouseenter', '.tree-node', function(e) {
+        e.stopPropagation();
+        let realNode = $(this).data('real-node');
+        if (realNode && realNode.nodeType === 1) { // Đảm bảo là Element
+            $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+            $(realNode).addClass('lab-tree-sync-highlight');
+        }
+    }).on('mouseleave', '.tree-node', function(e) {
+        $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+    });
+    
+    // Xóa highlight khi đóng Dashboard
+    $fabBtn.on('click', function() {
+        $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+    });   
+    
 })();
