@@ -5,6 +5,7 @@
 // @description  Hồi sinh Click chuột Phải soi DOM trong Hard-Sandbox. Tự động lưu trạng thái. Tích hợp Pro CodeEditor Engine & Sub-Panel Splitter + Fix UI/Draggable.
 // @author       Gemini
 // @match        *://*/*
+//@run-at       document-start
 // @grant        none
 // @require      https://code.jquery.com/jquery-3.7.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js
@@ -22,6 +23,7 @@
     'use strict';
 
     window.addEventListener('load', () => {
+        window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
         if (window.self !== window.top) return;
 
         // ==========================================
@@ -69,7 +71,7 @@
 
             /* Chế độ hiển thị màn hình (Ngang / Dọc) */
             .lab-dashboard-container.mode-horizontal { bottom: 5px; left: 0; width: 100vw; height: 45vh; border-top: 3px solid #3498db; }
-            .lab-dashboard-container.mode-horizontal.lab-fullscreen-mode { height: calc(100vh - 100px) !important; }
+            
             .lab-dashboard-container.mode-vertical-right { top: 0; right: 0; height: 100vh !important; width: 35vw; border-left: 3px solid #2ecc71; }
             .lab-dashboard-container.mode-vertical-left { top: 0; left: 0; height: 100vh !important; width: 35vw; border-right: 3px solid #2ecc71; }
             .lab-dashboard-container.lab-vertical-panel-fullscreen { width: 100vw !important; }
@@ -80,7 +82,7 @@
             .lab-dashboard-container[class*="mode-vertical-"] .lab-layout-engine { grid-template-columns: 1fr !important; grid-template-rows: repeat(4, 1fr); }
             .lab-layout-engine.has-maximized { grid-template-columns: 1fr !important; grid-template-rows: 1fr !important; }
             .lab-layout-engine.has-maximized .lab-panel:not(.lab-panel-maximized):not(.lab-v163-floating-console) { display: none } /* [UPDATE] Fix console display */
-            .lab-layout-engine.has - maximized.lab-sub-panel-active {
+            .lab-layout-engine.has-maximized.lab-sub-panel-active {
     display: block!important
 }
             /* Cấu trúc các Panel bên trong Dashboard */
@@ -166,8 +168,8 @@
             .lab-resizer.resizer-y { bottom: -4px; left: 0; height: 7px; width: 100%; cursor: row-resize; }
 
             .lab-layout-engine.is-custom-resized { display: flex !important; flex-wrap: wrap !important; align-content: flex-start; }
-            .lab-dashboard-container.mode-horizontal .lab-layout-engine.is-custom-resized .lab-panel:not(.lab-draggable-panel) { width: calc(50% - 3px); height: calc(50% - 3px); }
-            .lab-dashboard-container[class*="mode-vertical-"] .lab-layout-engine.is-custom-resized .lab-panel:not(.lab-draggable-panel) { width: 100% !important; height: calc(25% - 5px); }
+            .lab-dashboard-container.mode-horizontal .lab-layout-engine.is-custom-resized .lab-panel:not(.lab-draggable-panel) { width: calc(50%-3px); height: calc(50%-3px); }
+            .lab-dashboard-container[class*="mode-vertical-"] .lab-layout-engine.is-custom-resized .lab-panel:not(.lab-draggable-panel) { width: 100% !important; height: calc(25%-5px); }
 
             .mode-vertical-right #labRestoreGroupButtons, .mode-vertical-left #labRestoreGroupButtons { flex: 1 1 100%; }
 
@@ -196,7 +198,7 @@
 .mode-vertical-right .lab-panel-title, #panelConsole.lab-panel-header span,.mode-vertical-left .lab-panel-title,.mode-vertical-right #panelConsole span,.mode-vertical-left #panelConsole span,#panelSnifferLab select {DISPLAY: NONE;}
 
             /* [UPDATE] Scrollbar to gấp 3 & khóa web */
-         .lab-dashboard-container:not(.lab-fullscreen-mode) #panelConsole.lab-v163-floating-console{    height: calc(65vh - 120px) !important;
+         .lab-dashboard-container:not(.lab-fullscreen-mode) #panelConsole.lab-v163-floating-console{    height: calc(65vh-120px) !important;
     top: auto !important;
     bottom: 0;}
 
@@ -272,16 +274,31 @@
 }
             body.lab-fullscreen-locked { overflow: hidden !important; }
             .lab-draggable-panel { box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important; border: 2px solid #e74c3c !important; }
-.lab-dashboard-container:not(.lab-fullscreen-mode) #panelConsole.lab-v163-floating-console{    height: calc(65vh - 120px) !important;
+.lab-dashboard-container:not(.lab-fullscreen-mode) #panelConsole.lab-v163-floating-console{    height: calc(65vh-120px) !important;
     top: auto !important;
     bottom: 0;}
 #panelConsole.lab-panel.lab-panel-maximized.lab-panel-hidden {display: none!important;}
 .lab-tree-sync-highlight {
-    background - color: rgba(46, 204, 113, 0.4) !important;
+    background-color: rgba(46, 204, 113, 0.4) !important;
     outline: 2 px dashed #e74c3c!important;
-    outline - offset: 2 px;
+    outline-offset: 2 px;
 }
-
+.lab-cm-error-line { background-color: rgba(231, 76, 60, 0.3)!important; }
+.lab-error-line-link: hover {color: #fff!important;text-decoration: none!important; }
+/* Lớp phủ chặn click quảng cáo */
+.lab-overlay-blocker {
+        position: fixed;
+        top: 0;left: 0;width: 100 % ;height: 100 % ;
+        z-index: 999999;
+        background: transparent;
+        pointer-events: none; /* Mặc định trong suốt để thao tác bình thường */
+        display: none;
+    }
+    .lab-overlay-blocker.active {
+        display: block;
+        pointer-events: all; /* Khi bật, nó sẽ chặn mọi click vào trang web */
+    }
+    .lab-dashboard-container.mode-horizontal.lab-fullscreen-mode { height: 85vh!important; }
         `;
         document.head.appendChild(styleElement);
 
@@ -642,7 +659,7 @@
                                         };
                                         let loops = 0;
                                         if (d.geoMode === 'down') {
-                                            currentSandboxDepth = Math.max(0, currentSandboxDepth - 1);
+                                            currentSandboxDepth = Math.max(0, currentSandboxDepth-1);
                                             loops = currentSandboxDepth;
                                         } else {
                                             loops = depthMap[d.geoMode] !== undefined ? depthMap[d.geoMode] : 0;
@@ -691,205 +708,443 @@
         });
 
         // ==========================================
-        // 8. BỘ MÁY THỰC THI JAVASCRIPT ĐỘNG
-        // ==========================================
-        window.executeJsEngine = function() {
-    var userCode = window.__labJsEditor ? window.__labJsEditor.getValue() : '';
-    if (!userCode || !userCode.trim()) return;
-    
-    const $consoleBox = $('#labConsoleLogBody');
-    $consoleBox.removeClass('flash-success flash-error');
-    
-    function scrollToLine(line, col) {
-        if (window.__labJsEditor && typeof window.__labJsEditor.setCursor === 'function') {
-            let cmLine = Math.max(0, line - 1);
-            let cmCol = Math.max(0, col - 1);
-            
-            window.__labJsEditor.focus();
-            window.__labJsEditor.setCursor(cmLine, cmCol);
-            
-            let charCoords = window.__labJsEditor.charCoords({ line: cmLine, ch: 0 }, "local");
-            let middleHeight = window.__labJsEditor.getScrollerElement().offsetHeight / 2;
-            window.__labJsEditor.scrollTo(null, charCoords.top - middleHeight - 5);
-            
-            window.__labJsEditor.addLineClass(cmLine, 'background', 'CodeMirror-selected');
-            setTimeout(() => {
-                window.__labJsEditor.removeLineClass(cmLine, 'background', 'CodeMirror-selected');
-            }, 2000);
-        }
-    }
-    
-    const execId = Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 5);
-    const sourceUrl = 'lab_dynamic_script_' + execId;
-    
-    const PREFIX = '(function() { try {\n' +
-        '    with (window) {\n' +
-        '        const __lab_original_console = window.console;\n' +
-        '        window.console = {\n' +
-        '            log: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
-        '            error: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
-        '            warn: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
-        '            info: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
-        '            dir: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
-        '            table: function() { window.postMessage({type:"LAB_JS_LOG",data:Array.from(arguments)}, "*"); },\n' +
-        '            time: function() {}, timeEnd: function() {}, group: function() {}, groupEnd: function() {}\n' +
-        '        };\n' +
-        '        window.onerror = function(message, source, lineno, colno, error) {\n' +
-        '            window.postMessage({type:"LAB_JS_ERROR", name: (error && error.name) || "Error", message: message, line: lineno, column: colno}, "*");\n' +
-        '            return true;\n' +
-        '        };\n' +
-        '        try {\n' +
-        '            (function() {\n' +
-        '                "use strict";\n' +
-        '                // USER CODE INJECTION\n';
-    
-    const SUFFIX = '\n' +
-        '            })();\n' +
-        '        } catch(err) {\n' +
-        '            var lineNum = 0, colNum = 0;\n' +
-        '            if (err.stack) {\n' +
-        '                var m = err.stack.match(/:(\\d+):(\\d+)/);\n' +
-        '                if (m) { lineNum = parseInt(m[1], 10); colNum = parseInt(m[2], 10); }\n' +
-        '            } else {\n' +
-        '                lineNum = 1; colNum = 1;\n' +
-        '            }\n' +
-        '            window.postMessage({\n' +
-        '                type: "LAB_JS_ERROR",\n' +
-        '                name: err.name || "Error",\n' +
-        '                message: err.message || "Unknown error",\n' +
-        '                line: lineNum,\n' +
-        '                column: colNum\n' +
-        '    }, "*");\n' +
-        '}\n' +
-        '})();\n' +
-        '//# sourceURL=' + sourceUrl;
-    
-    function countLines(str) { return str.split('\n').length; }
-    const LINE_OFFSET = countLines(PREFIX);
-    
-    // ĐÃ XÓA KHỐI new Function() Ở ĐÂY!
-    
-    // --- Chuẩn bị bắt lỗi Runtime & Syntax qua thẻ Script ---
-    const originalOnError = window.onerror;
-    let errorHandled = false;
-    let isSyncExecuting = true; // Cờ cực kỳ quan trọng để tóm SyntaxError
-    let cleanup = function() {};
-    
-    function restoreEnvironment() {
-        window.onerror = originalOnError;
-        cleanup();
-    }
-    
-    window.onerror = function(message, source, lineno, colno, error) {
-        if (errorHandled) return true;
-        
-        // Nếu lỗi xảy ra ngay lúc đang chèn thẻ Script (SyntaxError) 
-        // HOẶC lỗi runtime có source trùng khớp
-        if (isSyncExecuting || (source && source.includes('lab_dynamic_script'))) {
-            errorHandled = true;
-            const errObj = error || new Error(message);
-            
-            let userLine = (lineno || 1) - LINE_OFFSET + 1;
-            if (userLine < 1) userLine = 1;
-            let userCol = colno || 1;
-            
-            const analysis = LabErrorExpert.analyze(errObj, userCode);
-            const $entry = renderLogEntry(analysis, userLine, userCol);
-            
-            $consoleBox.append($entry);
-            $consoleBox.addClass('flash-error');
-            scrollToLine(userLine, userCol);
-            
-            restoreEnvironment();
-            return true; // Chặn log rác ra devtools của trình duyệt
-        }
-        if (originalOnError) return originalOnError.apply(this, arguments);
-        return false;
-    };
-    
-    const postMsgHandler = function(event) {
-        if (!event.data || event.data.type !== 'LAB_JS_ERROR') return;
-        if (errorHandled) return;
-        errorHandled = true;
-        
-        const rawLine = parseInt(event.data.line || 1, 10);
-        const rawCol = parseInt(event.data.column || 1, 10);
-        
-        let userLine = rawLine - LINE_OFFSET + 1;
-        if (userLine < 1) userLine = 1;
-        let userCol = rawCol;
-        
-        const err = new Error(event.data.message);
-        err.name = event.data.name || 'Error';
-        err.stack = `lab_dynamic_script:${rawLine}:${rawCol}`;
-        
-        const analysis = LabErrorExpert.analyze(err, userCode);
-        const $entry = renderLogEntry(analysis, userLine, userCol);
-        $consoleBox.append($entry);
-        $consoleBox.addClass('flash-error');
-        scrollToLine(userLine, userCol);
-        restoreEnvironment();
-    };
-    window.addEventListener('message', postMsgHandler);
-    cleanup = function() {
-        window.removeEventListener('message', postMsgHandler);
-    };
-    
-    // --- Thực thi ---
-    try {
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.textContent = PREFIX + userCode + SUFFIX;
-        
-        // Quá trình chèn vào DOM là đồng bộ. 
-        // Nếu userCode có SyntaxError, nó sẽ ném vào window.onerror ngay tại dòng này!
-        document.body.appendChild(script);
-        
-        // Nếu vượt qua được dòng trên, nghĩa là không có SyntaxError
-        isSyncExecuting = false;
-        
-        document.body.removeChild(script);
-        
-        if (!errorHandled) {
-            $consoleBox.addClass('flash-success');
-            if (typeof window.__labAppendLog === 'function') {
-                window.__labAppendLog('✅ Thực thi thành công', 'success');
+// 8. BỘ MÁY THỰC THI JAVASCRIPT ĐỘNG (FIXED & UPGRADED)
+// ==========================================
+// [1] Khởi tạo Bộ từ điển phiên dịch và gợi ý lỗi (Chỉ chạy 1 lần)
+            if (!window.__labErrorTranslator) {
+                window.__labErrorTranslator = function(errName, errMsg) {
+                    let translated = errMsg;
+                    let suggestion = "Kiểm tra lại cú pháp hoặc logic code của bạn tại dòng được báo lỗi.";
+
+                    if (errName === 'ReferenceError') {
+                        if (errMsg.includes('is not defined')) {
+                            let varName = errMsg.replace(' is not defined', '');
+                            translated = `Biến ${varName} chưa được khai báo.`;
+                            suggestion = `Hãy đảm bảo bạn đã khai báo ${varName} bằng 'let', 'const', hoặc 'var' trước khi sử dụng, và kiểm tra xem có gõ sai chính tả không.`;
+                        }
+                    } else if (errName === 'TypeError') {
+                        if (errMsg.includes('is not a function')) {
+                            translated = `Bạn đang gọi một đối tượng không phải là hàm.`;
+                            suggestion = `Kiểm tra lại xem biến/thuộc tính đó có tồn tại và có thực sự là một hàm (function) hay không.`;
+                        } else if (errMsg.includes('Cannot read properties of undefined') || errMsg.includes('Cannot read property')) {
+                            translated = `Không thể đọc thuộc tính của một đối tượng bị rỗng (undefined/null).`;
+                            suggestion = `Đối tượng bạn đang cố truy cập hiện không có dữ liệu. Hãy console.log đối tượng đó ra trước dòng này để kiểm tra.`;
+                        } else if (errMsg.includes('Assignment to constant variable')) {
+                            translated = `Gán giá trị mới cho hằng số (const).`;
+                            suggestion = `Bạn không thể thay đổi giá trị của biến 'const'. Hãy đổi 'const' thành 'let' nếu muốn cập nhật lại giá trị.`;
+                        }
+                    } else if (errName === 'SyntaxError') {
+                        if (errMsg.includes('Unexpected token')) {
+                            translated = `Dư hoặc sai ký tự cú pháp.`;
+                            suggestion = `Thường do bạn bị thiếu/dư dấu ngoặc đơn '()', ngoặc nhọn '{}', hoặc sai dấu phẩy/chấm phẩy.`;
+                        } else if (errMsg.includes('Unexpected identifier') || errMsg.includes('Unexpected string')) {
+                            translated = `Khai báo tên biến hoặc chuỗi sai cú pháp.`;
+                            suggestion = `Kiểm tra xem bạn có quên dấu phẩy ngăn cách, nối chuỗi sai, hoặc đặt tên biến chứa khoảng trắng/ký tự lạ không.`;
+                        } else if (errMsg.includes('missing ) after argument list')) {
+                            translated = `Thiếu dấu đóng ngoặc ')' khi gọi hàm.`;
+                            suggestion = `Hãy đếm lại số lượng dấu mở ngoặc '(' và đóng ngoặc ')' xem đã khớp nhau chưa.`;
+                        }
+                    } else if (errName === 'RangeError') {
+                        if (errMsg.includes('Maximum call stack size exceeded')) {
+                            translated = `Vượt quá giới hạn gọi hàm (Tràn bộ nhớ).`;
+                            suggestion = `Bạn đang bị lặp vô tận. Kiểm tra lại các vòng lặp (for/while) hoặc đệ quy (hàm tự gọi lại chính nó) xem có điểm dừng không.`;
+                        }
+                    }
+
+                    return { translated, suggestion };
+                };
+            }
+
+            // [2] Hàm thực thi chính
+// ==========================================
+// 8. BỘ MÁY THỰC THI JAVASCRIPT ĐỘNG (FULL TÍCH HỢP)
+// ==========================================
+// [1] Khởi tạo Bộ từ điển phiên dịch và gợi ý lỗi (Chỉ chạy 1 lần)
+if (!window.__labErrorTranslator) {
+    window.__labErrorTranslator = function(errName, errMsg) {
+        let translated = errMsg;
+        let suggestion = "Kiểm tra lại cú pháp hoặc logic code của bạn tại dòng được báo lỗi.";
+
+        if (errName === 'ReferenceError') {
+            if (errMsg.includes('is not defined')) {
+                let varName = errMsg.replace(' is not defined', '');
+                translated = `Biến ${varName} chưa được khai báo.`;
+                suggestion = `Hãy đảm bảo bạn đã khai báo ${varName} bằng 'let', 'const', hoặc 'var' trước khi sử dụng, và kiểm tra xem có gõ sai chính tả không.`;
+            }
+        } else if (errName === 'TypeError') {
+            if (errMsg.includes('is not a function')) {
+                translated = `Bạn đang gọi một đối tượng không phải là hàm.`;
+                suggestion = `Kiểm tra lại xem biến/thuộc tính đó có tồn tại và có thực sự là một hàm (function) hay không.`;
+            } else if (errMsg.includes('Cannot read properties of undefined') || errMsg.includes('Cannot read property')) {
+                translated = `Không thể đọc thuộc tính của một đối tượng bị rỗng (undefined/null).`;
+                suggestion = `Đối tượng bạn đang cố truy cập hiện không có dữ liệu. Hãy console.log đối tượng đó ra trước dòng này để kiểm tra.`;
+            } else if (errMsg.includes('Assignment to constant variable')) {
+                translated = `Gán giá trị mới cho hằng số (const).`;
+                suggestion = `Bạn không thể thay đổi giá trị của biến 'const'. Hãy đổi 'const' thành 'let' nếu muốn cập nhật lại giá trị.`;
+            }
+        } else if (errName === 'SyntaxError') {
+            if (errMsg.includes('Unexpected token')) {
+                translated = `Dư hoặc sai ký tự cú pháp.`;
+                suggestion = `Thường do bạn bị thiếu/dư dấu ngoặc đơn '()', ngoặc nhọn '{}', hoặc sai dấu phẩy/chấm phẩy.`;
+            } else if (errMsg.includes('Unexpected identifier') || errMsg.includes('Unexpected string')) {
+                translated = `Khai báo tên biến hoặc chuỗi sai cú pháp.`;
+                suggestion = `Kiểm tra xem bạn có quên dấu phẩy ngăn cách, nối chuỗi sai, hoặc đặt tên biến chứa khoảng trắng/ký tự lạ không.`;
+            } else if (errMsg.includes('missing ) after argument list')) {
+                translated = `Thiếu dấu đóng ngoặc ')' khi gọi hàm.`;
+                suggestion = `Hãy đếm lại số lượng dấu mở ngoặc '(' và đóng ngoặc ')' xem đã khớp nhau chưa.`;
+            }
+        } else if (errName === 'RangeError') {
+            if (errMsg.includes('Maximum call stack size exceeded')) {
+                translated = `Vượt quá giới hạn gọi hàm (Tràn bộ nhớ).`;
+                suggestion = `Bạn đang bị lặp vô tận. Kiểm tra lại các vòng lặp (for/while) hoặc đệ quy (hàm tự gọi lại chính nó) xem có điểm dừng không.`;
             }
         }
-        setTimeout(restoreEnvironment, 0);
-        
-    } catch (outerErr) {
-        isSyncExecuting = false;
-        const analysis = LabErrorExpert.analyze(outerErr, userCode);
-        const $entry = renderLogEntry(analysis, 1, 1);
-        $consoleBox.append($entry);
-        $consoleBox.addClass('flash-error');
-        restoreEnvironment();
-    }
-};
 
-        // --- MODULE: CUỘN ĐẾN DÒNG BỊ LỖI ---
+        return { translated, suggestion };
+    };
+}
+
+// [2] Hàm thực thi chính
+        function executeJsEngine() {
+            let userCode = window.__labJsEditor ? window.__labJsEditor.getValue() : $('#labJsInput').val();
+            if (!userCode || !userCode.trim()) return;
+
+            const $consoleBox = $('#labConsoleLogBody');
+            $consoleBox.removeClass('flash-success flash-error');
+
+            // Đăng ký biến toàn cục outerHTML ngay tại môi trường Main trước khi chạy code
+            try {
+                window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
+            } catch(e) {
+                console.error("Không thể gán outerHTML toàn cục:", e);
+            }
+
+            try {
+                const base64Code = btoa(unescape(encodeURIComponent(userCode)));
+
+                // Nếu đang ở chế độ Sandbox cô lập
+                if (typeof isSandboxModeActive !== 'undefined' && isSandboxModeActive) {
+                    const $sandboxIframe = $('#labSandboxIframe');
+                    if ($sandboxIframe.length && $sandboxIframe[0].contentWindow) {
+                        $sandboxIframe[0].contentWindow.postMessage({ type: 'LAB_EXECUTE_JS', base64: base64Code }, '*');
+                    }
+                    return;
+                }
+
+                if (!window.__labEscapeHtmlHelper) {
+                    window.__labEscapeHtmlHelper = function(str) {
+                        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    };
+                }
+
+                // Tạo thẻ script động thực thi trong môi trường gốc có bắt kết quả trả về (Return value)
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+
+                script.textContent = `
+                    try {
+                        // Đăng ký lại biến toàn cục bên trong ngữ cảnh script động phòng hờ
+                        window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
+
+                        // TÍCH HỢP BỘ HÀM COZY JQUERY ĐỘC QUYỀN TRÊN KHUNG JS ĐỘNG
+                        if (typeof window._$ === 'undefined') {
+                            window._$ = function(htmlOrBlock) {
+                                var instance = {
+                                    elements: Array.isArray(htmlOrBlock) ? htmlOrBlock : (htmlOrBlock ? [htmlOrBlock] : []),
+
+                                    find: function(selector) {
+                                        var results = [];
+
+                                        // --- XỬ LÝ :not(...) ---
+                                        var notSelector = "";
+                                        if (selector.indexOf(":not(") !== -1) {
+                                            var notMatch = selector.match(/:not\\(([^)]+)\\)/);
+                                            if (notMatch) {
+                                                notSelector = notMatch[1];
+                                                selector = selector.replace(/:not\\([^)]+\\)/, "");
+                                            }
+                                        }
+
+                                        // --- XỬ LÝ :first VÀ :last FLAGS ---
+                                        var isFirstFilter = selector.indexOf(":first") !== -1;
+                                        var isLastFilter = selector.indexOf(":last") !== -1;
+                                        selector = selector.replace(/:first|:last/g, "");
+
+                                        var isClass = selector.indexOf('.') === 0;
+                                        var isId = selector.indexOf('#') === 0;
+
+                                        var targetClasses = [];
+                                        var targetId = "";
+                                        var targetTagName = "";
+
+                                        if (isClass) {
+                                            targetClasses = selector.split('.').filter(function(c) { return c.length > 0; });
+                                        } else if (isId) {
+                                            targetId = selector.substring(1);
+                                        } else {
+                                            targetTagName = selector.toLowerCase();
+                                        }
+
+                                        for (var i = 0; i < this.elements.length; i++) {
+                                            var currentHtml = this.elements[i];
+                                            var pos = 0;
+                                            var subResults = [];
+
+                                            while ((pos = currentHtml.indexOf('<', pos)) !== -1) {
+                                                if (currentHtml.charAt(pos + 1) === '/' || currentHtml.charAt(pos + 1) === '!') {
+                                                    pos++;
+                                                    continue;
+                                                }
+
+                                                var endOpenTag = currentHtml.indexOf('>', pos);
+                                                if (endOpenTag === -1) break;
+
+                                                var fullOpenTag = currentHtml.substring(pos, endOpenTag + 1);
+
+                                                var spacePos = fullOpenTag.indexOf(' ');
+                                                var currentTagName = "";
+                                                if (spacePos === -1) {
+                                                    currentTagName = fullOpenTag.substring(1, fullOpenTag.length - 1).toLowerCase();
+                                                } else {
+                                                    currentTagName = fullOpenTag.substring(1, spacePos).toLowerCase();
+                                                }
+
+                                                var isMatched = false;
+
+                                                if (isClass) {
+                                                    var classMatchStr = "";
+                                                    var classPos = fullOpenTag.indexOf('class="');
+                                                    if (classPos !== -1) {
+                                                        var startQuote = classPos + 7;
+                                                        classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
+                                                    } else {
+                                                        classPos = fullOpenTag.indexOf("class='");
+                                                        if (classPos !== -1) {
+                                                            var startQuote = classPos + 7;
+                                                            classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
+                                                        }
+                                                    }
+                                                    if (classMatchStr) {
+                                                        var currentClasses = classMatchStr.split(/\\s+/);
+                                                        var matchCount = 0;
+                                                        for (var c = 0; c < targetClasses.length; c++) {
+                                                            if (currentClasses.indexOf(targetClasses[c]) !== -1) matchCount++;
+                                                        }
+                                                        if (matchCount === targetClasses.length) isMatched = true;
+                                                    }
+                                                } else if (isId) {
+                                                    var idMatchStr = "";
+                                                    var idPos = fullOpenTag.indexOf('id="');
+                                                    if (idPos !== -1) {
+                                                        var startQuote = idPos + 4;
+                                                        idMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
+                                                    } else {
+                                                        idPos = fullOpenTag.indexOf("id='");
+                                                        if (idPos !== -1) {
+                                                            var startQuote = idPos + 4;
+                                                            idMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
+                                                        }
+                                                    }
+                                                    if (idMatchStr === targetId) isMatched = true;
+                                                } else {
+                                                    if (currentTagName === targetTagName) isMatched = true;
+                                                }
+
+                                                if (isMatched) {
+                                                    var startTagPos = pos;
+                                                    var endTagPos = endOpenTag + 1;
+                                                    var selfClosingTags = ['img', 'source', 'input', 'br', 'hr', 'link', 'meta'];
+
+                                                    if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {
+                                                        var depth = 1;
+                                                        var scanPos = endOpenTag + 1;
+                                                        var openStr = '<' + currentTagName;
+                                                        var closeStr = '</' + currentTagName + '>';
+
+                                                        while (depth > 0 && scanPos < currentHtml.length) {
+                                                            var nextOpen = currentHtml.indexOf(openStr, scanPos);
+                                                            var nextClose = currentHtml.indexOf(closeStr, scanPos);
+                                                            if (nextClose === -1) { scanPos = currentHtml.length; break; }
+
+                                                            if (nextOpen !== -1 && nextOpen < nextClose) {
+                                                                depth++;
+                                                                scanPos = nextOpen + openStr.length;
+                                                            } else {
+                                                                depth--;
+                                                                scanPos = nextClose + closeStr.length;
+                                                                if (depth === 0) endTagPos = nextClose + closeStr.length;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    var foundBlock = currentHtml.substring(startTagPos, endTagPos);
+
+                                                    if (notSelector) {
+                                                        var isNotClass = notSelector.indexOf('.') === 0;
+                                                        var isNotId = notSelector.indexOf('#') === 0;
+                                                        var notValue = notSelector.substring(1);
+
+                                                        var hasNot = false;
+                                                        if (isNotClass && fullOpenTag.indexOf('class="') !== -1 && fullOpenTag.indexOf(notValue) !== -1) hasNot = true;
+                                                        if (isNotId && fullOpenTag.indexOf('id="') !== -1 && fullOpenTag.indexOf(notValue) !== -1) hasNot = true;
+
+                                                        if (!hasNot) subResults.push(foundBlock);
+                                                    } else {
+                                                        subResults.push(foundBlock);
+                                                    }
+
+                                                    pos = endTagPos;
+                                                } else {
+                                                    pos++;
+                                                }
+                                            }
+
+                                            if (isFirstFilter && subResults.length > 0) subResults = [subResults[0]];
+                                            if (isLastFilter && subResults.length > 0) subResults = [subResults[subResults.length - 1]];
+
+                                            results = results.concat(subResults);
+                                        }
+
+                                        this.elements = results;
+                                        return this;
+                                    },
+
+                                    eq: function(index) {
+                                        if (index < 0) {
+                                            index = this.elements.length + index;
+                                        }
+                                        var matchedElement = this.elements[index];
+                                        this.elements = matchedElement ? [matchedElement] : [];
+                                        return this;
+                                    },
+
+                                    each: function(callback) {
+                                        for (var i = 0; i < this.elements.length; i++) {
+                                            callback.call(_$(this.elements[i]), i);
+                                        }
+                                        return this;
+                                    },
+
+                                    attr: function(attrName) {
+                                        if (this.elements.length === 0) return "";
+                                        var elem = this.elements[0];
+                                        var searchStr = attrName + '="';
+                                        var pos = elem.indexOf(searchStr);
+                                        if (pos === -1) {
+                                            searchStr = attrName + "='";
+                                            pos = elem.indexOf(searchStr);
+                                        }
+                                        if (pos === -1) return "";
+
+                                        var start = pos + searchStr.length;
+                                        var quoteType = elem.charAt(start - 1);
+                                        var end = elem.indexOf(quoteType, start);
+                                        return end === -1 ? "" : elem.substring(start, end);
+                                    },
+
+                                    text: function() {
+                                        if (this.elements.length === 0) return "";
+                                        var elem = this.elements[0];
+                                        var start = elem.indexOf('>') + 1;
+                                        var end = elem.lastIndexOf('</');
+                                        if (start > 0 && end > start) {
+                                            var content = elem.substring(start, end);
+                                            return content.replace(/<\\/?[^>]+(>|$)/g, "").trim();
+                                        }
+                                        return "";
+                                    }
+                                };
+
+                                return instance;
+                            };
+                        }
+
+                        // Thực thi code trực tiếp qua window.eval để lấy giá trị dòng cuối cùng
+                        const decodedCode = decodeURIComponent(escape(atob('${base64Code}')));
+                        const codeWithSourceMap = decodedCode + "\\n//# sourceURL=lab_dynamic_script.js";
+
+                        let rawResult = window.eval(codeWithSourceMap);
+
+                        const cBox = jQuery('#labConsoleLogBody');
+                        cBox.removeClass('flash-success flash-error');
+
+                        // Hiển thị kết quả lên Console Lab
+                        if (rawResult !== undefined) {
+                            if (typeof rawResult === 'object' && rawResult !== null) {
+                                const $treeNodeElement = window.__labBuildObjectTreeElement(rawResult);
+                                $treeNodeElement.addClass('lab-log-item').css({ 'padding-left': '14px', 'border-bottom': '1px solid #1a1a1a', 'margin-bottom': '4px' });
+                                cBox.prepend($treeNodeElement);
+                            } else {
+                                window.__labAppendLog(rawResult, 'return');
+                            }
+                            cBox.addClass('flash-success');
+                        } else {
+                            cBox.addClass('flash-success');
+                        }
+                        cBox.scrollTop(0);
+
+                    } catch(err) {
+                        let lineNum = err.lineNumber || err.line;
+
+                        if (!lineNum && err.stack) {
+                            let match = err.stack.match(/lab_dynamic_script\\.js:(\\d+)/);
+                            if (!match) match = err.stack.match(/eval.*?:(\\d+):\\d+/i);
+                            if (!match) match = err.stack.match(/<anonymous>:(\\d+)/i);
+                            if (match) lineNum = parseInt(match[1], 10);
+                        }
+
+                        let safeName = err.name || 'Lỗi';
+                        let safeMsg = err.message || '';
+                        let errorInfo = window.__labErrorTranslator(safeName, safeMsg);
+
+                        let vnMsg = window.__labEscapeHtmlHelper(errorInfo.translated);
+                        let vnSuggest = window.__labEscapeHtmlHelper(errorInfo.suggestion);
+                        let rawMsg = window.__labEscapeHtmlHelper(safeMsg);
+
+                        let linkHtml = lineNum ? '<div style="margin-top: 8px;"><span class="lab-error-line-link" data-line="' + lineNum + '" style="display:inline-block; padding:4px 10px; background:#e74c3c; color:#fff; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯 Cuộn tới Dòng ' + lineNum + '</span></div>' : "";
+
+                        let errorHtml = '<div class="lab-log-item lab-log-error" style="display:flex; flex-direction:column; align-items:flex-start; padding:10px; line-height: 1.6; border-left: 3px solid #ff5555;">' +
+                                            '<span style="font-weight:bold; font-size:13px; color:#ff5555;">🚨 ' + safeName + ': ' + vnMsg + '</span>' +
+                                            '<span style="font-size:11px; color:#888; margin-top:2px; font-family: monospace;"><i>Nguyên bản: ' + rawMsg + '</i></span>' +
+                                            '<span style="font-size:13px; color:#8be9fd; margin-top:6px; background: rgba(139, 233, 253, 0.1); padding: 4px 8px; border-radius: 4px;">💡 <b>Gợi ý:</b> ' + vnSuggest + '</span>' +
+                                            linkHtml +
+                                        '</div>';
+
+                        jQuery('#labConsoleLogBody').prepend(errorHtml).removeClass('flash-success').addClass('flash-error').scrollTop(0);
+                    }
+                `;
+
+                document.body.appendChild(script);
+                document.body.removeChild(script);
+
+            } catch (outerErr) {
+                window.__labAppendLog("[Lỗi Hệ Thống]: " + outerErr.message, 'error');
+                $consoleBox.addClass('flash-error');
+            }
+        }
+
+
+        // 3. Sự kiện Click (Đã thêm stopPropagation để chặn sự cố click bị đè)
         $(document).off('click.errorLink').on('click.errorLink', '.lab-error-line-link', function(e) {
+            e.preventDefault();
             e.stopPropagation();
+
             let line = parseInt($(this).data('line'), 10);
-            
-            // CodeMirror đếm dòng từ 0, nên phải trừ đi 1
+
             if (window.__labJsEditor && !isNaN(line)) {
-                let cmLine = line - 1;
-                
+                let targetLine = line-1; // CodeMirror tính dòng từ 0
+
+                window.__labJsEditor.setCursor(targetLine, 0);
                 window.__labJsEditor.focus();
-                window.__labJsEditor.setCursor(cmLine, 0);
-                
-                // Cuộn màn hình CodeMirror đến giữa dòng đó
-                let t = window.__labJsEditor.charCoords({ line: cmLine, ch: 0 }, "local").top;
+
+                // Tự động cuộn Editor ra giữa màn hình
+                let charCoords = window.__labJsEditor.charCoords({ line: targetLine, ch: 0 }, "local");
                 let middleHeight = window.__labJsEditor.getScrollerElement().offsetHeight / 2;
-                window.__labJsEditor.scrollTo(null, t - middleHeight - 5);
-                
-                // Bôi đỏ dòng lỗi trong 2 giây để gây chú ý
-                window.__labJsEditor.addLineClass(cmLine, 'background', 'CodeMirror-selected');
-                setTimeout(() => {
-                    window.__labJsEditor.removeLineClass(cmLine, 'background', 'CodeMirror-selected');
-                }, 2000);
+                window.__labJsEditor.scrollTo(null, charCoords.top-middleHeight-5);
+
+                // Đánh dấu đỏ dòng bị lỗi trong 1.5s
+                window.__labJsEditor.addLineClass(targetLine, 'background', 'CodeMirror-selected');
+                setTimeout(() => window.__labJsEditor.removeLineClass(targetLine, 'background', 'CodeMirror-selected'), 1500);
             }
         });
 
@@ -912,7 +1167,7 @@
             if (node.nodeType === 1) {
                 // [UPDATE] Fix lỗi hắt highlight viền cho panel Sniffer  quick-extract-modal #labHtmlSourceModal
                 if ($(node).closest('#labHtmlSourceModal').length || $(node).closest('#quick-extract-modal').length || $(node).closest('#labMainDashboard').length || $(node).hasClass('lab-fab-wrapper') || $(node).is('#labSandboxIframe') || $(node).is('#labCssQuickMenu') || $(node).hasClass('CodeMirror-hints') || $(node).closest('#panelSnifferLab').length) return null;
-                
+
                 const tagName = node.tagName.toLowerCase();
                 let attrStr = '';
                 if (node.attributes) {
@@ -922,18 +1177,18 @@
                         attrStr += ` <span class="html-attr">${attr.name}</span>=<span class="html-bracket">"</span><span class="html-val">${escapeHtml(attr.value)}</span><span class="html-bracket">"</span>`;
                     }
                 }
-                
+
                 // 🌟 ĐÃ SỬA TẠI ĐÂY: Lưu trữ tham chiếu node thật vào biến data jQuery
                 let $container = $('<div>').addClass('tree-node').data('real-node', node);
-                
+
                 let $toggle = $('<span>').addClass('tree-toggle').html('▼ ');
                 let $children = $('<div>').addClass('tree-children');
-                
+
                 node.childNodes.forEach(child => {
                     let $childTree = buildDomTreeMain(child);
                     if ($childTree) $children.append($childTree);
                 });
-                
+
                 return $container.append($toggle)
                     .append(`<span>&lt;<span class="html-tag">${tagName}</span>${attrStr}&gt;</span>`)
                     .append($children)
@@ -992,21 +1247,21 @@
             loadElementToTreeMain(savedTarget);
            $('#panelJs .lab-sub-select').val('#panelTreeDom').trigger('change')
         };
-        
+
         // --- MODULE: QUICK HIDE ELEMENT (RIGHT CLICK) ---
         $('body').append('<div id="lab-quick-hide-menu" style="display:none; position:fixed; background:#e74c3c; color:#fff; padding:6px 12px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer; z-index:2147483647; box-shadow:0 4px 10px rgba(0,0,0,0.5);">🚫 Ẩn phần tử này</div>');
-        
+
         $(document).on('contextmenu', function(e) {
             // Không chặn contextmenu ở trong bảng điều khiển
             if ($(e.target).closest('#labMainDashboard, #labHtmlSourceModal, #panelSnifferLab').length) return;
-            
+
             // Nếu Inspect chưa bật thì bỏ qua
             if (!isInspectEnabled || isSandboxModeActive) return;
-            
+
             let targetEl = e.target;
             $('#lab-quick-hide-menu').css({ top: e.clientY + 10 + 'px', left: e.clientX + 10 + 'px' }).show().off('click').on('click', function(ev) {
                 ev.stopPropagation();
-                
+
                 // Sinh bộ chọn thông minh mạnh nhất
                 let selector = '';
                 if (targetEl.id) {
@@ -1024,7 +1279,7 @@
                     }
                     if (!selector) selector = tag; // Fallback
                 }
-                
+
                 // Tự động gán CSS ẩn
                 injectSmartCssRule(selector, "display: none !important;");
                 $(targetEl).css('outline', '2px solid red'); // Chớp đỏ nhận diện
@@ -1032,9 +1287,9 @@
                 $('#lab-quick-hide-menu').hide();
             });
         });
-        
+
         $(document).on('click', () => $('#lab-quick-hide-menu').hide());
-        
+
         $(document).on('contextmenu', processClickEventMain);
 
         function requestDomInspect(mode) {
@@ -1088,7 +1343,7 @@
 
             // Logic đảo chiều (đi xuống lớp con) hoặc chọn trực tiếp độ sâu theo Lớp
             if (mode === 'down') {
-                currentGeoDepth = Math.max(0, currentGeoDepth - 1);
+                currentGeoDepth = Math.max(0, currentGeoDepth-1);
             } else {
                 currentGeoDepth = depthMap[mode] !== undefined ? depthMap[mode] : 0;
             }
@@ -1208,6 +1463,7 @@
             }, 100);
         });
 
+       
         $('.lab-btn-toggle').on('click', function() {
 
             const target = $(this).data('target');
@@ -1229,7 +1485,7 @@
         // --- MODULE: DRAGGABLE FAB ---
         let isFabDragging = false;
         const $fabWrapper = $('.lab-fab-wrapper');
-        
+
         $fabWrapper.on('mousedown', function(e) {
             if (e.which !== 1) return; // Chỉ kéo bằng chuột trái
             e.preventDefault();
@@ -1237,19 +1493,19 @@
             let startX = e.clientX, startY = e.clientY;
             let startPos = $fabWrapper.offset();
             let scrollX = $(window).scrollLeft(), scrollY = $(window).scrollTop();
-            
+
             // Đổi sang position fixed để kéo theo màn hình
-            $fabWrapper.css({ right: 'auto', bottom: 'auto', left: (startPos.left - scrollX) + 'px', top: (startPos.top - scrollY) + 'px' });
-        
+            $fabWrapper.css({ right: 'auto', bottom: 'auto', left: (startPos.left-scrollX) + 'px', top: (startPos.top-scrollY) + 'px' });
+
             $(window).on('mousemove.fabDrag', function(moveEvent) {
                 isFabDragging = true;
-                let dx = moveEvent.clientX - startX;
-                let dy = moveEvent.clientY - startY;
-                $fabWrapper.css({ left: (startPos.left - scrollX + dx) + 'px', top: (startPos.top - scrollY + dy) + 'px' });
+                let dx = moveEvent.clientX-startX;
+                let dy = moveEvent.clientY-startY;
+                $fabWrapper.css({ left: (startPos.left-scrollX + dx) + 'px', top: (startPos.top-scrollY + dy) + 'px' });
             });
-        
+
             $(window).on('mouseup.fabDrag', function() { $(window).off('mousemove.fabDrag mouseup.fabDrag'); });
-        });    
+        });
         $fabBtn.on('click', function(e) {
             if (isFabDragging) return;
             e.stopPropagation();
@@ -1330,8 +1586,8 @@
             const startY = e.clientY;
 
             $(document).on('mousemove.lab-resize', function(moveEvent) {
-                if (isX) { $panel.css('width', (startWidth + (moveEvent.clientX - startX)) + 'px'); }
-                else { $panel.css('height', (startHeight + (moveEvent.clientY - startY)) + 'px'); }
+                if (isX) { $panel.css('width', (startWidth + (moveEvent.clientX-startX)) + 'px'); }
+                else { $panel.css('height', (startHeight + (moveEvent.clientY-startY)) + 'px'); }
                 if (window.__labJsEditor) window.__labJsEditor.refresh();
                 if (window.__labCssEditor) window.__labCssEditor.refresh();
             });
@@ -1365,8 +1621,8 @@
 
             $(window).on('mousemove.labPanelMoveFree', function(moveEvent) {
                 $panel.css({
-                    left: (startLeft + moveEvent.clientX - startX) + 'px',
-                    top: (startTop + moveEvent.clientY - startY) + 'px',
+                    left: (startLeft + moveEvent.clientX-startX) + 'px',
+                    top: (startTop + moveEvent.clientY-startY) + 'px',
                     right: 'auto', bottom: 'auto'
                 });
             });
@@ -1499,8 +1755,8 @@
     let posX = clientX + 10;
     let posY = clientY + 10;
 
-    if (posX + menuW > winW) posX = clientX - menuW - 10;
-    if (posY + menuH > winH) posY = winH - menuH - 10;
+    if (posX + menuW > winW) posX = clientX-menuW-10;
+    if (posY + menuH > winH) posY = winH-menuH-10;
 
     $quickMenu.css({ top: Math.max(5, posY) + 'px', left: Math.max(5, posX) + 'px' });
 }
@@ -1789,22 +2045,22 @@
 
             if (layoutState === 'horizontal') {
                 const snifferH = Math.round(viewH * 0.28);
-                let calculatedTop = rect.top - snifferH - safeGap;
+                let calculatedTop = rect.top-snifferH-safeGap;
                 if (calculatedTop < 5) calculatedTop = 5;
-                $snifferPanel.css({ 'top': calculatedTop - 10 + 'px', 'left': rect.left + 'px', 'width': rect.width + 'px', 'height': snifferH + 'px' });
+                $snifferPanel.css({ 'top': calculatedTop-10 + 'px', 'left': rect.left + 'px', 'width': rect.width + 'px', 'height': snifferH + 'px' });
             }
             else if (layoutState === 'vertical-left') {
                 let calculatedLeft = rect.right + safeGap;
-                let calculatedW = viewW - calculatedLeft - 20;
+                let calculatedW = viewW-calculatedLeft-20;
                 if (calculatedW < 200) calculatedW = Math.round(viewW * 0.35);
                 $snifferPanel.css({ 'top': '20px', 'left': 'auto', 'right': '20px', 'width': calculatedW + 'px', 'height': rect.height + 50 + 'px' });
             }
             else if (layoutState === 'vertical-right') {
-                let calculatedW = rect.left - safeGap - 20;
+                let calculatedW = rect.left-safeGap-20;
                 if (calculatedW < 200) calculatedW = Math.round(viewW * 0.35);
-                let calculatedLeft = rect.left - calculatedW - safeGap;
+                let calculatedLeft = rect.left-calculatedW-safeGap;
                 if (calculatedLeft < 5) calculatedLeft = 5;
-                $snifferPanel.css({ 'top': '20px', 'left': '10px', 'width': calculatedW + 'px', 'height': rect.height - 50 + 'px' });
+                $snifferPanel.css({ 'top': '20px', 'left': '10px', 'width': calculatedW + 'px', 'height': rect.height-50 + 'px' });
             }
         }
 
@@ -1894,6 +2150,70 @@
         }
 
         initProCodeEditors();
+
+        // --- MODULE: MINI TREE DOM SEARCH ---
+let miniSearchMatches = [];
+let miniSearchIndex = -1;
+
+$('#labMiniTreeSearch').on('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        let query = $(this).val().trim().toLowerCase();
+        if (!query) return;
+
+        // Xóa bôi màu cũ
+        $('#labTreeDomBody .lab-mini-highlight').css({ 'background': '', 'color': '' }).removeClass('lab-mini-highlight');
+
+        // Quét lấy tất cả span text
+        miniSearchMatches = [];
+        $('#labTreeDomBody span').each(function() {
+            if ($(this).text().toLowerCase().includes(query) && !$(this).children().length) {
+                miniSearchMatches.push(this);
+            }
+        });
+
+        if (miniSearchMatches.length === 0) {
+            window.__labAppendLog("Không tìm thấy: " + query, 'error');
+            return;
+        }
+
+        // Chuyển tới mục tiếp theo
+        miniSearchIndex++;
+        if (miniSearchIndex >= miniSearchMatches.length) miniSearchIndex = 0;
+        let target = miniSearchMatches[miniSearchIndex];
+
+        // Mở các thư mục cha đang bị ẩn
+        $(target).parents('.tree-children.hidden').removeClass('hidden').siblings('.tree-toggle').removeClass('collapsed').html('▼ ');
+        // Bôi màu và cuộn
+        $(target).addClass('lab-mini-highlight').css({ 'background': '#e74c3c', 'color': '#fff', 'border-radius': '2px', 'padding': '2px' });
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Tắt màu sau 5s
+        setTimeout(() => {
+            $(target).css({ 'background': '', 'color': '' }).removeClass('lab-mini-highlight');
+        }, 5000);
+    }
+});
+
+// --- MODULE: SYNC TREE HOVER TO WEB ELEMENT ---
+$('#labTreeDomBody').on('mouseenter', '.tree-node', function(e) {
+    e.stopPropagation();
+    let realNode = $(this).data('real-node');
+    if (realNode && realNode.nodeType === 1) { // Đảm bảo là Element
+        $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+        $(realNode).addClass('lab-tree-sync-highlight');
+    }
+}).on('mouseleave', '.tree-node', function(e) {
+    $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+});
+// Xóa highlight khi đóng Dashboard
+$fabBtn.on('click', function() {
+    $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+});
+
+
+// GỌI HÀM KHỞI TẠO EDITOR
+initProCodeEditors();
 
         // ==========================================
         // 14. NÂNG CẤP TOÀN DIỆN V15: CHUỘT PHẢI PHÓNG TO + SAO CHÉP
@@ -2149,7 +2469,7 @@
                     top: 20px !important;
                     right: 12px !important;
                     width: min(420px, 34vw) !important;
-                    height: calc(100vh - 120px) !important;
+                    height: calc(100vh-120px) !important;
                     z-index: 2147483647 !important;
                     border: 2px solid #f1c40f !important;
                     box-shadow: 0 0 28px rgba(0,0,0,0.85) !important;
@@ -2273,7 +2593,7 @@
 
                     $('#labRestoreGroupButtons .lab-btn-restore[data-target="#panelConsole"]').hide();
 
-                    $('.lab-panel.lab-panel-maximized').css('width', 'calc(100vw - min(420px, 34vw) - 24px)');
+                    $('.lab-panel.lab-panel-maximized').css('width', 'calc(100vw-min(420px, 34vw)-24px)');
                     */
                 } else {
                     $('#panelConsole').removeClass('lab-v163-floating-console');
@@ -2463,7 +2783,7 @@ $btnQuickExtract.on('click', function(e) {
                     geoBtnAncestors:5, geoBtnLayer7:6, geoBtnLayer8:7, geoBtnLayer9:8, geoBtnLayer10:9
                 };
                 if (btnId === 'geoBtnReverseDown') {
-                    setTimeout(() => v163SetActiveLayerByDepth(Math.max(0, v163ActiveDepth - 1)), 20);
+                    setTimeout(() => v163SetActiveLayerByDepth(Math.max(0, v163ActiveDepth-1)), 20);
                 } else if (Object.prototype.hasOwnProperty.call(directMap, btnId)) {
                     setTimeout(() => v163SetActiveLayerByDepth(directMap[btnId]), 20);
                 }
@@ -2518,8 +2838,8 @@ $btnQuickExtract.on('click', function(e) {
 
                 $(window).on('mousemove.v163SnifferDrag', function(moveEvent) {
                     $snifferPanel.css({
-                        left: Math.max(0, Math.min(window.innerWidth - 80, startLeft + moveEvent.clientX - startX)) + 'px',
-                        top: Math.max(0, Math.min(window.innerHeight - 40, startTop + moveEvent.clientY - startY)) + 'px',
+                        left: Math.max(0, Math.min(window.innerWidth-80, startLeft + moveEvent.clientX-startX)) + 'px',
+                        top: Math.max(0, Math.min(window.innerHeight-40, startTop + moveEvent.clientY-startY)) + 'px',
                         right: 'auto'
                     });
                 });
@@ -2541,8 +2861,8 @@ $btnQuickExtract.on('click', function(e) {
 
                 $(window).on('mousemove.v163SnifferResize', function(moveEvent) {
                     $snifferPanel.css({
-                        width: Math.min(window.innerWidth - rect.left - 8, Math.max(240, startW + moveEvent.clientX - startX)) + 'px',
-                        height: Math.min(window.innerHeight - rect.top - 8, Math.max(160, startH + moveEvent.clientY - startY)) + 'px'
+                        width: Math.min(window.innerWidth-rect.left-8, Math.max(240, startW + moveEvent.clientX-startX)) + 'px',
+                        height: Math.min(window.innerHeight-rect.top-8, Math.max(160, startH + moveEvent.clientY-startY)) + 'px'
                     });
                 });
 
@@ -3081,7 +3401,7 @@ const htmlSourceStyle = document.createElement('style');
 
             function jumpToMatch(index) {
                 if (searchMatches.length === 0) return;
-                if (index < 0) index = searchMatches.length - 1;
+                if (index < 0) index = searchMatches.length-1;
                 if (index >= searchMatches.length) index = 0;
                 currentMatchIndex = index;
 
@@ -3122,7 +3442,7 @@ const htmlSourceStyle = document.createElement('style');
 
             $searchPrev.on('click', function(e) {
                 e.stopPropagation();
-                if (searchMatches.length > 0) jumpToMatch(currentMatchIndex - 1);
+                if (searchMatches.length > 0) jumpToMatch(currentMatchIndex-1);
             });
 
             $searchNext.on('click', function(e) {
@@ -3181,73 +3501,6 @@ const htmlSourceStyle = document.createElement('style');
 //[UPDATE 2.0] END Full-screen HTML Source Viewer Feature
 
     });
-    // Cơ chế kích hoạt an toàn cho @run-at document-start
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initLabDashboard);
-    } else {
-        initLabDashboard();
-    }
-    // --- MODULE: MINI TREE DOM SEARCH ---
-    let miniSearchMatches = [];
-    let miniSearchIndex = -1;
-    
-    $('#labMiniTreeSearch').on('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            let query = $(this).val().trim().toLowerCase();
-            if (!query) return;
-            
-            // Xóa bôi màu cũ
-            $('#labTreeDomBody .lab-mini-highlight').css({ 'background': '', 'color': '' }).removeClass('lab-mini-highlight');
-            
-            // Quét lấy tất cả span text
-            miniSearchMatches = [];
-            $('#labTreeDomBody span').each(function() {
-                if ($(this).text().toLowerCase().includes(query) && !$(this).children().length) {
-                    miniSearchMatches.push(this);
-                }
-            });
-            
-            if (miniSearchMatches.length === 0) {
-                window.__labAppendLog("Không tìm thấy: " + query, 'error');
-                return;
-            }
-            
-            // Chuyển tới mục tiếp theo
-            miniSearchIndex++;
-            if (miniSearchIndex >= miniSearchMatches.length) miniSearchIndex = 0;
-            
-            let target = miniSearchMatches[miniSearchIndex];
-            
-            // Mở các thư mục cha đang bị ẩn
-            $(target).parents('.tree-children.hidden').removeClass('hidden').siblings('.tree-toggle').removeClass('collapsed').html('▼ ');
-            
-            // Bôi màu và cuộn
-            $(target).addClass('lab-mini-highlight').css({ 'background': '#e74c3c', 'color': '#fff', 'border-radius': '2px', 'padding': '2px' });
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Tắt màu sau 5s
-            setTimeout(() => {
-                $(target).css({ 'background': '', 'color': '' }).removeClass('lab-mini-highlight');
-            }, 5000);
-        }
-    }); 
-    
- // --- MODULE: SYNC TREE HOVER TO WEB ELEMENT ---
-    $('#labTreeDomBody').on('mouseenter', '.tree-node', function(e) {
-        e.stopPropagation();
-        let realNode = $(this).data('real-node');
-        if (realNode && realNode.nodeType === 1) { // Đảm bảo là Element
-            $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
-            $(realNode).addClass('lab-tree-sync-highlight');
-        }
-    }).on('mouseleave', '.tree-node', function(e) {
-        $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
-    });
-    
-    // Xóa highlight khi đóng Dashboard
-    $fabBtn.on('click', function() {
-        $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
-    });   
-    
+
+
 })();
