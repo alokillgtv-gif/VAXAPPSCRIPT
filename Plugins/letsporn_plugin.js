@@ -6,7 +6,7 @@ function getManifest() {
         "id": "letsporn",
         "name": "Lets Porn",
         "description": "XXX Hay.",
-        "version": "1.3",
+        "version": "1.4",
         "BASEURL": "https://letsporn.com",
         "iconUrl": "https://static.letsporn.com/static/img/logo.png?v=1.2",
         "isEnabled": true,
@@ -194,7 +194,7 @@ function parseMovieDetail(html,$url) {
     var lname = "Đang cập nhật...";
     var ldes = "Không có mô tả.";
     var streamUrl = ""; // ĐÃ SỬA: Khai báo rõ ràng biến streamUrl tránh lỗi Global leak
-    var $split = html.match(/thumbnailUrl:\s+["']([^"']+)["']/i);
+    var $split = html.match(/thumbnailUrl["'][^"']+["']([^"']+)["']/i);
     if($split && $split[1]){limg = $split[1]}
     lname = _$(outerHTML).find('.fp-poster').find("img").attr("alt");
     ldes = _$(outerHTML).find('.video-description').text();
