@@ -6,7 +6,7 @@ function getManifest() {
     return JSON.stringify({
         "id": "nguoncnew",
         "name": "Phim NguonC Xoá Quảng Cáo",
-        "version": "1.21",
+        "version": "1.22",
         "baseUrl": "https://phim.nguonc.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/nguonC.png",
         "isEnabled": true,
@@ -997,6 +997,9 @@ const checkAndClick = setInterval(() => {
         }
         // LƯU Ý: ĐÃ XÓA clearInterval(checkAndClick) ở đây để script tiếp tục chạy
         // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
+    }
+    else{
+        runVideo();
     }
 }, 250);
 
