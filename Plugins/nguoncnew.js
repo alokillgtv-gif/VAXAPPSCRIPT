@@ -978,10 +978,16 @@ function runVideo(){
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
     if (SCRIPTURL && SCRIPTURL !== "undefined") {
-        document.getElementById("resumeBtn").click();
-        setTimeout(function() {
+        var $resume = document.getElementById("resumeBtn");
+        if($resume){
+            document.getElementById("resumeBtn").click();
+            setTimeout(function() {
+                runVideo();
+            }, 2000);
+        }
+        else{
             runVideo();
-        }, 2000);
+        }
         injectScriptAfterLoad(SCRIPTURL);
     }
 }
