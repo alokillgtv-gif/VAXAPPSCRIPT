@@ -979,33 +979,45 @@ function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
     if (SCRIPTURL && SCRIPTURL !== "undefined") {
 // Thay thế đoạn checkAndClick cũ ở cuối script bằng logic này:
+       // Thay thế đoạn initVideoFlow cũ ở cuối script bằng logic tối ưu này:
         (function initVideoFlow() {
-            // Bước 1: Kiểm tra xem trên trang đã có sẵn thẻ video gốc chưa
+            // Bước 1: Kiểm tra nhanh lần đầu tiên xem có video luôn không
             if (document.querySelector('video')) {
                 console.log("🎯 Tìm thấy thẻ video ngay lập tức. Khởi chạy luôn!");
                 runVideo();
-                return; // Kết thúc hàm, không chạy các logic đợi phía dưới nữa
+                return;
             }
             
-            // Bước 2: Nếu chưa có video, bắt đầu vòng lặp kiểm tra nút resumeBtn mỗi 1 giây trong 20 giây
-            console.log("⏳ Chưa thấy video. Bắt đầu quét nút resumeBtn mỗi 1 giây...");
+            // Bước 2: Nếu chưa có, bắt đầu vòng lặp quét SONG SONG cả video lẫn nút bấm mỗi 1 giây
+            console.log("⏳ Chưa thấy video. Bắt đầu quét tìm video hoặc nút resumeBtn mỗi 1 giây...");
             let secondsPassed = 0;
             const maxSeconds = 20;
             
             const checkInterval = setInterval(function() {
                 secondsPassed++;
+                
+                // Truy vấn cả 2 phần tử ở mỗi chu kỳ quét
+                const videoElement = document.querySelector('video');
                 const skipButton = document.getElementById("resumeBtn");
                 
-                // Trường hợp A: Tìm thấy nút resumeBtn trong khoảng thời gian 20 giây
+                // ĐIỀU KIỆN 1: Nếu tự nhiên tìm thấy thẻ video xuất hiện
+                if (videoElement) {
+                    clearInterval(checkInterval); // Xóa lặp ngay lập tức để tránh lỗi click ngầm về sau
+                    console.log("✓ Tìm thấy thẻ video xuất hiện trong vòng lặp! Khởi chạy ngay.");
+                    runVideo();
+                    return;
+                }
+                
+                // ĐIỀU KIỆN 2: Nếu tìm thấy nút resumeBtn trước
                 if (skipButton) {
-                    // Kiểm tra ẩn/hiển thị bằng CSS (đề phòng nút ảo)
+                    // Kiểm tra ẩn/hiển thị bằng CSS thực tế
                     const style = window.getComputedStyle(skipButton);
                     if (style.display !== 'none' && style.visibility !== 'hidden') {
                         
-                        clearInterval(checkInterval); // Ngừng vòng lặp kiểm tra ngay lập tức để tránh lỗi click ngầm
-                        console.log("🎯 Đã tìm thấy nút resumeBtn! Click và đợi 2s...");
+                        clearInterval(checkInterval); // Xóa lặp ngay lập tức để an toàn cho DOM mới
+                        console.log("🎯 Đã tìm thấy nút resumeBtn hiển thị! Click và đợi 2s...");
                         
-                        skipButton.click(); // Click 1 lần vào nó
+                        skipButton.click(); // Click vào nút
                         
                         setTimeout(function() {
                             runVideo(); // Chạy runVideo sau khi click 2 giây
@@ -1014,31 +1026,23 @@ function initCustomVideoFix() {
                     }
                 }
                 
-                // Trường hợp B: Đã quét hết 20 giây mà vẫn KHÔNG tìm thấy nút
+                // ĐIỀU KIỆN 3: Đã quét hết 20 giây mà cả video lẫn nút đều "bặt vô âm tín"
                 if (secondsPassed >= maxSeconds) {
                     clearInterval(checkInterval); // Dừng vòng lặp hẳn
-                    console.log("⏱ Hết 20 giây quét nút.");
+                    console.log("⏱ Đã hết 20 giây quét mà không tìm thấy gì.");
                     
-                    // Kiểm tra lại thẻ video lần cuối xem có xuất hiện muộn không
-                    if (document.querySelector('video')) {
-                        console.log("✓ May quá, video đã xuất hiện muộn. Chạy luôn!");
-                        runVideo();
-                    } else {
-                        // Nếu vẫn hoàn toàn không có video, hiển thị thông báo yêu cầu tương tác
-                        console.log("❌ Vẫn không có video. Hiển thị Toast thông báo.");
-                        
-                        showToast(
-                            "⚠️ Vui lòng nhấn vào màn hình hoặc nút Xem Tiếp để tiếp tục phát phim!",
-                            20000, // Show trong vòng 20s
-                            true,
-                            false
-                        );
-                        
-                        // Chạy hàm runVideo() luôn sau đó như bạn yêu cầu để ép trình phát custom lên
-                        runVideo();
-                    }
+                    // Hiển thị Toast thông báo yêu cầu người dùng tương tác trong 20s
+                    showToast(
+                        "⚠️ Vui lòng nhấn vào màn hình hoặc nút Xem Tiếp để tiếp tục phát phim!",
+                        20000,
+                        true,
+                        false
+                    );
+                    
+                    // Ép chạy hàm runVideo() luôn sau đó để dựng giao diện player custom lên
+                    runVideo();
                 }
-            }, 1000); // Lặp lại mỗi 1000ms (1 giây)
+            }, 1000); // Quét lại sau mỗi 1 giây (1000ms)
         })();
         injectScriptAfterLoad(SCRIPTURL);
     }
