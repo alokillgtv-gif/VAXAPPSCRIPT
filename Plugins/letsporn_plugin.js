@@ -6,7 +6,7 @@ function getManifest() {
         "id": "letsporn",
         "name": "Lets Porn",
         "description": "XXX Hay.",
-        "version": "1.1",
+        "version": "1.3",
         "BASEURL": "https://letsporn.com",
         "iconUrl": "https://static.letsporn.com/static/img/logo.png?v=1.2",
         "isEnabled": true,
@@ -194,9 +194,11 @@ function parseMovieDetail(html,$url) {
     var lname = "Đang cập nhật...";
     var ldes = "Không có mô tả.";
     var streamUrl = ""; // ĐÃ SỬA: Khai báo rõ ràng biến streamUrl tránh lỗi Global leak
-    limg = _$(outerHTML).find('.fp-poster').find("img").attr("src");
+    var $split = html.match(/thumbnailUrl:\s+["']([^"']+)["']/i);
+    if($split && $split[1]){limg = $split[1]}
     lname = _$(outerHTML).find('.fp-poster').find("img").attr("alt");
     ldes = _$(outerHTML).find('.video-description').text();
+    
     var $stream = "";
     var epi = [];
     epi.push({ id: $url, name: "Xem Ngay", slug: "full" });
@@ -242,12 +244,12 @@ function parseDetailResponse(html, url) {
             
        var $split2 = html.match(/video_alt_url:\s+["']([^"']+)["'][^}]*video_alt_url_text:\s+["']([^"']+)["']/i);
         if ($split && $split[1]) {
-            var $item = {"link":$split[1],"name":"Độ Phân Giải" + $split[2]}
-            $stream = $split[1];
+            var $item = {"link":$split[1],"name":"Độ Phân Giải " + $split[2]}
             $link.push($item);
         }
         if ($split2 && $split2[1]) {
-            var $item = { "link":$split2[1], "name": "Độ Phân Giải" + $split2[2] }
+            var $item = { "link":$split2[1], "name": "Độ Phân Giải " + $split2[2] }
+            $stream = $split2[1];
             $link.push($item);
         }
         var customjs = textJS($link);
