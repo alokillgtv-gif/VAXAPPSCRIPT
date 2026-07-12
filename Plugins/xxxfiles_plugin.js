@@ -640,7 +640,7 @@ globalThis.showToast = function(message, duration, check, scroll) {
         bigPlayBtn.id = 'big-play-btn';
         bigPlayBtn.textContent = '▶';
         bigPlayBtn.style.cssText =
-            'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;background:rgba(0,0,0,0.6);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:36px;cursor:pointer;z-index:15;';
+            'text-indent:10px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;background:rgba(0,0,0,0.6);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:36px;cursor:pointer;z-index:15;';
 
         var seekOverlay = document.createElement('div');
         seekOverlay.id = 'seek-overlay';
@@ -761,49 +761,73 @@ globalThis.showToast = function(message, duration, check, scroll) {
         var controlsTimeout = null;
         var isDraggingProgress = false;
         var isDraggingVideo = false;
-
-        // ─── LOCALSTORAGE: LƯU / KHÔI PHỤC VỊ TRÍ ───
-        var cleanStreamURL = stream1.split('?')[0];
-        var saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(cleanStreamURL);
+        
+        // ─── LOCALSTORAGE: LƯU / KHÔI PHỤC VỊ TRÍ THEO ĐỘ DÀI ───
         var lastSaveTime = 0;
-
+        
+        // Hàm phụ trợ: Chuyển đổi số giây thành chuỗi dạng HH_MM_SS để làm Key
+        function generateVideoKey() {
+            if (!video || !video.duration || isNaN(video.duration)) return null;
+            
+            var totalSeconds = Math.floor(video.duration);
+            var hours = Math.floor(totalSeconds / 3600);
+            var minutes = Math.floor((totalSeconds % 3600) / 60);
+            var seconds = totalSeconds % 60;
+            
+            // Thêm số 0 phía trước nếu nhỏ hơn 10
+            var pad = function(num) { return num < 10 ? '0' + num : num; };
+            
+            return 'VIDEO_' + pad(hours) + '_' + pad(minutes) + '_' + pad(seconds);
+        }
+        
         function savePosition() {
             if (!video || video.ended || !video.currentTime || isNaN(video.currentTime)) return;
+            
+            // Tạo key dựa trên thời lượng video hiện tại
+            var saveKey = generateVideoKey();
+            if (!saveKey) return; // Nếu chưa có duration thì không lưu
+            
             var now = Date.now();
             if (now - lastSaveTime < 4000) return; // debounce 4 giây
             lastSaveTime = now;
+            
             try {
                 // Chỉ lưu nếu đã xem quá 5s và còn hơn 5s cuối
-                if (video.currentTime > 5 && (!video.duration || isNaN(video.duration) || video
-                        .currentTime < video.duration - 5)) {
+                if (video.currentTime > 5 && (video.currentTime < video.duration - 5)) {
                     localStorage.setItem(saveKey, JSON.stringify({
                         time: video.currentTime,
-                        duration: video.duration || 0,
+                        duration: video.duration,
                         savedAt: now
                     }));
                 }
             } catch (e) {}
         }
-
+        
         function clearSavedPosition() {
             try {
-                localStorage.removeItem(saveKey);
+                var saveKey = generateVideoKey();
+                if (saveKey) {
+                    localStorage.removeItem(saveKey);
+                }
             } catch (e) {}
         }
-
+        
         function restorePosition() {
             try {
+                var saveKey = generateVideoKey();
+                if (!saveKey) return false; // Chưa có duration thì chưa khôi phục được
+                
                 var saved = localStorage.getItem(saveKey);
                 if (saved) {
                     var data = JSON.parse(saved);
                     // Chỉ cần có data.time > 5 là cho phép tua
                     if (data && data.time && data.time > 5) {
-                        // Nếu video đã load được duration, check xem có phải đang ở 5s cuối không
-                        if (video.duration && !isNaN(video.duration) && data.time >= video
-                            .duration - 5) {
+                        // Check xem có phải đang ở 5s cuối không
+                        if (data.time >= video.duration - 5) {
                             return false;
                         }
                         video.currentTime = data.time;
+                        // Gọi hàm showToast ở chế độ thường (hoặc scroll tuỳ bạn)
                         showToast('⏩ Đã tiếp tục phát từ ' + formatTime(data.time), 4000, true);
                         return true;
                     }
@@ -985,35 +1009,42 @@ globalThis.showToast = function(message, duration, check, scroll) {
             }
         });
 
-        // THÊM SỰ KIỆN NÀY ĐỂ CHUYÊN LÀM NHIỆM VỤ TUA VIDEO
+        // ─── THÊM SỰ KIỆN NÀY ĐỂ CHUYÊN LÀM NHIỆM VỤ TUA VIDEO ───
         video.addEventListener('loadedmetadata', function() {
+            // Gọi hàm khôi phục vị trí cũ ngay khi video load xong thông tin độ dài
             restorePosition();
         });
-
+        
         video.addEventListener('waiting', function() {
             spinner.style.display = 'block';
         });
+        
         video.addEventListener('playing', function() {
             spinner.style.display = 'none';
             bigPlayBtn.style.display = 'none';
         });
+        
         video.addEventListener('error', function() {
             spinner.style.display = 'none';
             showToast('Lỗi phát video! Nhấn 🔄 để tải lại.');
             btnPlay.textContent = '▶';
             bigPlayBtn.style.display = 'flex';
         });
+        
         video.addEventListener('timeupdate', function() {
             updateProgress();
+            // Tự động chạy hàm lưu vị trí (hàm này đã có sẵn debounce 4 giây chống lag)
             savePosition();
         });
+        
         video.addEventListener('ended', function() {
             btnPlay.textContent = '▶';
             bigPlayBtn.style.display = 'flex';
             isPlaying = false;
+            // Video đã xem hết hoàn toàn, xóa vị trí cũ để lần sau mở lại chạy từ đầu
             clearSavedPosition();
         });
-
+        
         video.addEventListener('click', function(e) {
             e.stopPropagation();
             if (isDraggingVideo) {
