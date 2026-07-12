@@ -347,7 +347,7 @@ function runVideo(){
         buildVideoWithOriginal(originalVideo, stream1, stream2, playlist);
     }
 
-    // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST (GIỮ NGUYÊN CODE CỦA BẠN) ───
+    // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST (GIỮ NGUYÊN CODE) ───
     function scanSources() {
         var activeSrc = '';
         var servers = [];
@@ -401,7 +401,7 @@ function runVideo(){
         return { activeSrc: activeSrc, servers: servers, episodes: episodes };
     }
 
-    // ─── HÀM TOAST CHỮ CHẠY GÕ PHÍM (GIỮ NGUYÊN CODE CỦA BẠN) ───
+    // ─── HÀM TOAST CHỮ CHẠY GÕ PHÍM ───
     globalThis.toastScrollQueue = globalThis.toastScrollQueue || [];
     globalThis.isToastScrollRunning = globalThis.isToastScrollRunning || false;
     globalThis.showToast = function(message, duration, check, scroll) {
@@ -856,7 +856,7 @@ function runVideo(){
         container.addEventListener('click', showControls);
         bigPlayBtn.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
 
-        // LẮP BỘ PHÍM TẮT ĐIỀU KHIỂN XỊN (GIỮ NGUYÊN CODE CỦA BẠN)
+        // LẮP BỘ PHÍM TẮT ĐIỀU KHIỂN XỊN
         document.addEventListener('keydown', function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             showControls();

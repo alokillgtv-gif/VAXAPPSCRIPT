@@ -655,28 +655,29 @@ function runVideo(){
         GetlinkVideo();
     }
 }
+// ─── THAY THẾ ĐOẠN CUỐI SCRIPT BẰNG ĐOẠN NÀY ───
 let isSkipping = false;
 
 const checkAndClick = setInterval(() => {
     const skipButton = document.getElementById("resumeBtn");
     
     if (skipButton) {
-        // Kiểm tra xem nút có bị ẩn bằng CSS không (nếu có thuộc tính display: none hoặc opacity: 0 thì bỏ qua)
+        // Kiểm tra xem nút có bị ẩn bằng CSS không
         const style = window.getComputedStyle(skipButton);
         if (style.display === 'none' || style.visibility === 'hidden') return;
         
+        // DỪNG KHẨN CẤP: Xóa interval ngay lập tức trước khi chạy player 
+        // để tránh việc quét nhầm trên DOM mới sau khi xóa innerHTML
+        clearInterval(checkAndClick);
+        
         skipButton.click();
-        //console.log("🎯 Đã phát hiện và kích hoạt nút bỏ qua quảng cáo!");
+        console.log("🎯 Đã kích hoạt nút và dừng bộ quét quảng cáo gốc.");
+        
         if (!isSkipping) {
             isSkipping = true;
-            clearInterval(checkAndClick);
-             setTimeout(function() {
+            setTimeout(function() {
                 runVideo();
             }, 5000);
-            // Reset lại trạng thái sau 2 giây để sẵn sàng cho quảng cáo tiếp theo (nếu có)
-           // setTimeout(() => { isSkipping = false; }, 2000);
         }
-        // LƯU Ý: ĐÃ XÓA clearInterval(checkAndClick) ở đây để script tiếp tục chạy
-        // đề phòng trường hợp có nhiều quảng cáo nối tiếp nhau.
     }
 }, 250);
