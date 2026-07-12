@@ -111,7 +111,7 @@ function parseMovieDetail(html) {
         var des = "\r\n\r\n" + html;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
-        var customjs = 'localStorage.setItem("adsd","1232");' + textJS();
+        var customjs = 'localStorage.setItem("adsd","1232");';
         return JSON.stringify({
             "id": id,
             "title": title,
