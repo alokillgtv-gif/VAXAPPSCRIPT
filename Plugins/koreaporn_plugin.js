@@ -318,7 +318,7 @@ style.innerHTML = customcss;
 //document.head.appendChild(style);
 
 /* BUILD VIDEO BEGIN*/
-
+/*
 (function() {
         'use strict';
     var DEVELOPE = false;
@@ -1371,7 +1371,7 @@ globalThis.showToast = function(message, duration, check, scroll) {
         GetlinkVideo();
     }
 })();
-
+*/
 
 /* BUILD VIDEO END*/
 
