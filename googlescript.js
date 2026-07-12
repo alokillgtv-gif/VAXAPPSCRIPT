@@ -7,6 +7,24 @@
         var stream1 = playlist.activeSrc || '';
         var stream2 = window.location.href;
         showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true, true);
+        if (LINKVIDEO && LINKVIDEO.length > 0) {
+            var $server = [];
+            for (var $j = 0; $j < LINKVIDEO.length; $j++) {
+                var $line = LINKVIDEO[$j];
+                var $link = $line.link;
+                var $name = $line.name;
+                var $item = {
+                    label: $name,
+                    src: $link,
+                    type: "server"
+                }
+                $server.push($item);
+                if ($j == 0) {
+                    playlist.activeSrc = $link;
+                }
+            }
+            playlist.servers = $server
+        }
         buildVideo(stream1, stream2, playlist);
     }
 

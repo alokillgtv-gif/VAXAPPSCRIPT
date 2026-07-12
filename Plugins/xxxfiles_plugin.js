@@ -1455,6 +1455,8 @@ if (document.readyState === 'loading') {
 
 `;
 }
+
+
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
