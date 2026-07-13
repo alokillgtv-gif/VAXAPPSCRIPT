@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimnganhdc",
         "name": "Phim Ngắn HDC",
         "description": "Phim ngắn trung quốc.",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://phimnganhdc.com",
         "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png",
         "isEnabled": true,
@@ -347,99 +347,127 @@ style.innerHTML = customcss;
 
 /* Build Video Begin*/
         (function() {
-            // 1. Dữ liệu server
-            const serverData = LINKVIDEO;
+    // 1. Dữ liệu server
+    const serverData = LINKVIDEO;
+    
+    // 2. Tiêm CSS động (Đã bổ sung hiệu ứng Loading và Style Nổi bật cho Server Active)
+    const style = document.createElement('style');
+    style.textContent = '.server-container { position: fixed; top: 15px; right: 15px; z-index: 10000; font-family: Arial, sans-serif; }.server-main-btn { background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); padding: 8px 16px; border-radius: 4px; cursor: pointer; backdrop-filter: blur(5px); font-weight: bold; }.server-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: rgba(20, 20, 20, 0.95); border: 1px solid #444; border-radius: 4px; min-width: 160px; overflow: hidden; }.server-dropdown.show { display: block; }.server-item { padding: 12px 15px; color: #ccc; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 14px; border-left: 4px solid transparent; }.server-item:hover { background: #333; color: #fff; }/* Style làm nổi bật server đang được chọn */.server-item.active { color: #fff; background: rgba(0, 255, 0, 0.15); border-left: 4px solid #00ff00; font-weight: bold; }.overlay-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9997; display: none; }.iframe-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; border: none; display: none; background: #000; }/* CSS cho phần hiển thị Loading */.server-loading-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; display: none; text-align: center; color: #fff; font-family: Arial, sans-serif; pointer-events: none;}.server-spinner { width: 45px; height: 45px; border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #00ff00; border-radius: 50%; margin: 0 auto 12px auto; animation: server-spin 0.8s linear infinite; }@keyframes server-spin {0% { transform: rotate(0deg); }100% { transform: rotate(360deg); }}';
+    document.head.appendChild(style);
+    
+    // 3. Khởi tạo các thành phần giao diện nền
+    const container = document.createElement('div');
+    container.className = 'server-container';
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay-black';
+    document.body.appendChild(overlay);
+    
+    // Tạo hộp thoại Loading
+    const loadingEl = document.createElement('div');
+    loadingEl.className = 'server-loading-box';
+    loadingEl.innerHTML = '<div class="server-spinner"></div><div>Đang tải server...</div>';
+    document.body.appendChild(loadingEl);
+    
+    // Lưu trữ các bộ nhớ đệm iframe
+    const iframeCache = {};
+    
+    function pauseAllVideos() {
+        document.querySelectorAll('video').forEach(v => v.pause());
+    }
+    
+    function switchServer(targetLink) {
+        const isCurrentPage = window.location.href.includes(targetLink) || targetLink.includes(window.location.href);
+        
+        if (isCurrentPage) {
+            // Quay về player gốc của trang web: tắt che phủ & ẩn các bản nhúng
+            overlay.style.display = 'none';
+            loadingEl.style.display = 'none';
+            document.querySelectorAll('.iframe-wrapper').forEach(el => el.style.display = 'none');
+            updateButtons(targetLink);
+            return;
+        }
+        
+        // Thực hiện chuyển tiếp server
+        pauseAllVideos();
+        overlay.style.display = 'block'; // Phủ nền đen che player cũ bên dưới
+        
+        // Ẩn tạm thời các iframe khác
+        document.querySelectorAll('.iframe-wrapper').forEach(el => el.style.display = 'none');
+        
+        // Nếu server này chưa từng chọn, tiến hành khởi tạo mới
+        if (!iframeCache[targetLink]) {
+            loadingEl.style.display = 'block'; // Bật vòng xoay loading
             
-            // 2. Tiêm CSS động
-            const style = document.createElement('style');
-            style.textContent = '.server-container { position: fixed; top: 15px; right: 15px; z-index: 10000; font-family: Arial, sans-serif; }.server-main-btn { background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); padding: 8px 16px; border-radius: 4px; cursor: pointer; backdrop-filter: blur(5px); }.server-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: rgba(20, 20, 20, 0.95); border: 1px solid #444; border-radius: 4px; min-width: 150px; }.server-dropdown.show { display: block; }.server-item { padding: 10px; color: #ccc; cursor: pointer; }.server-item.active { color: #00ff00; font-weight: bold; }.overlay-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9998; display: none; }.iframe-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; border: none; display: none; background: #000;}';
-            document.head.appendChild(style);
+            const iframe = document.createElement('iframe');
+            iframe.className = 'iframe-wrapper';
+            iframe.src = targetLink;
+            iframe.allowFullscreen = true;
+            iframe.allow = "autoplay; encrypted-media";
             
-            // 3. Khởi tạo container và overlay
-            const container = document.createElement('div');
-            container.className = 'server-container';
+            // Sự kiện bắt điểm: Khi iframe tải dữ liệu xong hoàn toàn
+            iframe.onload = function() {
+                loadingEl.style.display = 'none'; // Tắt hiệu ứng loading
+            };
             
-            const overlay = document.createElement('div');
-            overlay.className = 'overlay-black';
-            document.body.appendChild(overlay);
-            
-            // Lưu trữ các iframe đã tạo để không phải load lại
-            const iframeCache = {};
-            
-            function pauseAllVideos() {
-                document.querySelectorAll('video').forEach(v => v.pause());
+            document.body.appendChild(iframe);
+            iframeCache[targetLink] = iframe;
+        } else {
+            // Nếu đã có sẵn trong bộ nhớ cache (đã load xong trước đó), bật lên ngay lập tức
+            loadingEl.style.display = 'none';
+        }
+        
+        iframeCache[targetLink].style.display = 'block';
+        updateButtons(targetLink);
+    }
+    
+    function updateButtons(activeLink) {
+        document.querySelectorAll('.server-item').forEach(el => {
+            const link = el.getAttribute('data-link');
+            if (link === activeLink) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
             }
-            
-            function switchServer(targetLink) {
-                // Kiểm tra xem link có trùng với trang hiện tại không
-                const isCurrentPage = window.location.href.includes(targetLink) || targetLink.includes(window.location.href);
-                
-                if (isCurrentPage) {
-                    // Trường hợp quay về trang gốc: ẩn overlay và tất cả iframe
-                    overlay.style.display = 'none';
-                    document.querySelectorAll('.iframe-wrapper').forEach(el => el.style.display = 'none');
-                    // Cập nhật UI nút
-                    updateButtons(targetLink);
-                    return;
-                }
-                
-                // Trường hợp đổi server:
-                pauseAllVideos(); // Ngưng video
-                overlay.style.display = 'block'; // Hiện nền đen
-                
-                // Ẩn tất cả iframe hiện có
-                document.querySelectorAll('.iframe-wrapper').forEach(el => el.style.display = 'none');
-                
-                // Tạo mới hoặc hiển thị iframe đã có
-                if (!iframeCache[targetLink]) {
-                    const iframe = document.createElement('iframe');
-                    iframe.className = 'iframe-wrapper';
-                    iframe.src = targetLink;
-                    iframe.allowFullscreen = true;
-                    document.body.appendChild(iframe);
-                    iframeCache[targetLink] = iframe;
-                }
-                
-                iframeCache[targetLink].style.display = 'block';
-                updateButtons(targetLink);
-            }
-            
-            function updateButtons(activeLink) {
-                document.querySelectorAll('.server-item').forEach(el => {
-                    const link = el.getAttribute('data-link');
-                    el.classList.toggle('active', link === activeLink);
-                });
-            }
-            
-            // 4. Tạo giao diện nút bấm
-            const btn = document.createElement('button');
-            btn.className = 'server-main-btn';
-            btn.innerText = 'Chọn Server';
-            
-            const dropdown = document.createElement('div');
-            dropdown.className = 'server-dropdown';
-            
-            serverData.forEach(s => {
-                const item = document.createElement('div');
-                item.className = 'server-item';
-                item.innerText = s.name;
-                item.setAttribute('data-link', s.link);
-                item.onclick = () => {
-                    switchServer(s.link);
-                    dropdown.classList.remove('show');
-                };
-                dropdown.appendChild(item);
-            });
-            
-            btn.onclick = (e) => { e.stopPropagation();
-                dropdown.classList.toggle('show'); };
-            document.addEventListener('click', () => dropdown.classList.remove('show'));
-            
-            container.appendChild(btn);
-            container.appendChild(dropdown);
-            document.body.appendChild(container);
-            
-        })();
+        });
+    }
+    
+    // 4. Dựng cấu trúc Menu điều khiển
+    const btn = document.createElement('button');
+    btn.className = 'server-main-btn';
+    btn.innerText = 'Chọn Server';
+    
+    const dropdown = document.createElement('div');
+    dropdown.className = 'server-dropdown';
+    
+    serverData.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'server-item';
+        item.innerText = s.name;
+        item.setAttribute('data-link', s.link);
+        item.onclick = () => {
+            switchServer(s.link);
+            dropdown.classList.remove('show');
+        };
+        dropdown.appendChild(item);
+    });
+    
+    btn.onclick = (e) => { e.stopPropagation();
+        dropdown.classList.toggle('show'); };
+    document.addEventListener('click', () => dropdown.classList.remove('show'));
+    
+    container.appendChild(btn);
+    container.appendChild(dropdown);
+    document.body.appendChild(container);
+    
+    // Tự động kiểm tra để bôi màu highlight cho server mặc định ngay khi vừa truy cập trang
+    const currentUrl = window.location.href;
+    const initialMatch = serverData.find(s => currentUrl.includes(s.link) || s.link.includes(currentUrl));
+    if (initialMatch) {
+        updateButtons(initialMatch.link);
+    }
+    
+})();
     var DEVELOPE = false;
 // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
 function showToast(message, duration, check) {
