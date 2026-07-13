@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimnganhdc",
         "name": "Phim Ngắn HDC",
         "description": "Phim ngắn trung quốc.",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://phimnganhdc.com",
         "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png",
         "isEnabled": true,
