@@ -1,3 +1,4 @@
+// ### BLOCK START: UserScript Header & IIFE Start
 // ==UserScript==
 // @name         Web Interactive Lab & Inspector Dashboard PRO v16.3 (Stable Patch)
 // @namespace    http://tampermonkey.net/
@@ -25,7 +26,9 @@
     window.addEventListener('load', () => {
         window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
         if (window.self !== window.top) return;
+// END BLOCK: UserScript Header & IIFE Start
 
+        // ### BLOCK START: CSS Injection (High-Contrast Engine & CodeMirror)
         // ==========================================
         // 1. KHỞI TẠO VÀ NHÚNG CSS (HIGH-CONTRAST ENGINE STYLES & CODEMIRROR)
         // ==========================================
@@ -71,7 +74,7 @@
 
             /* Chế độ hiển thị màn hình (Ngang / Dọc) */
             .lab-dashboard-container.mode-horizontal { bottom: 5px; left: 0; width: 100vw; height: 45vh; border-top: 3px solid #3498db; }
-            
+
             .lab-dashboard-container.mode-vertical-right { top: 0; right: 0; height: 100vh !important; width: 35vw; border-left: 3px solid #2ecc71; }
             .lab-dashboard-container.mode-vertical-left { top: 0; left: 0; height: 100vh !important; width: 35vw; border-right: 3px solid #2ecc71; }
             .lab-dashboard-container.lab-vertical-panel-fullscreen { width: 100vw !important; }
@@ -143,9 +146,9 @@
             .obj-boolean { color: #bd93f9; font-style: italic; }
             .obj-null { color: #6272a4; }
             .obj-meta { color: #666; font-size: 10px; }
-#panelSnifferLab.lab-sub-select {
-    display: none;
-}
+            #panelSnifferLab.lab-sub-select {
+                display: none;
+            }
             .lab-family-tree-bar { display: flex; gap: 4px; background: #151515; padding: 4px 6px; border-radius: 4px; margin-bottom: 4px; border-bottom: 1px solid #252525; }
             .lab-geo-btn { padding: 2px 6px; border: none; font-size: 11px; font-weight: bold; color: #fff; border-radius: 3px; cursor: pointer; }
 
@@ -303,7 +306,9 @@
         document.head.appendChild(styleElement);
 
         const originalBodyStyle = { width: $('html').css('width'), overflowX: $('html').css('overflow-x') };
+        // END BLOCK: CSS Injection (High-Contrast Engine & CodeMirror)
 
+        // ### BLOCK START: HTML Dashboard Structure
         // ==========================================
         // 2. KHỞI TẠO CẤU TRÚC HTML DASHBOARD
         // ==========================================
@@ -381,6 +386,15 @@
                         <div class="lab-panel-header">
                             <span class="lab-panel-title">MÃ JS JQUERY (PRO EDITOR)</span>
                             <div class="lab-panel-actions">
+                                <select class="lab-select-size lab-font-size" title="Tăng size font">
+                                    <option value="13">13px</option>
+                                    <option value="15">15px</option>
+                                    <option value="16">16px</option>
+                                    <option value="17">17px</option>
+                                    <option value="18">18px</option>
+                                    <option value="19">19px</option>
+                                    <option value="20">20px</option>
+                                </select>
                                 <button class="lab-mini-btn btn-success" id="labBtnRunJs" style="margin-right:4px;">▶ </button>
                                 <button class="lab-mini-btn lab-btn-max" data-target="#panelJs">🔲 </button>
                                 <button class="lab-mini-btn btn-danger" id="labBtnClearJs">Xóa</button>
@@ -432,7 +446,9 @@
         function escapeHtml(str) {
             return str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
         }
+        // END BLOCK: HTML Dashboard Structure
 
+        // ### BLOCK START: Events & LocalStorage State Manager
         // ==========================================
         // 3. SỰ KIỆN VÀ LOCALSTORAGE TRẠNG THÁI
         // ==========================================
@@ -462,7 +478,9 @@
                 }
             }
         });
+        // END BLOCK: Events & LocalStorage State Manager
 
+        // ### BLOCK START: Console Override & Logging
         // ==========================================
         // 4. BẮT GHI ĐÈ BỘ CONSOLE
         // ==========================================
@@ -482,7 +500,9 @@
             _oldErr.apply(console, args);
             window.__labAppendLog(args.join(' '), 'error');
         };
+        // END BLOCK: Console Override & Logging
 
+        // ### BLOCK START: Object Tree Renderer
         // ==========================================
         // 5. TRÌNH TẠO CÂY ĐỐI TƯỢNG (OBJECT TREE RENDERER)
         // ==========================================
@@ -535,7 +555,9 @@
             });
             return $container;
         };
+        // END BLOCK: Object Tree Renderer
 
+        // ### BLOCK START: PostMessage Sandbox Communication
         // ==========================================
         // 6. KÊNH GIAO TIẾP VỚI SANDBOX BẰNG POSTMESSAGE
         // ==========================================
@@ -559,7 +581,9 @@
                 }
             }
         });
+        // END BLOCK: PostMessage Sandbox Communication
 
+        // ### BLOCK START: Sandbox Environment Initialization
         // ==========================================
         // 7. KHỞI TẠO MÔI TRƯỜNG SANDBOX CÔ LẬP
         // ==========================================
@@ -706,7 +730,9 @@
             }
             updateScreenSplitting();
         });
+        // END BLOCK: Sandbox Environment Initialization
 
+        // ### BLOCK START: JavaScript Dynamic Execution Engine
         // ==========================================
 // 8. BỘ MÁY THỰC THI JAVASCRIPT ĐỘNG (FIXED & UPGRADED)
 // ==========================================
@@ -754,374 +780,116 @@
                     return { translated, suggestion };
                 };
             }
-
-            // [2] Hàm thực thi chính
-// ==========================================
-// 8. BỘ MÁY THỰC THI JAVASCRIPT ĐỘNG (FULL TÍCH HỢP)
-// ==========================================
-// [1] Khởi tạo Bộ từ điển phiên dịch và gợi ý lỗi (Chỉ chạy 1 lần)
-if (!window.__labErrorTranslator) {
-    window.__labErrorTranslator = function(errName, errMsg) {
-        let translated = errMsg;
-        let suggestion = "Kiểm tra lại cú pháp hoặc logic code của bạn tại dòng được báo lỗi.";
-
-        if (errName === 'ReferenceError') {
-            if (errMsg.includes('is not defined')) {
-                let varName = errMsg.replace(' is not defined', '');
-                translated = `Biến ${varName} chưa được khai báo.`;
-                suggestion = `Hãy đảm bảo bạn đã khai báo ${varName} bằng 'let', 'const', hoặc 'var' trước khi sử dụng, và kiểm tra xem có gõ sai chính tả không.`;
-            }
-        } else if (errName === 'TypeError') {
-            if (errMsg.includes('is not a function')) {
-                translated = `Bạn đang gọi một đối tượng không phải là hàm.`;
-                suggestion = `Kiểm tra lại xem biến/thuộc tính đó có tồn tại và có thực sự là một hàm (function) hay không.`;
-            } else if (errMsg.includes('Cannot read properties of undefined') || errMsg.includes('Cannot read property')) {
-                translated = `Không thể đọc thuộc tính của một đối tượng bị rỗng (undefined/null).`;
-                suggestion = `Đối tượng bạn đang cố truy cập hiện không có dữ liệu. Hãy console.log đối tượng đó ra trước dòng này để kiểm tra.`;
-            } else if (errMsg.includes('Assignment to constant variable')) {
-                translated = `Gán giá trị mới cho hằng số (const).`;
-                suggestion = `Bạn không thể thay đổi giá trị của biến 'const'. Hãy đổi 'const' thành 'let' nếu muốn cập nhật lại giá trị.`;
-            }
-        } else if (errName === 'SyntaxError') {
-            if (errMsg.includes('Unexpected token')) {
-                translated = `Dư hoặc sai ký tự cú pháp.`;
-                suggestion = `Thường do bạn bị thiếu/dư dấu ngoặc đơn '()', ngoặc nhọn '{}', hoặc sai dấu phẩy/chấm phẩy.`;
-            } else if (errMsg.includes('Unexpected identifier') || errMsg.includes('Unexpected string')) {
-                translated = `Khai báo tên biến hoặc chuỗi sai cú pháp.`;
-                suggestion = `Kiểm tra xem bạn có quên dấu phẩy ngăn cách, nối chuỗi sai, hoặc đặt tên biến chứa khoảng trắng/ký tự lạ không.`;
-            } else if (errMsg.includes('missing ) after argument list')) {
-                translated = `Thiếu dấu đóng ngoặc ')' khi gọi hàm.`;
-                suggestion = `Hãy đếm lại số lượng dấu mở ngoặc '(' và đóng ngoặc ')' xem đã khớp nhau chưa.`;
-            }
-        } else if (errName === 'RangeError') {
-            if (errMsg.includes('Maximum call stack size exceeded')) {
-                translated = `Vượt quá giới hạn gọi hàm (Tràn bộ nhớ).`;
-                suggestion = `Bạn đang bị lặp vô tận. Kiểm tra lại các vòng lặp (for/while) hoặc đệ quy (hàm tự gọi lại chính nó) xem có điểm dừng không.`;
-            }
-        }
-
-        return { translated, suggestion };
-    };
-}
-
-// [2] Hàm thực thi chính
-        function executeJsEngine() {
-            let userCode = window.__labJsEditor ? window.__labJsEditor.getValue() : $('#labJsInput').val();
-            if (!userCode || !userCode.trim()) return;
-
-            const $consoleBox = $('#labConsoleLogBody');
-            $consoleBox.removeClass('flash-success flash-error');
-
-            // Đăng ký biến toàn cục outerHTML ngay tại môi trường Main trước khi chạy code
-            try {
-                window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
-            } catch(e) {
-                console.error("Không thể gán outerHTML toàn cục:", e);
-            }
-
-            try {
-                const base64Code = btoa(unescape(encodeURIComponent(userCode)));
-
-                // Nếu đang ở chế độ Sandbox cô lập
-                if (typeof isSandboxModeActive !== 'undefined' && isSandboxModeActive) {
-                    const $sandboxIframe = $('#labSandboxIframe');
-                    if ($sandboxIframe.length && $sandboxIframe[0].contentWindow) {
-                        $sandboxIframe[0].contentWindow.postMessage({ type: 'LAB_EXECUTE_JS', base64: base64Code }, '*');
+    // [2] Hàm thực thi chính
+            async function executeJsEngine() {
+                let userCode = window.__labJsEditor ? window.__labJsEditor.getValue() : $('#labJsInput').val();
+                if (!userCode || !userCode.trim()) return;
+            
+                const $consoleBox = $('#labConsoleLogBody');
+                $consoleBox.removeClass('flash-success flash-error');
+            
+                try {
+                    window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
+                } catch(e) {
+                    console.error("Không thể gán outerHTML toàn cục:", e);
+                }
+            
+                try {
+                    // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
+                    const helperUrl = '/js/cozy-jquery-helper.js'; 
+                    
+                    const response = await fetch(helperUrl);
+                    if (!response.ok) {
+                        throw new Error(`Không thể fetch file tiện ích tại: ${helperUrl}`);
                     }
-                    return;
-                }
-
-                if (!window.__labEscapeHtmlHelper) {
-                    window.__labEscapeHtmlHelper = function(str) {
-                        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    };
-                }
-
-                // Tạo thẻ script động thực thi trong môi trường gốc có bắt kết quả trả về (Return value)
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-
-                script.textContent = `
-                    try {
-                        // Đăng ký lại biến toàn cục bên trong ngữ cảnh script động phòng hờ
-                        window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
-
-                        // TÍCH HỢP BỘ HÀM COZY JQUERY ĐỘC QUYỀN TRÊN KHUNG JS ĐỘNG
-                        if (typeof window._$ === 'undefined') {
-                            window._$ = function(htmlOrBlock) {
-                                var instance = {
-                                    elements: Array.isArray(htmlOrBlock) ? htmlOrBlock : (htmlOrBlock ? [htmlOrBlock] : []),
-
-                                    find: function(selector) {
-                                        var results = [];
-
-                                        // --- XỬ LÝ :not(...) ---
-                                        var notSelector = "";
-                                        if (selector.indexOf(":not(") !== -1) {
-                                            var notMatch = selector.match(/:not\\(([^)]+)\\)/);
-                                            if (notMatch) {
-                                                notSelector = notMatch[1];
-                                                selector = selector.replace(/:not\\([^)]+\\)/, "");
-                                            }
-                                        }
-
-                                        // --- XỬ LÝ :first VÀ :last FLAGS ---
-                                        var isFirstFilter = selector.indexOf(":first") !== -1;
-                                        var isLastFilter = selector.indexOf(":last") !== -1;
-                                        selector = selector.replace(/:first|:last/g, "");
-
-                                        var isClass = selector.indexOf('.') === 0;
-                                        var isId = selector.indexOf('#') === 0;
-
-                                        var targetClasses = [];
-                                        var targetId = "";
-                                        var targetTagName = "";
-
-                                        if (isClass) {
-                                            targetClasses = selector.split('.').filter(function(c) { return c.length > 0; });
-                                        } else if (isId) {
-                                            targetId = selector.substring(1);
-                                        } else {
-                                            targetTagName = selector.toLowerCase();
-                                        }
-
-                                        for (var i = 0; i < this.elements.length; i++) {
-                                            var currentHtml = this.elements[i];
-                                            var pos = 0;
-                                            var subResults = [];
-
-                                            while ((pos = currentHtml.indexOf('<', pos)) !== -1) {
-                                                if (currentHtml.charAt(pos + 1) === '/' || currentHtml.charAt(pos + 1) === '!') {
-                                                    pos++;
-                                                    continue;
-                                                }
-
-                                                var endOpenTag = currentHtml.indexOf('>', pos);
-                                                if (endOpenTag === -1) break;
-
-                                                var fullOpenTag = currentHtml.substring(pos, endOpenTag + 1);
-
-                                                var spacePos = fullOpenTag.indexOf(' ');
-                                                var currentTagName = "";
-                                                if (spacePos === -1) {
-                                                    currentTagName = fullOpenTag.substring(1, fullOpenTag.length - 1).toLowerCase();
-                                                } else {
-                                                    currentTagName = fullOpenTag.substring(1, spacePos).toLowerCase();
-                                                }
-
-                                                var isMatched = false;
-
-                                                if (isClass) {
-                                                    var classMatchStr = "";
-                                                    var classPos = fullOpenTag.indexOf('class="');
-                                                    if (classPos !== -1) {
-                                                        var startQuote = classPos + 7;
-                                                        classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
-                                                    } else {
-                                                        classPos = fullOpenTag.indexOf("class='");
-                                                        if (classPos !== -1) {
-                                                            var startQuote = classPos + 7;
-                                                            classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
-                                                        }
-                                                    }
-                                                    if (classMatchStr) {
-                                                        var currentClasses = classMatchStr.split(/\\s+/);
-                                                        var matchCount = 0;
-                                                        for (var c = 0; c < targetClasses.length; c++) {
-                                                            if (currentClasses.indexOf(targetClasses[c]) !== -1) matchCount++;
-                                                        }
-                                                        if (matchCount === targetClasses.length) isMatched = true;
-                                                    }
-                                                } else if (isId) {
-                                                    var idMatchStr = "";
-                                                    var idPos = fullOpenTag.indexOf('id="');
-                                                    if (idPos !== -1) {
-                                                        var startQuote = idPos + 4;
-                                                        idMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
-                                                    } else {
-                                                        idPos = fullOpenTag.indexOf("id='");
-                                                        if (idPos !== -1) {
-                                                            var startQuote = idPos + 4;
-                                                            idMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
-                                                        }
-                                                    }
-                                                    if (idMatchStr === targetId) isMatched = true;
-                                                } else {
-                                                    if (currentTagName === targetTagName) isMatched = true;
-                                                }
-
-                                                if (isMatched) {
-                                                    var startTagPos = pos;
-                                                    var endTagPos = endOpenTag + 1;
-                                                    var selfClosingTags = ['img', 'source', 'input', 'br', 'hr', 'link', 'meta'];
-
-                                                    if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {
-                                                        var depth = 1;
-                                                        var scanPos = endOpenTag + 1;
-                                                        var openStr = '<' + currentTagName;
-                                                        var closeStr = '</' + currentTagName + '>';
-
-                                                        while (depth > 0 && scanPos < currentHtml.length) {
-                                                            var nextOpen = currentHtml.indexOf(openStr, scanPos);
-                                                            var nextClose = currentHtml.indexOf(closeStr, scanPos);
-                                                            if (nextClose === -1) { scanPos = currentHtml.length; break; }
-
-                                                            if (nextOpen !== -1 && nextOpen < nextClose) {
-                                                                depth++;
-                                                                scanPos = nextOpen + openStr.length;
-                                                            } else {
-                                                                depth--;
-                                                                scanPos = nextClose + closeStr.length;
-                                                                if (depth === 0) endTagPos = nextClose + closeStr.length;
-                                                            }
-                                                        }
-                                                    }
-
-                                                    var foundBlock = currentHtml.substring(startTagPos, endTagPos);
-
-                                                    if (notSelector) {
-                                                        var isNotClass = notSelector.indexOf('.') === 0;
-                                                        var isNotId = notSelector.indexOf('#') === 0;
-                                                        var notValue = notSelector.substring(1);
-
-                                                        var hasNot = false;
-                                                        if (isNotClass && fullOpenTag.indexOf('class="') !== -1 && fullOpenTag.indexOf(notValue) !== -1) hasNot = true;
-                                                        if (isNotId && fullOpenTag.indexOf('id="') !== -1 && fullOpenTag.indexOf(notValue) !== -1) hasNot = true;
-
-                                                        if (!hasNot) subResults.push(foundBlock);
-                                                    } else {
-                                                        subResults.push(foundBlock);
-                                                    }
-
-                                                    pos = endTagPos;
-                                                } else {
-                                                    pos++;
-                                                }
-                                            }
-
-                                            if (isFirstFilter && subResults.length > 0) subResults = [subResults[0]];
-                                            if (isLastFilter && subResults.length > 0) subResults = [subResults[subResults.length - 1]];
-
-                                            results = results.concat(subResults);
-                                        }
-
-                                        this.elements = results;
-                                        return this;
-                                    },
-
-                                    eq: function(index) {
-                                        if (index < 0) {
-                                            index = this.elements.length + index;
-                                        }
-                                        var matchedElement = this.elements[index];
-                                        this.elements = matchedElement ? [matchedElement] : [];
-                                        return this;
-                                    },
-
-                                    each: function(callback) {
-                                        for (var i = 0; i < this.elements.length; i++) {
-                                            callback.call(_$(this.elements[i]), i);
-                                        }
-                                        return this;
-                                    },
-
-                                    attr: function(attrName) {
-                                        if (this.elements.length === 0) return "";
-                                        var elem = this.elements[0];
-                                        var searchStr = attrName + '="';
-                                        var pos = elem.indexOf(searchStr);
-                                        if (pos === -1) {
-                                            searchStr = attrName + "='";
-                                            pos = elem.indexOf(searchStr);
-                                        }
-                                        if (pos === -1) return "";
-
-                                        var start = pos + searchStr.length;
-                                        var quoteType = elem.charAt(start - 1);
-                                        var end = elem.indexOf(quoteType, start);
-                                        return end === -1 ? "" : elem.substring(start, end);
-                                    },
-
-                                    text: function() {
-                                        if (this.elements.length === 0) return "";
-                                        var elem = this.elements[0];
-                                        var start = elem.indexOf('>') + 1;
-                                        var end = elem.lastIndexOf('</');
-                                        if (start > 0 && end > start) {
-                                            var content = elem.substring(start, end);
-                                            return content.replace(/<\\/?[^>]+(>|$)/g, "").trim();
-                                        }
-                                        return "";
-                                    }
-                                };
-
-                                return instance;
-                            };
+                    const libraryRawCode = await response.text();
+            
+                    const base64Code = btoa(unescape(encodeURIComponent(userCode)));
+            
+                    // Chế độ Sandbox cô lập
+                    if (typeof isSandboxModeActive !== 'undefined' && isSandboxModeActive) {
+                        const $sandboxIframe = $('#labSandboxIframe');
+                        if ($sandboxIframe.length && $sandboxIframe[0].contentWindow) {
+                            $sandboxIframe[0].contentWindow.postMessage({ type: 'LAB_EXECUTE_JS', base64: base64Code }, '*');
                         }
-
-                        // Thực thi code trực tiếp qua window.eval để lấy giá trị dòng cuối cùng
-                        const decodedCode = decodeURIComponent(escape(atob('${base64Code}')));
-                        const codeWithSourceMap = decodedCode + "\\n//# sourceURL=lab_dynamic_script.js";
-
-                        let rawResult = window.eval(codeWithSourceMap);
-
-                        const cBox = jQuery('#labConsoleLogBody');
-                        cBox.removeClass('flash-success flash-error');
-
-                        // Hiển thị kết quả lên Console Lab
-                        if (rawResult !== undefined) {
-                            if (typeof rawResult === 'object' && rawResult !== null) {
-                                const $treeNodeElement = window.__labBuildObjectTreeElement(rawResult);
-                                $treeNodeElement.addClass('lab-log-item').css({ 'padding-left': '14px', 'border-bottom': '1px solid #1a1a1a', 'margin-bottom': '4px' });
-                                cBox.prepend($treeNodeElement);
+                        return;
+                    }
+            
+                    if (!window.__labEscapeHtmlHelper) {
+                        window.__labEscapeHtmlHelper = function(str) {
+                            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        };
+                    }
+            
+                    const script = document.createElement('script');
+                    script.type = 'text/javascript';
+            
+                    // 🎯 NỐI CHUỖI TRỰC TIẾP: Ghép mã nguồn thư viện thô vừa fetch xong lên đầu
+                    script.textContent = libraryRawCode + "\n" + `
+                        try {
+                            window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
+            
+                            const decodedCode = decodeURIComponent(escape(atob('${base64Code}')));
+                            const codeWithSourceMap = decodedCode + "\\n//# sourceURL=lab_dynamic_script.js";
+            
+                            let rawResult = window.eval(codeWithSourceMap);
+            
+                            const cBox = jQuery('#labConsoleLogBody');
+                            cBox.removeClass('flash-success flash-error');
+            
+                            if (rawResult !== undefined) {
+                                if (typeof rawResult === 'object' && rawResult !== null) {
+                                    const $treeNodeElement = window.__labBuildObjectTreeElement(rawResult);
+                                    $treeNodeElement.addClass('lab-log-item').css({ 'padding-left': '14px', 'border-bottom': '1px solid #1a1a1a', 'margin-bottom': '4px' });
+                                    cBox.prepend($treeNodeElement);
+                                } else {
+                                    window.__labAppendLog(rawResult, 'return');
+                                }
+                                cBox.addClass('flash-success');
                             } else {
-                                window.__labAppendLog(rawResult, 'return');
+                                cBox.addClass('flash-success');
                             }
-                            cBox.addClass('flash-success');
-                        } else {
-                            cBox.addClass('flash-success');
+                            cBox.scrollTop(0);
+            
+                        } catch(err) {
+                            let lineNum = err.lineNumber || err.line;
+            
+                            if (!lineNum && err.stack) {
+                                let match = err.stack.match(/lab_dynamic_script\\.js:(\\d+)/);
+                                if (!match) match = err.stack.match(/eval.*?:(\\d+):\\d+/i);
+                                if (!match) match = err.stack.match(/<anonymous>:(\\d+)/i);
+                                if (match) lineNum = parseInt(match[1], 10);
+                            }
+            
+                            let safeName = err.name || 'Lỗi';
+                            let safeMsg = err.message || '';
+                            let errorInfo = window.__labErrorTranslator(safeName, safeMsg);
+            
+                            let vnMsg = window.__labEscapeHtmlHelper(errorInfo.translated);
+                            let vnSuggest = window.__labEscapeHtmlHelper(errorInfo.suggestion);
+                            let rawMsg = window.__labEscapeHtmlHelper(safeMsg);
+            
+                            let linkHtml = lineNum ? '<div style="margin-top: 8px;"><span class="lab-error-line-link" data-line="' + lineNum + '" style="display:inline-block; padding:4px 10px; background:#e74c3c; color:#fff; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯 Cuộn tới Dòng ' + lineNum + '</span></div>' : "";
+            
+                            let errorHtml = '<div class="lab-log-item lab-log-error" style="display:flex; flex-direction:column; align-items:flex-start; padding:10px; line-height: 1.6; border-left: 3px solid #ff5555;">' +
+                                                '<span style="font-weight:bold; font-size:13px; color:#ff5555;">🚨 ' + safeName + ': ' + vnMsg + '</span>' +
+                                                '<span style="font-size:11px; color:#888; margin-top:2px; font-family: monospace;"><i>Nguyên bản: ' + rawMsg + '</i></span>' +
+                                                '<span style="font-size:13px; color:#8be9fd; margin-top:6px; background: rgba(139, 233, 253, 0.1); padding: 4px 8px; border-radius: 4px;">💡 <b>Gợi ý:</b> ' + vnSuggest + '</span>' +
+                                                linkHtml +
+                                            '</div>';
+            
+                            jQuery('#labConsoleLogBody').prepend(errorHtml).removeClass('flash-success').addClass('flash-error').scrollTop(0);
                         }
-                        cBox.scrollTop(0);
-
-                    } catch(err) {
-                        let lineNum = err.lineNumber || err.line;
-
-                        if (!lineNum && err.stack) {
-                            let match = err.stack.match(/lab_dynamic_script\\.js:(\\d+)/);
-                            if (!match) match = err.stack.match(/eval.*?:(\\d+):\\d+/i);
-                            if (!match) match = err.stack.match(/<anonymous>:(\\d+)/i);
-                            if (match) lineNum = parseInt(match[1], 10);
-                        }
-
-                        let safeName = err.name || 'Lỗi';
-                        let safeMsg = err.message || '';
-                        let errorInfo = window.__labErrorTranslator(safeName, safeMsg);
-
-                        let vnMsg = window.__labEscapeHtmlHelper(errorInfo.translated);
-                        let vnSuggest = window.__labEscapeHtmlHelper(errorInfo.suggestion);
-                        let rawMsg = window.__labEscapeHtmlHelper(safeMsg);
-
-                        let linkHtml = lineNum ? '<div style="margin-top: 8px;"><span class="lab-error-line-link" data-line="' + lineNum + '" style="display:inline-block; padding:4px 10px; background:#e74c3c; color:#fff; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯 Cuộn tới Dòng ' + lineNum + '</span></div>' : "";
-
-                        let errorHtml = '<div class="lab-log-item lab-log-error" style="display:flex; flex-direction:column; align-items:flex-start; padding:10px; line-height: 1.6; border-left: 3px solid #ff5555;">' +
-                                            '<span style="font-weight:bold; font-size:13px; color:#ff5555;">🚨 ' + safeName + ': ' + vnMsg + '</span>' +
-                                            '<span style="font-size:11px; color:#888; margin-top:2px; font-family: monospace;"><i>Nguyên bản: ' + rawMsg + '</i></span>' +
-                                            '<span style="font-size:13px; color:#8be9fd; margin-top:6px; background: rgba(139, 233, 253, 0.1); padding: 4px 8px; border-radius: 4px;">💡 <b>Gợi ý:</b> ' + vnSuggest + '</span>' +
-                                            linkHtml +
-                                        '</div>';
-
-                        jQuery('#labConsoleLogBody').prepend(errorHtml).removeClass('flash-success').addClass('flash-error').scrollTop(0);
-                    }
-                `;
-
-                document.body.appendChild(script);
-                document.body.removeChild(script);
-
-            } catch (outerErr) {
-                window.__labAppendLog("[Lỗi Hệ Thống]: " + outerErr.message, 'error');
-                $consoleBox.addClass('flash-error');
+                    `;
+            
+                    document.body.appendChild(script);
+                    document.body.removeChild(script);
+            
+                } catch (outerErr) {
+                    window.__labAppendLog("[Lỗi Hệ Thống]: " + outerErr.message, 'error');
+                    $consoleBox.addClass('flash-error');
+                }
             }
-        }
 
 
         // 3. Sự kiện Click (Đã thêm stopPropagation để chặn sự cố click bị đè)
@@ -1150,12 +918,14 @@ if (!window.__labErrorTranslator) {
 
         $(document).on('click', '#labBtnRunJs', function(e) { e.preventDefault(); executeJsEngine(); });
         $jsInput.on('keydown', function(e) {
-            if (e.ctrlKey && (e.key === 'Enter' || e.keyCode === 13)) {
+            if (e.ctrlKey && (e.key === 'Enter' || e.keyCode === 13 || e.key === 'Space')) {
                 e.preventDefault();
                 executeJsEngine();
             }
         });
+        // END BLOCK: JavaScript Dynamic Execution Engine
 
+        // ### BLOCK START: DOM Inspector (Main Environment)
         // ==========================================
         // 9. TRÌNH QUAN SÁT DOM (INSPECTOR Ở MAIN ENVIRONMENT)
         // ==========================================
@@ -1247,7 +1017,9 @@ if (!window.__labErrorTranslator) {
             loadElementToTreeMain(savedTarget);
            $('#panelJs .lab-sub-select').val('#panelTreeDom').trigger('change')
         };
+        // END BLOCK: DOM Inspector (Main Environment)
 
+        // ### BLOCK START: Quick Hide Element (Right Click)
         // --- MODULE: QUICK HIDE ELEMENT (RIGHT CLICK) ---
         $('body').append('<div id="lab-quick-hide-menu" style="display:none; position:fixed; background:#e74c3c; color:#fff; padding:6px 12px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer; z-index:2147483647; box-shadow:0 4px 10px rgba(0,0,0,0.5);">🚫 Ẩn phần tử này</div>');
 
@@ -1303,7 +1075,9 @@ if (!window.__labErrorTranslator) {
                 else if(mode === 'grand' && savedGrand) { loadElementToTreeMain(savedGrand); }
             }
         }
+        // END BLOCK: Quick Hide Element (Right Click)
 
+        // ### BLOCK START: Family Tree Navigation (10 Levels)
         // ==========================================
         // ĐIỀU HƯỚNG PHẢ HỆ 10 CẤP + NÚT ĐẢO CHIỀU (XUỐNG)
         // ==========================================
@@ -1370,7 +1144,9 @@ if (!window.__labErrorTranslator) {
                 $treeDomBody.empty().append(buildDomTreeMain(targetNode));
             }
         });
+        // END BLOCK: Family Tree Navigation (10 Levels)
 
+        // ### BLOCK START: UI & Resize Panel Manager
         // ==========================================
         // 10. QUẢN LÝ GIAO DIỆN VÀ RESIZE PANEL
         // ==========================================
@@ -1463,7 +1239,6 @@ if (!window.__labErrorTranslator) {
             }, 100);
         });
 
-       
         $('.lab-btn-toggle').on('click', function() {
 
             const target = $(this).data('target');
@@ -1480,8 +1255,9 @@ if (!window.__labErrorTranslator) {
             if (window.__labCssEditor) window.__labCssEditor.refresh();
             if (typeof window.__labV163UpdateFloatingConsole === 'function') setTimeout(window.__labV163UpdateFloatingConsole, 50); // [UPDATE]
         });
+        // END BLOCK: UI & Resize Panel Manager
 
-
+        // ### BLOCK START: Draggable FAB Button
         // --- MODULE: DRAGGABLE FAB ---
         let isFabDragging = false;
         const $fabWrapper = $('.lab-fab-wrapper');
@@ -1523,7 +1299,9 @@ if (!window.__labErrorTranslator) {
             }
             setTimeout(() => { updateScreenSplitting(); }, 50); // [UPDATE] Đợi DOM render để js đo được height chính xác
         });
+        // END BLOCK: Draggable FAB Button
 
+        // ### BLOCK START: FAB Right-Click Scroll Handler
         // [NEW] Chức năng Right-Click trên nút FAB để scroll trang Web
         let fabRightClickTimer = null;
         let fabRightClickCount = 0;
@@ -1594,7 +1372,9 @@ if (!window.__labErrorTranslator) {
 
             $(document).on('mouseup.lab-resize', function() { $(document).off('mousemove.lab-resize mouseup.lab-resize'); });
         });
+        // END BLOCK: FAB Right-Click Scroll Handler
 
+        // ### BLOCK START: Panel Drag & Drop (Free Move)
         // [NEW] Cho phép 4 ô panel còn lại Kéo Thả tùy ý khi Mousedown vào Header
         $('.lab-panel-header').on('mousedown.labPanelDragFree', function(e) {
             const $panel = $(this).closest('.lab-panel');
@@ -1645,7 +1425,9 @@ if (!window.__labErrorTranslator) {
             if (window.__labCssEditor) window.__labCssEditor.refresh();
             setTimeout(syncSnifferLayout, 60);
         });
+        // END BLOCK: Panel Drag & Drop (Free Move)
 
+        // ### BLOCK START: Smart CSS Grouping & Quick-Option Popover
         // ==========================================
         // 11. EXTENSION ULTRA V4.2: SMART CSS GROUPING & QUICK-OPTION POPOVER
         // ==========================================
@@ -1887,7 +1669,9 @@ if (!window.__labErrorTranslator) {
                 $children.toggleClass('hidden');
             });
         });
+        // END BLOCK: Smart CSS Grouping & Quick-Option Popover
 
+        // ### BLOCK START: Zero-Impact Sniffer & Deep Network Interceptor
         // ==========================================
         // 12. EXTENSION PRO++ V12: ZERO-IMPACT SNIFFER & DEEP NETWORK INTERCEPTOR
         // ==========================================
@@ -2084,7 +1868,9 @@ if (!window.__labErrorTranslator) {
             $btnToggleSniffer.text('🌐').css('background', '#27ae60');
             syncSnifferLayout();
         });
+        // END BLOCK: Zero-Impact Sniffer & Deep Network Interceptor
 
+        // ### BLOCK START: Pro Code Editor Engine
         // ==========================================
         // 13. EXTENSION ULTRA V15: PRO CODE EDITOR ENGINE
         // ==========================================
@@ -2150,7 +1936,9 @@ if (!window.__labErrorTranslator) {
         }
 
         initProCodeEditors();
+        // END BLOCK: Pro Code Editor Engine
 
+        // ### BLOCK START: Mini Tree DOM Search
         // --- MODULE: MINI TREE DOM SEARCH ---
 let miniSearchMatches = [];
 let miniSearchIndex = -1;
@@ -2194,27 +1982,30 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
         }, 5000);
     }
 });
+        // END BLOCK: Mini Tree DOM Search
 
-// --- MODULE: SYNC TREE HOVER TO WEB ELEMENT ---
-$('#labTreeDomBody').on('mouseenter', '.tree-node', function(e) {
-    e.stopPropagation();
-    let realNode = $(this).data('real-node');
-    if (realNode && realNode.nodeType === 1) { // Đảm bảo là Element
-        $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
-        $(realNode).addClass('lab-tree-sync-highlight');
-    }
-}).on('mouseleave', '.tree-node', function(e) {
-    $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
-});
-// Xóa highlight khi đóng Dashboard
-$fabBtn.on('click', function() {
-    $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
-});
+        // ### BLOCK START: Sync Tree Hover to Web Element
+        // --- MODULE: SYNC TREE HOVER TO WEB ELEMENT ---
+        $('#labTreeDomBody').on('mouseenter', '.tree-node', function(e) {
+            e.stopPropagation();
+            let realNode = $(this).data('real-node');
+            if (realNode && realNode.nodeType === 1) { // Đảm bảo là Element
+                $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+                $(realNode).addClass('lab-tree-sync-highlight');
+            }
+        }).on('mouseleave', '.tree-node', function(e) {
+            $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+        });
+        // Xóa highlight khi đóng Dashboard
+        $fabBtn.on('click', function() {
+            $('.lab-tree-sync-highlight').removeClass('lab-tree-sync-highlight');
+        });
 
+        // GỌI HÀM KHỞI TẠO EDITOR
+        initProCodeEditors();
+        // END BLOCK: Sync Tree Hover to Web Element
 
-// GỌI HÀM KHỞI TẠO EDITOR
-initProCodeEditors();
-
+        // ### BLOCK START: Right-Click Zoom & Copy
         // ==========================================
         // 14. NÂNG CẤP TOÀN DIỆN V15: CHUỘT PHẢI PHÓNG TO + SAO CHÉP
         // ==========================================
@@ -2254,7 +2045,9 @@ initProCodeEditors();
             document.execCommand("copy");
             $temp.remove();
         }
+        // END BLOCK: Right-Click Zoom & Copy
 
+        // ### BLOCK START: Pro Max Engine V16.1 (Smart Panel Switch)
         // =========================================================================
         // ★ 15. EXTENSION ULTRA V16.1: PRO MAX ENGINE
         // =========================================================================
@@ -2272,8 +2065,8 @@ initProCodeEditors();
                 .lab-layout-engine.has-maximized.has-sub-panel { position: relative !important; }
                 .lab-layout-engine.has-maximized.has-sub-panel .lab-panel.lab-panel-maximized { width: calc(100% * 4 / 7) !important; }
                 .lab-layout-engine.has-maximized .lab-panel.lab-sub-panel-active { display: flex !important; position: absolute !important; top: 0 !important; right: 0 !important; width: calc(100% * 3 / 7) !important; height: 100% !important; z-index: 2147483645 !important; border-left: 2px solid #e67e22 !important; box-shadow: -6px 0 20px rgba(0,0,0,0.8) !important; }
-                .lab-sub-select { background: #151515; color: #50fa7b; border: 1px solid #3498db; font-size: 11px; padding: 1px 4px; border-radius: 3px; font-weight: bold; cursor: pointer; outline: none; margin-right: 4px;width:80px; }
-                .lab-sub-select:hover { border-color: #2ecc71; }
+                .lab-sub-select,.lab-select-size { background: #151515; color: #50fa7b; border: 1px solid #3498db; font-size: 11px; padding: 1px 4px; border-radius: 3px; font-weight: bold; cursor: pointer; outline: none; margin-right: 4px;width:80px; }
+                .lab-sub-select:hover,.lab-select-size:hover { border-color: #2ecc71; }
             `;
             document.head.appendChild(v16Style);
 
@@ -2369,7 +2162,15 @@ initProCodeEditors();
                     if (window.__labCssEditor) window.__labCssEditor.refresh();
                 }, 50);
             }
-
+            $(document).on('change', '.lab-select-size', function(e) {
+                e.stopPropagation();
+                $("#fontSizeLab").remove();
+                const px = Number($(this).val());
+                const ln = px + 3;
+                const $clickedPanel = $(this);
+                const css = `<style id="fontSizeLab">.CodeMirror{font-size:${px}px!important;line-height:${ln}px}</style>`;
+                $("body").append(css);
+            });
             $(document).on('change', '.lab-sub-select', function(e) {
                 e.stopPropagation();
                 const targetPanelId = $(this).val();
@@ -2403,7 +2204,9 @@ initProCodeEditors();
 
             $('#labBtnToggleOrientation, #labBtnResetLayout').on('click.v16clean', closeSubPanel);
         })();
+        // END BLOCK: Pro Max Engine V16.1 (Smart Panel Switch)
 
+        // ### BLOCK START: Safe Patch V16.3 (UI/Drag/CM Isolation)
         // =========================================================================
         // ★ PATCH V16.3 SAFE UPGRADE: SỬA LỖI UI/KÉO THẢ/CÁCH LY CODEMIRROR
         // =========================================================================
@@ -2621,82 +2424,107 @@ initProCodeEditors();
             $('#labBtnQuickExtractLinks').remove();
             const $btnQuickExtract = $('<button class="lab-mini-btn btn-success" id="labBtnQuickExtractLinks" style="margin-right:4px;" title="Trích xuất toàn bộ Link bên trong Node này">🔗</button>');
             $('#panelTreeDom .lab-panel-actions').prepend($btnQuickExtract);
-
+            
             function v163SetCurrentTreeElement(element) {
                 if (!element || element.nodeType !== 1) return;
                 v163CurrentTreeElement = element;
                 try { localStorage.setItem(LS_TREE_TARGET_KEY, element.outerHTML || ''); } catch (err) {}
             }
-
+            
             $(document).on('contextmenu.v163CaptureTarget', function(e) {
                 // [UPDATE] Chặn bắt sự kiện viền hắt vào bảng Sniffer
-                if ($(e.target).closest('##labHtmlSourceModal,#labMainDashboard, #labCssQuickMenu, .CodeMirror-hints, #panelSnifferLab,#quick-extract-modal,.lab-inspect-child').length || $(e.target).is('#labSandboxIframe')) return;
+                if ($(e.target).closest('#labHtmlSourceModal,#labMainDashboard, #labCssQuickMenu, .CodeMirror-hints, #panelSnifferLab,#quick-extract-modal,.lab-inspect-child').length || $(e.target).is('#labSandboxIframe')) return;
                 v163SetCurrentTreeElement(e.target);
             });
-
+            
             $('#labFamilyTreeBar').on('click.v163CaptureLayer', '.lab-geo-btn', function() {
                 setTimeout(() => {
                     const $pinned = $('.lab-pinned-child, .lab-pinned-parent, .lab-pinned-grand, .lab-pinned-great-grand, .lab-pinned-great-great-grand, .lab-pinned-ancestors, .lab-pinned-layer7, .lab-pinned-layer8, .lab-pinned-layer9, .lab-pinned-layer10').first();
                     if ($pinned.length) v163SetCurrentTreeElement($pinned[0]);
                 }, 80);
             });
-
-function v163ExtractLinksFromElement(rootElement, extractType = 'default') {
-    if (!rootElement || rootElement.nodeType !== 1) return '';
-    const links = [];
-    const $root = $(rootElement);
-
-    if ($root.is('a[href]')) links.push(rootElement);
-    $root.find('a[href]').each(function() { links.push(this); });
-
-    return links.map(a => {
-        const href = a.href || $(a).attr('href') || '';
-        let name = '';
-        const $a = $(a);
-
-        // Danh sách các loại dùng thuộc tính (attribute)
-        const attrTypes = ['title', 'alt', 'data-title', 'data-alt','src','name'];
-
-        if (extractType === 'default') {
-            // Mặc định ban đầu: Lấy text trực tiếp của thẻ <a>
-            name = $a.text();
-        } else if (attrTypes.includes(extractType)) {
-            // Nếu chọn title, alt, data-... thì lấy attribute của thẻ <a> hoặc của ảnh bên trong nó
-            name = $a.attr(extractType) || $a.find(`[${extractType}]`).first().attr(extractType) || '';
-        } else {
-            // Nếu chọn tag như h1, h2, h3, span, p, b, i...
-            // Tìm thẻ đó nằm BÊN TRONG thẻ <a> trước, nếu không có thì fallback về text của <a>
-            const $targetTag = $a.find(extractType);
-            name = $targetTag.length ? $targetTag.text() : $a.text();
-        }
-
-        // Xử lý khoảng trắng và xuống dòng như cũ
-        name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
-
-        if (name.length < 4) {
-            return "";
-        }
-        var stringurl = href + '@@' + name;
-        return stringurl.replace(/^https?:\/\/[^\/]+/i, "")
-    }).filter(Boolean).join('\n');
-}
-
-$btnQuickExtract.on('click', function(e) {
-    e.preventDefault(); e.stopPropagation();
-    $("#labBtnClearConsole").click();
-    $("#quick-extract-modal").remove();
-    // 1. Tạo giao diện Popup nhập liệu bằng jQuery
-    const options = ['title', 'src', 'alt', 'data-title', 'data-alt', 'h1', 'h2', 'h3', 'span', 'p', 'b', 'i'];
-
-    // Giao diện HTML của Popup
-    const $popup = $(`
+            
+            // HÀM ĐƯỢC NÂNG CẤP: Thêm tham số customSelector để cố định vùng tìm kiếm dữ liệu
+            function v163ExtractLinksFromElement(rootElement, extractType = 'default', customSelector = '') {
+                if (!rootElement || rootElement.nodeType !== 1) return '';
+                const links = [];
+                const $root = $(rootElement);
+                
+                // Xác định bộ chọn tìm kiếm: Ưu tiên bộ chọn tùy biến, nếu không có thì lấy mọi thẻ a[href]
+                const targetSelector = customSelector.trim() || 'a[href]';
+                
+                // Tìm kiếm các phần tử nằm bên trong phạm vi nút gốc khớp với bộ chọn
+                $root.find(targetSelector).each(function() {
+                    if ($(this).is('a[href]')) {
+                        links.push(this);
+                    } else {
+                        // Nếu người dùng chỉ nhập nhóm cha (ví dụ: .list hoặc #id), đào sâu tìm các thẻ a[href] bên trong nó
+                        $(this).find('a[href]').each(function() {
+                            if (!links.includes(this)) links.push(this);
+                        });
+                    }
+                });
+                
+                // Kiểm tra trường hợp đặc biệt nếu chính bản thân nút gốc khớp với bộ chọn thiết lập
+                if ($root.is(targetSelector) && $root.is('a[href]')) {
+                    if (!links.includes(rootElement)) links.push(rootElement);
+                }
+                
+                return links.map(a => {
+                    const href = a.href || $(a).attr('href') || '';
+                    let name = '';
+                    const $a = $(a);
+                    
+                    // Danh sách các loại dùng thuộc tính (attribute)
+                    const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
+                    
+                    if (extractType === 'default') {
+                        // Mặc định ban đầu: Lấy text trực tiếp của thẻ <a>
+                        name = $a.text();
+                    } else if (attrTypes.includes(extractType)) {
+                        // Nếu chọn title, alt, data-... thì lấy attribute của thẻ <a> hoặc của ảnh bên trong nó
+                        name = $a.attr(extractType) || $a.find(`[${extractType}]`).first().attr(extractType) || '';
+                    } else {
+                        // Nếu chọn tag như h1, h2, h3, span, p, b, i...
+                        // Tìm thẻ đó nằm BÊN TRONG thẻ <a> trước, nếu không có thì fallback về text của <a>
+                        const $targetTag = $a.find(extractType);
+                        name = $targetTag.length ? $targetTag.text() : $a.text();
+                    }
+                    
+                    // Xử lý khoảng trắng và xuống dòng như cũ
+                    name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
+                    
+                    if (name.length < 4) {
+                        return "";
+                    }
+                    var stringurl = href + '@@' + name;
+                    return stringurl.replace(/^https?:\/\/[^\/]+/i, "")
+                }).filter(Boolean).join('\n');
+            }
+            
+            $btnQuickExtract.on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $("#labBtnClearConsole").click();
+                $("#quick-extract-modal").remove();
+                
+                const options = ['title', 'src', 'alt', 'data-title', 'data-alt', 'h1', 'h2', 'h3', 'span', 'p', 'b', 'i'];
+                
+                // GIAO DIỆN MỚI: Bổ sung trường nhập Cố định Phạm vi CSS Selector
+                const $popup = $(`
         <div id="quick-extract-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999999999999; display:flex; align-items:center; justify-content:center; font-family:Arial, sans-serif;">
             <div style="background:#fff; padding:20px; border-radius:8px; width:400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                <h4 style="margin-top:0; color:#333;">Chọn kiểu trích xuất tên:</h4>
-                <p style="font-size:12px; color:#666; background:#f5f5f5; padding:8px; border-radius:4px; max-height:60px; overflow-y:auto;">
-                    ${options.join(', ')}
+                <h4 style="margin-top:0; color:#333; margin-bottom:12px;">Cấu hình trích xuất Link nâng cao</h4>
+                
+                <label style="font-size:12px; font-weight:bold; color:#555; display:block; margin-bottom:4px;">1. Cố định vùng tìm kiếm (CSS Selector):</label>
+                <input type="text" id="extract-selector-input" value="" placeholder="Ví dụ: .list a hoặc #id a (Để trống nếu lấy hết)" style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-size:13px; margin-bottom:12px; outline:none;color:black"/>
+                
+                <label style="font-size:12px; font-weight:bold; color:#555; display:block; margin-bottom:4px;">2. Kiểu trích xuất tên (Extract Type):</label>
+                <input type="text" id="extract-type-input" value="default" placeholder="Nhập tag hoặc attribute..." style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-size:13px; margin-bottom:5px; outline:none;color:black"/>
+                
+                <p style="font-size:11px; color:#666; background:#f5f5f5; padding:6px; border-radius:4px; max-height:50px; overflow-y:auto; margin-top:0; margin-bottom:15px;">
+                    Gợi ý thuộc tính: ${options.join(', ')}
                 </p>
-                <input type="text" id="extract-type-input" value="default" placeholder="Nhập tag hoặc attribute..." style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-size:14px; margin-bottom:15px; outline:none;"/>
                 <div style="text-align:right;">
                     <button id="btn-extract-cancel" style="padding:6px 12px; margin-right:8px; background:red;color:white; border:none; border-radius:4px; cursor:pointer;">Hủy</button>
                     <button id="btn-extract-submit" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px; cursor:pointer;">Xác nhận (Enter)</button>
@@ -2704,62 +2532,66 @@ $btnQuickExtract.on('click', function(e) {
             </div>
         </div>
     `);
-
-    $('body').append($popup);
-
-    // Tự động focus chuột vào ô nhập và bôi đen chữ "default" để tiện gõ đè
-    const $input = $('#extract-type-input');
-    $input.focus().select();
-
-    // Hàm xử lý chính khi người dùng nhấn Xác nhận // Hàm trích xuất url list
-    function processExtraction() {
-        let extractType = $input.val().trim().toLowerCase();
-        if (!options.includes(extractType)) {
-            extractType = 'default';
-        }
-
-        let output = '';
-        if (v163CurrentTreeElement) {
-            output = v163ExtractLinksFromElement(v163CurrentTreeElement, extractType);
-        }
-
-        if (!output) {
-            try {
-                const savedOuter = localStorage.getItem(LS_TREE_TARGET_KEY);
-                if (savedOuter) {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = savedOuter;
-                    output = v163ExtractLinksFromElement(temp.firstElementChild, extractType);
+                
+                $('body').append($popup);
+                
+                const $selectorInput = $('#extract-selector-input');
+                const $typeInput = $('#extract-type-input');
+                
+                // Mặc định tự động focus vào ô chọn kiểu tên, bôi đen chữ để người dùng thao tác nhanh
+                $typeInput.focus().select();
+                
+                // Hàm xử lý chính khi người dùng nhấn Xác nhận
+                function processExtraction() {
+                    let extractType = $typeInput.val().trim().toLowerCase();
+                    if (!options.includes(extractType)) {
+                        extractType = 'default';
+                    }
+                    
+                    // Lấy bộ lọc vùng tìm kiếm do người dùng chỉ định
+                    const customSelector = $selectorInput.val().trim();
+                    
+                    let output = '';
+                    if (v163CurrentTreeElement) {
+                        output = v163ExtractLinksFromElement(v163CurrentTreeElement, extractType, customSelector);
+                    }
+                    
+                    if (!output) {
+                        try {
+                            const savedOuter = localStorage.getItem(LS_TREE_TARGET_KEY);
+                            if (savedOuter) {
+                                const temp = document.createElement('div');
+                                temp.innerHTML = savedOuter;
+                                output = v163ExtractLinksFromElement(temp.firstElementChild, extractType, customSelector);
+                            }
+                        } catch (err) {}
+                    }
+                    
+                    if (!output) output = '[Quick Extract] Không tìm thấy dữ liệu phù hợp với cấu hình thiết lập!';
+                    
+                    if (typeof window.__labAppendLog === 'function') window.__labAppendLog(output, 'return');
+                    else $consoleLog.prepend('<div class="lab-log-item lab-log-return"><span>' + $('<div>').text(output).html() + '</span></div>');
+                    v163SaveConsoleHistory();
+                    
+                    // Xóa popup sau khi chạy xong
+                    $popup.remove();
+                    $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
                 }
-            } catch (err) {}
-        }
-
-        if (!output) output = '[Quick Extract] Không tìm thấy dữ liệu phù hợp với cấu hình: ' + extractType;
-
-        if (typeof window.__labAppendLog === 'function') window.__labAppendLog(output, 'return');
-        else $consoleLog.prepend('<div class="lab-log-item lab-log-return"><span>' + $('<div>').text(output).html() + '</span></div>');
-        v163SaveConsoleHistory();
-
-        // Xóa popup sau khi chạy xong
-        $popup.remove();
-        $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
-    }
-
-    // --- BẮT SỰ KIỆN NHẤN ENTER ---
-    $input.on('keydown', function(evt) {
-        if (evt.key === 'Enter') {
-            evt.preventDefault();
-            processExtraction(); // Chạy luôn khi nhấn Enter
-        } else if (evt.key === 'Escape') {
-            $popup.remove(); // Nhấn Thoát (Esc) để hủy nhanh
-        }
-    });
-
-    // Bắt sự kiện click các nút trên giao diện
-    $('#btn-extract-submit').on('click', processExtraction);
-    $('#btn-extract-cancel').on('click', function() { $popup.remove(); });
-
-});
+                
+                // --- BẮT SỰ KIỆN PHÍM TẮT TRÊN CẢ HAI Ô NHẬP ---
+                $typeInput.add($selectorInput).on('keydown', function(evt) {
+                    if (evt.key === 'Enter') {
+                        evt.preventDefault();
+                        processExtraction();
+                    } else if (evt.key === 'Escape') {
+                        $popup.remove();
+                    }
+                });
+                
+                // Bắt sự kiện click các nút trên giao diện
+                $('#btn-extract-submit').on('click', processExtraction);
+                $('#btn-extract-cancel').on('click', function() { $popup.remove(); });
+            });
 
             // ------------------------------------------------------------
             // 5. Đồng bộ Lớp (activeMode) & Đảo chiều đi xuống
@@ -2950,10 +2782,13 @@ $btnQuickExtract.on('click', function(e) {
                 if (window.__labCssEditor) window.__labCssEditor.refresh();
             }, 500);
         })();
+        // END BLOCK: Safe Patch V16.3 (UI/Drag/CM Isolation)
 
-
+// ### BLOCK START: Full-Screen HTML Source Viewer  3496
 // [UPDATE SOURCE]
-const htmlSourceStyle = document.createElement('style');
+// ### BLOCK START: Full-Screen HTML Source Viewer  3496
+// [UPDATE SOURCE WITH CLEAN COPY & MULTI-URL FETCH]
+        const htmlSourceStyle = document.createElement('style');
         htmlSourceStyle.id = 'lab-html-source-viewer-styles';
         htmlSourceStyle.textContent = `
             /* [BẢO VỆ CHỐNG GIẬT KHUNG GIỮA 2 CỘT] Vô hiệu hóa hiệu ứng chuyển động nhiễm từ trang gốc */
@@ -2978,19 +2813,21 @@ const htmlSourceStyle = document.createElement('style');
 
             #labHtmlSourceModal .lab-html-modal-header {
                 background: #151515 !important; border-bottom: 2px solid #3498db !important;
-                padding: 8px 14px !important; display: flex !important; align-items: center !important; gap: 10px !important;
+                padding: 8px 14px !important; display: flex !important; align-items: center !important; gap: 12px !important;
                 flex-shrink: 0 !important; height: 48px !important;
             }
             #labHtmlSourceModal .lab-html-modal-title { color: #3498db !important; font-weight: bold !important; font-size: 13px !important; white-space: nowrap !important; }
 
             #labHtmlSourceModal .lab-html-search-wrap {
-                display: flex !important; align-items: center !important; gap: 6px !important; flex: 1 !important; max-width: 750px !important;
+                display: flex !important; align-items: center !important; gap: 6px !important; flex: 1 !important; max-width: 500px !important;
             }
 
-            #labHtmlSourceModal #labHtmlSearchInput {
+            #labHtmlSourceModal #labHtmlSearchInput, #labHtmlSourceModal #labHtmlUrlInput {
                 background: #202020 !important; border: 1px solid #333 !important; outline: none !important;
-                color: #fff !important; padding: 6px 10px !important; border-radius: 3px !important; font-size: 12px !important; flex: 1 !important;
+                color: #fff !important; padding: 6px 10px !important; border-radius: 3px !important; font-size: 12px !important;
             }
+            #labHtmlSourceModal #labHtmlSearchInput { flex: 1 !important; }
+            #labHtmlSourceModal #labHtmlUrlInput { width: 150px !important; }
 
             #labHtmlSourceModal .lab-html-search-btn {
                 background: #34495e !important; color: #fff !important; border: none !important; outline: none !important;
@@ -3095,14 +2932,25 @@ const htmlSourceStyle = document.createElement('style');
                 <div id="labHtmlSourceModal">
                     <div class="lab-html-modal-header">
                         <span class="lab-html-modal-title">🌳 Cây Cấu Trúc DOM Gốc</span>
+                        
+                        <!-- CẢI TIẾN: Bộ nạp URL để fetch tiếp các trang cùng Domain -->
+                        <div style="display: flex !important; align-items: center !important; gap: 4px !important;">
+                            <input type="text" id="labHtmlUrlInput" placeholder="Đường dẫn trang mới (e.g. /categories)...">
+                            <button class="lab-html-search-btn" id="labHtmlUrlFetchBtn" style="background: #2980b9 !important;" title="Fetch trang mới cùng Domain">⚡ Fetch URL</button>
+                        </div>
+
                         <div class="lab-html-search-wrap">
                             <input type="text" class="lab-html-search-input" id="labHtmlSearchInput" placeholder="Nhập từ khóa cần lọc (thẻ, class, id, text)...">
                             <button class="lab-html-search-btn" id="labHtmlSearchPrev">▲ Trước</button>
                             <button class="lab-html-search-btn" id="labHtmlSearchNext">▼ Sau</button>
                             <span class="lab-html-search-count" id="labHtmlSearchCount">0/0</span>
                         </div>
+
+                        <!-- CẢI TIẾN: Nút sao chép mã nguồn đã làm sạch hoàn toàn Script ẩn -->
+                        <button class="lab-html-search-btn" id="labHtmlCopySourceBtn" style="background: #8e44ad !important;" title="Sao chép Source Sạch (Không chứa script)">📋 Sao chép</button>
+
                         <button class="lab-html-search-btn" id="labHtmlToggleSidebar" title="Bật/Tắt Kết quả">📋</button>
-                        <button class="lab-html-search-btn btn-danger" id="labHtmlCloseModal" title="Đóng (ESC)">✕</button>
+                        <button class="lab-html-search-btn btn-danger" id="labHtmlCloseModal" title="Đóng">✕</button>
                     </div>
                     <div class="lab-html-modal-body">
                         <div class="lab-html-editor-wrap" id="labHtmlEditorWrap">
@@ -3139,6 +2987,11 @@ const htmlSourceStyle = document.createElement('style');
             const $toggleSidebar = $('#labHtmlToggleSidebar');
             const $closeModal = $('#labHtmlCloseModal');
             const $treeContainer = $('#labHtmlTreeContainer');
+            
+            // Các Element mới được thêm vào
+            const $copySourceBtn = $('#labHtmlCopySourceBtn');
+            const $urlInput = $('#labHtmlUrlInput');
+            const $urlFetchBtn = $('#labHtmlUrlFetchBtn');
 
             let parsedHtmlDocument = null;
             let searchMatches = [];
@@ -3255,25 +3108,17 @@ const htmlSourceStyle = document.createElement('style');
                 return $nodeWrap[0];
             }
 
-            $viewSourceBtn.on('click', function(e) {
-                e.stopPropagation();
-
-                // KHU VỰC TỐI ƯU: Nếu đã phân tích dữ liệu trước đó rồi, chỉ cần mở lại Modal mà không fetch lại
-                if (parsedHtmlDocument) {
-                    $modal.addClass('lab-html-modal-active');
-                    return; // Dừng hàm tại đây, giữ nguyên trạng thái cây DOM cũ
-                }
-
-                // --- LẦN ĐẦU TIÊN NHẤN NÚT: Tiến hành fetch và dựng cây DOM ---
+            // HÀM TỔNG HỢP: Tiến hành Fetch mã nguồn từ 1 URL cụ thể và render lên Tree
+            function executeFetchSource(targetUrl) {
                 $treeContainer.html('<div style="color:#aaa; padding:10px;">⌛ Đang phân tích và dựng bản đồ DOM Tree nguồn...</div>');
 
-                fetch(window.location.href)
+                fetch(targetUrl)
                     .then(response => response.text())
                     .then(html => {
                         parsedHtmlDocument = new DOMParser().parseFromString(html, 'text/html');
                         $treeContainer.empty();
 
-                        // Dựng cây từ thẻ HTML gốc
+                        // Dựng cây từ thẻ HTML gốc của trang được fetch
                         const treeRoot = createTreeDOM(parsedHtmlDocument.documentElement);
                         if (treeRoot) {
                             $treeContainer.append(treeRoot);
@@ -3287,17 +3132,205 @@ const htmlSourceStyle = document.createElement('style');
                         clearSearch();
                     })
                     .catch(err => {
-                        // Nếu lỗi, reset lại biến để lần sau người dùng nhấn lại có thể thử fetch lại
                         parsedHtmlDocument = null;
                         $treeContainer.html('<div style="color:#c0392b; padding:10px;">❌ Lỗi nạp nguồn mã: ' + err + '</div>');
                     });
+            }
+
+            $viewSourceBtn.on('click', function(e) {
+                e.stopPropagation();
+
+                // Nếu đã phân tích dữ liệu trước đó rồi, chỉ cần mở lại Modal mà không fetch lại trang gốc ban đầu
+                if (parsedHtmlDocument) {
+                    $modal.addClass('lab-html-modal-active');
+                    return;
+                }
+
+                // Lần đầu tiên chạy, fetch URL hiện tại của trình duyệt
+                executeFetchSource(window.location.href);
             });
+
+            // CẢI TIẾN: Lắng nghe sự kiện click nút Fetch trang mới
+            $urlFetchBtn.on('click', function(e) {
+                e.stopPropagation();
+                const inputUrl = $urlInput.val().trim();
+                if (!inputUrl) {
+                    alert('Vui lòng nhập đường dẫn URL cần Fetch tiếp theo!');
+                    return;
+                }
+                executeFetchSource(inputUrl);
+            });
+
+            $urlInput.on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    $urlFetchBtn.trigger('click');
+                }
+            });
+
+            // CẢI TIẾN: Xử lý sự kiện sao chép mã nguồn loại bỏ toàn bộ Script chạy ngầm
+            // =========================================================================
+            // CẢI TIẾN MỚI: Xử lý sự kiện sao chép mã nguồn CÓ BẢO VỆ CHỐNG LỖI (3 TẦNG BẢO VỆ)
+            // =========================================================================
+                        // =========================================================================
+            // CẢI TIẾN MỚI: SỐNG SÓT QUA MỌI WEBSITE & TỰ ĐỘNG BỔ SUNG FULL HOSTNAME CHO URL TƯƠNG ĐỐI
+            // =========================================================================
+            $copySourceBtn.on('click', function(e) {
+                e.stopPropagation();
+                if (!parsedHtmlDocument) {
+                    alert('Không tìm thấy dữ liệu nguồn để sao chép!');
+                    return;
+                }
+
+                let finalCleanHTML = '';
+
+                // --- TẦNG 1: THỬ LÀM SẠCH VÀ LINK HOÁ TUYỆT ĐỐI BẰNG DOM (ƯU TIÊN) ---
+                try {
+                    const documentClone = parsedHtmlDocument.cloneNode(true);
+                    if (documentClone && documentClone.documentElement) {
+                        // 1. Quét sạch hoàn toàn mọi thẻ <script>
+                        const allScriptTags = documentClone.querySelectorAll('script');
+                        allScriptTags.forEach(script => script.remove());
+
+                        // 2. Duyệt qua toàn bộ phần tử để xóa sự kiện inline và sửa URL tương đối
+                        const allElements = documentClone.querySelectorAll('*');
+                        allElements.forEach(element => {
+                            // Xóa các sự kiện chạy ngầm on*
+                            if (element.attributes && element.attributes.length > 0) {
+                                const attrs = Array.from(element.attributes);
+                                attrs.forEach(attr => {
+                                    if (attr.name.toLowerCase().startsWith('on')) {
+                                        element.removeAttribute(attr.name);
+                                    }
+                                });
+                            }
+
+                            // Tự động chuyển đổi các đường dẫn tương đối thành Full URL
+                            ['src', 'href'].forEach(attrName => {
+                                if (element.hasAttribute(attrName)) {
+                                    let attrVal = element.getAttribute(attrName).trim();
+                                    // Kiểm tra nếu URL không phải link tuyệt đối, base64 hay javascript:
+                                    if (attrVal && !/^(https?:|===|\/\/|data:|javascript:|#)/i.test(attrVal)) {
+                                        try {
+                                            // Dùng đối tượng URL để tự động map chuẩn xác với domain hiện tại của trang
+                                            let absoluteUrl = new URL(attrVal, window.location.href).href;
+                                            element.setAttribute(attrName, absoluteUrl);
+                                        } catch(urlErr) {
+                                            // Bỏ qua nếu gặp ký tự URL lỗi đặc biệt
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                        finalCleanHTML = '<!DOCTYPE html>\n' + documentClone.documentElement.outerHTML;
+                    } else {
+                        throw new Error("Không thể clone phần tử gốc");
+                    }
+                } catch (domError) {
+                    console.warn("Tầng 1 (DOM) thất bại do dữ liệu quá nặng. Chuyển sang Tầng 2 (Regex)...", domError);
+                    
+                    // --- TẦNG 2: FALLBACK BẰNG REGEX (Xử lý chuỗi thuần phòng hờ DOM lỗi) ---
+                    try {
+                        let rawHtml = '';
+                        if (parsedHtmlDocument.documentElement) {
+                            rawHtml = parsedHtmlDocument.documentElement.outerHTML;
+                        } else {
+                            rawHtml = parsedHtmlDocument.body.innerHTML;
+                        }
+                        // Xóa các thẻ script
+                        rawHtml = rawHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                        // Xóa các thuộc tính on* inline
+                        rawHtml = rawHtml.replace(/\s+on[a-zA-Z]+\s*=\s*(["'])(.*?)\1/gi, '');
+                        rawHtml = rawHtml.replace(/\s+on[a-zA-Z]+\s*=\s*[^>\s]+/gi, '');
+                        
+                        // Quét chuỗi tìm src="..." và href="..." tương đối để tự động chèn thêm Hostname
+                        rawHtml = rawHtml.replace(/(\b(src|href)\s*=\s*(["']))([^"'\s>]+)\3/gi, (match, p1, p2, p3, p4) => {
+                            let urlVal = p4.trim();
+                            if (urlVal && !/^(https?:|===|\/\/|data:|javascript:|#)/i.test(urlVal)) {
+                                try {
+                                    // Chuyển đổi chuỗi URL tương đối dựa vào URL trang hiện tại
+                                    return p1 + new URL(urlVal, window.location.href).href + p3;
+                                } catch(e) {
+                                    return match;
+                                }
+                            }
+                            return match;
+                        });
+                        
+                        finalCleanHTML = '<!DOCTYPE html>\n' + rawHtml;
+                    } catch (regexError) {
+                        alert('❌ Không thể xử lý mã nguồn của trang này bằng cả 2 phương pháp!');
+                        return;
+                    }
+                }
+
+                // --- TẦNG 3: ĐƯA VÀO CLIPBOARD HOẶC TỰ ĐỘNG TẢI FILE HTML SẠCH VỀ MÁY ---
+                if (finalCleanHTML) {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(finalCleanHTML)
+                            .then(() => {
+                                showToastSuccess("Đã sao chép Source Sạch!", e.clientX, e.clientY);
+                            })
+                            .catch(() => {
+                                executeFallbackCopyOrDownload(finalCleanHTML, e.clientX, e.clientY);
+                            });
+                    } else {
+                        executeFallbackCopyOrDownload(finalCleanHTML, e.clientX, e.clientY);
+                    }
+                }
+            });
+
+            // Hàm xử lý dự phòng: Thử copy kiểu cũ, nếu website chặn bảo mật nghiêm ngặt thì tải file về
+            function executeFallbackCopyOrDownload(text, x, y) {
+                let copySuccess = false;
+                try {
+                    const $temp = $('<textarea>').val(text).appendTo('body').select();
+                    copySuccess = document.execCommand('copy');
+                    $temp.remove();
+                    if (copySuccess) {
+                        showToastSuccess("Đã sao chép (Dự phòng)!", x, y);
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Cách copy dự phòng cũng thất bại: ", err);
+                }
+
+                // Nếu mọi cơ chế copy đều bị trình duyệt chặn (CSP bảo mật lớn), xuất file tải về an toàn
+                try {
+                    const blob = new Blob([text], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `clean_source_${new Date().getTime()}.html`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    alert('⚠️ Do trang web này chặn quyền Sao chép, Script đã tự động chuyển hướng tải mã nguồn sạch về máy của bạn dưới dạng file .html để sử dụng hoàn hảo nhất!');
+                } catch (downloadError) {
+                    alert('❌ Thất bại: Không thể sao chép và không thể tạo file tải về!');
+                }
+            }
+
+            // Hàm hiển thị thông báo Toast thành công
+            function showToastSuccess(msg, x, y) {
+                const $toast = $('<div class="lab-html-toast"></div>').text(msg);
+                $('body').append($toast);
+                $toast.css({ left: (x + 12) + 'px', top: (y + 12) + 'px' });
+                requestAnimationFrame(() => $toast.addClass('show'));
+                setTimeout(() => {
+                    $toast.removeClass('show');
+                    setTimeout(() => $toast.remove(), 250);
+                }, 2500);
+            }
+
             // CHỨC NĂNG CLICK SAO CHÉP VÀ ĐỒNG BỘ VỚI HỆ THỐNG GỐC CỦA BẠN
             $treeContainer.on('click', '.tag-name, .tag-attr, .lab-dom-text, .lab-dom-pure-text', function(e) {
                 e.stopPropagation();
                 let copyText = '';
 
-                // [CẬP NHẬT MỚI] Chỉ lấy giá trị thuộc tính bên trong data-val
+                // Chỉ lấy giá trị thuộc tính bên trong data-val
                 if ($(this).hasClass('tag-attr')) {
                     copyText = $(this).attr('data-val') || '';
                 } else {
@@ -3498,9 +3531,12 @@ const htmlSourceStyle = document.createElement('style');
                 e.stopPropagation();
             });
         })();
-//[UPDATE 2.0] END Full-screen HTML Source Viewer Feature
 
+//[UPDATE 2.0] END Full-screen HTML Source Viewer Feature
+// END BLOCK: Full-Screen HTML Source Viewer 2948
+
+    // ### BLOCK START: IIFE & Event Listener Cleanup
     });
 
-
 })();
+    // END BLOCK: IIFE & Event Listener Cleanup

@@ -1,28 +1,96 @@
-/categories/amateur@@Amateur
-/categories/bareback@@Bareback
-/categories/bisexual@@Bisexual
-/categories/blowjob@@Blowjob
-/categories/celebrity@@Celebrity
-/categories/close-up@@Close Up
-/categories/compilation@@Compilation
-/categories/couple@@Couple
-/categories/deepthroat@@Deepthroat
-/categories/doggystyle@@Doggystyle
-/categories/erotic@@Erotic
-/categories/first-time@@First Time
-/categories/gloryhole@@Gloryhole
-/categories/handjob@@Handjob
-/categories/hardcore@@Hardcore
-/categories/homemade@@Homemade
-/categories/lesbian@@Lesbian
-/categories/masturbation@@Masturbation
-/categories/orgasm@@Orgasm
-/categories/outdoor@@Outdoor
-/categories/pornstar@@Pornstar
-/categories/pov@@PoV
-/categories/public@@Public
-/categories/softcore@@Softcore
-/categories/solo@@Solo
-/categories/titjob@@Titjob
-/categories/vintage@@Vintage
-/categories/webcam@@Webcam
+
+function parseMovieDetail(html,url) {
+    var lurl = "";
+    var limg = "";
+    var lname = "Đang cập nhật...";
+    var ldes = "Không có mô tả.";
+    var year = 2026;
+    var direc = "????";
+    var cast = "????";
+    var status = "????";
+    var duration = "1:09:00 | 16 | 16";
+    var rating = "????";
+	var servers = [{}];
+    var $info = "";
+  //try {
+    $info = _$(html).find(".dinfo").html().replace(/\t|\r|\n|\s\s/g,"");
+    // Năm sản xuất
+    rmatch = $info.match(/Năm sản xuất[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+    if (rmatch && rmatch[1]) { year = rmatch[1];}
+    // Đạo diễn
+    rmatch = $info.match(/Đạo diễn[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+        if (rmatch && rmatch[1]) { direc = rmatch[1]; }
+    // Tinh Trang
+    rmatch = $info.match(/Tình trạng[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+        if (rmatch && rmatch[1]) { status = rmatch[1]; }
+    // Thời lượng
+    rmatch = $info.match(/Thời lượng[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+        if (rmatch && rmatch[1]) { duration = rmatch[1]; }
+    // Dien vien
+    rmatch = $info.match(/Diễn viên:[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+        if (rmatch && rmatch[1]) { 
+            cast = $(rmatch[1]).text(); 
+    }
+	var streamUrl = "";
+      
+	
+    return JSON.stringify({
+        id: streamUrl,
+        title: lname,
+        posterUrl: limg,
+        backdropUrl: limg,
+        description: ldes,
+        servers: servers,
+        quality: "HD",
+        year: year,
+        status: status,
+        duration: duration,
+        casts: cast,
+        director: direc
+    });
+  /*  
+  }
+  catch (e) {
+        return JSON.stringify({
+        id: lurl,
+        title: lname,
+        posterUrl: limg,
+        backdropUrl: limg,
+        description: ldes,
+        servers: servers,
+        quality: "HD",
+        year: year,
+        status: status,
+        duration: duration,
+        casts: cast,
+        director: direc
+      });
+    }
+    */
+}
+
+
+BASEURL = "https://phimnganhdc.com";
+var html = outerHTML;
+var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
+//JSON.parse(parseMovieDetail(outerHTML,$url))
+$info = _$(html).find(".dinfo").text().replace(/\t|\r|\n|\s\s/g,"");
+    // Năm sản xuất
+    rmatch = $info.match(/Năm sản xuất[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+    if (rmatch && rmatch[1]) { year = rmatch[1];}
+    // Đạo diễn
+    rmatch = $info.match(/Đạo diễn[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+        if (rmatch && rmatch[1]) { direc = rmatch[1]; }
+    // Tinh Trang
+    rmatch = $info.match(/Tình trạng[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+        if (rmatch && rmatch[1]) { status = rmatch[1]; }
+    // Thời lượng
+    rmatch = $info.match(/Thời lượng[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+        if (rmatch && rmatch[1]) { duration = rmatch[1]; }
+    // Dien vien
+    rmatch = $info.match(/Diễn viên:[\s\S]*?\/dt>[^>]+>([\s\S]*?)<\/dd>/i);
+        if (rmatch && rmatch[1]) { 
+            cast = $(rmatch[1]).text(); 
+    }
+
+$info = $(html).find(".dinfo");
