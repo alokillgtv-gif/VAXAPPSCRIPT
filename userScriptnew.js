@@ -796,7 +796,7 @@
             
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = '/js/cozy-jquery-helper.js'; 
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/f6ca7b5f69f8350a2fc366bdc0f4fa9d882735bd/miniJQ.js'; 
                     
                     const response = await fetch(helperUrl);
                     if (!response.ok) {

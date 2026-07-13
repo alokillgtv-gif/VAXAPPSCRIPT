@@ -1,13 +1,15 @@
-// cozy-jquery-helper.js
 window._$ = function(htmlOrBlock) {
+    // 🔥 SỬA LỖI CHÍ MẠNG: Nếu vô tình bọc _$(this), trả về chính nó luôn chứ không bọc đè Object
+    if (htmlOrBlock && typeof htmlOrBlock === 'object' && htmlOrBlock.elements) {
+        return htmlOrBlock;
+    }
+
     var instance = {
         sourceHtml: typeof htmlOrBlock === 'string' ? htmlOrBlock : '',
         elements: Array.isArray(htmlOrBlock) ? htmlOrBlock : (htmlOrBlock ? [htmlOrBlock] : []),
 
         find: function(selector) {
             var results = [];
-
-            // --- 1. XỬ LÝ BỘ LỌC :content("...") ---
             var contentFilter = "";
             if (selector.indexOf(":content(") !== -1) {
                 var contentMatch = selector.match(/:content\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/);
@@ -17,7 +19,6 @@ window._$ = function(htmlOrBlock) {
                 }
             }
 
-            // --- 2. XỬ LÝ BỘ LỌC THUỘC TÍNH [attr="value"] ---
             var attrNameFilter = "";
             var attrValueFilter = "";
             var hasAttrFilter = false;
@@ -29,7 +30,6 @@ window._$ = function(htmlOrBlock) {
                 selector = selector.replace(/\[.*?\]/, "");
             }
 
-            // --- 3. XỬ LÝ :not(...) ---
             var notSelector = "";
             if (selector.indexOf(":not(") !== -1) {
                 var notMatch = selector.match(/:not\(([^)]+)\)/);
@@ -39,7 +39,6 @@ window._$ = function(htmlOrBlock) {
                 }
             }
 
-            // --- 4. XỬ LÝ :first VÀ :last FLAGS ---
             var isFirstFilter = selector.indexOf(":first") !== -1;
             var isLastFilter = selector.indexOf(":last") !== -1;
             selector = selector.replace(/:first|:last/g, "");
@@ -202,21 +201,23 @@ window._$ = function(htmlOrBlock) {
             return newInstance;
         },
 
-        eq: function(index) {
-            if (index < 0) {
-                index = this.elements.length + index;
-            }
-            var matchedElement = this.elements[index];
-            this.elements = matchedElement ? [matchedElement] : [];
-            return this;
-        },
-
+        // 🎯 CHUẨN HÓA HÀM EACH: Hỗ trợ cả 2 cách viết (gọi thẳng `this` hoặc bọc `_$(el)`)
         each: function(callback) {
             for (var i = 0; i < this.elements.length; i++) {
                 var childInstance = _$(this.elements[i]);
                 childInstance.sourceHtml = this.sourceHtml;
-                callback.call(childInstance, i);
+                
+                // Chuẩn jQuery: truyền vào (index, rawHtmlString)
+                // Context 'this' vẫn giữ nguyên là childInstance để gọi trực tiếp phương thức
+                callback.call(childInstance, i, this.elements[i]);
             }
+            return this;
+        },
+
+        eq: function(index) {
+            if (index < 0) index = this.elements.length + index;
+            var matchedElement = this.elements[index];
+            this.elements = matchedElement ? [matchedElement] : [];
             return this;
         },
 
@@ -242,9 +243,7 @@ window._$ = function(htmlOrBlock) {
             var elem = this.elements[0];
             var start = elem.indexOf('>') + 1;
             var end = elem.lastIndexOf('</');
-            if (start > 0 && end > start) {
-                return elem.substring(start, end);
-            }
+            if (start > 0 && end > start) return elem.substring(start, end);
             return "";
         },
 
