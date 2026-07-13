@@ -5,7 +5,7 @@ function getManifest() {
         "id": "jav69",
         "name": "JAV69",
         "description": "XXX hay.",
-        "version": "1.0",
+        "version": "1.01",
         "BASEURL": "https://jav69.sbs",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -268,7 +268,7 @@ function parseDetailResponse(html, url) {
         var server = [];
         stream = _$(html).find(".universalplayer-screen").find("iframe").attr("src");
 		var iframeHtml = '<html><body style="margin:0;padding:0;background:#000;"><iframe src="' + stream + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></body></html>';
-        var base64Url = "data:text/html;" + base64Encode(iframeHtml);
+        var base64Url = "data:text/html;base64," + base64Encode(iframeHtml);
         var customjs = textJS(server);
         return JSON.stringify({
             "url": base64Url,
