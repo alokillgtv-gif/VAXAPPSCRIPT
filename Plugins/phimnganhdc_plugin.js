@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimnganhdc",
         "name": "Phim Ngắn HDC",
         "description": "Phim ngắn trung quốc.",
-        "version": "1.3",
+        "version": "1.4",
         "BASEURL": "https://phimnganhdc.com",
         "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png",
         "isEnabled": true,
@@ -240,7 +240,7 @@ function parseMovieDetail(html,url) {
                episodes: epi
             });
         });
-        
+        servers = sortEpisodesByName(servers);
         return JSON.stringify({
             id: url,
             title: lname,
@@ -333,6 +333,26 @@ function parseDetailResponse(html, url) {
 //var html = outerHTML;
 //var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
 //JSON.parse(parseDetailResponse(html, url))
+
+function sortEpisodesByName(data) {
+    data.forEach(server => {
+        if (server.episodes && Array.isArray(server.episodes)) {
+            server.episodes.sort((a, b) => {
+                // Sử dụng Regex để tìm số đứng ngay sau chữ "Tập" (Không phân biệt hoa thường)
+                const matchA = a.name.match(/Tập\s*(\d+)/i);
+                const matchB = b.name.match(/Tập\s*(\d+)/i);
+                
+                // Nếu tìm thấy số thì chuyển thành kiểu Int, nếu không thấy thì mặc định là 0
+                const numA = matchA ? parseInt(matchA[1], 10) : 0;
+                const numB = matchB ? parseInt(matchB[1], 10) : 0;
+                
+                // Sắp xếp tăng dần: Số nhỏ xếp trước (lên trên), số lớn xếp sau (xuống dưới)
+                return numA - numB;
+            });
+        }
+    });
+    return data;
+}
 
 function textJS($links) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
