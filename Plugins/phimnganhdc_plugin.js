@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimnganhdc",
         "name": "Phim Ngắn HDC",
         "description": "Phim ngắn trung quốc.",
-        "version": "1.4",
+        "version": "1.6",
         "BASEURL": "https://phimnganhdc.com",
         "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png",
         "isEnabled": true,
@@ -243,7 +243,7 @@ function parseMovieDetail(html,url) {
             title: lname,
             posterUrl: limg,
             backdropUrl: limg,
-            description: ldes,
+            description: ldes + "\r\n\r\n\r\n" + JSON.stringify(servers),
             servers: servers,
             quality: "HD",
             year: year,
@@ -343,7 +343,100 @@ style.innerHTML = customcss;
 //document.head.appendChild(style);
 
 /* Build Video Begin*/
-
+        (function() {
+            // 1. Dữ liệu server
+            const serverData = LINKVIDEO;
+            
+            // 2. Tiêm CSS động
+            const style = document.createElement('style');
+            style.textContent = '.server-container { position: fixed; top: 15px; right: 15px; z-index: 10000; font-family: Arial, sans-serif; }.server-main-btn { background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); padding: 8px 16px; border-radius: 4px; cursor: pointer; backdrop-filter: blur(5px); }.server-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: rgba(20, 20, 20, 0.95); border: 1px solid #444; border-radius: 4px; min-width: 150px; }.server-dropdown.show { display: block; }.server-item { padding: 10px; color: #ccc; cursor: pointer; }.server-item.active { color: #00ff00; font-weight: bold; }.overlay-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9998; display: none; }.iframe-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; border: none; display: none; background: #000;}';
+            document.head.appendChild(style);
+            
+            // 3. Khởi tạo container và overlay
+            const container = document.createElement('div');
+            container.className = 'server-container';
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay-black';
+            document.body.appendChild(overlay);
+            
+            // Lưu trữ các iframe đã tạo để không phải load lại
+            const iframeCache = {};
+            
+            function pauseAllVideos() {
+                document.querySelectorAll('video').forEach(v => v.pause());
+            }
+            
+            function switchServer(targetLink) {
+                // Kiểm tra xem link có trùng với trang hiện tại không
+                const isCurrentPage = window.location.href.includes(targetLink) || targetLink.includes(window.location.href);
+                
+                if (isCurrentPage) {
+                    // Trường hợp quay về trang gốc: ẩn overlay và tất cả iframe
+                    overlay.style.display = 'none';
+                    document.querySelectorAll('.iframe-wrapper').forEach(el => el.style.display = 'none');
+                    // Cập nhật UI nút
+                    updateButtons(targetLink);
+                    return;
+                }
+                
+                // Trường hợp đổi server:
+                pauseAllVideos(); // Ngưng video
+                overlay.style.display = 'block'; // Hiện nền đen
+                
+                // Ẩn tất cả iframe hiện có
+                document.querySelectorAll('.iframe-wrapper').forEach(el => el.style.display = 'none');
+                
+                // Tạo mới hoặc hiển thị iframe đã có
+                if (!iframeCache[targetLink]) {
+                    const iframe = document.createElement('iframe');
+                    iframe.className = 'iframe-wrapper';
+                    iframe.src = targetLink;
+                    iframe.allowFullscreen = true;
+                    document.body.appendChild(iframe);
+                    iframeCache[targetLink] = iframe;
+                }
+                
+                iframeCache[targetLink].style.display = 'block';
+                updateButtons(targetLink);
+            }
+            
+            function updateButtons(activeLink) {
+                document.querySelectorAll('.server-item').forEach(el => {
+                    const link = el.getAttribute('data-link');
+                    el.classList.toggle('active', link === activeLink);
+                });
+            }
+            
+            // 4. Tạo giao diện nút bấm
+            const btn = document.createElement('button');
+            btn.className = 'server-main-btn';
+            btn.innerText = 'Chọn Server';
+            
+            const dropdown = document.createElement('div');
+            dropdown.className = 'server-dropdown';
+            
+            serverData.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'server-item';
+                item.innerText = s.name;
+                item.setAttribute('data-link', s.link);
+                item.onclick = () => {
+                    switchServer(s.link);
+                    dropdown.classList.remove('show');
+                };
+                dropdown.appendChild(item);
+            });
+            
+            btn.onclick = (e) => { e.stopPropagation();
+                dropdown.classList.toggle('show'); };
+            document.addEventListener('click', () => dropdown.classList.remove('show'));
+            
+            container.appendChild(btn);
+            container.appendChild(dropdown);
+            document.body.appendChild(container);
+            
+        })();
     var DEVELOPE = false;
 // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
 function showToast(message, duration, check) {
