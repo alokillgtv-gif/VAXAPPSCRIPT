@@ -661,7 +661,7 @@ function runVideo(){
 }
 
 
-
+/*
 function initCustomVideoFix() {
     // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
     if (SCRIPTURL && SCRIPTURL !== "undefined") {
@@ -734,3 +734,5 @@ function initCustomVideoFix() {
         injectScriptAfterLoad(SCRIPTURL);
     }
 }
+*/
+runVideo()
