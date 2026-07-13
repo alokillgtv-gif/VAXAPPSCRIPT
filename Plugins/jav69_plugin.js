@@ -1,33 +1,29 @@
-BASEURL = "https://phimnganhdc.com";
+BASEURL = "https://jav69.sbs";
 // https://www.xxxfiles.com/favicon-32x32.png
 function getManifest() {
     return JSON.stringify({
-        "id": "phimnganhdc",
-        "name": "Phim Ngắn HDC",
-        "description": "Phim ngắn trung quốc.",
-        "version": "1.2",
-        "BASEURL": "https://phimnganhdc.com",
-        "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png",
+        "id": "jav69",
+        "name": "JAV69",
+        "description": "XXX hay.",
+        "version": "1.0",
+        "BASEURL": "https://jav69.sbs",
+        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
+        "isAdult": true,
         "type": "VIDEO",
         "playerType": "embed"
     });
 }
 
-
-// https://phimnganhdc.com/danh-sach/phim-hoan-thanh
-// https://phimnganhdc.com/danh-sach/top-phim-ngay
-// https://phimnganhdc.com/the-loai/phim-ngan
+// https://jav69.sbs/page/3/
 function getHomeSections() {
     var listurl = `
-/danh-sach/phim-hoan-thanh@@Phim Đã Full@@false
-/danh-sach/top-phim-ngay@@Top Trong Ngày@@false
-/the-loai/phim-ngan@@Phim Mới@@true
+/viet-nam/@@Việt Nam@@true
 `;
     var menulist = buildMenu(listurl);
     return JSON.stringify(menulist);
 }
-
+// https://jav69.sbs/page/3/
 function getPrimaryCategories() {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
@@ -91,7 +87,7 @@ function getUrlList(slug, filtersJson) {
         }
         // https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
         if (page > 1) {
-            resultUrl += "?page=" + page;
+            resultUrl += "/page/" + page + "/";
         }
         
         // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
@@ -104,10 +100,10 @@ function getUrlList(slug, filtersJson) {
         return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
 }
-// https://phimnganhdc.com/the-loai/phim-ngan?page=5
+// https://jav69.sbs/viet-nam/page/5/
 // https://phimnganhdc.com/the-loai/phim-ngan?page=5
 // https://phimnganhdc.com/?search=m%E1%BB%B9+nh%C3%A2n
-//var BASEURL = "https://phimnganhdc.com";
+//var BASEURL = "https://jav69.sbs";
 // JSON lỗi cú pháp (thiếu nháy kép) của bạn
 //var filtersJsonNoCat = '{page:11,category:[{"slug":"/the-loai/phim-ngan","name":"Thiếu niên"}]}'; 
 //var filtersJsonNoCat = '{page:22}';
@@ -140,17 +136,22 @@ function parseListResponse(html, $url) {
     try {``
         var items = [];
         
-        _$(html).find(".item").each(function() {
-            var href = this.find("a").attr("href");
-            var title = this.find(".img-film").attr("title");
-            var src = this.find(".img-film").attr("src");
-            if(src.indexOf("http") == -1){
-                src = BASEURL + src;
+        _$(html).find(".video-item").each(function() {
+            var src = '';
+            var href = '';
+            var title = '';           
+            href = this.find("a").attr("href");
+            title = this.find("h2").text();
+            var style = this.find(".thumb-container").attr("style");
+            var match = style.match(/url\(["']([^"']+)["']/i);
+            if(match && match[1]){
+                src = match[1];
+                if(src.indexOf("http") == -1){
+                	src = BASEURL + src;
+                }
             }
-            
             if (href && href.indexOf("http") > -1) {
-                var cleanThumb = src.replace(/&amp;/g, '&');
-                
+                var cleanThumb = src.replace(/&amp;/g, '&');   
                 items.push({
                     "id": href,
                     "title": title.trim(),
@@ -175,8 +176,6 @@ function parseListResponse(html, $url) {
 ///*
 //html = outerHTML;
 //JSON.parse(parseListResponse(html));
-// Bỏ dấu / ở đầu chuỗi
-//*/
 
 
 function parseSearchResponse(html) {
@@ -185,7 +184,7 @@ function parseSearchResponse(html) {
 
 
 
-function parseMovieDetail(html,url) {
+function parseMovieDetail(html, url) {
     var lurl = "";
     var limg = "";
     var lname = "Đang cập nhật...";
@@ -196,50 +195,28 @@ function parseMovieDetail(html,url) {
     var status = "????";
     var duration = "1:09:00 | 16 | 16";
     var rating = "????";
-	var servers = [{}];
+    var servers = [{}];
     var $info = "";
-	var category = "";
-	var country = "";
-	var lang = "";
-	var streamUrl = "";
-    try{
-        info = _$(html).find(".dinfo").html();
-        limg = _$(html).find(".adspruce-streamlink").find("img").attr("src");
-        if(limg.indexOf("http") == -1){
+    var category = "";
+    var country = "";
+    var lang = "";
+    var streamUrl = "";
+    try {
+        limg = _$(html).find(".wp-caption").find("img").attr("src");
+        if (limg.indexOf("http") == -1) {
             limg = BASEURL + limg;
         }
-        streamUrl = _$(html).find(".adspruce-streamlink").attr("href");
-        lname = _$(html).find(".title").text();
-        ldes = _$(html).find("#info-film").text().replace(/\s\s/g,"");
-        //var poster = _$(html).find(".poster").html();
-        //var lastserver = _$(html).find(".latest-episode").html();
-        //ldes += "\r\n\r\n\r\n" + poster + "\r\n\r\n\r\n" + lastserver;
-        status = _$(info).find("dt:content('Tình trạng')").next().text();
-        year = _$(info).find("dt:content('Năm sản xuất')").next().text();
-        cast = _$(info).find("dt:content('Diễn viên:')").next().text();
-        duration = _$(info).find("dt:content('Thời lượng:')").next().text();
-        category = _$(info).find("dt:content('Thể loại:')").next().text();
-        country = _$(info).find("dt:content('Quốc gia:')").next().text();
-        lang = _$(info).find("dt:content('Ngôn ngữ:')").next().text();	
-
+        lname = _$(html).find(".title-videos").text();
+        ldes = _$(html).find(".vien2.content").find(".lab-inspect-parent").text().replace(/\s\s/g, "");
+        
         var servers = [];
-        var $listserver = _$(html).find(".latest-episode").html();
-        _$($listserver).find(".control-box").each(function(index, el) {
-            var epi = [];
-            var tap = 0;
-            var nameserver = _$(el).find(".server-episode-block").text(); 
-            this.find(".list-episode").find("a").each(function(index, Bl) {
-                tap += 1;
-                var ahref = this.attr("href"); 
-                var name = this.text();
-                epi.push({ id: ahref, name: name, slug: "tap-" + tap});
-            });
-            servers.push({
-               name: nameserver || "Server",
-               episodes: epi
-            });
+        var epi = [];
+        epi.push({ id: url, name: "Xem Ngay", slug: "full" });
+        servers.push({
+            name: "Server",
+            episodes: epi
         });
-        servers = sortEpisodesByName(servers);
+        
         return JSON.stringify({
             id: url,
             title: lname,
@@ -255,25 +232,25 @@ function parseMovieDetail(html,url) {
             director: direc,
             country: country,
             category: category,
-            lang:lang
+            lang: lang
         });
-  
-  }
-  catch (e) {
+        
+    }
+    catch (e) {
         return JSON.stringify({
-        id: lurl,
-        title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
-        posterUrl: limg,
-        backdropUrl: limg,
-        description: ldes,
-        servers: servers,
-        quality: "HD",
-        year: year,
-        status: status,
-        duration: duration,
-        casts: cast,
-        director: direc
-      });
+            id: lurl,
+            title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
+            posterUrl: limg,
+            backdropUrl: limg,
+            description: ldes,
+            servers: servers,
+            quality: "HD",
+            year: year,
+            status: status,
+            duration: duration,
+            casts: cast,
+            director: direc
+        });
     }
 }
 
@@ -287,24 +264,14 @@ function parseMovieDetail(html,url) {
 // https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san/tap-1-811897
 function parseDetailResponse(html, url) {
     try {
-        var stream = "";
+        var stream = '';
         var server = [];
-        _$(html).find(".tip-change-server").find(".streaming-server").each(function() {
-            // Lúc này 'this' chính là thực thể của từng thẻ <a> riêng biệt
-            var ahref = this.attr("data-link");
-            var name = this.text();
-            if (name === "HDC") {
-                stream = ahref
-            }
-            var $item = { link: ahref, name: name };
-            server.push($item);
-        });
-        if (stream == "") {
-            stream = server[0].link;
-        }
+        stream = _$(html).find(".universalplayer-screen").find("iframe").attr("src");
+		var iframeHtml = '<html><body style="margin:0;padding:0;background:#000;"><iframe src="' + stream + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></body></html>';
+        var base64Url = "data:text/html;" + base64Encode(iframeHtml);
         var customjs = textJS(server);
         return JSON.stringify({
-            "url": stream,
+            "url": base64Url,
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
@@ -327,11 +294,27 @@ function parseDetailResponse(html, url) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
 }
+function base64Encode(str) {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    var encoded = '';
+    for (var i = 0; i < str.length; i += 3) {
+        var c1 = str.charCodeAt(i);
+        var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
+        var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
+        
+        var byte1 = c1 >> 2;
+        var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
+        var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
+        var byte4 = isNaN(c3) ? 64 : c3 & 63;
+        
+        encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
+    }
+    return encoded;
+}
 
-//BASEURL = "https://phimnganhdc.com";
 //var html = outerHTML;
-//var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
-//JSON.parse(parseDetailResponse(html, url))
+//url = window.location.href;
+//JSON.parse(parseDetailResponse(html, url));
 
 function sortEpisodesByName(data) {
     data.forEach(server => {
@@ -651,60 +634,15 @@ function parseYearsResponse(html) { return "[]"; }
 
 function getLISTmenu() {
     return `
-/the-loai/phim-bo@@Phim Bộ
-/quoc-gia/han-quoc@@Hàn quốc
-/quoc-gia/trung-quoc@@Trung Quốc
-/quoc-gia/thai-lan@@Thái Lan
-/the-loai/huyen-huyen@@Huyền Huyễn
-/the-loai/tien-hiep@@Tiên Hiệp
-/the-loai/xuyen-khong@@Xuyên Không
-/the-loai/chuyen-the@@Chuyển Thể
-/the-loai/boy-love@@Boylove
-/the-loai/pha-an@@Phá Án
-/the-loai/boy-love@@Boyloves
-/the-loai/dan-quoc@@Dân Quốc
-/the-loai/y-khoa@@Y Khoa
-/the-loai/ngon-tinh@@Ngôn Tình
-/the-loai/nguoc-luyen@@Ngược Luyến
-/the-loai/nghe-nghiep@@Nghề Nghiệp
-/the-loai/do-thi@@Đô Thị
-/the-loai/hien-dai@@Hiện Đại
-/the-loai/toi-pham@@Tội Phạm
-/the-loai/lang-man@@Lãng Mạn
-/the-loai/phim-hai@@Phim Hài
-/the-loai/khoa-hoc-vien-tuong@@Khoa Học Viễn Tưởng
-/the-loai/gia-tuong@@Giả Tưởng
-/the-loai/gay-can@@Gây Cấn
-/the-loai/lich-su@@Lịch Sử
-/the-loai/xuyen-sach@@Xuyên Sách
-/the-loai/he-thong@@Hệ Thống
-/the-loai/bao-thu@@Báo Thù
-/the-loai/ky-ao@@Kỳ Ảo
-/the-loai/ngot-sung@@Ngọt Sủng
-/the-loai/va-mat-tra-nam@@Vả Mặt Tra Nam
-/the-loai/trong-sinh@@Trọng Sinh
-/the-loai/co-con@@Có con
-/the-loai/cuoi-truoc-yeu-sau@@Cưới Trước Yêu Sau
-/the-loai/truy-the@@Truy Thê
-/the-loai/hanh-dong@@Hành động
-/the-loai/hai-huoc@@Hài hước
-/the-loai/hoc-duong@@Học đường
-/the-loai/co-trang@@Cổ trang
-/the-loai/kinh-di@@Kinh dị
-/the-loai/tinh-cam@@Tình cảm
-/the-loai/vo-thuat@@Võ thuật
-/the-loai/phieu-luu@@Phiêu lưu
-/the-loai/vien-tuong@@Viễn tưởng
-/the-loai/chinh-kich@@Chính kịch
-/the-loai/the-thao@@Thể thao
-/the-loai/am-nhac@@Âm nhạc
-/the-loai/khoa-hoc@@Khoa học
-/the-loai/tam-ly@@Tâm lý
-/the-loai/hinh-su@@Hình sự
-/the-loai/bi-an@@Bí ẩn
-/the-loai/gia-dinh@@Gia đình
-/the-loai/hoat-hinh@@Hoạt hình
-/the-loai/tv-shows@@TV Shows
+/viet-nam/@@Việt nam
+/hiep-dam/@@Hiếp dâm
+/vietsub/@@Sex Vietsub
+/jav/@@JAV HD
+/nhat-ban/@@Nhật Bản
+/chau-au/@@Châu âu
+/khong-che/@@Không che
+/loan-luan/@@Loạn luân
+/trung-quoc/@@Trung quốc
 `
 }
 
