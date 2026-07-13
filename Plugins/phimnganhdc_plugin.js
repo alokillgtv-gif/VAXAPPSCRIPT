@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimnganhdc",
         "name": "Phim Ngắn HDC",
         "description": "Phim ngắn trung quốc.",
-        "version": "1.3",
+        "version": "1.4",
         "BASEURL": "https://phimnganhdc.com",
         "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png",
         "isEnabled": true,
@@ -346,7 +346,7 @@ style.innerHTML = customcss;
 
     var DEVELOPE = false;
 // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
-    function showToast(message, duration, check) {
+function showToast(message, duration, check) {
         if (typeof duration === 'undefined') duration = 7000;
         if (typeof check === 'undefined') check = true;
         if (check === false) return;
@@ -376,13 +376,6 @@ style.innerHTML = customcss;
             }, 300);
         }, duration);
     }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', GetlinkVideo);
-    } else {
-        GetlinkVideo();
-    }
-
 
 /* Build Video End */
 
