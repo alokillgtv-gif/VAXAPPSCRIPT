@@ -5,7 +5,7 @@ function getManifest() {
         "id": "jav69",
         "name": "JAV69",
         "description": "XXX hay.",
-        "version": "1.01",
+        "version": "1.02",
         "BASEURL": "https://jav69.sbs",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -266,12 +266,14 @@ function parseDetailResponse(html, url) {
     try {
         var stream = '';
         var server = [];
+        /*
         stream = _$(html).find(".universalplayer-screen").find("iframe").attr("src");
 		var iframeHtml = '<html><body style="margin:0;padding:0;background:#000;"><iframe src="' + stream + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></body></html>';
         var base64Url = "data:text/html;base64," + base64Encode(iframeHtml);
+        */
         var customjs = textJS(server);
         return JSON.stringify({
-            "url": base64Url,
+            "url": '',
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
@@ -341,7 +343,7 @@ function textJS($links) {
     return `
 LINKVIDEO = ${JSON.stringify($links)}
 
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=phimnganhdc&type=js"; 
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=jav69&type=js"; 
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
@@ -349,191 +351,7 @@ style.innerHTML = customcss;
 
 /* Build Video Begin*/
 
-
-(function() {
-    // 1. Dữ liệu bộ các server phim
-    const serverData = LINKVIDEO;
-    
-    let isRotated = false;
-    
-    // Tạo thẻ wrapper chính để bọc nội dung phục vụ việc xoay màn hình
-    const wrapper = document.createElement('div');
-    wrapper.className = 'page-main-wrapper';
-    
-    // Di chuyển toàn bộ cấu trúc cũ của trang web vào trong wrapper
-    while (document.body.firstChild) {
-        wrapper.appendChild(document.body.firstChild);
-    }
-    document.body.appendChild(wrapper);
-    
-    // ================= DOM PROXY PATCHES (VÁ LỖI HỆ THỐNG) =================
-    const originalAppendChild = document.body.appendChild;
-    const originalRemoveChild = document.body.removeChild;
-    const originalInsertBefore = document.body.insertBefore;
-    
-    document.body.appendChild = function(child) {
-        // Chỉ để Loading và Style ở ngoài body gốc
-        if (child === loadingEl || child.tagName === 'STYLE') {
-            return originalAppendChild.call(this, child);
-        }
-        return wrapper.appendChild(child);
-    };
-    
-    document.body.removeChild = function(child) {
-        if (wrapper.contains(child)) {
-            return wrapper.removeChild(child);
-        }
-        if (child.parentNode === this) {
-            return originalRemoveChild.call(this, child);
-        }
-        if (child.parentNode) {
-            return child.parentNode.removeChild(child);
-        }
-        return child;
-    };
-    
-    document.body.insertBefore = function(newChild, refChild) {
-        if (refChild && wrapper.contains(refChild)) {
-            return wrapper.insertBefore(newChild, refChild);
-        }
-        if (!refChild || refChild.parentNode === this) {
-            return originalInsertBefore.call(this, newChild, refChild);
-        }
-        if (refChild && refChild.parentNode) {
-            return refChild.parentNode.insertBefore(newChild, refChild);
-        }
-        return originalInsertBefore.call(this, newChild, refChild);
-    };
-    // =============================================================================
-    
-    // 2. Tiêm cấu trúc CSS động vào thẻ Head
-    const style = document.createElement('style');
-    style.textContent = 'html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden;}.page-main-wrapper {width: 100%;height: 100%;position: relative;}/* Xoay wrapper -90deg để khớp hướng màn hình ngang */.page-main-wrapper.force-rotate {position: fixed !important;top: 50% !important;left: 50% !important;width: 100vh !important;  height: 100vw !important; transform: translate(-50%, -50%) rotate(-90deg) !important;transform-origin: center !important;z-index: 9996 !important;background: #000 !important;overflow: hidden !important;}/* Giao diện nút bấm (Bây giờ nằm TRONG wrapper nên sẽ tự động xoay theo video) */.server-container { position: fixed; top: 15px; right: 15px; z-index: 10000; font-family: Arial, sans-serif; display: flex; flex-direction: row!important; gap: 8px; align-items: center;font-size:12px}.server-btn-wrapper { position: relative;}.server-main-btn, .server-rotate-btn {background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); padding: 4px 4px!important; border-radius: 4px; cursor: pointer; backdrop-filter: blur(5px); font-weight: bold; min-width: 60px!important; text-align: center; box-sizing: border-box;}.server-main-btn:hover, .server-rotate-btn:hover { background: rgba(0, 0, 0, 0.8); border-color: rgba(255, 255, 255, 0.6);}.server-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: rgba(20, 20, 20, 0.95); border: 1px solid #444; border-radius: 4px; min-width: 160px; overflow: hidden;}.server-dropdown.show { display: block;}.server-item { padding: 12px 15px; color: #ccc; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 14px; border-left: 4px solid transparent;}.server-item:hover { background: #333; color: #fff;}.server-item.active { color: #fff; background: rgba(0, 255, 0, 0.15); border-left: 4px solid #00ff00; font-weight: bold;}.overlay-black { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background: #000 !important; z-index: 9990 !important; display: none;}.iframe-wrapper { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 9991 !important; border: none !important; display: none; background: #000 !important;}/* Hiệu ứng Loading giữ nguyên thẳng màn hình */.server-loading-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; display: none; text-align: center; color: #fff; pointer-events: none; font-family: Arial, sans-serif;}.server-spinner { width: 45px; height: 45px; border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #00ff00; border-radius: 50%; margin: 0 auto 12px auto; animation: server-spin 0.8s linear infinite;}@keyframes server-spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);}}';
-    document.head.appendChild(style);
-    
-    // 3. Khởi tạo Loading ở body gốc
-    const loadingEl = document.createElement('div');
-    loadingEl.className = 'server-loading-box';
-    loadingEl.innerHTML = '<div class="server-spinner"></div><div>Đang tải server...</div>';
-    originalAppendChild.call(document.body, loadingEl);
-    
-    // Khởi tạo các thành phần giao diện điều khiển nằm TRONG wrapper để xoay đồng bộ
-    const container = document.createElement('div');
-    container.className = 'server-container';
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay-black';
-    wrapper.appendChild(overlay);
-    
-    const iframeCache = {};
-    
-    function pauseAllVideos() {
-        wrapper.querySelectorAll('video').forEach(v => v.pause());
-    }
-    
-    function toggleRotation() {
-        isRotated = !isRotated;
-        btnRotate.innerText = isRotated ? 'Xoay' : 'Xoay';
-        wrapper.classList.toggle('force-rotate', isRotated);
-    }
-    
-    function switchServer(targetLink) {
-        const isCurrentPage = window.location.href.includes(targetLink) || targetLink.includes(window.location.href);
-        
-        if (isCurrentPage) {
-            overlay.style.display = 'none';
-            loadingEl.style.display = 'none';
-            wrapper.querySelectorAll('.iframe-wrapper').forEach(el => el.style.display = 'none');
-            updateButtons(targetLink);
-            return;
-        }
-        
-        pauseAllVideos();
-        overlay.style.display = 'block';
-        wrapper.querySelectorAll('.iframe-wrapper').forEach(el => el.style.display = 'none');
-        
-        if (!iframeCache[targetLink]) {
-            loadingEl.style.display = 'block';
-            
-            const iframe = document.createElement('iframe');
-            iframe.className = 'iframe-wrapper';
-            iframe.src = targetLink;
-            iframe.allowFullscreen = true;
-            iframe.allow = "autoplay; encrypted-media";
-            
-            iframe.onload = function() {
-                loadingEl.style.display = 'none';
-            };
-            
-            wrapper.appendChild(iframe);
-            iframeCache[targetLink] = iframe;
-        } else {
-            loadingEl.style.display = 'none';
-        }
-        
-        iframeCache[targetLink].style.display = 'block';
-        updateButtons(targetLink);
-    }
-    
-    function updateButtons(activeLink) {
-        document.querySelectorAll('.server-item').forEach(el => {
-            const link = el.getAttribute('data-link');
-            el.classList.toggle('active', link === activeLink);
-        });
-    }
-    
-    // 4. Dựng nút bấm điều khiển
-    const btnWrapper = document.createElement('div');
-    btnWrapper.className = 'server-btn-wrapper';
-    
-    const btnMain = document.createElement('button');
-    btnMain.className = 'server-main-btn';
-    btnMain.innerText = 'Server';
-    
-    const dropdown = document.createElement('div');
-    dropdown.className = 'server-dropdown';
-    
-    serverData.forEach(s => {
-        const item = document.createElement('div');
-        item.className = 'server-item';
-        item.innerText = s.name;
-        item.setAttribute('data-link', s.link);
-        item.onclick = () => {
-            switchServer(s.link);
-            dropdown.classList.remove('show');
-        };
-        dropdown.appendChild(item);
-    });
-    
-    btnMain.onclick = (e) => { e.stopPropagation();
-        dropdown.classList.toggle('show'); };
-    document.addEventListener('click', () => dropdown.classList.remove('show'));
-    
-    btnWrapper.appendChild(btnMain);
-    btnWrapper.appendChild(dropdown);
-    
-    const btnRotate = document.createElement('button');
-    btnRotate.className = 'server-rotate-btn';
-    btnRotate.innerText = 'Xoay';
-    btnRotate.onclick = (e) => {
-        e.stopPropagation();
-        toggleRotation();
-    };
-    
-    container.appendChild(btnWrapper);
-    container.appendChild(btnRotate);
-    
-    // ĐƯA VÀO ĐÂY: Thêm nút vào wrapper thay vì body để nút xoay theo video
-    wrapper.appendChild(container);
-    
-    const currentUrl = window.location.href;
-    const initialMatch = serverData.find(s => currentUrl.includes(s.link) || s.link.includes(currentUrl));
-    if (initialMatch) {
-        updateButtons(initialMatch.link);
-    }
-})();
-
-    var DEVELOPE = false;
+var DEVELOPE = false;
 // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
 function showToast(message, duration, check) {
         if (typeof duration === 'undefined') duration = 7000;
