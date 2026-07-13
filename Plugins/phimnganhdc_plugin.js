@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimnganhdc",
         "name": "Phim Ngắn HDC",
         "description": "Phim ngắn trung quốc.",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://phimnganhdc.com",
         "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png",
         "isEnabled": true,
@@ -233,9 +233,6 @@ function parseMovieDetail(html,url) {
                 tap += 1;
                 var ahref = this.attr("href"); 
                 var name = this.text();
-                if(tap == 1){
-                    streamUrl = ahref;
-                }
                 epi.push({ id: ahref, name: name, slug: "tap-" + tap});
             });
             servers.push({
@@ -245,7 +242,7 @@ function parseMovieDetail(html,url) {
         });
         
         return JSON.stringify({
-            id: streamUrl,
+            id: url,
             title: lname,
             posterUrl: limg,
             backdropUrl: limg,
