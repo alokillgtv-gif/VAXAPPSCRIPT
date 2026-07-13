@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimnganhdc",
         "name": "Phim Ngắn HDC",
         "description": "Phim ngắn trung quốc.",
-        "version": "1.6",
+        "version": "1.7",
         "BASEURL": "https://phimnganhdc.com",
         "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png",
         "isEnabled": true,
@@ -238,6 +238,15 @@ function parseMovieDetail(html,url) {
                episodes: epi
             });
         });
+        
+        if (!streamUrl || streamUrl === "#" || streamUrl.trim() === "" || streamUrl.indexOf("javascript") !== -1) {
+            // Nếu mảng servers đã quét được dữ liệu, lấy link của Server 1 - Tập 1 đắp vào
+            if (servers.length > 0 && servers[0].episodes.length > 0) {
+                streamUrl = servers[0].episodes[0].id;
+            } else {
+                streamUrl = url; // Thượng sách cuối cùng nếu không có gì là lấy luôn URL truyền vào hàm
+            }
+        }
         return JSON.stringify({
             id: streamUrl,
             title: lname,
