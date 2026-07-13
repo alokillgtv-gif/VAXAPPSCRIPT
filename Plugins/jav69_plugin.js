@@ -266,14 +266,14 @@ function parseDetailResponse(html, url) {
     try {
         var stream = '';
         var server = [];
-        /*
+        
         stream = _$(html).find(".universalplayer-screen").find("iframe").attr("src");
 		var iframeHtml = '<html><body style="margin:0;padding:0;background:#000;"><iframe src="' + stream + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></body></html>';
         var base64Url = "data:text/html;base64," + base64Encode(iframeHtml);
-        */
+        
         var customjs = textJS(server);
         return JSON.stringify({
-            "url": '',
+            "url": base64Url,
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
