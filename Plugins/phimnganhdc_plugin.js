@@ -92,7 +92,7 @@ function getUrlList(slug, filtersJson) {
         }
         // https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
         if (page > 1) {
-            resultUrl += "/page=" + page;
+            resultUrl += "?page=" + page;
         }
         
         // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
@@ -145,6 +145,9 @@ function parseListResponse(html, $url) {
             var href = this.find("a").attr("href");
             var title = this.find(".img-film").attr("title");
             var src = this.find(".img-film").attr("src");
+            if(src.indexOf("http") == -1){
+                src = BASEURL + src;
+            }
             
             if (href && href.indexOf("http") > -1) {
                 var cleanThumb = src.replace(/&amp;/g, '&');
@@ -206,6 +209,9 @@ function parseMovieDetail(html,url) {
         streamUrl = _$(html).find("#no-link").attr("href");
         lname = _$(html).find(".title").text();
         ldes = _$(html).find("#info-film").text().replace(/\s\s/g,"");
+        var poster = _$(html).find(".poster").html();
+        var lastserver = _$(html).find(".latest-episode").html();
+        ldes += "\r\n\r\n\r\n" + poster + "\r\n\r\n\r\n" + lastserver;
         status = _$(info).find("dt:content('Tình trạng')").next().text();
         year = _$(info).find("dt:content('Năm sản xuất')").next().text();
         cast = _$(info).find("dt:content('Diễn viên:')").next().text();
