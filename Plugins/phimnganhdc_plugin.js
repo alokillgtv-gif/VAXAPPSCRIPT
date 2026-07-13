@@ -212,9 +212,9 @@ function parseMovieDetail(html,url) {
         streamUrl = _$(html).find(".adspruce-streamlink").attr("href");
         lname = _$(html).find(".title").text();
         ldes = _$(html).find("#info-film").text().replace(/\s\s/g,"");
-        var poster = _$(html).find(".poster").html();
-        var lastserver = _$(html).find(".latest-episode").html();
-        ldes += "\r\n\r\n\r\n" + poster + "\r\n\r\n\r\n" + lastserver;
+        //var poster = _$(html).find(".poster").html();
+        //var lastserver = _$(html).find(".latest-episode").html();
+        //ldes += "\r\n\r\n\r\n" + poster + "\r\n\r\n\r\n" + lastserver;
         status = _$(info).find("dt:content('Tình trạng')").next().text();
         year = _$(info).find("dt:content('Năm sản xuất')").next().text();
         cast = _$(info).find("dt:content('Diễn viên:')").next().text();
@@ -300,7 +300,7 @@ function parseDetailResponse(html, url) {
         if (stream == "") {
             stream = server[0].link;
         }
-        var customjs = textJS($link);
+        var customjs = textJS(server);
         return JSON.stringify({
             "url": stream,
             "headers": {
