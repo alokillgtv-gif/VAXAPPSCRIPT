@@ -1,3 +1,4 @@
+window.BASEURL = window.location.origin;
 window._$ = function(htmlOrBlock) {
     // 🔥 SỬA LỖI CHÍ MẠNG: Nếu vô tình bọc _$(this), trả về chính nó luôn chứ không bọc đè Object
     if (htmlOrBlock && typeof htmlOrBlock === 'object' && htmlOrBlock.elements) {

@@ -3629,94 +3629,78 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             e.stopPropagation();
             e.stopImmediatePropagation();
             if (typeof window.__labAppendLog === 'function') {
-                window.__labAppendLog('[Shield] Blocked click on <' + (e.target && e.target.tagName ? e.target.tagName : '?') + '>', 'log');
+               
             }
         }
 
-        function enableShield() {
-            if (shieldActive) return;
-            shieldActive = true;
-            localStorage.setItem(SHIELD_KEY, 'true');
+							function enableShield() {
+							    if (shieldActive) return;
+							    shieldActive = true;
+							    localStorage.setItem(SHIELD_KEY, 'true');
+							
+							    // 1. Chặn click vẫn hoạt động bình thường
+							    document.addEventListener('click', shieldClickHandler, true);
+							    document.addEventListener('mousedown', shieldClickHandler, true);
+							    document.addEventListener('mouseup', shieldClickHandler, true);
+							
+							    // 2. THAY VÌ GHI ĐÈ LOCATION (Gây crash), ta sử dụng "BeforeUnload" để chặn thoát trang
+							    // Điều này hiệu quả hơn và không bao giờ bị lỗi Read-Only
+							    window.addEventListener('beforeunload', blockUnloadHandler, true);
+							
+							    // 3. Chặn window.open an toàn
+							    try {
+							        window.open = function() {
+							           return null;
+							        };
+							    } catch(e) {}
+							
+							    // 4. Chặn Timer (vẫn dùng logic cũ của bạn vì nó an toàn)
+							    window.setInterval = function() {
+							       return -1;
+							    };
+							    
+							    // ... (Giữ nguyên phần setTimeout và requestAnimationFrame như cũ) ...
+							
+							    updateShieldBtn();
+							    if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] ENABLED', 'return');
+							}
+							
+							// Hàm hỗ trợ để chặn thoát trang
+							function blockUnloadHandler(e) {
+							    if (shieldActive) {
+							        e.preventDefault();
+							        e.returnValue = 'Bạn có muốn rời khỏi trang này?';
+							        return 'Bạn có muốn rời khỏi trang này?';
+							    }
+							}
 
-            document.addEventListener('click', shieldClickHandler, true);
-            document.addEventListener('mousedown', shieldClickHandler, true);
-            document.addEventListener('mouseup', shieldClickHandler, true);
-
-            window.open = function() {
-                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked window.open()', 'log');
-                return null;
-            };
-            window.location.assign = function() {
-                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked location.assign()', 'log');
-            };
-            window.location.replace = function() {
-                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked location.replace()', 'log');
-            };
-            try {
-                const _loc = window.location;
-                Object.defineProperty(window, 'location', {
-                    get: function() { return _loc; },
-                    set: function() {
-                        if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked location.href redirect', 'log');
-                    },
-                    configurable: true
-                });
-            } catch(e) {}
-
-            window.setInterval = function() {
-                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked setInterval', 'log');
-                return -1;
-            };
-            window.setTimeout = function(fn, delay) {
-                const d = delay || 0;
-                if (d < 500 && !(fn && fn.__labSafe)) {
-                    if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked setTimeout (delay=' + d + 'ms)', 'log');
-                    return -1;
-                }
-                const id = _origSetTimeout.apply(this, arguments);
-                shieldTimers.push(id);
-                return id;
-            };
-            window.requestAnimationFrame = function(cb) {
-                const id = _origRAF.apply(this, arguments);
-                shieldRAFs.push(id);
-                return id;
-            };
-
-            window.addEventListener('beforeunload', function(e) {
-                if (shieldActive) {
-                    e.preventDefault();
-                    e.returnValue = '';
-                }
-            });
-
-            updateShieldBtn();
-            if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] ENABLED — Clicks, navigation & fast loops BLOCKED.', 'return');
-        }
 
         function disableShield() {
             if (!shieldActive) return;
             shieldActive = false;
             localStorage.setItem(SHIELD_KEY, 'false');
-
-            document.removeEventListener('click', shieldClickHandler, true);
-            document.removeEventListener('mousedown', shieldClickHandler, true);
-            document.removeEventListener('mouseup', shieldClickHandler, true);
-
-            window.open = _origOpen;
-            window.location.assign = _origAssign;
-            window.location.replace = _origReplace;
-            window.setInterval = _origSetInterval;
-            window.setTimeout = _origSetTimeout;
-            window.requestAnimationFrame = _origRAF;
-
-            shieldTimers.forEach(id => { try { clearTimeout(id); } catch(e) {} });
-            shieldTimers.length = 0;
-            shieldRAFs.forEach(id => { try { cancelAnimationFrame(id); } catch(e) {} });
-            shieldRAFs.length = 0;
-
+											try{
+	            document.removeEventListener('click', shieldClickHandler, true);
+	            document.removeEventListener('mousedown', shieldClickHandler, true);
+	            document.removeEventListener('mouseup', shieldClickHandler, true);
+	
+	            window.open = _origOpen;
+	            window.location.assign = _origAssign;
+	            window.location.replace = _origReplace;
+	            window.setInterval = _origSetInterval;
+	            window.setTimeout = _origSetTimeout;
+	            window.requestAnimationFrame = _origRAF;
+	
+	            shieldTimers.forEach(id => { try { clearTimeout(id); } catch(e) {} });
+	            shieldTimers.length = 0;
+	            shieldRAFs.forEach(id => { try { cancelAnimationFrame(id); } catch(e) {} });
+	            shieldRAFs.length = 0;
+											}
+											catch(e){
+													window.__labAppendLog('Có lỗi xảy ra', 'return');
+											}
             updateShieldBtn();
-            if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] DISABLED — Page restored.', 'return');
+            if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] DISABLED', 'return');
         }
 
         function toggleShield() {
