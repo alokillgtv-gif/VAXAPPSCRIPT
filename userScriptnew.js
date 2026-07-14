@@ -302,7 +302,7 @@
         pointer-events: all; /* Khi bật, nó sẽ chặn mọi click vào trang web */
     }
     .lab-dashboard-container.mode-horizontal.lab-fullscreen-mode { height: 85vh!important; }
-    .lab-panel-bod {color:white}
+    .lab-log-info {color:white!important}
 /* ===== Xoá bo viền element ====== */
 #labCssExtractMenu .lab-inspect-parent, #labCssExtractMenu .lab-inspect-child, #labCssExtractMenu .lab-inspect-grand, #labCssExtractMenu .lab-inspect-child::before, #labCssExtractMenu .lab-inspect-parent::before, #labCssExtractMenu .lab-inspect-grand::before, #labCssExtractMenu.lab-inspect-parent, #labCssExtractMenu.lab-inspect-child, #labCssExtractMenu.lab-inspect-grand, #labCssExtractMenu.lab-inspect-child::before, #labCssExtractMenu.lab-inspect-parent::before, #labCssExtractMenu.lab-inspect-grand::before {
  outline: none!important;;
