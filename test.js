@@ -221,13 +221,13 @@ var html = document.body.innerHTML;
 const regex = /data-link=["']([^"']+)["']/g;
 var number = 0;
 
-var selectHtml = `<select class="changeServer" onchange="changeServer(this)" style="background:black;color:white;opacity:0.8;border:none;padding:4px;font-size:14px;border-radius:4px;outline:none;">`;
+var selectHtml = '<select class="changeServer" onchange="changeServer(this)" style="background:black;color:white;opacity:0.8;border:none;padding:4px;font-size:14px;border-radius:4px;outline:none;">';
 for (const match of html.matchAll(regex)) {
   number++;
   const url = match[1]; 
-  selectHtml += `<option value="${url}">Server ${number}</option>`;
+  selectHtml += '<option value="'+url+'">Server '+number+'</option>';
 }
-selectHtml += `</select>`; 
+selectHtml += '</select>'; 
 
 const tempDiv = document.createElement('div');
 tempDiv.className = "wrap-server";

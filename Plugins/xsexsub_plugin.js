@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "1.0",
+        "version": "1.1",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -127,7 +127,6 @@ function getUrlYears() { return ""; }
 // =============================================================================
 function parseListResponse(html, $url) {
 	try {
-		``
 		var items = [];
 		
 		_$(html).find(".video-item").each(function() {
@@ -320,6 +319,8 @@ style.innerHTML = customcss;
 //document.head.appendChild(style);
 
 /* Build Video Begin*/
+/**
+ * Dọn dẹp DOM, giữ lại các phần tử mong muốn và tự động gắn Control nếu có thẻ Video.
 /**
  * Dọn dẹp DOM, giữ lại các phần tử mong muốn và tự động gắn Control nếu có thẻ Video.
  */
@@ -547,9 +548,7 @@ var selectHtml = '<select class="changeServer" onchange="changeServer(this)" sty
 for (const match of html.matchAll(regex)) {
   number++;
   const url = match[1]; 
-  selectHtml += '<option value="'+url+'">Server 
-  +number+
-  </option>';
+  selectHtml += '<option value="'+url+'">Server '+number+'</option>';
 }
 selectHtml += '</select>'; 
 
@@ -618,6 +617,8 @@ window.changeServer = function(selectElement) {
     }
 }
 
+    // TRƯỜNG HỢP 2: SERVER EMBED / IFRAME
+    
     // TRƯỜNG HỢP 2: SERVER EMBED / IFRAME
     
     var DEVELOPE = false;
