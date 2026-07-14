@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo2",          
         "name": "Test Exoplayer",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.3",             
+        "version": "1.2",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -131,55 +131,43 @@ function parseMovieDetail(html) {
 }
 
 function parseDetailResponse(html) {
-	try {
-		html = html.replace(/("codec"\s*:\s*")([\s\S]*?)("\s*,\s*"coded"\s*:\s*")/g, (match, p1, p2, p3) => {
-			// p2 chính là toàn bộ đoạn code JS nằm bên trong codec
-			const safeJsCode = p2
-				.replace(/"/g, '\\"') // Escape toàn bộ dấu nháy kép thành \" để JSON hợp lệ
-				.replace(/\r?\n/g, '\\n') // Chuyển các dòng xuống dòng vật lý thành ký tự \n hợp lệ
-				.replace(/\t/g, ''); // Bỏ các ký tự tab thừa cho gọn
-			
-			return p1 + safeJsCode + p3;
-		});
-		
-		// 2. Gom các khoảng trắng thừa ngoài rìa (nếu có)
-		html = html.replace(/\s+/g, ' ');
-		// Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
-		var parsed = JSON.parse(html);
-		BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
-		var videoUrl = BaseJSON.link || "";
-		var refUrl = BaseJSON.ref || "";
-		var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
-		var type = BaseJSON.codea || "application/x-mpegURL";
-		var customjs = BaseJSON.codec || ""
-		var returnjs = {
-			"url": videoUrl,
-			"mimeType": type,
-			"headers": {
-				"Referer": refUrl,
-				"Origin": refUrl,
-				"User-Agent": agent,
-				// Đánh lừa thuật toán Client Hints của tường lửa
-				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-				"Sec-Ch-Ua-Mobile": "?1",
-				"Sec-Ch-Ua-Platform": '"Android"',
+    try {
+        // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
+        var parsed = JSON.parse(html);
+        BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
+        var videoUrl = BaseJSON.link || "";
+        var refUrl = BaseJSON.ref || "";
+        var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+        var type = BaseJSON.codea || "application/x-mpegURL";
+        var customjs = BaseJSON.codec || ""
+        var returnjs =  {
+					"url": videoUrl,
+					"mimeType": type,
+					"headers": {
+						"Referer": refUrl,
+						"Origin": refUrl,
+						"User-Agent": agent,
+						// Đánh lừa thuật toán Client Hints của tường lửa
+						"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+						"Sec-Ch-Ua-Mobile": "?1",
+						"Sec-Ch-Ua-Platform": '"Android"',
+						
+						// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+						"Accept": "*/*",
+						"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+						"X-Requested-With": "com.android.chrome",
+						"Custom-Js": customjs.trim()
+					},
+					"subtitles": []
+				}
+				var jsonstring = "dataReturn = " + JSON.stringify(returnjs);
+				returnjs.headers["Custom-Js"] = jsonstring + customjs;
 				
-				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-				"Accept": "*/*",
-				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-				"X-Requested-With": "com.android.chrome",
-				"Custom-Js": ""
-			},
-			"subtitles": []
-		}
-		var jsonstring = "dataReturn = " + JSON.stringify(returnjs) + ";";
-		returnjs.headers["Custom-Js"] = jsonstring + customjs;
-		
-		return JSON.stringify(returnjs);
-		
-	} catch (e) {
-		return JSON.stringify({ "url": "", "headers": {} });
-	}
+        return JSON.stringify(returnjs);
+
+    } catch (e) {
+        return JSON.stringify({ "url": "", "headers": {} });
+    }
 }
 
 function parseCategoriesResponse(html) { return "[]"; }
