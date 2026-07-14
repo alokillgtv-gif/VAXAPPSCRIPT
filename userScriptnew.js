@@ -302,6 +302,15 @@
         pointer-events: all; /* Khi bật, nó sẽ chặn mọi click vào trang web */
     }
     .lab-dashboard-container.mode-horizontal.lab-fullscreen-mode { height: 85vh!important; }
+/* ===== Xoá bo viền element ====== */
+/* ===== Xoá bo viền element ====== */
+/* ===== Xoá bo viền element ====== */
+/*   =====   Xoá   bo   viền   element   ======   */
+#labCssExtractMenu .lab-inspect-parent, #labCssExtractMenu .lab-inspect-child, #labCssExtractMenu .lab-inspect-grand, #labCssExtractMenu .lab-inspect-child::before, #labCssExtractMenu .lab-inspect-parent::before, #labCssExtractMenu .lab-inspect-grand::before, #labCssExtractMenu.lab-inspect-parent, #labCssExtractMenu.lab-inspect-child, #labCssExtractMenu.lab-inspect-grand, #labCssExtractMenu.lab-inspect-child::before, #labCssExtractMenu.lab-inspect-parent::before, #labCssExtractMenu.lab-inspect-grand::before {
+ outline: none!important;;
+ border: none!important;
+}
+    
         `;
         document.head.appendChild(styleElement);
 
@@ -784,28 +793,28 @@
             async function executeJsEngine() {
                 let userCode = window.__labJsEditor ? window.__labJsEditor.getValue() : $('#labJsInput').val();
                 if (!userCode || !userCode.trim()) return;
-            
+
                 const $consoleBox = $('#labConsoleLogBody');
                 $consoleBox.removeClass('flash-success flash-error');
-            
+
                 try {
                     window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
                 } catch(e) {
                     console.error("Không thể gán outerHTML toàn cục:", e);
                 }
-            
+
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/f6ca7b5f69f8350a2fc366bdc0f4fa9d882735bd/miniJQ.js'; 
-                    
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/75c24297ee2b2f82fb82ff654edd809ab597b8b3/miniJQ.js';
+
                     const response = await fetch(helperUrl);
                     if (!response.ok) {
                         throw new Error(`Không thể fetch file tiện ích tại: ${helperUrl}`);
                     }
                     const libraryRawCode = await response.text();
-            
+
                     const base64Code = btoa(unescape(encodeURIComponent(userCode)));
-            
+
                     // Chế độ Sandbox cô lập
                     if (typeof isSandboxModeActive !== 'undefined' && isSandboxModeActive) {
                         const $sandboxIframe = $('#labSandboxIframe');
@@ -814,29 +823,29 @@
                         }
                         return;
                     }
-            
+
                     if (!window.__labEscapeHtmlHelper) {
                         window.__labEscapeHtmlHelper = function(str) {
                             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         };
                     }
-            
+
                     const script = document.createElement('script');
                     script.type = 'text/javascript';
-            
+
                     // 🎯 NỐI CHUỖI TRỰC TIẾP: Ghép mã nguồn thư viện thô vừa fetch xong lên đầu
                     script.textContent = libraryRawCode + "\n" + `
                         try {
                             window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
-            
+
                             const decodedCode = decodeURIComponent(escape(atob('${base64Code}')));
                             const codeWithSourceMap = decodedCode + "\\n//# sourceURL=lab_dynamic_script.js";
-            
+
                             let rawResult = window.eval(codeWithSourceMap);
-            
+
                             const cBox = jQuery('#labConsoleLogBody');
                             cBox.removeClass('flash-success flash-error');
-            
+
                             if (rawResult !== undefined) {
                                 if (typeof rawResult === 'object' && rawResult !== null) {
                                     const $treeNodeElement = window.__labBuildObjectTreeElement(rawResult);
@@ -850,41 +859,41 @@
                                 cBox.addClass('flash-success');
                             }
                             cBox.scrollTop(0);
-            
+
                         } catch(err) {
                             let lineNum = err.lineNumber || err.line;
-            
+
                             if (!lineNum && err.stack) {
                                 let match = err.stack.match(/lab_dynamic_script\\.js:(\\d+)/);
                                 if (!match) match = err.stack.match(/eval.*?:(\\d+):\\d+/i);
                                 if (!match) match = err.stack.match(/<anonymous>:(\\d+)/i);
                                 if (match) lineNum = parseInt(match[1], 10);
                             }
-            
+
                             let safeName = err.name || 'Lỗi';
                             let safeMsg = err.message || '';
                             let errorInfo = window.__labErrorTranslator(safeName, safeMsg);
-            
+
                             let vnMsg = window.__labEscapeHtmlHelper(errorInfo.translated);
                             let vnSuggest = window.__labEscapeHtmlHelper(errorInfo.suggestion);
                             let rawMsg = window.__labEscapeHtmlHelper(safeMsg);
-            
+
                             let linkHtml = lineNum ? '<div style="margin-top: 8px;"><span class="lab-error-line-link" data-line="' + lineNum + '" style="display:inline-block; padding:4px 10px; background:#e74c3c; color:#fff; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯 Cuộn tới Dòng ' + lineNum + '</span></div>' : "";
-            
+
                             let errorHtml = '<div class="lab-log-item lab-log-error" style="display:flex; flex-direction:column; align-items:flex-start; padding:10px; line-height: 1.6; border-left: 3px solid #ff5555;">' +
                                                 '<span style="font-weight:bold; font-size:13px; color:#ff5555;">🚨 ' + safeName + ': ' + vnMsg + '</span>' +
                                                 '<span style="font-size:11px; color:#888; margin-top:2px; font-family: monospace;"><i>Nguyên bản: ' + rawMsg + '</i></span>' +
                                                 '<span style="font-size:13px; color:#8be9fd; margin-top:6px; background: rgba(139, 233, 253, 0.1); padding: 4px 8px; border-radius: 4px;">💡 <b>Gợi ý:</b> ' + vnSuggest + '</span>' +
                                                 linkHtml +
                                             '</div>';
-            
+
                             jQuery('#labConsoleLogBody').prepend(errorHtml).removeClass('flash-success').addClass('flash-error').scrollTop(0);
                         }
                     `;
-            
+
                     document.body.appendChild(script);
                     document.body.removeChild(script);
-            
+
                 } catch (outerErr) {
                     window.__labAppendLog("[Lỗi Hệ Thống]: " + outerErr.message, 'error');
                     $consoleBox.addClass('flash-error');
@@ -1382,7 +1391,6 @@
             if ($(e.target).closest('button, select, input, .lab-panel-actions').length) return; // Không drag nếu bấm nhầm vào nút con
 
             e.preventDefault(); e.stopPropagation();
-            /*
             if ($panel.css('position') !== 'fixed' && !$panel.hasClass('lab-v163-floating-console')) {
                 const rect = $panel[0].getBoundingClientRect();
                 $panel.css({
@@ -1394,7 +1402,6 @@
                     zIndex: 2147483646
                 }).addClass('lab-draggable-panel');
             }
-            */
             const rect = $panel[0].getBoundingClientRect();
             const startX = e.clientX, startY = e.clientY;
             const startLeft = rect.left, startTop = rect.top;
@@ -2424,35 +2431,35 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             $('#labBtnQuickExtractLinks').remove();
             const $btnQuickExtract = $('<button class="lab-mini-btn btn-success" id="labBtnQuickExtractLinks" style="margin-right:4px;" title="Trích xuất toàn bộ Link bên trong Node này">🔗</button>');
             $('#panelTreeDom .lab-panel-actions').prepend($btnQuickExtract);
-            
+
             function v163SetCurrentTreeElement(element) {
                 if (!element || element.nodeType !== 1) return;
                 v163CurrentTreeElement = element;
                 try { localStorage.setItem(LS_TREE_TARGET_KEY, element.outerHTML || ''); } catch (err) {}
             }
-            
+
             $(document).on('contextmenu.v163CaptureTarget', function(e) {
                 // [UPDATE] Chặn bắt sự kiện viền hắt vào bảng Sniffer
                 if ($(e.target).closest('#labHtmlSourceModal,#labMainDashboard, #labCssQuickMenu, .CodeMirror-hints, #panelSnifferLab,#quick-extract-modal,.lab-inspect-child').length || $(e.target).is('#labSandboxIframe')) return;
                 v163SetCurrentTreeElement(e.target);
             });
-            
+
             $('#labFamilyTreeBar').on('click.v163CaptureLayer', '.lab-geo-btn', function() {
                 setTimeout(() => {
                     const $pinned = $('.lab-pinned-child, .lab-pinned-parent, .lab-pinned-grand, .lab-pinned-great-grand, .lab-pinned-great-great-grand, .lab-pinned-ancestors, .lab-pinned-layer7, .lab-pinned-layer8, .lab-pinned-layer9, .lab-pinned-layer10').first();
                     if ($pinned.length) v163SetCurrentTreeElement($pinned[0]);
                 }, 80);
             });
-            
+
             // HÀM ĐƯỢC NÂNG CẤP: Thêm tham số customSelector để cố định vùng tìm kiếm dữ liệu
             function v163ExtractLinksFromElement(rootElement, extractType = 'default', customSelector = '') {
                 if (!rootElement || rootElement.nodeType !== 1) return '';
                 const links = [];
                 const $root = $(rootElement);
-                
+
                 // Xác định bộ chọn tìm kiếm: Ưu tiên bộ chọn tùy biến, nếu không có thì lấy mọi thẻ a[href]
                 const targetSelector = customSelector.trim() || 'a[href]';
-                
+
                 // Tìm kiếm các phần tử nằm bên trong phạm vi nút gốc khớp với bộ chọn
                 $root.find(targetSelector).each(function() {
                     if ($(this).is('a[href]')) {
@@ -2464,20 +2471,20 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                         });
                     }
                 });
-                
+
                 // Kiểm tra trường hợp đặc biệt nếu chính bản thân nút gốc khớp với bộ chọn thiết lập
                 if ($root.is(targetSelector) && $root.is('a[href]')) {
                     if (!links.includes(rootElement)) links.push(rootElement);
                 }
-                
+
                 return links.map(a => {
                     const href = a.href || $(a).attr('href') || '';
                     let name = '';
                     const $a = $(a);
-                    
+
                     // Danh sách các loại dùng thuộc tính (attribute)
                     const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
-                    
+
                     if (extractType === 'default') {
                         // Mặc định ban đầu: Lấy text trực tiếp của thẻ <a>
                         name = $a.text();
@@ -2490,10 +2497,10 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                         const $targetTag = $a.find(extractType);
                         name = $targetTag.length ? $targetTag.text() : $a.text();
                     }
-                    
+
                     // Xử lý khoảng trắng và xuống dòng như cũ
                     name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
-                    
+
                     if (name.length < 4) {
                         return "";
                     }
@@ -2501,27 +2508,27 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                     return stringurl.replace(/^https?:\/\/[^\/]+/i, "")
                 }).filter(Boolean).join('\n');
             }
-            
+
             $btnQuickExtract.on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 $("#labBtnClearConsole").click();
                 $("#quick-extract-modal").remove();
-                
+
                 const options = ['title', 'src', 'alt', 'data-title', 'data-alt', 'h1', 'h2', 'h3', 'span', 'p', 'b', 'i'];
-                
+
                 // GIAO DIỆN MỚI: Bổ sung trường nhập Cố định Phạm vi CSS Selector
                 const $popup = $(`
         <div id="quick-extract-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999999999999; display:flex; align-items:center; justify-content:center; font-family:Arial, sans-serif;">
             <div style="background:#fff; padding:20px; border-radius:8px; width:400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                 <h4 style="margin-top:0; color:#333; margin-bottom:12px;">Cấu hình trích xuất Link nâng cao</h4>
-                
+
                 <label style="font-size:12px; font-weight:bold; color:#555; display:block; margin-bottom:4px;">1. Cố định vùng tìm kiếm (CSS Selector):</label>
                 <input type="text" id="extract-selector-input" value="" placeholder="Ví dụ: .list a hoặc #id a (Để trống nếu lấy hết)" style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-size:13px; margin-bottom:12px; outline:none;color:black"/>
-                
+
                 <label style="font-size:12px; font-weight:bold; color:#555; display:block; margin-bottom:4px;">2. Kiểu trích xuất tên (Extract Type):</label>
                 <input type="text" id="extract-type-input" value="default" placeholder="Nhập tag hoặc attribute..." style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-size:13px; margin-bottom:5px; outline:none;color:black"/>
-                
+
                 <p style="font-size:11px; color:#666; background:#f5f5f5; padding:6px; border-radius:4px; max-height:50px; overflow-y:auto; margin-top:0; margin-bottom:15px;">
                     Gợi ý thuộc tính: ${options.join(', ')}
                 </p>
@@ -2532,30 +2539,30 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             </div>
         </div>
     `);
-                
+
                 $('body').append($popup);
-                
+
                 const $selectorInput = $('#extract-selector-input');
                 const $typeInput = $('#extract-type-input');
-                
+
                 // Mặc định tự động focus vào ô chọn kiểu tên, bôi đen chữ để người dùng thao tác nhanh
                 $typeInput.focus().select();
-                
+
                 // Hàm xử lý chính khi người dùng nhấn Xác nhận
                 function processExtraction() {
                     let extractType = $typeInput.val().trim().toLowerCase();
                     if (!options.includes(extractType)) {
                         extractType = 'default';
                     }
-                    
+
                     // Lấy bộ lọc vùng tìm kiếm do người dùng chỉ định
                     const customSelector = $selectorInput.val().trim();
-                    
+
                     let output = '';
                     if (v163CurrentTreeElement) {
                         output = v163ExtractLinksFromElement(v163CurrentTreeElement, extractType, customSelector);
                     }
-                    
+
                     if (!output) {
                         try {
                             const savedOuter = localStorage.getItem(LS_TREE_TARGET_KEY);
@@ -2566,18 +2573,18 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                             }
                         } catch (err) {}
                     }
-                    
+
                     if (!output) output = '[Quick Extract] Không tìm thấy dữ liệu phù hợp với cấu hình thiết lập!';
-                    
+
                     if (typeof window.__labAppendLog === 'function') window.__labAppendLog(output, 'return');
                     else $consoleLog.prepend('<div class="lab-log-item lab-log-return"><span>' + $('<div>').text(output).html() + '</span></div>');
                     v163SaveConsoleHistory();
-                    
+
                     // Xóa popup sau khi chạy xong
                     $popup.remove();
                     $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
                 }
-                
+
                 // --- BẮT SỰ KIỆN PHÍM TẮT TRÊN CẢ HAI Ô NHẬP ---
                 $typeInput.add($selectorInput).on('keydown', function(evt) {
                     if (evt.key === 'Enter') {
@@ -2587,7 +2594,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                         $popup.remove();
                     }
                 });
-                
+
                 // Bắt sự kiện click các nút trên giao diện
                 $('#btn-extract-submit').on('click', processExtraction);
                 $('#btn-extract-cancel').on('click', function() { $popup.remove(); });
@@ -2932,7 +2939,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                 <div id="labHtmlSourceModal">
                     <div class="lab-html-modal-header">
                         <span class="lab-html-modal-title">🌳 Cây Cấu Trúc DOM Gốc</span>
-                        
+
                         <!-- CẢI TIẾN: Bộ nạp URL để fetch tiếp các trang cùng Domain -->
                         <div style="display: flex !important; align-items: center !important; gap: 4px !important;">
                             <input type="text" id="labHtmlUrlInput" placeholder="Đường dẫn trang mới (e.g. /categories)...">
@@ -2987,7 +2994,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             const $toggleSidebar = $('#labHtmlToggleSidebar');
             const $closeModal = $('#labHtmlCloseModal');
             const $treeContainer = $('#labHtmlTreeContainer');
-            
+
             // Các Element mới được thêm vào
             const $copySourceBtn = $('#labHtmlCopySourceBtn');
             const $urlInput = $('#labHtmlUrlInput');
@@ -3228,7 +3235,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                     }
                 } catch (domError) {
                     console.warn("Tầng 1 (DOM) thất bại do dữ liệu quá nặng. Chuyển sang Tầng 2 (Regex)...", domError);
-                    
+
                     // --- TẦNG 2: FALLBACK BẰNG REGEX (Xử lý chuỗi thuần phòng hờ DOM lỗi) ---
                     try {
                         let rawHtml = '';
@@ -3242,7 +3249,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                         // Xóa các thuộc tính on* inline
                         rawHtml = rawHtml.replace(/\s+on[a-zA-Z]+\s*=\s*(["'])(.*?)\1/gi, '');
                         rawHtml = rawHtml.replace(/\s+on[a-zA-Z]+\s*=\s*[^>\s]+/gi, '');
-                        
+
                         // Quét chuỗi tìm src="..." và href="..." tương đối để tự động chèn thêm Hostname
                         rawHtml = rawHtml.replace(/(\b(src|href)\s*=\s*(["']))([^"'\s>]+)\3/gi, (match, p1, p2, p3, p4) => {
                             let urlVal = p4.trim();
@@ -3256,7 +3263,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                             }
                             return match;
                         });
-                        
+
                         finalCleanHTML = '<!DOCTYPE html>\n' + rawHtml;
                     } catch (regexError) {
                         alert('❌ Không thể xử lý mã nguồn của trang này bằng cả 2 phương pháp!');
@@ -3306,7 +3313,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    
+
                     alert('⚠️ Do trang web này chặn quyền Sao chép, Script đã tự động chuyển hướng tải mã nguồn sạch về máy của bạn dưới dạng file .html để sử dụng hoàn hảo nhất!');
                 } catch (downloadError) {
                     alert('❌ Thất bại: Không thể sao chép và không thể tạo file tải về!');
@@ -3534,6 +3541,508 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 
 //[UPDATE 2.0] END Full-screen HTML Source Viewer Feature
 // END BLOCK: Full-Screen HTML Source Viewer 2948
+
+
+// ### BLOCK START: Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED)
+// ==========================================
+// 14. MODULE: ANTI-HIJACK SHIELD & CSS EXTRACTOR (FIXED)
+// ==========================================
+// CHANGES v17.1:
+// - Wrapped entire module in try-catch to prevent crash
+// - Added CSS.escape polyfill for older browsers
+// - Defined $cssInput and $jsInput inside module
+// - Moved module OUTSIDE window.addEventListener('load') to prevent blocking
+// - Added wait-for-DOM logic instead of relying on load event
+// - Fixed shield whitelist to include all panels
+// - Shield button now appends with fallback if #labRestoreBar missing
+// - Shield default OFF (no accidental blocking on first install)
+
+(function() {
+    'use strict';
+
+    try {
+        // --- Polyfills ---
+        if (!window.CSS || !window.CSS.escape) {
+            window.CSS = window.CSS || {};
+            window.CSS.escape = function(s) {
+                if (typeof s !== 'string') return '';
+                return s.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+            };
+        }
+
+        // --- Globals ---
+        const $cssInput = window.$ && $('#labCssInput').length ? $('#labCssInput') : null;
+        const $jsInput = window.$ && $('#labJsInput').length ? $('#labJsInput') : null;
+
+        // --- Helpers ---
+        function __labEscHtml(str) {
+            return str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+        }
+
+        function getLabElementBySelector(selector) {
+            try { return document.querySelector(selector); } catch(e) { return null; }
+        }
+
+        function selectorFromElement(el) {
+            if (!el) return 'unknown';
+            if (el.id) return '#' + CSS.escape(el.id);
+            if (el.className && typeof el.className === 'string') {
+                const cls = el.className.trim().split(/\s+/).filter(Boolean).map(c => CSS.escape(c)).join('.');
+                if (cls) return '.' + cls;
+            }
+            return el.tagName.toLowerCase();
+        }
+
+        // ==========================================================
+        // 14.1 ANTI-HIJACK SHIELD
+        // ==========================================================
+        const SHIELD_KEY = 'lab_anti_hijack_enabled_v17';
+        let shieldActive = false; // Default OFF to avoid blocking on first install
+
+        // Saved originals
+        let _origOpen = window.open;
+        let _origAssign = window.location.assign;
+        let _origReplace = window.location.replace;
+        let _origSetInterval = window.setInterval;
+        let _origSetTimeout = window.setTimeout;
+        let _origRAF = window.requestAnimationFrame;
+        const shieldTimers = [];
+        const shieldRAFs = [];
+
+        // EXTENDED whitelist: includes all Lab panels and CodeMirror
+        const LAB_UI_SELECTORS = '#labMainDashboard, .lab-fab-wrapper, #labCssQuickMenu, #labCssExtractMenu, #labHtmlSourceModal, #panelSnifferLab, #quick-extract-modal, .CodeMirror-hints, .lab-overlay-blocker, .lab-html-toast, #panelJs, #panelCss, #panelConsole, #panelTree, .CodeMirror, .CodeMirror-vscrollbar, .CodeMirror-hscrollbar, .CodeMirror-gutters, .CodeMirror-linenumber, .CodeMirror-lines, .lab-editor-container, .lab-panel, .lab-sidebar, .lab-restore-bar, .lab-tree-dom, .lab-console-log';
+
+        function isInsideLabUI(el) {
+            if (!el || !el.closest) return false;
+            try {
+                return !!el.closest(LAB_UI_SELECTORS);
+            } catch(e) { return false; }
+        }
+
+        function shieldClickHandler(e) {
+            if (!shieldActive) return;
+            const path = e.composedPath ? e.composedPath() : [e.target];
+            for (let node of path) {
+                if (node instanceof Element && isInsideLabUI(node)) return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            if (typeof window.__labAppendLog === 'function') {
+                window.__labAppendLog('[Shield] Blocked click on <' + (e.target && e.target.tagName ? e.target.tagName : '?') + '>', 'log');
+            }
+        }
+
+        function enableShield() {
+            if (shieldActive) return;
+            shieldActive = true;
+            localStorage.setItem(SHIELD_KEY, 'true');
+
+            document.addEventListener('click', shieldClickHandler, true);
+            document.addEventListener('mousedown', shieldClickHandler, true);
+            document.addEventListener('mouseup', shieldClickHandler, true);
+
+            window.open = function() {
+                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked window.open()', 'log');
+                return null;
+            };
+            window.location.assign = function() {
+                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked location.assign()', 'log');
+            };
+            window.location.replace = function() {
+                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked location.replace()', 'log');
+            };
+            try {
+                const _loc = window.location;
+                Object.defineProperty(window, 'location', {
+                    get: function() { return _loc; },
+                    set: function() {
+                        if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked location.href redirect', 'log');
+                    },
+                    configurable: true
+                });
+            } catch(e) {}
+
+            window.setInterval = function() {
+                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked setInterval', 'log');
+                return -1;
+            };
+            window.setTimeout = function(fn, delay) {
+                const d = delay || 0;
+                if (d < 500 && !(fn && fn.__labSafe)) {
+                    if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Blocked setTimeout (delay=' + d + 'ms)', 'log');
+                    return -1;
+                }
+                const id = _origSetTimeout.apply(this, arguments);
+                shieldTimers.push(id);
+                return id;
+            };
+            window.requestAnimationFrame = function(cb) {
+                const id = _origRAF.apply(this, arguments);
+                shieldRAFs.push(id);
+                return id;
+            };
+
+            window.addEventListener('beforeunload', function(e) {
+                if (shieldActive) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            updateShieldBtn();
+            if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] ENABLED — Clicks, navigation & fast loops BLOCKED.', 'return');
+        }
+
+        function disableShield() {
+            if (!shieldActive) return;
+            shieldActive = false;
+            localStorage.setItem(SHIELD_KEY, 'false');
+
+            document.removeEventListener('click', shieldClickHandler, true);
+            document.removeEventListener('mousedown', shieldClickHandler, true);
+            document.removeEventListener('mouseup', shieldClickHandler, true);
+
+            window.open = _origOpen;
+            window.location.assign = _origAssign;
+            window.location.replace = _origReplace;
+            window.setInterval = _origSetInterval;
+            window.setTimeout = _origSetTimeout;
+            window.requestAnimationFrame = _origRAF;
+
+            shieldTimers.forEach(id => { try { clearTimeout(id); } catch(e) {} });
+            shieldTimers.length = 0;
+            shieldRAFs.forEach(id => { try { cancelAnimationFrame(id); } catch(e) {} });
+            shieldRAFs.length = 0;
+
+            updateShieldBtn();
+            if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] DISABLED — Page restored.', 'return');
+        }
+
+        function toggleShield() {
+            shieldActive ? disableShield() : enableShield();
+        }
+
+        // UI Button with fallback
+        let $shieldBtn = null;
+        function createShieldBtn() {
+            if (!window.$) return;
+            $shieldBtn = $('<button class="lab-mini-btn" id="labBtnAntiHijack" style="margin-right:4px;" title="Bật/Tắt Anti-Hijack Shield">🛡️ OFF</button>');
+            const $target = $('#labRestoreBar .lab-restore-group').first();
+            if ($target.length) {
+                $target.append($shieldBtn);
+            } else {
+                // Fallback: append to dashboard header or body
+                const $header = $('#labMainDashboard .lab-header');
+                if ($header.length) {
+                    $header.append($shieldBtn);
+                } else {
+                    $shieldBtn.css({position:'fixed',bottom:'10px',right:'10px',zIndex:2147483647}).appendTo('body');
+                }
+            }
+            $shieldBtn.on('click', function(e) { toggleShield(); });
+            updateShieldBtn();
+        }
+
+        function updateShieldBtn() {
+        				window.__labAppendLog('Update Button', 'return');
+            if (!$shieldBtn || !$shieldBtn.length) return;
+            if (shieldActive) {
+                $shieldBtn.css({ background: '#e74c3c', color: '#fff', fontWeight: 'bold', border: '1px solid #c0392b' }).text('🛡️ SHIELD ON').attr('title', 'Anti-Hijack Shield đang BẬT — Click để tắt');
+            } else {
+                $shieldBtn.css({ background: '#27ae60', color: '#fff', fontWeight: 'normal', border: '1px solid #1e8449' }).text('🛡️ SHIELD OFF').attr('title', 'Anti-Hijack Shield đang TẮT — Click để bật');
+            }
+        }
+
+        // ==========================================================
+        // 14.2 CSS EXTRACTOR MENU (Shift + Click on Tree DOM)
+        // ==========================================================
+        let $extractMenu = null;
+        let _extractSelector = '';
+        let _extractEl = null;
+        let _extractBlocks = [];
+
+        function createExtractMenu() {
+            if (!window.$) return;
+            $extractMenu = $(`
+                <div id="labCssExtractMenu" style="
+                    position: fixed; display: none; z-index: 2147483647; background: #1e1e1e; border: 1px solid #9b59b6; border-radius: 6px;
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.85); min-width: 320px; max-width: 420px; font-family: 'Segoe UI', sans-serif; font-size: 12px; overflow: hidden;
+                    user-select: none; pointer-events: auto;
+                ">
+                    <div style="background: #252525; padding: 6px 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #f1c40f; font-weight: bold;">🎨 CSS EXTRACTOR</span>
+                        <span id="labCssExtractTarget" style="color: #50fa7b; font-family: monospace; font-weight: bold; background: #111; padding: 2px 6px; border-radius: 3px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+                    </div>
+                    <div id="labCssExtractList" style="max-height: 320px; overflow-y: auto; padding: 4px 0;"></div>
+                    <div style="background: #111; padding: 6px 10px; border-top: 1px solid #333; display: flex; gap: 4px; flex-wrap: wrap;">
+                        <button id="labBtnExtractInline" class="lab-mini-btn" style="font-size:11px; flex:1;">📌 Inline</button>
+                        <button id="labBtnExtractSheets" class="lab-mini-btn" style="font-size:11px; flex:1;">📄 Sheets</button>
+                        <button id="labBtnExtractComputed" class="lab-mini-btn" style="font-size:11px; flex:1;">🖥️ Computed</button>
+                        <button id="labBtnInjectToEditor" class="lab-mini-btn btn-success" style="font-size:11px; flex:1; min-width:80px;">➡️ Editor</button>
+                    </div>
+                </div>
+            `);
+            $('body').append($extractMenu);
+
+            // Make CSS Extractor draggable via header / border area
+            $extractMenu.on('mousedown.labExtractDrag', function(e) {
+                // Chỉ kéo khi bấm vào vùng header hoặc border, không kéo khi bấm vào nút, row, pre
+                if ($(e.target).closest('button, .lab-extract-row, pre, code, input').length) return;
+                e.preventDefault(); e.stopPropagation();
+                const rect = $extractMenu[0].getBoundingClientRect();
+                const startX = e.clientX, startY = e.clientY;
+                const startLeft = rect.left, startTop = rect.top;
+                $(window).on('mousemove.labExtractMove', function(moveEvent) {
+                    $extractMenu.css({
+                        left: (startLeft + moveEvent.clientX - startX) + 'px',
+                        top: (startTop + moveEvent.clientY - startY) + 'px',
+                        right: 'auto', bottom: 'auto'
+                    });
+                });
+                $(window).on('mouseup.labExtractMove', function() {
+                    $(window).off('mousemove.labExtractMove mouseup.labExtractMove');
+                });
+            });
+
+            $extractMenu.find('#labBtnExtractInline').on('click', function(e) {
+                e.stopPropagation();
+                const css = getInlineStyleCss(_extractEl);
+                if (css) addBlock('inline style', css);
+                else if (typeof window.__labAppendLog === 'function') window.__labAppendLog('⚠️ Không có inline style.', 'log');
+            });
+            $extractMenu.find('#labBtnExtractSheets').on('click', function(e) {
+                e.stopPropagation();
+                const rules = getStylesheetCssForSelector(_extractSelector);
+                if (rules.length) {
+                    rules.forEach((r, i) => addBlock('stylesheet #' + (i + 1), r));
+                } else {
+                    if (typeof window.__labAppendLog === 'function') window.__labAppendLog('⚠️ Không tìm thấy rule stylesheet cho ' + _extractSelector, 'log');
+                }
+            });
+            $extractMenu.find('#labBtnExtractComputed').on('click', function(e) {
+                e.stopPropagation();
+                const css = getComputedCss(_extractEl);
+                if (css) addBlock('computed style', css);
+                else if (typeof window.__labAppendLog === 'function') window.__labAppendLog('⚠️ Không có computed style khả dụng.', 'log');
+            });
+            $extractMenu.find('#labBtnInjectToEditor').on('click', function(e) {
+                e.stopPropagation();
+                const selected = _extractBlocks.filter((_, i) => $extractMenu.find('.lab-extract-row').eq(i).hasClass('selected'));
+                const blocks = selected.length ? selected : _extractBlocks;
+                if (!blocks.length) {
+                    alert('Chưa có CSS nào. Hãy bấm Inline / Sheets / Computed trước.');
+                    return;
+                }
+                const merged = blocks.map(b => b.cssText).join('\n\n');
+                const cur = ($cssInput && $cssInput.val() ? $cssInput.val() : '').trim();
+                const final = cur ? cur + '\n\n/* ===== CSS Extractor Injection ===== */\n' + merged : merged;
+                if ($cssInput && $cssInput.length) $cssInput.val(final).trigger('input');
+                if (window.__labCssEditor && window.__labCssEditor.setValue) {
+                    window.__labCssEditor.setValue(final);
+                    if (window.__labCssEditor.setCursor) window.__labCssEditor.setCursor(window.__labCssEditor.lineCount(), 0);
+                }
+                if (typeof window.__labAppendLog === 'function') window.__labAppendLog('🎨 Đã chèn ' + blocks.length + ' khối CSS vào CSS Editor.', 'return');
+                $extractMenu.hide();
+            });
+
+            $(document).on('click.closeCssExtractMenu contextmenu.closeCssExtractMenu', function(e) {
+                if (!$(e.target).closest('#labCssExtractMenu').length) $extractMenu.hide();
+            });
+        }
+
+        function getInlineStyleCss(el) {
+            if (!el || !el.style || !el.style.cssText) return '';
+            const body = el.style.cssText.split(';').filter(Boolean).map(s => '    ' + s.trim() + ';').join('\n');
+            return `/* Inline Style */\n${selectorFromElement(el)} {\n${body}\n}`;
+        }
+
+        function getStylesheetCssForSelector(selector) {
+            const results = [];
+            if (!selector) return results;
+            const rawName = selector.replace(/^[.#]/, '');
+            try {
+                for (let sheet of document.styleSheets) {
+                    let rules;
+                    try { rules = sheet.cssRules || sheet.rules; } catch(e) { continue; }
+                    if (!rules) continue;
+                    for (let rule of rules) {
+                        if (rule.type !== CSSRule.STYLE_RULE) continue;
+                        const selText = rule.selectorText || '';
+                        const parts = selText.split(',').map(s => s.trim());
+                        let hit = false;
+                        for (let p of parts) {
+                            if (p.includes(selector) || p.includes(rawName)) { hit = true; break; }
+                        }
+                        if (hit) results.push(rule.cssText);
+                    }
+                }
+            } catch(e) { console.error('[CSS Extractor] Stylesheet error:', e); }
+            return results;
+        }
+
+        function getComputedCss(el) {
+            if (!el) return '';
+            const computed = window.getComputedStyle(el);
+            const props = ['display','visibility','position','top','left','right','bottom','width','height','margin','padding','background','background-color','color','font-size','font-family','font-weight','line-height','text-align','border','border-radius','opacity','transform','z-index','overflow','cursor','pointer-events','box-shadow','text-decoration','white-space','flex','grid','gap'];
+            const lines = [];
+            props.forEach(prop => {
+                const val = computed.getPropertyValue(prop);
+                if (val && val !== 'initial' && val !== 'auto' && val !== 'normal' && val !== 'none' && val !== '0px' && val !== 'rgba(0, 0, 0, 0)' && val !== 'transparent') {
+                    lines.push('    ' + prop + ': ' + val + ';');
+                }
+            });
+            if (!lines.length) return '';
+            return `/* Computed Style (filtered) */\n${selectorFromElement(el)} {\n${lines.join('\n')}\n}`;
+        }
+
+        function dedupBlocks(blocks) {
+            const seen = new Set();
+            return blocks.filter(b => {
+                if (seen.has(b.cssText)) return false;
+                seen.add(b.cssText);
+                return true;
+            });
+        }
+
+        function renderExtractList() {
+            if (!$extractMenu) return;
+            const $list = $extractMenu.find('#labCssExtractList');
+            $list.empty();
+            _extractBlocks = dedupBlocks(_extractBlocks);
+            if (!_extractBlocks.length) {
+                $list.html('<div style="padding:8px 12px; color:#888;">Chưa có dữ liệu. Nhấn Inline / Sheets / Computed để trích xuất.</div>');
+                return;
+            }
+            _extractBlocks.forEach((block, idx) => {
+                const $row = $(`
+                    <div class="lab-extract-row" data-idx="${idx}" style="padding: 6px 10px; border-bottom: 1px solid #222; cursor: pointer; transition: background 0.15s;">
+                        <div style="color: #9b59b6; font-size: 10px; margin-bottom: 2px; font-weight: bold;">${__labEscHtml(block.source)}</div>
+                        <pre style="color: #ddd; font-size: 11px; margin: 0; white-space: pre-wrap; word-break: break-word; font-family: Consolas, monospace; max-height: 120px; overflow: auto;">${__labEscHtml(block.cssText)}</pre>
+                    </div>
+                `);
+                $row.on('click', function() {
+                    $(this).toggleClass('selected');
+                    $(this).css('background', $(this).hasClass('selected') ? 'rgba(155,89,182,0.25)' : 'transparent');
+                });
+                $list.append($row);
+            });
+        }
+
+        function addBlock(source, cssText) {
+            if (!cssText || !cssText.trim()) return;
+            _extractBlocks.push({ source, cssText: cssText.trim() });
+            renderExtractList();
+        }
+
+        function openExtractMenu(selector, x, y) {
+            if (!$extractMenu) return;
+            _extractSelector = selector;
+            _extractEl = getLabElementBySelector(selector);
+            _extractBlocks = [];
+            $extractMenu.find('#labCssExtractTarget').text(selector).attr('title', selector);
+            renderExtractList();
+            const w = $extractMenu.outerWidth() || 320;
+            const h = $extractMenu.outerHeight() || 400;
+            let px = x + 12, py = y + 12;
+            if (px + w > window.innerWidth) px = x - w - 12;
+            if (py + h > window.innerHeight) py = window.innerHeight - h - 12;
+            $extractMenu.css({ top: Math.max(5, py) + 'px', left: Math.max(5, px) + 'px' }).show();
+        }
+
+        // Shift+Click handler on Tree DOM
+        document.addEventListener('click', function(e) {
+            const t = e.target;
+            if (!t || !t.closest) return;
+            if (!t.closest('#labTreeDomBody')) return;
+            if (!t.matches('.html-val, .html-attr')) return;
+            if (!e.shiftKey) return;
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            let targetSelector = null;
+            const $t = $(t);
+            if ($t.hasClass('html-val')) {
+                const rawVal = $t.text().trim();
+                const $prevAttr = $t.prevAll('.html-attr').first();
+                if (!$prevAttr.length) return;
+                const attrName = $prevAttr.text().trim().toLowerCase();
+                if (attrName === 'class') {
+                    const allClass = '.' + rawVal.split(/\s+/).filter(Boolean).join('.');
+                    if (allClass !== '.') targetSelector = allClass;
+                } else if (attrName === 'id') {
+                    targetSelector = '#' + rawVal;
+                }
+            } else if ($t.hasClass('html-attr')) {
+                const attrName = $t.text().trim().toLowerCase();
+                const $nextVal = $t.nextAll('.html-val').first();
+                if (!$nextVal.length) return;
+                const rawVal = $nextVal.text().trim();
+                if (attrName === 'class') {
+                    const firstClass = rawVal.split(/\s+/).filter(Boolean)[0];
+                    if (firstClass) targetSelector = '.' + firstClass;
+                } else if (attrName === 'id') {
+                    targetSelector = '#' + rawVal;
+                }
+            }
+            if (targetSelector) {
+                openExtractMenu(targetSelector, e.clientX, e.clientY);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(targetSelector).catch(()=>{});
+                } else {
+                    const $tmp = $('<textarea>').val(targetSelector).appendTo('body').select();
+                    document.execCommand('copy');
+                    $tmp.remove();
+                }
+            }
+        }, true);
+
+        // Tooltip style
+        function addTooltipStyle() {
+            const $tokStyle = $('#lab-token-pointer-style');
+            if ($tokStyle.length) {
+                const extra = `
+                    #labTreeDomBody .html-val:hover::after, #labTreeDomBody .html-attr:hover::after {
+                        content: "Shift+Click: Extract CSS";
+                        position: absolute; background: #9b59b6; color: #fff; font-size: 10px;
+                        padding: 2px 5px; border-radius: 3px; margin-left: 4px; white-space: nowrap;
+                        z-index: 2147483647; pointer-events: none;
+                    }
+                `;
+                $tokStyle.append(extra);
+            }
+        }
+
+        // ==========================================================
+        // 14.3 INIT: Wait for DOM / jQuery / Dashboard
+        // ==========================================================
+        function initModule() {
+            if (!window.$ || !$('#labMainDashboard').length) {
+                setTimeout(initModule, 500);
+                return;
+            }
+            createShieldBtn();
+            createExtractMenu();
+            addTooltipStyle();
+        }
+
+        // Start init when DOM ready
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(initModule, 100);
+        } else {
+            document.addEventListener('DOMContentLoaded', function() { setTimeout(initModule, 100); });
+        }
+
+        // Restore previous shield state if any (but default is OFF)
+        if (localStorage.getItem(SHIELD_KEY) === 'true') {
+            setTimeout(function() { if (localStorage.getItem(SHIELD_KEY) === 'true') enableShield(); }, 1000);
+        }
+
+    } catch(err) {
+        console.error('[Enhancement Module v17.1] Initialization error:', err);
+    }
+})();;
+// END BLOCK: Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED)
 
     // ### BLOCK START: IIFE & Event Listener Cleanup
     });
