@@ -8,10 +8,10 @@ BASESCRIPT = "https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rH
 
 function getManifest() {
     return JSON.stringify({
-        "id": "phimchill",          
+        "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.3.0",             
+        "version": "2.1",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
