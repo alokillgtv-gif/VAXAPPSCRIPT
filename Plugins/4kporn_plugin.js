@@ -5,7 +5,7 @@ function getManifest() {
         "id": "4kporn",
         "name": "Phim XXX 4K",
         "description": "XXX siêu nét.",
-        "version": "1.0",
+        "version": "1.1",
         "BASEURL": "https://www.freepornvideos.xxx",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -201,11 +201,7 @@ function parseMovieDetail(html, url) {
   var regvid = /src=["']([^"']+)["'][^>]+label=["']([^"']+)["']/g;
   var epi = [];
   var servers = [];
-  for (const match of sourcevd.matchAll(regvid)) {
-   var link = match[1];
-   var type = match[2];
-   epi.push({ id: link, name: "Độ Phân Giải " + type, slug: "full" });		
-  }
+  epi.push({ id: url, name: "Xem Ngay", slug: "full" });	
   servers.push({
             name: "Server",
             episodes: epi
