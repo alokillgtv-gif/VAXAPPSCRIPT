@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -200,7 +200,7 @@ function parseMovieDetail(html, url) {
 		lname = _$(html).find(".title-videos").text();
 		ldes = _$(html).find("#div2").find("p").text().replace(/\s\s/g, "");
 		cast = _$(html).find(".dien-vien").text();
-		embed = _$(html).find("#okplayer-frame").attr("src");
+		embed = _$(html).find("#okplayer-frame").attr("data-base");
 		var servers = [];
 		var epi = [];
 		epi.push({ id: embed, name: "Xem Ngay", slug: "full" });
@@ -210,7 +210,7 @@ function parseMovieDetail(html, url) {
 		});
 		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
 		return JSON.stringify({
-			id: url,
+			id: embed,
 			title: lname,
 			posterUrl: limg,
 			backdropUrl: limg,
