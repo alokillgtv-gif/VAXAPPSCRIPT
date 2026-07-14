@@ -1,16 +1,15 @@
 // ========================================================
-// PHIM CHILL VAAPP PLUGIN (SIÊU TẦM PHIM STRUCTURE)
+// PHIM CHILL VAAPP PLUGIN (DYNAMIC VIRTUAL EPISODE SYSTEM)
 // ========================================================
 
 BASEURL = "https://phimchillhdv.im";
-BASESCRIPT = "https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rHhyjhWYZbSvuX5eqJntT-f2ayEvwKFUI4qOrdUTZ8/exec?check=phimchill&url=";
 
 function getManifest() {
     return JSON.stringify({
         "id": "testScript",          
-        "name": "testScript",
+        "name": "Phim Chill",
         "description": "Phim online",
-        "version": "2.7",             
+        "version": "3.1",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -67,11 +66,11 @@ function getUrlSearch(keyword, filtersJson) {
 function getUrlDetail(id) {
     if (!id) return "";
     
-    // Nếu là click vào tập phim để phát (Cơ chế Sưu Tầm Phim)
+    // Nếu là click vào tập phim giả (ID dạng play-...)
     if (id.indexOf("play-") === 0) {
         var playUrl = id.replace("play-", "");
         if (playUrl.indexOf('http') !== 0) playUrl = BASEURL + playUrl;
-        return playUrl;
+        return playUrl; // Trả về trang chiếu phim kèm ?tap=X để nạp vào parseDetailResponse
     }
 
     if (id.indexOf('http') === 0) return id;
@@ -153,8 +152,8 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-    // Nếu URL chứa tiền tố phát video hoặc có tham số play, chặn parseDetail để tránh đệ quy hỏng giao diện
-    if (url && (url.includes("play-") || url.includes("/tap-"))) {
+    // Chặn đệ quy nếu click từ trang phát
+    if (url && (url.includes("play-") || url.includes("?tap="))) {
         return JSON.stringify({ id: url, servers: [] });
     }
 
@@ -189,11 +188,7 @@ function parseMovieDetail(html, url) {
 
     var servers = [];
 
-    // =========================================================================
-    // CƠ CHẾ SƯU TẦM PHIM: Xử lý tại trang chi tiết gốc (Ví dụ: _46768.html)
-    // =========================================================================
-    
-    // Tìm URL nút "Xem Phim" chứa ID của trang chiếu phim (Ví dụ: /tap-1_1368851.html)
+    // Tìm URL nút "Xem Phim" chứa ID thật của trang chiếu phim (Ví dụ: /tap-1_1368851.html)
     var playBtnMatch = html.match(/href="([^"]+\/tap-[^"]+)"/i) || html.match(/href="([^"]+)"[^>]*>Xem phim<\/a>/i);
     
     if (playBtnMatch) {
@@ -201,28 +196,34 @@ function parseMovieDetail(html, url) {
         var cleanPath = playPageUrl.replace(BASEURL, "");
         if (cleanPath.indexOf("/") !== 0) cleanPath = "/" + cleanPath;
 
-        // Quét tổng số tập hiển thị trên trang chi tiết (nếu có thông tin dạng "Tập 12/12" hoặc "12 tập")
+        // BÓC TÁCH SỐ TẬP TỪ BIẾN lduran (Thời lượng / Số tập)
         var totalEpisodes = 1;
-        var epInfoMatch = html.match(/(\d+)\s*\/\s*(\d+)\s*Tập/i) || html.match(/Số tập:\s*(\d+)/i) || html.match(/(\d+)\s*tập/i);
-        if (epInfoMatch) {
-            totalEpisodes = parseInt(epInfoMatch[1] || epInfoMatch[2] || "1", 10);
+        if (lduran) {
+            var numMatch = lduran.match(/\d+/);
+            if (numMatch) {
+                totalEpisodes = parseInt(numMatch[0], 10);
+            }
+        }
+        // Nếu không bóc tách được từ lduran thì check thẻ Số Tập thông thường hoặc mặc định là 45 tập giả
+        if (totalEpisodes <= 1) {
+            var epInfoMatch = html.match(/(\d+)\s*\/\s*(\d+)\s*Tập/i) || html.match(/Số tập:\s*(\d+)/i) || html.match(/(\d+)\s*tập/i);
+            totalEpisodes = epInfoMatch ? parseInt(epInfoMatch[1] || epInfoMatch[2], 10) : 45; // Mặc định 45 tập giả
         }
 
         var episodes = [];
         for (var k = 1; k <= totalEpisodes; k++) {
-            // Thay thế tập tương ứng trong URL (Ví dụ: /tap-1_1368851.html -> /tap-k_1368851.html)
-            var epUrl = cleanPath.replace(/tap-\d+/, "tap-" + k);
-
+            // ID giả: play-[Trang_Xem_Phim_Gốc]?tap=K
+            var epId = "play-" + cleanPath + "?tap=" + k;
+            
             episodes.push({
-                // BẮT BUỘC có đầu play- để nhảy thẳng vào parseDetailResponse lấy stream phát
-                id: "play-" + epUrl,
-                name: totalEpisodes === 1 ? "Full" : "Tập " + k,
+                id: epId,
+                name: "Tập " + k,
                 slug: "tap-" + k
             });
         }
 
         servers.push({
-            name: "Default Server",
+            name: "Server Phim Chill",
             episodes: episodes
         });
     } else {
@@ -231,7 +232,7 @@ function parseMovieDetail(html, url) {
         servers.push({
             name: "Mặc định",
             episodes: [{
-                id: "play-" + fallbackPath,
+                id: "play-" + fallbackPath + "?tap=1",
                 name: "Full HD",
                 slug: "full"
             }]
@@ -261,7 +262,58 @@ function parseDetailResponse(html, url) {
         var customJs = CustomjQ(html, url);
         var streamUrl = "";
         
-        // Bóc tách luồng phát thực tế từ HTML của trang xem phim
+        // ---------------------------------------------------------------------
+        // LUỒNG XỬ LÝ TẬP GIẢ: Tách tham số ?tap=X từ URL ra
+        // ---------------------------------------------------------------------
+        var targetTap = 1;
+        var tapMatch = url.match(/[\?&]tap=(\d+)/);
+        if (tapMatch) {
+            targetTap = parseInt(tapMatch[1], 10);
+        }
+
+        // Quét danh sách tập thật có trong HTML trang xem phim này
+        var episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+        var epMatch;
+        var realEpisodes = [];
+        
+        // Lấy toàn bộ các thẻ link tập phim thật
+        while ((epMatch = episodeRegex.exec(html)) !== null) {
+            var href = epMatch[1];
+            var text = epMatch[2].replace(/<[^>]*>/g, "").trim();
+            
+            // Chỉ lấy các thẻ a có chứa chữ số đại diện cho tập
+            var numMatch = text.match(/\d+/);
+            if (numMatch) {
+                realEpisodes.push({
+                    url: href,
+                    tapNum: parseInt(numMatch[0], 10)
+                });
+            }
+        }
+
+        // Tìm URL của tập thật tương ứng với tập giả đang yêu cầu
+        var realUrl = "";
+        for (var i = 0; i < realEpisodes.length; i++) {
+            if (realEpisodes[i].tapNum === targetTap) {
+                realUrl = realEpisodes[i].url;
+                break;
+            }
+        }
+
+        // Nếu tìm thấy tập thật tương ứng, ta nạp HTML của tập đó (Nếu cần) hoặc parse link phát trực tiếp
+        // Ghi chú: Vì trang xem phim của Phim Chill dùng chung cấu trúc player, 
+        // nếu click tập khác ta chỉ cần chuyển hướng lấy link stream từ data-link của trang tập đó.
+        var targetHtml = html;
+        if (realUrl && realUrl !== url) {
+            // Chuyển đổi link tương đối thành tuyệt đối nếu cần
+            if (realUrl.indexOf('http') !== 0) {
+                realUrl = BASEURL + (realUrl.indexOf('/') === 0 ? "" : "/") + realUrl;
+            }
+            // Trả về luồng chuyển sang parseEmbedResponse để bóc m3u8 của URL thật
+            return parseEmbedResponse(targetHtml, realUrl);
+        }
+
+        // Bóc tách luồng phát gốc từ trang hiện tại
         var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
         if (rmatch && rmatch[1]) { 
             streamUrl = rmatch[1]; 
@@ -280,6 +332,33 @@ function parseDetailResponse(html, url) {
         });
     } catch (error) {
         return JSON.stringify({ url: "", headers: {} });
+    }
+}
+
+function parseEmbedResponse(html, sourceUrl) {
+    // Hàm này nhận nhiệm vụ bóc link m3u8 từ tập thật chuyển tiếp từ parseDetailResponse qua
+    try {
+        var customJs = CustomjQ(html, sourceUrl);
+        var streamUrl = "";
+        
+        var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
+        if (rmatch && rmatch[1]) { 
+            streamUrl = rmatch[1]; 
+        } else {
+            streamUrl = sourceUrl;
+        }
+
+        return JSON.stringify({
+            url: streamUrl,
+            headers: {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Custom-Js": customJs.trim()
+            }
+        });
+    } catch (e) {
+        return JSON.stringify({ url: sourceUrl, headers: {} });
     }
 }
 
