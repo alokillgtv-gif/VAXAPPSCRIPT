@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -692,9 +692,10 @@ function initCustomVideoFix() {
 			iframe.style.cssText = "background:black;position:fixed;right:0px;top:0px;left:0px;bottom:0px;width:100%;height:100%;display:none;z-index:9999;border:none;";
 			iframe.src = "about:blank";
 			
-			keepElementsAndInjectControls(["video"]);
+			
 			
 			setTimeout(function() {
+			keepElementsAndInjectControls(["video"]);
 				document.body.appendChild(tempDiv);
 				document.body.appendChild(iframe);
 			}, 2000);
