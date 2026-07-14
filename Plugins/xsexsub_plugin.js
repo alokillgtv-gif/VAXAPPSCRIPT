@@ -175,96 +175,75 @@ function parseSearchResponse(html) {
 
 
 
-function parseMovieDetail(html,url) {
-    var lurl = "";
-    var limg = "";
-    var lname = "Đang cập nhật...";
-    var ldes = "Không có mô tả.";
-    var year = 2026;
-    var direc = "????";
-    var cast = "????";
-    var status = "????";
-    var duration = "1:09:00 | 16 | 16";
-    var rating = "????";
+function parseMovieDetail(html, url) {
+	var lurl = "";
+	var limg = "";
+	var lname = "Đang cập nhật...";
+	var ldes = "Không có mô tả.";
+	var year = 2026;
+	var direc = "????";
+	var cast = "????";
+	var status = "????";
+	var duration = "1:09:00 | 16 | 16";
+	var rating = "????";
 	var servers = [{}];
-    var $info = "";
+	var $info = "";
 	var category = "";
 	var country = "";
 	var lang = "";
 	var streamUrl = "";
-    try{
-        info = _$(html).find(".dinfo").html();
-        limg = _$(html).find(".adspruce-streamlink").find("img").attr("src");
-        if(limg.indexOf("http") == -1){
-            limg = BASEURL + limg;
-        }
-        streamUrl = _$(html).find(".adspruce-streamlink").attr("href");
-        lname = _$(html).find(".title").text();
-        ldes = _$(html).find("#info-film").text().replace(/\s\s/g,"");
-        //var poster = _$(html).find(".poster").html();
-        //var lastserver = _$(html).find(".latest-episode").html();
-        //ldes += "\r\n\r\n\r\n" + poster + "\r\n\r\n\r\n" + lastserver;
-        status = _$(info).find("dt:content('Tình trạng')").next().text();
-        year = _$(info).find("dt:content('Năm sản xuất')").next().text();
-        cast = _$(info).find("dt:content('Diễn viên:')").next().text();
-        duration = _$(info).find("dt:content('Thời lượng:')").next().text();
-        category = _$(info).find("dt:content('Thể loại:')").next().text();
-        country = _$(info).find("dt:content('Quốc gia:')").next().text();
-        lang = _$(info).find("dt:content('Ngôn ngữ:')").next().text();	
-
-        var servers = [];
-        var $listserver = _$(html).find(".latest-episode").html();
-        _$($listserver).find(".control-box").each(function(index, el) {
-            var epi = [];
-            var tap = 0;
-            var nameserver = _$(el).find(".server-episode-block").text(); 
-            this.find(".list-episode").find("a").each(function(index, Bl) {
-                tap += 1;
-                var ahref = this.attr("href"); 
-                var name = this.text();
-                epi.push({ id: ahref, name: name, slug: "tap-" + tap});
-            });
-            servers.push({
-               name: nameserver || "Server",
-               episodes: epi
-            });
-        });
-        servers = sortEpisodesByName(servers);
-        return JSON.stringify({
-            id: url,
-            title: lname,
-            posterUrl: limg,
-            backdropUrl: limg,
-            description: ldes,
-            servers: servers,
-            quality: "HD",
-            year: year,
-            status: status,
-            duration: duration,
-            casts: cast,
-            director: direc,
-            country: country,
-            category: category,
-            lang:lang
-        });
-  
-  }
-  catch (e) {
-        return JSON.stringify({
-        id: lurl,
-        title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
-        posterUrl: limg,
-        backdropUrl: limg,
-        description: ldes,
-        servers: servers,
-        quality: "HD",
-        year: year,
-        status: status,
-        duration: duration,
-        casts: cast,
-        director: direc
-      });
-    }
+	try {
+		limg = _$(html).find(".alignnone").attr("src");
+		if (limg.indexOf("http") == -1) {
+			limg = BASEURL + limg;
+		}
+		lname = _$(html).find(".title-videos").text();
+		ldes = _$(html).find("#div2").find("p").text().replace(/\s\s/g, "");
+		cast = _$(html).find(".dien-vien").text();
+		embed = _$(html).find("#okplayer-frame").attr("src");
+		var servers = [];
+		var epi = [];
+		epi.push({ id: embed, name: "Xem Ngay", slug: "full" });
+		servers.push({
+			name: "Server",
+			episodes: epi
+		});
+		
+		return JSON.stringify({
+			id: url,
+			title: lname,
+			posterUrl: limg,
+			backdropUrl: limg,
+			description: ldes,
+			servers: servers,
+			quality: "HD",
+			year: year,
+			status: status,
+			duration: duration,
+			casts: cast,
+			director: direc,
+			country: country,
+			category: category,
+			lang: lang
+		});
+		
+	}
+	catch (e) {
+		return JSON.stringify({
+			id: lurl,
+			title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
+			posterUrl: limg,
+			backdropUrl: limg,
+			description: ldes,
+			servers: servers,
+			quality: "HD",
+			year: year,
+			status: status,
+			duration: duration,
+			casts: cast,
+			director: direc
+		});
+	}
 }
 
 
@@ -276,46 +255,36 @@ function parseMovieDetail(html,url) {
 // https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san-35032
 // https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san/tap-1-811897
 function parseDetailResponse(html, url) {
-    try {
-        var stream = "";
-        var server = [];
-        _$(html).find(".tip-change-server").find(".streaming-server").each(function() {
-            // Lúc này 'this' chính là thực thể của từng thẻ <a> riêng biệt
-            var ahref = this.attr("data-link");
-            var name = this.text();
-            if (name === "HDC") {
-                stream = ahref
-            }
-            var $item = { link: ahref, name: name };
-            server.push($item);
-        });
-        if (stream == "") {
-            stream = server[0].link;
-        }
-        var customjs = textJS(server);
-        return JSON.stringify({
-            "url": stream,
-            "headers": {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-                // Đánh lừa thuật toán Client Hints của tường lửa
-                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                "Sec-Ch-Ua-Mobile": "?1",
-                "Sec-Ch-Ua-Platform": '"Android"',
-                
-                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-                "Accept": "*/*",
-                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim()
-            },
-            "subtitles": []
-        });
-        
-    } catch (e) {
-        return JSON.stringify({ "url": "", "headers": {} });
-    }
+	try {
+		var server = [];
+		_$(html).find("#cvp-container").each(function(index, el) {
+			var href = this.find(".cvp-tab-pane").attr("data-link");
+			server.push(href)
+		});
+		var customjs = textJS(server);
+		return JSON.stringify({
+			"url": "",
+			"headers": {
+				"Referer": BASEURL,
+				"Origin": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+				// Đánh lừa thuật toán Client Hints của tường lửa
+				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+				"Sec-Ch-Ua-Mobile": "?1",
+				"Sec-Ch-Ua-Platform": '"Android"',
+				
+				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+				"Accept": "*/*",
+				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+				"X-Requested-With": "com.android.chrome",
+				"Custom-Js": customjs.trim()
+			},
+			"subtitles": []
+		});
+		
+	} catch (e) {
+		return JSON.stringify({ "url": "", "headers": {} });
+	}
 }
 
 //BASEURL = "https://phimnganhdc.com";
