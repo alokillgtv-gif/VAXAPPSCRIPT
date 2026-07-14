@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.2",             
+        "version": "1.4",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
@@ -282,18 +282,17 @@ function parseDetailResponse(html, url) {
 
 function parseEmbedResponse(html, sourceUrl) {
     try {
-        var streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
+        var streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
 				var customjs = textJS();
         return JSON.stringify({
-            url: streamUrl,
-            "mimeType": "application/x-mpegURL",
-            isEmbed: false, // Tắt embed để kích hoạt player gốc phát m3u8
-            headers: {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customjs.trim()
-            }
+	          url: streamUrl,
+	          isEmbed: false,
+	          headers: {
+	          	"Referer": BASEURL,
+	          	"Origin": BASEURL,
+	          	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+	          	"Custom-Js": customJs.trim()
+	         }
         });
     } catch (e) {
         return JSON.stringify({ url: sourceUrl, headers: {} });
