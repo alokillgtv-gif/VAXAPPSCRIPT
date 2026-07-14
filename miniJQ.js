@@ -8,7 +8,38 @@ window._$ = function(htmlOrBlock) {
         sourceHtml: typeof htmlOrBlock === 'string' ? htmlOrBlock : '',
         elements: Array.isArray(htmlOrBlock) ? htmlOrBlock : (htmlOrBlock ? [htmlOrBlock] : []),
 
-        find: function(selector) {
+                find: function(selector) {
+            // =========================================================
+            // 🎯 NÂNG CẤP: Hỗ trợ tìm kiếm nhiều selector bằng dấu phẩy (,)
+            // =========================================================
+            if (selector.indexOf(',') !== -1) {
+                var results = [];
+                // Tách các selector bởi dấu phẩy và trim khoảng trắng thừa
+                var selectors = selector.split(',').map(function(s) { return s.trim(); });
+                
+                for (var s = 0; s < selectors.length; s++) {
+                    if (selectors[s] === "") continue;
+                    // Gọi đệ quy hàm find cho từng selector đơn lẻ
+                    var subInstance = this.find(selectors[s]);
+                    
+                    // Gộp kết quả và loại bỏ phần tử HTML bị trùng lặp
+                    for (var r = 0; r < subInstance.elements.length; r++) {
+                        var element = subInstance.elements[r];
+                        if (results.indexOf(element) === -1) {
+                            results.push(element);
+                        }
+                    }
+                }
+                
+                var multiInstance = _$(results);
+                multiInstance.sourceHtml = this.sourceHtml;
+                return multiInstance;
+            }
+            // =========================================================
+            // Kết thúc phần nâng cấp dấu phẩy. 
+            // Giữ nguyên toàn bộ logic phân tích selector cũ bên dưới:
+            // =========================================================
+
             var results = [];
             var contentFilter = "";
             if (selector.indexOf(":content(") !== -1) {
@@ -18,6 +49,8 @@ window._$ = function(htmlOrBlock) {
                     selector = selector.replace(/:content\((?:"[^"]*"|'[^']*'|[^)]*)\)/, "");
                 }
             }
+            
+            // ... (Giữ nguyên TOÀN BỘ code cũ của hàm find từ đoạn này trở đi) ..
 
             var attrNameFilter = "";
             var attrValueFilter = "";
