@@ -241,12 +241,13 @@ function injectCustomVideoControls(video) {
 
 function setServer() {
     // 1. Dữ liệu Server của bạn
+    /*
     const LINKVIDEO = [
         {"link":"https://sv1.website/get/80b33ffed5588401acc0894f8e9bf2aaf8fff054.m3u8","name":"Server 1"},
         {"link":"https://sv1.website/get/80b33ffed5588401acc0894f8e9bf2aaf8fff054-gg.m3u8","name":"Server 2"},
         {"link":"https://zpi.cx/s12/z1BeuPycr.mp4","name":"Server 3"}
     ];
-
+*/
     // 2. Tự động thêm CSS vào trang để làm mờ và định vị nút trôi nổi bên phải
     const css = `
         .server-widget {
@@ -346,5 +347,5 @@ function setServer() {
 
 keepElementsAndInjectControls(["video"]);
 setTimeout(function(){
-	setServer()
+        setServer()
 },2000)
