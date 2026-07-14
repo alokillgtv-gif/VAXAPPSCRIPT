@@ -1,6 +1,5 @@
 window.BASEURL = window.location.origin;
 window._$ = function(htmlOrBlock) {
-    // 🔥 SỬA LỖI CHÍ MẠNG: Nếu vô tình bọc _$(this), trả về chính nó luôn chứ không bọc đè Object
     if (htmlOrBlock && typeof htmlOrBlock === 'object' && htmlOrBlock.elements) {
         return htmlOrBlock;
     }
@@ -44,22 +43,40 @@ window._$ = function(htmlOrBlock) {
             var isLastFilter = selector.indexOf(":last") !== -1;
             selector = selector.replace(/:first|:last/g, "");
 
-            var isClass = selector.indexOf('.') === 0;
-            var isId = selector.indexOf('#') === 0;
-            var isAttrOnly = (selector === "" && hasAttrFilter);
-
-            var targetClasses = [];
-            var targetId = "";
+            // =========================================================
+            // 🎯 BỘ PHÂN TÍCH SELECTOR NÂNG CẤP (Xử lý được Tag.class1.class2, #id, .class)
+            // =========================================================
             var targetTagName = "";
+            var targetId = "";
+            var targetClasses = [];
 
-            if (isClass) {
-                targetClasses = selector.split('.').filter(function(c) { return c.length > 0; });
-            } else if (isId) {
-                targetId = selector.substring(1);
-            } else if (!isAttrOnly) {
-                targetTagName = selector.toLowerCase();
+            var selectorToParse = selector.trim();
+            if (selectorToParse !== "") {
+                // 1. Tách phần ID nếu có (ví dụ: div#myId hoặc #myId)
+                var idIndex = selectorToParse.indexOf('#');
+                if (idIndex !== -1) {
+                    var afterId = selectorToParse.substring(idIndex + 1);
+                    // ID dừng lại khi gặp dấu chấm class tiếp theo
+                    var nextDot = afterId.indexOf('.');
+                    targetId = nextDot === -1 ? afterId : afterId.substring(0, nextDot);
+                    selectorToParse = selectorToParse.substring(0, idIndex) + (nextDot === -1 ? "" : "." + afterId.substring(nextDot + 1));
+                }
+
+                // 2. Tách các Class (ví dụ: div.class1.class2 -> ["class1", "class2"])
+                var classParts = selectorToParse.split('.');
+                // Phần tử đầu tiên chính là TagName (nếu có, ví dụ: "div")
+                var possibleTag = classParts.shift();
+                if (possibleTag) {
+                    targetTagName = possibleTag.toLowerCase();
+                }
+                targetClasses = classParts.filter(function(c) { return c.length > 0; });
             }
 
+            var isAttrOnly = (selector === "" && hasAttrFilter);
+
+            // =========================================================
+            // BẮT ĐẦU QUÉT HTML
+            // =========================================================
             for (var i = 0; i < this.elements.length; i++) {
                 var currentHtml = this.elements[i];
                 var pos = 0;
@@ -83,30 +100,15 @@ window._$ = function(htmlOrBlock) {
                         currentTagName = fullOpenTag.substring(1, spacePos).toLowerCase();
                     }
 
-                    var isMatched = false;
+                    var isMatched = true; // Mặc định khớp, ta sẽ dùng phương pháp loại trừ (filter-out)
 
-                    if (isClass) {
-                        var classMatchStr = "";
-                        var classPos = fullOpenTag.indexOf('class="');
-                        if (classPos !== -1) {
-                            var startQuote = classPos + 7;
-                            classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
-                        } else {
-                            classPos = fullOpenTag.indexOf("class='");
-                            if (classPos !== -1) {
-                                var startQuote = classPos + 7;
-                                classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
-                            }
-                        }
-                        if (classMatchStr) {
-                            var currentClasses = classMatchStr.split(/\s+/);
-                            var matchCount = 0;
-                            for (var c = 0; c < targetClasses.length; c++) {
-                                if (currentClasses.indexOf(targetClasses[c]) !== -1) matchCount++;
-                            }
-                            if (matchCount === targetClasses.length) isMatched = true;
-                        }
-                    } else if (isId) {
+                    // 1. Kiểm tra Tag Name (Nếu selector yêu cầu Tag Name cụ thể)
+                    if (targetTagName && targetTagName !== currentTagName) {
+                        isMatched = false;
+                    }
+
+                    // 2. Kiểm tra ID (Nếu selector yêu cầu ID)
+                    if (isMatched && targetId) {
                         var idMatchStr = "";
                         var idPos = fullOpenTag.indexOf('id="');
                         if (idPos !== -1) {
@@ -119,13 +121,42 @@ window._$ = function(htmlOrBlock) {
                                 idMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
                             }
                         }
-                        if (idMatchStr === targetId) isMatched = true;
-                    } else if (isAttrOnly) {
-                        isMatched = true;
-                    } else {
-                        if (currentTagName === targetTagName) isMatched = true;
+                        if (idMatchStr !== targetId) {
+                            isMatched = false;
+                        }
                     }
 
+                    // 3. Kiểm tra Classes (Hỗ trợ đa class hoàn hảo bằng RegExp)
+                    if (isMatched && targetClasses.length > 0) {
+                        var classMatchStr = "";
+                        var classPos = fullOpenTag.indexOf('class="');
+                        if (classPos !== -1) {
+                            var startQuote = classPos + 7;
+                            classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
+                        } else {
+                            classPos = fullOpenTag.indexOf("class='");
+                            if (classPos !== -1) {
+                                var startQuote = classPos + 7;
+                                classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
+                            }
+                        }
+
+                        if (classMatchStr) {
+                            // Trim khoảng trắng thừa và tách mảng class của thẻ thực tế
+                            var currentClasses = classMatchStr.trim().split(/\s+/);
+                            // Toàn bộ các class yêu cầu trong selector bắt buộc phải có mặt trong class của thẻ thực tế
+                            for (var c = 0; c < targetClasses.length; c++) {
+                                if (currentClasses.indexOf(targetClasses[c]) === -1) {
+                                    isMatched = false;
+                                    break;
+                                }
+                            }
+                        } else {
+                            isMatched = false; // Thẻ không có class nào nhưng selector lại yêu cầu class
+                        }
+                    }
+
+                    // 4. Lọc theo Attribute
                     if (isMatched && hasAttrFilter) {
                         var searchStr1 = attrNameFilter + '="' + attrValueFilter + '"';
                         var searchStr2 = attrNameFilter + "='" + attrValueFilter + "'";
@@ -134,6 +165,7 @@ window._$ = function(htmlOrBlock) {
                         }
                     }
 
+                    // XỬ LÝ KHỐI HTML KHI ĐÃ KHỚP
                     if (isMatched) {
                         var startTagPos = pos;
                         var endTagPos = endOpenTag + 1;
@@ -202,14 +234,10 @@ window._$ = function(htmlOrBlock) {
             return newInstance;
         },
 
-        // 🎯 CHUẨN HÓA HÀM EACH: Hỗ trợ cả 2 cách viết (gọi thẳng `this` hoặc bọc `_$(el)`)
         each: function(callback) {
             for (var i = 0; i < this.elements.length; i++) {
                 var childInstance = _$(this.elements[i]);
                 childInstance.sourceHtml = this.sourceHtml;
-                
-                // Chuẩn jQuery: truyền vào (index, rawHtmlString)
-                // Context 'this' vẫn giữ nguyên là childInstance để gọi trực tiếp phương thức
                 callback.call(childInstance, i, this.elements[i]);
             }
             return this;
@@ -373,6 +401,61 @@ window._$ = function(htmlOrBlock) {
             parentInstance.sourceHtml = this.sourceHtml;
             this.elements = results;
             return this;
+        },
+
+        // =========================================================
+        // 🎯 THÊM MỚI: Phương thức CLOSEST chuẩn jQuery
+        // Tìm ngược lên trên cho đến khi khớp với selector mong muốn
+        // =========================================================
+        closest: function(selector) {
+            var results = [];
+            if (!this.sourceHtml || this.elements.length === 0) return _$([]);
+
+            for (var i = 0; i < this.elements.length; i++) {
+                var currentElem = this.elements[i];
+                var currentObj = _$(currentElem);
+                currentObj.sourceHtml = this.sourceHtml;
+
+                // 1. Kiểm tra chính phần tử hiện tại trước
+                var selfCheck = _$(this.sourceHtml).find(selector);
+                var isSelfMatched = false;
+                for (var s = 0; s < selfCheck.elements.length; s++) {
+                    if (selfCheck.elements[s] === currentElem) {
+                        isSelfMatched = true;
+                        break;
+                    }
+                }
+
+                if (isSelfMatched) {
+                    if (results.indexOf(currentElem) === -1) results.push(currentElem);
+                    continue; // Khớp chính nó, chuyển sang phần tử tiếp theo trong loop
+                }
+
+                // 2. Nếu không khớp chính nó, tiếp tục lặp ngược lên cha
+                var parentObj = currentObj.parent();
+                while (parentObj.elements.length > 0) {
+                    var parentElem = parentObj.elements[0];
+                    var checkMatch = _$(this.sourceHtml).find(selector);
+                    var isMatched = false;
+
+                    for (var j = 0; j < checkMatch.elements.length; j++) {
+                        if (checkMatch.elements[j] === parentElem) {
+                            isMatched = true;
+                            break;
+                        }
+                    }
+
+                    if (isMatched) {
+                        if (results.indexOf(parentElem) === -1) results.push(parentElem);
+                        break; // Đã tìm thấy tổ tiên gần nhất khớp selector, dừng vòng lặp đi lên của nhánh này
+                    }
+                    parentObj = parentObj.parent(); // Đi lên cấp tiếp theo
+                }
+            }
+
+            var closestInstance = _$(results);
+            closestInstance.sourceHtml = this.sourceHtml;
+            return closestInstance;
         }
     };
 

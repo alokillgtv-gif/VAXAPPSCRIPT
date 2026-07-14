@@ -200,7 +200,7 @@ function parseMovieDetail(html, url) {
         var episodes = [];
         for (var k = 1; k <= totalEpisodes; k++) {
             // ID giả: play-[Trang_Xem_Phim_Gốc]?tap=K
-            var epId = playBtnMatch + "?tap=" + k;
+            var epId = playBtnMatch + "?tapplay=" + k;
             
             episodes.push({
                 id: epId,
@@ -227,7 +227,7 @@ function parseMovieDetail(html, url) {
     }
 		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
     return JSON.stringify({
-        id: playBtnMatch + "?tap=1",
+        id: playBtnMatch + "?tapplay=1",
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -245,88 +245,34 @@ function parseMovieDetail(html, url) {
 }
 
 function parseDetailResponse(html, url) {
-    try {
-        var customJs = CustomjQ(html, url);
-        var streamUrl = "";
-        var isEmbedMode = false; // Mặc định false để trình phát ExoPlayer chạy trực tiếp m3u8
-        
-        // ---------------------------------------------------------------------
-        // LUỒNG XỬ LÝ TẬP GIẢ: Tách tham số ?tap=X từ URL ra
-        // ---------------------------------------------------------------------
-        var targetTap = 1;
-        var tapMatch = url.match(/[\?&]tap=(\d+)/);
-        if (tapMatch) {
-            targetTap = parseInt(tapMatch[1], 10);
-        }
-
-        // Quét danh sách tập thật có trong HTML trang xem phim này
-        var episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
-        var epMatch;
-        var realEpisodes = [];
-        
-        while ((epMatch = episodeRegex.exec(html)) !== null) {
-            var href = epMatch[1];
-            var text = epMatch[2].replace(/<[^>]*>/g, "").trim();
-            
-            var numMatch = text.match(/\d+/);
-            if (numMatch) {
-                realEpisodes.push({
-                    url: href,
-                    tapNum: parseInt(numMatch[0], 10)
-                });
-            }
-        }
-
-        // Tìm URL của tập thật tương ứng với tập giả đang yêu cầu
-        var realUrl = "";
-        for (var i = 0; i < realEpisodes.length; i++) {
-            if (realEpisodes[i].tapNum === targetTap) {
-                realUrl = realEpisodes[i].url;
-                break;
-            }
-        }
-
-        // Kiểm tra xem trang cần phát có phải trang hiện tại (Tập 1) hay trang khác
-        var cleanUrl = url.split('?')[0];
-        var isCurrentPage = true;
-
-        if (realUrl) {
-            if (realUrl.indexOf('http') !== 0) {
-                realUrl = BASEURL + (realUrl.indexOf('/') === 0 ? "" : "/") + realUrl;
-            }
-            if (realUrl.split('?')[0] !== cleanUrl) {
-                isCurrentPage = false;
-            }
-        }
-
-        if (!isCurrentPage && realUrl) {
-            // NẾU LÀ TẬP KHÁC: Chuyển hướng URL sang parseEmbedResponse bằng cách bật isEmbed: true
-            streamUrl = realUrl;
-            isEmbedMode = true; 
-        } else {
-            // NẾU LÀ TẬP 1 (HOẶC TRANG HIỆN TẠI): Bóc trực tiếp m3u8 tại đây
-            var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
-            if (rmatch && rmatch[1]) { 
-                streamUrl = rmatch[1]; 
-            } else {
-                streamUrl = url;
-            }
-            isEmbedMode = false; // Đưa thẳng link m3u8 vào bộ phát của App
-        }
-
-        return JSON.stringify({
-            url: streamUrl,
-            isEmbed: isEmbedMode,
-            headers: {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
-            }
-        });
-    } catch (error) {
-        return JSON.stringify({ url: "", headers: {} });
-    }
+	try {
+		
+		
+		
+		var customjs = textJS(servers);
+		return JSON.stringify({
+			"url": stream,
+			"headers": {
+				"Referer": BASEURL,
+				"Origin": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+				// Đánh lừa thuật toán Client Hints của tường lửa
+				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+				"Sec-Ch-Ua-Mobile": "?1",
+				"Sec-Ch-Ua-Platform": '"Android"',
+				
+				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+				"Accept": "*/*",
+				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+				"X-Requested-With": "com.android.chrome",
+				"Custom-Js": customjs.trim()
+			},
+			"subtitles": []
+		});
+		
+	} catch (e) {
+		return JSON.stringify({ "url": "", "headers": {} });
+	}
 }
 
 function parseEmbedResponse(html, sourceUrl) {
@@ -424,111 +370,137 @@ function buildMenu(listurl) {
     return menulist;
 }
 
-function CustomjQ(html, url) {
-    var $custom1 = `
-    function runBegin(){
-        //customAlert("2412421", "Alo alo");
-    }
-    `;
-    var $custom2 = `
-    function customAlert(title, message) {
-        const overlay = document.createElement('div');
-        Object.assign(overlay.style, {
-            position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center',
-            alignItems: 'center', zIndex: '99999', opacity: '0', transition: 'opacity 0.2s ease'
-        });
-        
-        const box = document.createElement('div');
-        Object.assign(box.style, {
-            backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.25)', maxWidth: '380px', width: '85%',
-            boxSizing: 'border-box', fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-            transform: 'scale(0.8)', transition: 'transform 0.2s ease'
-        });
-        
-        const titleEl = document.createElement('input');
-        titleEl.type = 'text'; 
-        titleEl.value = title;
-        Object.assign(titleEl.style, {
-            display: 'block', width: '100%', boxSizing: 'border-box',
-            margin: '0 0 12px 0', padding: '6px 10px', color: '#222222',
-            fontSize: '15px', fontWeight: '600', border: '1px solid #ddd', borderRadius: '6px'
-        });
-        
-        const msgEl = document.createElement('textarea');
-        msgEl.value = message;
-        Object.assign(msgEl.style, {
-            display: 'block', width: '100%', boxSizing: 'border-box',
-            margin: '0 0 20px 0', padding: '8px 10px', color: '#555555',
-            fontSize: '14px', height: '200px', lineHeight: '1.5',
-            border: '1px solid #ddd', borderRadius: '6px', resize: 'none'
-        });
-        
-        const btn = document.createElement('button');
-        btn.innerText = 'OK';
-        Object.assign(btn.style, {
-            display: 'block', margin: '0 auto', padding: '10px 28px',
-            fontSize: '15px', fontWeight: '600', color: '#ffffff',
-            backgroundColor: '#007bff', border: 'none', borderRadius: '6px',
-            cursor: 'pointer', outline: 'none', transition: 'background-color 0.1s'
-        });
-        
-        btn.onmouseover = () => btn.style.backgroundColor = '#0056b3';
-        btn.onmouseout = () => btn.style.backgroundColor = '#007bff';
-        
-        const closeAlert = () => {
-            overlay.style.opacity = '0';
-            box.style.transform = 'scale(0.8)';
-            setTimeout(() => { overlay.remove(); }, 200);
-        };
-        
-        btn.onclick = closeAlert;
-        overlay.onclick = (e) => { if (e.target === overlay) closeAlert(); };
-        
-        box.appendChild(titleEl);
-        box.appendChild(msgEl);
-        box.appendChild(btn);
-        overlay.appendChild(box);
-        document.body.appendChild(overlay);
-        
-        setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'scale(1)'; }, 10);
+function textJS($links) {
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+    return `
+LINKVIDEO = ${JSON.stringify($links)}
+
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js"; 
+const style = document.createElement('style');
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
+//document.head.appendChild(style);
+
+/* Build Video Begin*/
+
+    var DEVELOPE = false;
+// ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
+function showToast(message, duration, check) {
+        if (typeof duration === 'undefined') duration = 7000;
+        if (typeof check === 'undefined') check = true;
+        if (check === false) return;
+        var container = document.getElementById('global-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'global-toast-container';
+            container.style.cssText =
+                'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
+            document.body.appendChild(container);
+        }
+        var toastEl = document.createElement('div');
+        toastEl.innerHTML = message;
+        toastEl.style.cssText =
+            'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
+        container.appendChild(toastEl);
+        setTimeout(function() {
+            toastEl.style.transform = 'translateX(0)';
+            toastEl.style.opacity = '1';
+        }, 10);
+        setTimeout(function() {
+            toastEl.style.transform = 'translateX(120%)';
+            toastEl.style.opacity = '0';
+            setTimeout(function() {
+                toastEl.remove();
+                if (container.childElementCount === 0) container.remove();
+            }, 300);
+        }, duration);
     }
 
-    function initCustomVideoFix() {
-        const style = document.createElement('style');
-        var customcss = 'body {overflow: hidden; }#comments,header,footer,.entry-actions,.entry-header,.entry-info,.entry-content,#related-posts,.entry-content + .mt-2 {display:none}body * {background: black;}';
-        style.innerHTML = customcss;
-        document.head.appendChild(style);
+/* Build Video End */
+
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
         
-        if (typeof jwplayer === "function") {
-            const player = jwplayer("previewPlayer");
-            if (player && typeof player.getMute === "function") {
-                if (player.getMute()) {
-                    player.setMute(false);
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
                 }
-                player.setVolume(100);
-            }
-        }
-        
-        const checkAndClick = setInterval(() => {
-            const skipButton = document.getElementById("skip-ad");
-            if (skipButton) {
-                skipButton.click();
-                clearInterval(checkAndClick);
-            }
-        }, 200);
-        
-        setTimeout(() => { clearInterval(checkAndClick); }, 20000);
-        runBegin();
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
     }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+    
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
     } else {
-        initCustomVideoFix();
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
     }
-`
-    return $custom1 + $custom2;
+}
+
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
+    }
+			// --- KHỞI TẠO SELECT BOX ---
+			var html = document.body.innerHTML;
+			const regex = /data-link=["']([^"']+)["']/g;
+			var number = 0;
+			
+			var selectHtml = '<select class="changeServer" onchange="changeServer(this)" style="background:black;color:white;opacity:0.8;border:none;padding:4px;font-size:14px;border-radius:4px;outline:none;">';
+			for (const match of html.matchAll(regex)) {
+				number++;
+				const url = match[1];
+				selectHtml += '<option value="' + url + '">Server ' + number + '</option>';
+			}
+			selectHtml += '</select>';
+			
+			const tempDiv = document.createElement('div');
+			tempDiv.className = "wrap-server";
+			tempDiv.innerHTML = selectHtml;
+			tempDiv.style.cssText = "position:fixed;right:20px;top:10px;z-index:100000;background:black;color:white;padding:4px;border:1px solid #fff;border-radius:4px";
+			
+			const iframe = document.createElement('iframe');
+			iframe.className = "frame-server";
+			// Tăng z-index lên 9999 để đè hoàn toàn lên video, nhưng dưới nút chọn server (100000)
+			iframe.style.cssText = "background:black;position:fixed;right:0px;top:0px;left:0px;bottom:0px;width:100%;height:100%;display:none;z-index:9999;border:none;";
+			iframe.src = "about:blank";
+			
+			
+			
+			setTimeout(function() {
+			keepElementsAndInjectControls(["video"]);
+				document.body.appendChild(tempDiv);
+				document.body.appendChild(iframe);
+			}, 2000);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+    initCustomVideoFix();
+}
+
+`;
 }
 
 function trimHTML(inhtml) {
