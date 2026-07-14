@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "1.0",
+        "version": "1.1",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -210,7 +210,7 @@ function parseMovieDetail(html, url) {
 		});
 		
 		return JSON.stringify({
-			id: url,
+			id: embed,
 			title: lname,
 			posterUrl: limg,
 			backdropUrl: limg,
@@ -426,18 +426,18 @@ function parseYearsResponse(html) { return "[]"; }
 
 function getLISTmenu() {
     return `
-/loan-luan/@@Loạn Luân/
-/hiep-dam/@@Hiếp Dâm/
-/sex-vietsub-khong-che/@@Không Che/
-/sex-tap-the/@@Tập Thể/
-/sex-vung-trom/@@Vụng Trộm/
-/sex-co-trang/@@Cổ Trang/
-/sex-hoc-sinh/@@Học Sinh/
-/sex-cong-so/@@Công Sở/
-/phimsexsub/@@PhimSexSub/
-/phim-sex-thuyet-minh/@@Thuyết Minh/
-/quoc-gia/sex-trung/@@Sex Trung/
-/quoc-gia/sex-nhat/@@Sex Nhật/
+/loan-luan/@@Loạn Luân
+/hiep-dam/@@Hiếp Dâm
+/sex-vietsub-khong-che/@@Không Che
+/sex-tap-the/@@Tập Thể
+/sex-vung-trom/@@Vụng Trộm
+/sex-co-trang/@@Cổ Trang
+/sex-hoc-sinh/@@Học Sinh
+/sex-cong-so/@@Công Sở
+/phimsexsub/@@PhimSexSub
+/phim-sex-thuyet-minh/@@Thuyết Minh
+/quoc-gia/sex-trung/@@Sex Trung
+/quoc-gia/sex-nhat/@@Sex Nhật
 /quoc-gia/sex-my/@@Sex Mỹ
 
 `
