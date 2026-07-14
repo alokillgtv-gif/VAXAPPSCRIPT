@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.9",             
+        "version": "1.0",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
@@ -212,7 +212,7 @@ function parseMovieDetail(html, url) {
     });
 		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
     return JSON.stringify({
-        id: playBtnMatch + "?tapplay=1",
+        id: url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
@@ -233,20 +233,17 @@ function parseDetailResponse(html, url) {
 	try {
 		var curent = url.match(/tapplay=(\d+)/)[1];
 		curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-		console.log("tap hien tai: " + curent)
 		var servers = [];
 		var activePage = "";
 		var check = 0;
 		_$(html).find('span:content("Danh Sách")').each(function() {
 			var servername = this.text().replace("Danh Sách ", "");
-			console.log(servername);
 			var box = this.parent();
 			box.find("a").each(function(index, el) {
 				var link = _$(el).attr("href");
 				var text = _$(el).text();
 				var number = text.match(/([0-9]+)/)[1];
 				number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-				console.log("Tập đã quet " + number)
 				if (number == curent) {
 					check++;
 					if (check == 1) {
@@ -258,7 +255,7 @@ function parseDetailResponse(html, url) {
 		});
 		var customjs = textJS();
 		return JSON.stringify({
-			"url": url,
+			"url": activePage,
 			"isEmbed": true,
 			"headers": {
 				"Referer": BASEURL,
