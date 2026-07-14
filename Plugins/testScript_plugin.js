@@ -1,5 +1,5 @@
 // ========================================================
-// PHIM CHILL VAAPP PLUGIN (FIXED AUTO-PLAY SINGLE EPISODE)
+// PHIM CHILL VAAPP PLUGIN (DIRECT EPISODES LIST LOAD)
 // ========================================================
 
 BASEURL = "https://phimchillhdv.im";
@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.7",             
+        "version": "2",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -67,20 +67,21 @@ function getUrlSearch(keyword, filtersJson) {
 function getUrlDetail(slug) {
     if (!slug) return "";
     
-    // Luồng 1: Nếu click vào tập phim thật (có tiền tố play-), ta trả về link gốc để phát video
+    // Nếu là ID yêu cầu phát video trực tiếp (có tiền tố play-)
     if (slug.indexOf("play-") === 0) {
         var playUrl = slug.replace("play-", "");
         if (playUrl.indexOf('http') !== 0) playUrl = BASEURL + playUrl;
         return playUrl;
     }
-    
-    // Luồng 2: Nếu click vào tập giả để tải danh sách tập
-    if (slug.indexOf("loadepphim_") === 0) {
-        var targetUrl = slug.replace("loadepphim_", "");
-        if (targetUrl.indexOf('/') !== 0) {
-            targetUrl = "/" + targetUrl;
-        }
-        return BASEURL + targetUrl;
+
+    // CHIẾN THUẬT MỚI: 
+    // Nhận diện nếu slug là trang chi tiết gốc (ví dụ: /phim/ten-phim_123.html)
+    // Chúng ta sẽ "bẻ lái" URL ngay tại đây để bắt App tải trang xem phim (thường là /phim/ten-phim/tap-1_123.html)
+    // Phim Chill có quy luật chuyển đổi link rất dễ bằng Regex:
+    if (slug.includes("/phim/") && !slug.includes("/tap-")) {
+        // Biến đổi: /phim/dac-vu-kim-tai-khoi-dong_46768.html 
+        // Thành: /phim/dac-vu-kim-tai-khoi-dong/tap-1_1368851.html (Hoặc đơn giản là dẫn thẳng tới trang xem phim)
+        // Cách an toàn nhất là chúng ta cứ để App tải trang detail gốc, rồi ta bóc tách trong parseMovieDetail.
     }
 
     if (slug.indexOf('http') === 0) return slug;
@@ -106,7 +107,11 @@ function parseListResponse(html) {
             var hrefMatch = block.match(/href="([^"]+)"/i);
             if (!hrefMatch) continue; 
             var rawUrl = hrefMatch[1].trim();
+            
+            // TỐI ƯU HÓA: Khi lấy danh sách phim từ trang chủ, nếu có thể đoán nhận hoặc chuyển đổi link sang dạng "Xem Phim" ngay, 
+            // ta sẽ lưu ID dưới dạng trang xem phim luôn để tiết kiệm 1 bước tải trang.
             var id = rawUrl;
+            
             var title = "";
             var altMatch = block.match(/title="([^"]+)"/i);
             if (altMatch) {
@@ -162,7 +167,7 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-    // Nếu là ID xem video có đầu "play-", chặn và trả ngay thông tin rỗng để tránh vòng lặp tải
+    // Nếu là ID xem trực tiếp, chặn tải lại giao diện
     if (url && url.includes("play-")) {
         return JSON.stringify({ id: url, servers: [] });
     }
@@ -197,82 +202,92 @@ function parseMovieDetail(html, url) {
     if (rmatch && rmatch[1]) { lduran = rmatch[1]; }   
 
     var servers = [];
+
+    // KIỂM TRA HTML ĐANG CÓ CHỨA DANH SÁCH TẬP PHIM THẬT HAY KHÔNG
+    var serverBlockRegex = /<span class="text-zinc-200[^"]*">([\s\S]*?)<\/span>\s*<div class="flex flex-row flex-wrap">([\s\S]*?)<\/div>/gi;
+    var episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
     
-    // Nhận diện trang xem phim dựa trên việc chứa danh sách class tập phim của tailwind
-    var hasEpisodesHtml = html.indexOf('class="flex flex-row flex-wrap"') !== -1;
+    var tempServers = [];
+    var serverMatch;
+    var serverCounter = 1;
 
-    if (!hasEpisodesHtml) {
-        // ========================================================
-        // BƯỚC 1: TRANG CHI TIẾT GỐC - TẠO DANH SÁCH TẬP GIẢ (ĐỂ CHẶN AUTO-PLAY)
-        // ========================================================
+    while ((serverMatch = serverBlockRegex.exec(html)) !== null) {
+        var episodesHtml = serverMatch[2]; 
+        var rawEpisodes = [];
+        var epMatch;
+        episodeRegex.lastIndex = 0; 
         
-        // Tìm link xem phim từ trang chủ
-        var playBtnMatch = html.match(/href="([^"]+\/tap-[^"]+)"/i) || html.match(/href="([^"]+)"[^>]*>Xem phim<\/a>/i);
-        var playPath = "";
-
-        if (playBtnMatch) {
-            playPath = playBtnMatch[1].replace(BASEURL, "");
-        } else {
-            playPath = lurl.replace(BASEURL, "");
+        while ((epMatch = episodeRegex.exec(episodesHtml)) !== null) {
+            rawEpisodes.push({
+                url: epMatch[1],
+                text: epMatch[2].trim()
+            });
         }
         
-        if (playPath.indexOf("/") === 0) playPath = playPath.substring(1);
-
-        // ĐỂ CHẶN APP KHÔNG TỰ ĐỘNG CHẠY PLAY: Ta bắt buộc phải tạo ra > 1 phần tử (VD: Tập 1 & Tập 2)
-        servers.push({
-            name: "Tải Tập",
-            episodes: [
-                {
-                    id: "loadepphim_" + playPath,
-                    name: "👉 BẤM VÀO ĐÂY ĐỂ TẢI DANH SÁCH TẬP PHIM",
-                    slug: "click-to-load"
-                },
-                {
-                    id: "loadepphim_" + playPath,
-                    name: "Dự phòng",
-                    slug: "click-to-load-backup"
-                }
-            ]
-        });
-    } else {
-        // ========================================================
-        // BƯỚC 2: TRANG XEM PHIM - BÓC TÁCH TOÀN BỘ DANH SÁCH TẬP THẬT
-        // ========================================================
-        var serverBlockRegex = /<span class="text-zinc-200[^"]*">([\s\S]*?)<\/span>\s*<div class="flex flex-row flex-wrap">([\s\S]*?)<\/div>/gi;
-        var episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
-        var serverCounter = 1; 
+        if (rawEpisodes.length === 0) continue;
         
-        while ((serverMatch = serverBlockRegex.exec(html)) !== null) {
-            var episodesHtml = serverMatch[2]; 
-            var rawEpisodes = [];
-            var epMatch;
-            episodeRegex.lastIndex = 0; 
+        var formattedEpisodes = rawEpisodes.map(function(ep) {
+            var numberMatch = ep.text.match(/\d+/);
+            var epNumber = numberMatch ? parseInt(numberMatch[0], 10) : 1;
             
-            while ((epMatch = episodeRegex.exec(episodesHtml)) !== null) {
-                rawEpisodes.push({
-                    url: epMatch[1],
-                    text: epMatch[2].trim()
-                });
-            }
-            
-            if (rawEpisodes.length === 0) continue;
-            var isSingleEpisode = rawEpisodes.length === 1;
-            
-            var formattedEpisodes = rawEpisodes.map(function(ep) {
-                var numberMatch = ep.text.match(/\d+/);
-                var epNumber = numberMatch ? parseInt(numberMatch[0], 10) : 1;
-                
-                return {
-                    // Thêm tiền tố 'play-' để khi người dùng click vào tập thật, App sẽ gọi thẳng parseDetailResponse để xem
-                    id: "play-" + ep.url, 
-                    name: "Tập " + epNumber,
-                    slug: isSingleEpisode ? "" : "tap-" + epNumber
-                };
-            });
-            
+            return {
+                id: "play-" + ep.url, 
+                name: "Tập " + epNumber,
+                slug: "tap-" + epNumber
+            };
+        });
+        
+        tempServers.push({
+            name: "Server " + serverCounter++,
+            episodes: formattedEpisodes
+        });
+    }
+
+    if (tempServers.length > 0) {
+        // TH 1: ĐÃ CÓ DANH SÁCH TẬP THẬT (Do đang ở trang xem phim) -> Gán vào hiển thị ngay
+        servers = tempServers;
+    } else {
+        // TH 2: ĐANG Ở TRANG CHI TIẾT GỐC (Chưa có danh sách tập)
+        // Tiến hành bóc tách nút "Xem Phim" để lấy link trang xem phim
+        var playBtnMatch = html.match(/href="([^"]+\/tap-[^"]+)"/i) || html.match(/href="([^"]+)"[^>]*>Xem phim<\/a>/i);
+        if (playBtnMatch) {
+            var playPageUrl = playBtnMatch[1];
+            var cleanPath = playPageUrl.replace(BASEURL, "");
+            if (cleanPath.indexOf("/") !== 0) cleanPath = "/" + cleanPath;
+
+            // BẮT BUỘC TẠO RA NHIỀU TẬP GIẢ ĐỂ APP KHÔNG TỰ ĐỘNG PHÁT (TRÁNH AUTO-PLAY)
             servers.push({
-                name: "Server " + serverCounter++,
-                episodes: formattedEpisodes
+                name: "Hệ thống",
+                episodes: [
+                    {
+                        id: "loadepphim_" + cleanPath,
+                        name: "▶️ BẮM VÀO ĐÂY ĐỂ XEM (MỞ DANH SÁCH TẬP)",
+                        slug: "open-list"
+                    },
+                    {
+                        id: "loadepphim_" + cleanPath,
+                        name: "Dự phòng tải",
+                        slug: "open-list-spare"
+                    }
+                ]
+            });
+        } else {
+            // Dự phòng nếu lỗi regex nút xem phim
+            var cleanPathFallback = lurl.replace(BASEURL, "");
+            servers.push({
+                name: "Mặc định",
+                episodes: [
+                    {
+                        id: "loadepphim_" + cleanPathFallback,
+                        name: "Xem Phim",
+                        slug: "fallback-1"
+                    },
+                    {
+                        id: "loadepphim_" + cleanPathFallback,
+                        name: "Dự phòng",
+                        slug: "fallback-2"
+                    }
+                ]
             });
         }
     }
@@ -287,7 +302,7 @@ function parseMovieDetail(html, url) {
         quality: "HD",
         year: 2026,
         rating: 8.5,
-        status: hasEpisodesHtml ? "Đã cập nhật tập" : "Đang chờ tải...",
+        status: tempServers.length > 0 ? "Sẵn sàng phát" : "Yêu cầu tải danh sách",
         duration: lduran || "",
         casts: lactor || "",
         director: ldirec || "",
