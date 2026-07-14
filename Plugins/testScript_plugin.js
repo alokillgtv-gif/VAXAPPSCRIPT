@@ -1,5 +1,5 @@
 // ========================================================
-// PHIM CHILL VAAPP PLUGIN (STP TWO-STEP REDIRECT SYSTEM)
+// PHIM CHILL VAAPP PLUGIN (SIÊU TẦM PHIM STRUCTURE)
 // ========================================================
 
 BASEURL = "https://phimchillhdv.im";
@@ -8,9 +8,9 @@ BASESCRIPT = "https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rH
 function getManifest() {
     return JSON.stringify({
         "id": "testScript",          
-        "name": "Phim Chill",
+        "name": "testScript",
         "description": "Phim online",
-        "version": "2.3",             
+        "version": "2.7",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -64,28 +64,18 @@ function getUrlSearch(keyword, filtersJson) {
     return BASEURL + "/?search=" + encodeURIComponent(keyword);
 }
 
-function getUrlDetail(slug) {
-    if (!slug) return "";
+function getUrlDetail(id) {
+    if (!id) return "";
     
-    // Luồng 1: Nếu click vào tập phim thật để phát (có đầu play-)
-    if (slug.indexOf("play-") === 0) {
-        var playUrl = slug.replace("play-", "");
+    // Nếu là click vào tập phim để phát (Cơ chế Sưu Tầm Phim)
+    if (id.indexOf("play-") === 0) {
+        var playUrl = id.replace("play-", "");
         if (playUrl.indexOf('http') !== 0) playUrl = BASEURL + playUrl;
         return playUrl;
     }
-    
-    // Luồng 2: Khi click vào nút "Tải danh sách tập" (dạng loadepphim_)
-    // Ta bóc tách lấy URL chuẩn của trang xem phim (đã có ID chuẩn từ HTML trang chi tiết)
-    if (slug.indexOf("loadepphim_") === 0) {
-        var targetUrl = slug.replace("loadepphim_", "");
-        if (targetUrl.indexOf('http') !== 0) {
-            targetUrl = BASEURL + (targetUrl.indexOf('/') === 0 ? "" : "/") + targetUrl;
-        }
-        return targetUrl;
-    }
 
-    if (slug.indexOf('http') === 0) return slug;
-    return BASEURL + slug;
+    if (id.indexOf('http') === 0) return id;
+    return BASEURL + id;
 }
 
 function getUrlCategories() { return BASEURL; }
@@ -163,8 +153,8 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-    // Chặn đệ quy nếu click vào link phát video trực tiếp
-    if (url && url.includes("play-")) {
+    // Nếu URL chứa tiền tố phát video hoặc có tham số play, chặn parseDetail để tránh đệ quy hỏng giao diện
+    if (url && (url.includes("play-") || url.includes("/tap-"))) {
         return JSON.stringify({ id: url, servers: [] });
     }
 
@@ -199,94 +189,53 @@ function parseMovieDetail(html, url) {
 
     var servers = [];
 
-    // KIỂM TRA: HTML này đã là trang xem phim (có danh sách tập) chưa?
-    var hasEpisodesHtml = html.indexOf('class="flex flex-row flex-wrap"') !== -1;
+    // =========================================================================
+    // CƠ CHẾ SƯU TẦM PHIM: Xử lý tại trang chi tiết gốc (Ví dụ: _46768.html)
+    // =========================================================================
+    
+    // Tìm URL nút "Xem Phim" chứa ID của trang chiếu phim (Ví dụ: /tap-1_1368851.html)
+    var playBtnMatch = html.match(/href="([^"]+\/tap-[^"]+)"/i) || html.match(/href="([^"]+)"[^>]*>Xem phim<\/a>/i);
+    
+    if (playBtnMatch) {
+        var playPageUrl = playBtnMatch[1].trim();
+        var cleanPath = playPageUrl.replace(BASEURL, "");
+        if (cleanPath.indexOf("/") !== 0) cleanPath = "/" + cleanPath;
 
-    if (!hasEpisodesHtml) {
-        // =====================================================================
-        // BƯỚC 1: TRANG CHI TIẾT GỐC (Ví dụ: ..._46768.html)
-        // =====================================================================
-        
-        // Quét tìm link nút Xem Phim / Tập 1 chuẩn chứa ID thật của trang chiếu phim (Ví dụ: ..._1368851.html)
-        var playBtnMatch = html.match(/href="([^"]+\/tap-[^"]+)"/i) || html.match(/href="([^"]+)"[^>]*>Xem phim<\/a>/i);
-        
-        if (playBtnMatch) {
-            var rawPlayUrl = playBtnMatch[1].trim();
-            // Loại bỏ phần domain nếu có để tạo slug gọn gàng
-            var cleanPath = rawPlayUrl.replace(BASEURL, "");
-            if (cleanPath.indexOf("/") === 0) cleanPath = cleanPath.substring(1);
+        // Quét tổng số tập hiển thị trên trang chi tiết (nếu có thông tin dạng "Tập 12/12" hoặc "12 tập")
+        var totalEpisodes = 1;
+        var epInfoMatch = html.match(/(\d+)\s*\/\s*(\d+)\s*Tập/i) || html.match(/Số tập:\s*(\d+)/i) || html.match(/(\d+)\s*tập/i);
+        if (epInfoMatch) {
+            totalEpisodes = parseInt(epInfoMatch[1] || epInfoMatch[2] || "1", 10);
+        }
 
-            // TẠO 2 SERVER KHÁC NHAU ĐỂ BẺ GÃY HOÀN TOÀN CƠ CHẾ TỰ ĐỘNG PHÁT (ANTI AUTO-PLAY)
-            servers.push({
-                name: "HỆ THỐNG",
-                episodes: [{
-                    id: "loadepphim_" + cleanPath, // Chứa ID chuẩn vừa quét được
-                    name: "👉 BẤM VÀO ĐÂY ĐỂ TẢI DANH SÁCH TẬP PHIM",
-                    slug: "click-to-load"
-                }]
-            });
-            servers.push({
-                name: "DỰ PHÒNG",
-                episodes: [{
-                    id: "loadepphim_" + cleanPath,
-                    name: "Bấm vào đây nếu Server 1 lỗi",
-                    slug: "click-to-load-backup"
-                }]
-            });
-        } else {
-            // Nút dự phòng nếu không regex được nút xem phim
-            var fallbackPath = lurl.replace(BASEURL, "");
-            if (fallbackPath.indexOf("/") === 0) fallbackPath = fallbackPath.substring(1);
-            servers.push({
-                name: "Mặc định",
-                episodes: [{
-                    id: "loadepphim_" + fallbackPath,
-                    name: "Tải danh sách phim",
-                    slug: "fallback-load"
-                }]
+        var episodes = [];
+        for (var k = 1; k <= totalEpisodes; k++) {
+            // Thay thế tập tương ứng trong URL (Ví dụ: /tap-1_1368851.html -> /tap-k_1368851.html)
+            var epUrl = cleanPath.replace(/tap-\d+/, "tap-" + k);
+
+            episodes.push({
+                // BẮT BUỘC có đầu play- để nhảy thẳng vào parseDetailResponse lấy stream phát
+                id: "play-" + epUrl,
+                name: totalEpisodes === 1 ? "Full" : "Tập " + k,
+                slug: "tap-" + k
             });
         }
+
+        servers.push({
+            name: "Default Server",
+            episodes: episodes
+        });
     } else {
-        // =====================================================================
-        // BƯỚC 2: TRANG CHIẾU PHIM (Ví dụ: .../tap-1_1368851.html)
-        // Đã tải thành công HTML có danh sách tập, tiến hành in danh sách tập thật ra
-        // =====================================================================
-        var serverBlockRegex = /<span class="text-zinc-200[^"]*">([\s\S]*?)<\/span>\s*<div class="flex flex-row flex-wrap">([\s\S]*?)<\/div>/gi;
-        var episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
-        var serverCounter = 1; 
-        
-        while ((serverMatch = serverBlockRegex.exec(html)) !== null) {
-            var episodesHtml = serverMatch[2]; 
-            var rawEpisodes = [];
-            var epMatch;
-            episodeRegex.lastIndex = 0; 
-            
-            while ((epMatch = episodeRegex.exec(episodesHtml)) !== null) {
-                rawEpisodes.push({
-                    url: epMatch[1],
-                    text: epMatch[2].trim()
-                });
-            }
-            
-            if (rawEpisodes.length === 0) continue;
-            var isSingleEpisode = rawEpisodes.length === 1;
-            
-            var formattedEpisodes = rawEpisodes.map(function(ep) {
-                var numberMatch = ep.text.match(/\d+/);
-                var epNumber = numberMatch ? parseInt(numberMatch[0], 10) : 1;
-                
-                return {
-                    id: "play-" + ep.url, 
-                    name: "Tập " + epNumber,
-                    slug: isSingleEpisode ? "" : "tap-" + epNumber
-                };
-            });
-            
-            servers.push({
-                name: "Server " + serverCounter++,
-                episodes: formattedEpisodes
-            });
-        }
+        // Fallback phim lẻ
+        var fallbackPath = lurl.replace(BASEURL, "");
+        servers.push({
+            name: "Mặc định",
+            episodes: [{
+                id: "play-" + fallbackPath,
+                name: "Full HD",
+                slug: "full"
+            }]
+        });
     }
 
     return JSON.stringify({
@@ -299,7 +248,7 @@ function parseMovieDetail(html, url) {
         quality: "HD",
         year: 2026,
         rating: 8.5,
-        status: hasEpisodesHtml ? "Sẵn sàng" : "Chờ tải danh sách tập...",
+        status: "Sẵn sàng",
         duration: lduran || "",
         casts: lactor || "",
         director: ldirec || "",
@@ -312,6 +261,7 @@ function parseDetailResponse(html, url) {
         var customJs = CustomjQ(html, url);
         var streamUrl = "";
         
+        // Bóc tách luồng phát thực tế từ HTML của trang xem phim
         var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
         if (rmatch && rmatch[1]) { 
             streamUrl = rmatch[1]; 
