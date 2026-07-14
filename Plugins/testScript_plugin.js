@@ -9,13 +9,13 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
         "isAdult": true,
         "type": "MOVIE",
-        "playerType": "embed"
+        "playerType": "auto"
     });
 }
 
@@ -293,6 +293,7 @@ function parseEmbedResponse(html, sourceUrl) {
 				var customjs = textJS();
         return JSON.stringify({
             url: streamUrl,
+            "mimeType": "application/x-mpegURL",
             isEmbed: false, // Tắt embed để kích hoạt player gốc phát m3u8
             headers: {
                 "Referer": BASEURL,
