@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.3",             
+        "version": "3.4",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -258,6 +258,7 @@ function parseDetailResponse(html, url) {
     try {
         var customJs = CustomjQ(html, url);
         var streamUrl = "";
+        var isEmbedMode = false; // Mặc định false để trình phát ExoPlayer chạy trực tiếp m3u8
         
         // ---------------------------------------------------------------------
         // LUỒNG XỬ LÝ TẬP GIẢ: Tách tham số ?tap=X từ URL ra
@@ -273,12 +274,10 @@ function parseDetailResponse(html, url) {
         var epMatch;
         var realEpisodes = [];
         
-        // Lấy toàn bộ các thẻ link tập phim thật
         while ((epMatch = episodeRegex.exec(html)) !== null) {
             var href = epMatch[1];
             var text = epMatch[2].replace(/<[^>]*>/g, "").trim();
             
-            // Chỉ lấy các thẻ a có chứa chữ số đại diện cho tập
             var numMatch = text.match(/\d+/);
             if (numMatch) {
                 realEpisodes.push({
@@ -297,23 +296,37 @@ function parseDetailResponse(html, url) {
             }
         }
 
-        // Nếu tìm thấy tập thật tương ứng, ta nạp HTML của tập đó (Nếu cần) hoặc parse link phát trực tiếp
-        // Ghi chú: Vì trang xem phim của Phim Chill dùng chung cấu trúc player, 
-        // nếu click tập khác ta chỉ cần chuyển hướng lấy link stream từ data-link của trang tập đó.
-        var targetHtml = html;
-        if (realUrl && realUrl !== url) {
-            // Chuyển đổi link tương đối thành tuyệt đối nếu cần
+        // Kiểm tra xem trang cần phát có phải trang hiện tại (Tập 1) hay trang khác
+        var cleanUrl = url.split('?')[0];
+        var isCurrentPage = true;
+
+        if (realUrl) {
             if (realUrl.indexOf('http') !== 0) {
                 realUrl = BASEURL + (realUrl.indexOf('/') === 0 ? "" : "/") + realUrl;
             }
-            // Trả về luồng chuyển sang parseEmbedResponse để bóc m3u8 của URL thật
-            streamUrl = realUrl
+            if (realUrl.split('?')[0] !== cleanUrl) {
+                isCurrentPage = false;
+            }
         }
 
+        if (!isCurrentPage && realUrl) {
+            // NẾU LÀ TẬP KHÁC: Chuyển hướng URL sang parseEmbedResponse bằng cách bật isEmbed: true
+            streamUrl = realUrl;
+            isEmbedMode = true; 
+        } else {
+            // NẾU LÀ TẬP 1 (HOẶC TRANG HIỆN TẠI): Bóc trực tiếp m3u8 tại đây
+            var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
+            if (rmatch && rmatch[1]) { 
+                streamUrl = rmatch[1]; 
+            } else {
+                streamUrl = url;
+            }
+            isEmbedMode = false; // Đưa thẳng link m3u8 vào bộ phát của App
+        }
 
         return JSON.stringify({
             url: streamUrl,
-            isEmbed: true,
+            isEmbed: isEmbedMode,
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
@@ -327,11 +340,11 @@ function parseDetailResponse(html, url) {
 }
 
 function parseEmbedResponse(html, sourceUrl) {
-    // Hàm này nhận nhiệm vụ bóc link m3u8 từ tập thật chuyển tiếp từ parseDetailResponse qua
     try {
         var customJs = CustomjQ(html, sourceUrl);
         var streamUrl = "";
         
+        // Bóc tách link phim thực tế (m3u8) từ tập thật được chuyển hướng đến
         var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
         if (rmatch && rmatch[1]) { 
             streamUrl = rmatch[1]; 
@@ -341,7 +354,7 @@ function parseEmbedResponse(html, sourceUrl) {
 
         return JSON.stringify({
             url: streamUrl,
-            isEmbed: false,
+            isEmbed: false, // Tắt embed để kích hoạt player gốc phát m3u8
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
@@ -353,6 +366,7 @@ function parseEmbedResponse(html, sourceUrl) {
         return JSON.stringify({ url: sourceUrl, headers: {} });
     }
 }
+
 
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
