@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "1.5",
+        "version": "1.6",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -256,14 +256,10 @@ function parseMovieDetail(html, url) {
 // https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san/tap-1-811897
 function parseDetailResponse(html, url) {
 	try {
-		var server = [];
-		_$(html).find("#cvp-container").each(function(index, el) {
-			var href = this.find(".cvp-tab-pane").attr("data-link");
-			server.push(href)
-		});
+		var embed = _$(html).find("#okplayer-frame").attr("data-base");
 		var customjs = textJS(server);
 		return JSON.stringify({
-			"url": "",
+			"url": embed,
 			"headers": {
 				"Referer": BASEURL,
 				"Origin": BASEURL,
