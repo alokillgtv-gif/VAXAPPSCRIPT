@@ -1,5 +1,5 @@
 // ========================================================
-// PHIM CHILL VAAPP PLUGIN (FIXED FILE:/// PROTOCOL ERROR)
+// PHIM CHILL VAAPP PLUGIN (FIXED AUTO-PLAY SINGLE EPISODE)
 // ========================================================
 
 BASEURL = "https://phimchillhdv.im";
@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.1.3",             
+        "version": "1.7",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -74,10 +74,9 @@ function getUrlDetail(slug) {
         return playUrl;
     }
     
-    // Luồng 2: Sử dụng tiền tố thuần chữ để tránh bị App nhận nhầm thành đường dẫn file cục bộ
+    // Luồng 2: Nếu click vào tập giả để tải danh sách tập
     if (slug.indexOf("loadepphim_") === 0) {
         var targetUrl = slug.replace("loadepphim_", "");
-        // Đảm bảo có dấu gạch chéo ở đầu path nếu chưa có
         if (targetUrl.indexOf('/') !== 0) {
             targetUrl = "/" + targetUrl;
         }
@@ -163,7 +162,7 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-    // Nếu URL chứa "play-", chặn ngay lập tức không cho parseDetail chạy lại
+    // Nếu là ID xem video có đầu "play-", chặn và trả ngay thông tin rỗng để tránh vòng lặp tải
     if (url && url.includes("play-")) {
         return JSON.stringify({ id: url, servers: [] });
     }
@@ -199,46 +198,45 @@ function parseMovieDetail(html, url) {
 
     var servers = [];
     
-    // Nhận biết xem đây là trang trình chiếu bằng cách kiểm tra sự tồn tại của danh sách tập phim trong HTML
+    // Nhận diện trang xem phim dựa trên việc chứa danh sách class tập phim của tailwind
     var hasEpisodesHtml = html.indexOf('class="flex flex-row flex-wrap"') !== -1;
 
     if (!hasEpisodesHtml) {
         // ========================================================
-        // BƯỚC 1: TRANG CHI TIẾT GỐC (Chưa có danh sách tập)
+        // BƯỚC 1: TRANG CHI TIẾT GỐC - TẠO DANH SÁCH TẬP GIẢ (ĐỂ CHẶN AUTO-PLAY)
         // ========================================================
         
-        // Tìm link nút Xem phim hoặc Tập 1
+        // Tìm link xem phim từ trang chủ
         var playBtnMatch = html.match(/href="([^"]+\/tap-[^"]+)"/i) || html.match(/href="([^"]+)"[^>]*>Xem phim<\/a>/i);
-        if (playBtnMatch) {
-            var playPageUrl = playBtnMatch[1];
-            // Rút gọn link bằng cách bỏ domain của trang web
-            var cleanPath = playPageUrl.replace(BASEURL, "");
-            if (cleanPath.indexOf("/") === 0) cleanPath = cleanPath.substring(1);
+        var playPath = "";
 
-            servers.push({
-                name: "Yêu cầu",
-                episodes: [{
-                    id: "loadepphim_" + cleanPath, // Chuyển thành dạng: loadepphim_phim/bach-hoa-sat/...
-                    name: "Bấm vào đây để tải danh sách tập...",
-                    slug: "load-now"
-                }]
-            });
+        if (playBtnMatch) {
+            playPath = playBtnMatch[1].replace(BASEURL, "");
         } else {
-            // Nút dự phòng nếu không tìm thấy nút Xem phim
-            var cleanPathFallback = lurl.replace(BASEURL, "");
-            if (cleanPathFallback.indexOf("/") === 0) cleanPathFallback = cleanPathFallback.substring(1);
-            servers.push({
-                name: "Mặc định",
-                episodes: [{
-                    id: "loadepphim_" + cleanPathFallback,
-                    name: "Tải danh sách phim",
-                    slug: "load-fallback"
-                }]
-            });
+            playPath = lurl.replace(BASEURL, "");
         }
+        
+        if (playPath.indexOf("/") === 0) playPath = playPath.substring(1);
+
+        // ĐỂ CHẶN APP KHÔNG TỰ ĐỘNG CHẠY PLAY: Ta bắt buộc phải tạo ra > 1 phần tử (VD: Tập 1 & Tập 2)
+        servers.push({
+            name: "Tải Tập",
+            episodes: [
+                {
+                    id: "loadepphim_" + playPath,
+                    name: "👉 BẤM VÀO ĐÂY ĐỂ TẢI DANH SÁCH TẬP PHIM",
+                    slug: "click-to-load"
+                },
+                {
+                    id: "loadepphim_" + playPath,
+                    name: "Dự phòng",
+                    slug: "click-to-load-backup"
+                }
+            ]
+        });
     } else {
         // ========================================================
-        // BƯỚC 2: TRANG XEM PHIM (Đã tải thành công, tiến hành quét tập thật)
+        // BƯỚC 2: TRANG XEM PHIM - BÓC TÁCH TOÀN BỘ DANH SÁCH TẬP THẬT
         // ========================================================
         var serverBlockRegex = /<span class="text-zinc-200[^"]*">([\s\S]*?)<\/span>\s*<div class="flex flex-row flex-wrap">([\s\S]*?)<\/div>/gi;
         var episodeRegex = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
@@ -265,6 +263,7 @@ function parseMovieDetail(html, url) {
                 var epNumber = numberMatch ? parseInt(numberMatch[0], 10) : 1;
                 
                 return {
+                    // Thêm tiền tố 'play-' để khi người dùng click vào tập thật, App sẽ gọi thẳng parseDetailResponse để xem
                     id: "play-" + ep.url, 
                     name: "Tập " + epNumber,
                     slug: isSingleEpisode ? "" : "tap-" + epNumber
