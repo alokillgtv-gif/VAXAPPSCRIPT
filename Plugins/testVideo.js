@@ -139,22 +139,6 @@ function parseDetailResponse(html) {
 		var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
 		var type = BaseJSON.codea || "application/x-mpegURL";
 		var customjs = BaseJSON.codec || ""
-		var secureSingleLineHtml = html.replace(/("([^"]+)"\s*:\s*")([\s\S]*?)("\s*(?:,|\}))/g, (match, prefix, key, value, suffix) => {
-			// stringify riêng phần nội dung "value" để tự động escape toàn bộ dấu nháy kép (") và xuống dòng (\n) đúng chuẩn JSON
-			let safeValue = JSON.stringify(value);
-			
-			// JSON.stringify sẽ tự bọc 2 dấu nháy kép ở đầu/cuối, ta cắt bỏ nó đi để ghép vào chuỗi gốc
-			safeValue = safeValue.substring(1, safeValue.length - 1);
-			
-			return prefix + safeValue + suffix;
-		});
-		
-		// 2. Bây giờ toàn bộ nội dung bên trong đã an toàn, ta có thể thoải mái chuyển cả chuỗi JSON thành 1 dòng duy nhất
-		secureSingleLineHtml = secureSingleLineHtml
-			.replace(/\r?\n|\r/g, ' ') // Chuyển tất cả xuống dòng ngoài lề thành khoảng trắng
-			.replace(/\s+/g, ' ') // Thu gọn các khoảng trắng dư thừa
-			.trim();
-		customjs = 'dataJSON = ' + secureSingleLineHtml + ';';
 		var returnjs = {
 			"url": videoUrl,
 			"mimeType": type,
