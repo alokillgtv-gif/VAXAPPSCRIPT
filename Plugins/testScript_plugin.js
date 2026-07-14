@@ -186,27 +186,23 @@ function parseMovieDetail(html, url) {
     rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lduran = rmatch[1]; }   
 
-				
     var servers = [];
 
     // Tìm URL nút "Xem Phim" chứa ID thật của trang chiếu phim (Ví dụ: /tap-1_1368851.html)
-    var playBtnMatch = html.match(/href="([^"]+\/tap-[^"]+)"/i) || html.match(/href="([^"]+)"[^>]*>Xem phim<\/a>/i);
+    var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
     
     if (playBtnMatch) {
-        var playPageUrl = playBtnMatch[1].trim();
-        var cleanPath = playPageUrl.replace(BASEURL, "");
-        if (cleanPath.indexOf("/") !== 0) cleanPath = "/" + cleanPath;
-
         // BÓC TÁCH SỐ TẬP TỪ BIẾN lduran (Thời lượng / Số tập)
         var totalEpisodes = 1;
         totalEpisodes = _$(html).find("dt:content('Số Tập')").next().text();
+				totalEpisodes = totalEpisodes.match(/([0-9]+)/i)[1];
         totalEpisodes = Number(totalEpisodes)
         // Nếu không bóc tách được từ lduran thì check thẻ Số Tập thông thường hoặc mặc định là 45 tập giả
         if (totalEpisodes <= 1) {
             var epInfoMatch = html.match(/(\d+)\s*\/\s*(\d+)\s*Tập/i) || html.match(/Số tập:\s*(\d+)/i) || html.match(/(\d+)\s*tập/i);
             totalEpisodes = epInfoMatch ? parseInt(epInfoMatch[1] || epInfoMatch[2], 10) : 45; // Mặc định 45 tập giả
         }
-
+				
         var episodes = [];
         for (var k = 1; k <= totalEpisodes; k++) {
             // ID giả: play-[Trang_Xem_Phim_Gốc]?tap=K
@@ -235,9 +231,9 @@ function parseMovieDetail(html, url) {
             }]
         });
     }
-
+		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
     return JSON.stringify({
-        id: playBtnMatch[1],
+        id: playBtnMatch[1] + "?tap=1",
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
