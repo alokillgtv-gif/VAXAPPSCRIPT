@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.1",             
+        "version": "3.2",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -310,19 +310,13 @@ function parseDetailResponse(html, url) {
                 realUrl = BASEURL + (realUrl.indexOf('/') === 0 ? "" : "/") + realUrl;
             }
             // Trả về luồng chuyển sang parseEmbedResponse để bóc m3u8 của URL thật
-            return parseEmbedResponse(targetHtml, realUrl);
+            streamUrl = realUrl
         }
 
-        // Bóc tách luồng phát gốc từ trang hiện tại
-        var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
-        if (rmatch && rmatch[1]) { 
-            streamUrl = rmatch[1]; 
-        } else {
-            streamUrl = url;
-        }
 
         return JSON.stringify({
             url: streamUrl,
+            isEmbed: true,
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
@@ -350,6 +344,7 @@ function parseEmbedResponse(html, sourceUrl) {
 
         return JSON.stringify({
             url: streamUrl,
+            isEmbed: false,
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
