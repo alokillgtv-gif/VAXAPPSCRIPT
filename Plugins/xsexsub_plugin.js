@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "2",
+        "version": "2.1",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -200,17 +200,17 @@ function parseMovieDetail(html, url) {
 		lname = _$(html).find(".title-videos").text();
 		ldes = _$(html).find("#div2").find("p").text().replace(/\s\s/g, "");
 		cast = _$(html).find(".dien-vien").text();
-		embed = _$(html).find("#okplayer-frame").attr("data-base");
+		var embed = _$(html).find("#okplayer-frame").attr("data-base");
 		var servers = [];
 		var epi = [];
-		epi.push({ id: embed, name: "Xem Ngay", slug: "full" });
+		epi.push({ id: url, name: "Xem Ngay", slug: "full" });
 		servers.push({
 			name: "Server",
 			episodes: epi
 		});
 		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
 		return JSON.stringify({
-			id: embed,
+			id: url,
 			title: lname,
 			posterUrl: limg,
 			backdropUrl: limg,
@@ -259,7 +259,7 @@ function parseDetailResponse(html, url) {
 		var embed = _$(html).find("#okplayer-frame").attr("data-base");
 		var customjs = textJS(embed);
 		return JSON.stringify({
-			"url": "",
+			"url": embed,
 			"headers": {
 				"Referer": BASEURL,
 				"Origin": BASEURL,
