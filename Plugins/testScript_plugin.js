@@ -15,7 +15,7 @@ function getManifest() {
         "isEnabled": true,
         "isAdult": true,
         "type": "MOVIE",
-        "playerType": "embedtoexoplay"
+        "playerType": "embed"
     });
 }
 
@@ -190,41 +190,26 @@ function parseMovieDetail(html, url) {
 
     // Tìm URL nút "Xem Phim" chứa ID thật của trang chiếu phim (Ví dụ: /tap-1_1368851.html)
     var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
-    
-    if (playBtnMatch) {
         // BÓC TÁCH SỐ TẬP TỪ BIẾN lduran (Thời lượng / Số tập)
-        var totalEpisodes = 1;
-        totalEpisodes = _$(html).find("dt:content('Số Tập')").next().text();
-				totalEpisodes = totalEpisodes.match(/([0-9]+)/i)[1];
-        totalEpisodes = Number(totalEpisodes)
-        var episodes = [];
-        for (var k = 1; k <= totalEpisodes; k++) {
-            // ID giả: play-[Trang_Xem_Phim_Gốc]?tap=K
-            var epId = playBtnMatch + "?tapplay=" + k;
+    var totalEpisodes = 1;
+    totalEpisodes = _$(html).find("dt:content('Số Tập')").next().text();
+		totalEpisodes = totalEpisodes.match(/([0-9]+)/i)[1];
+    totalEpisodes = Number(totalEpisodes)
+    var episodes = [];
+    for (var k = 1; k <= totalEpisodes; k++) {
+      // ID giả: play-[Trang_Xem_Phim_Gốc]?tap=K
+      var epId = playBtnMatch + "?tapplay=" + k;
             
-            episodes.push({
-                id: epId,
-                name: "Tập " + k,
-                slug: "tap-" + k
-            });
-        }
-
-        servers.push({
-            name: "Server Phim Chill",
-            episodes: episodes
-        });
-    } else {
-        // Fallback phim lẻ
-        var fallbackPath = lurl.replace(BASEURL, "");
-        servers.push({
-            name: "Mặc định",
-            episodes: [{
-                id: playBtnMatch[1] + "?tap=full",
-                name: "Full HD",
-                slug: "full"
-            }]
-        });
+       episodes.push({
+        id: epId,
+        name: "Tập " + k,
+        slug: "tap-" + k
+      });
     }
+		servers.push({
+      name: "Server Phim Chill",
+      episodes: episodes
+    });
 		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
     return JSON.stringify({
         id: playBtnMatch + "?tapplay=1",
