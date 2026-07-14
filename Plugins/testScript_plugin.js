@@ -9,9 +9,9 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.8",             
+        "version": "3.9",             
         "baseUrl": "https://phimchillhdv.im",
-        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
+        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
         "isAdult": true,
         "type": "MOVIE",
@@ -256,9 +256,9 @@ function parseDetailResponse(html, url) {
 				}
 			});
 		});
-		var customjs = "";
+		var customjs = textJS();
 		return JSON.stringify({
-			"url": activePage,
+			"url": url,
 			"isEmbed": true,
 			"headers": {
 				"Referer": BASEURL,
@@ -347,39 +347,10 @@ the-loai/phim-18.html@@Phim 18+
 `
 }
 
-function buildMenu(listurl) {
-    let menulist = [];
-    if (!listurl) return menulist;
-    
-    let lines = listurl.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i].trim();
-        if (!line || line.indexOf('@@') === -1) continue;
-        
-        let parts = line.split('@@');
-        let link = parts[0] ? parts[0].trim() : "";
-        let name = parts[1] ? parts[1].trim() : "";
-        let check = parts[2] ? parts[2].trim() : undefined;
-        
-        if (!link || !name) continue;
-        
-        let item = {};
-        if (check === "false") {
-            item = { "slug": link, "title": name, "type": "Horizontal" };
-        } else if (check === "true") {
-            item = { "slug": link, "title": name, "type": "Grid" };
-        } else {
-            item = { "slug": link, "name": name };
-        }
-        menulist.push(item);
-    }
-    return menulist;
-}
-
 function textJS($links) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
-LINKVIDEO = ${JSON.stringify($links)}
+LINKVIDEO = ${JSON.stringify($links)};
 
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js"; 
 const style = document.createElement('style');
