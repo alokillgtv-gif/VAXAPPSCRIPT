@@ -137,17 +137,17 @@ function parseDetailResponse(html,url) {
         var videoUrl = BaseJSON.link || "";
         var refUrl = BaseJSON.ref || "";
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+        var type = BaseJSON.codea || "application/x-mpegURL";
         var customjs = BaseJSON.codec || "";
         return JSON.stringify({
             "url": videoUrl, 
+            "mimeType": type,
             "headers": {
                 "Referer": refUrl,
                 "Origin": refUrl,
                 "User-Agent": agent,
               // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                "Sec-Ch-Ua-Mobile": "?1",
-                "Sec-Ch-Ua-Platform": '"Android"',
     
     // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
                 "Accept": "*/*",
@@ -156,6 +156,8 @@ function parseDetailResponse(html,url) {
                 "Custom-Js": customjs.trim()
             },
             "subtitles": []
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
         });
 
     } catch (e) {
