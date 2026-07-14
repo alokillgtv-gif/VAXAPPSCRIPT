@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -208,9 +208,9 @@ function parseMovieDetail(html, url) {
 			name: "Server",
 			episodes: epi
 		});
-		
+		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
 		return JSON.stringify({
-			id: embed,
+			id: url,
 			title: lname,
 			posterUrl: limg,
 			backdropUrl: limg,
