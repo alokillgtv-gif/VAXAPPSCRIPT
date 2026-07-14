@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.5",             
+        "version": "3.6",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -197,16 +197,10 @@ function parseMovieDetail(html, url) {
         totalEpisodes = _$(html).find("dt:content('Số Tập')").next().text();
 				totalEpisodes = totalEpisodes.match(/([0-9]+)/i)[1];
         totalEpisodes = Number(totalEpisodes)
-        // Nếu không bóc tách được từ lduran thì check thẻ Số Tập thông thường hoặc mặc định là 45 tập giả
-        if (totalEpisodes <= 1) {
-            var epInfoMatch = html.match(/(\d+)\s*\/\s*(\d+)\s*Tập/i) || html.match(/Số tập:\s*(\d+)/i) || html.match(/(\d+)\s*tập/i);
-            totalEpisodes = epInfoMatch ? parseInt(epInfoMatch[1] || epInfoMatch[2], 10) : 45; // Mặc định 45 tập giả
-        }
-				
         var episodes = [];
         for (var k = 1; k <= totalEpisodes; k++) {
             // ID giả: play-[Trang_Xem_Phim_Gốc]?tap=K
-            var epId = playBtnMatch[1] + "?tap=" + k;
+            var epId = playBtnMatch + "?tap=" + k;
             
             episodes.push({
                 id: epId,
@@ -233,7 +227,7 @@ function parseMovieDetail(html, url) {
     }
 		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
     return JSON.stringify({
-        id: playBtnMatch[1] + "?tap=1",
+        id: playBtnMatch + "?tap=1",
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
