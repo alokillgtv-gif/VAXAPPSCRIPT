@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "1.4",
+        "version": "1.5",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -317,7 +317,7 @@ function textJS($links) {
     return `
 LINKVIDEO = ${JSON.stringify($links)}
 
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=phimnganhdc&type=js"; 
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=xsexsub&type=js"; 
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
