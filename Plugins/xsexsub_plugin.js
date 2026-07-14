@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "2.1",
+        "version": "2.2",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -257,7 +257,17 @@ function parseMovieDetail(html, url) {
 function parseDetailResponse(html, url) {
 	try {
 		var embed = _$(html).find("#okplayer-frame").attr("data-base");
-		var customjs = textJS(embed);
+	var LINKVIDEO = [];
+	var number = 0;
+	_$(html).find(".cvp-tab-pane").each(function() {
+		var href = this.attr("data-link");
+		number += 1;
+		if (href.match(/m3u8|mp4/)) {
+			var item = { link: href, name: "Server " + number }
+			LINKVIDEO.push(href);
+		}
+	})
+		var customjs = textJS(LINKVIDEO);
 		return JSON.stringify({
 			"url": embed,
 			"headers": {
@@ -354,7 +364,6 @@ function showToast(message, duration, check) {
         }, duration);
     }
 
-showToast("Do cơ chế server và app nên ko tích hơpj chuyển tập vào được, các bạn back ra trang chuyển nha.",10000,true,true)
 /* Build Video End */
 
 function injectScriptAfterLoad(scriptUrl) {
