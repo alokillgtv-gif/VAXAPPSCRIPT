@@ -1,5 +1,5 @@
 // ========================================================
-// PHIM CHILL VAAPP PLUGIN (FIXED LOAD EPISODES)
+// PHIM CHILL VAAPP PLUGIN (FIXED FILE:/// PROTOCOL ERROR)
 // ========================================================
 
 BASEURL = "https://phimchillhdv.im";
@@ -8,9 +8,9 @@ BASESCRIPT = "https://script.google.com/macros/s/AKfycby7drcNdhTGOQQ2yB-tTEFH4rH
 function getManifest() {
     return JSON.stringify({
         "id": "testScript",          
-        "name": "testScript",
+        "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.4",             
+        "version": "1.1.3",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -67,16 +67,20 @@ function getUrlSearch(keyword, filtersJson) {
 function getUrlDetail(slug) {
     if (!slug) return "";
     
-    // Luồng 1: Nếu click vào tập phim thật (có tiền tố play-), ta trả về link gốc để parseDetailResponse lấy stream phát video
+    // Luồng 1: Nếu click vào tập phim thật (có tiền tố play-), ta trả về link gốc để phát video
     if (slug.indexOf("play-") === 0) {
         var playUrl = slug.replace("play-", "");
         if (playUrl.indexOf('http') !== 0) playUrl = BASEURL + playUrl;
         return playUrl;
     }
     
-    // Luồng 2: Nếu click vào nút "Tải tập phim", ta hướng App tải HTML trang trình chiếu
-    if (slug.indexOf("/loadep/") === 0) {
-        var targetUrl = slug.replace("/loadep/", "/");
+    // Luồng 2: Sử dụng tiền tố thuần chữ để tránh bị App nhận nhầm thành đường dẫn file cục bộ
+    if (slug.indexOf("loadepphim_") === 0) {
+        var targetUrl = slug.replace("loadepphim_", "");
+        // Đảm bảo có dấu gạch chéo ở đầu path nếu chưa có
+        if (targetUrl.indexOf('/') !== 0) {
+            targetUrl = "/" + targetUrl;
+        }
         return BASEURL + targetUrl;
     }
 
@@ -159,7 +163,7 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-    // RẤT QUAN TRỌNG: Nếu URL chứa "play-", chặn ngay lập tức không cho parseDetail chạy lại
+    // Nếu URL chứa "play-", chặn ngay lập tức không cho parseDetail chạy lại
     if (url && url.includes("play-")) {
         return JSON.stringify({ id: url, servers: [] });
     }
@@ -207,25 +211,26 @@ function parseMovieDetail(html, url) {
         var playBtnMatch = html.match(/href="([^"]+\/tap-[^"]+)"/i) || html.match(/href="([^"]+)"[^>]*>Xem phim<\/a>/i);
         if (playBtnMatch) {
             var playPageUrl = playBtnMatch[1];
-            // Rút gọn link để tạo id /loadep/
+            // Rút gọn link bằng cách bỏ domain của trang web
             var cleanPath = playPageUrl.replace(BASEURL, "");
-            if (cleanPath.indexOf("/") !== 0) cleanPath = "/" + cleanPath;
+            if (cleanPath.indexOf("/") === 0) cleanPath = cleanPath.substring(1);
 
             servers.push({
                 name: "Yêu cầu",
                 episodes: [{
-                    id: "/loadep" + cleanPath, // Đóng gói dạng /loadep/phim/...
+                    id: "loadepphim_" + cleanPath, // Chuyển thành dạng: loadepphim_phim/bach-hoa-sat/...
                     name: "Bấm vào đây để tải danh sách tập...",
                     slug: "load-now"
                 }]
             });
         } else {
-            // Nút dự phòng
+            // Nút dự phòng nếu không tìm thấy nút Xem phim
             var cleanPathFallback = lurl.replace(BASEURL, "");
+            if (cleanPathFallback.indexOf("/") === 0) cleanPathFallback = cleanPathFallback.substring(1);
             servers.push({
                 name: "Mặc định",
                 episodes: [{
-                    id: "/loadep" + cleanPathFallback,
+                    id: "loadepphim_" + cleanPathFallback,
                     name: "Tải danh sách phim",
                     slug: "load-fallback"
                 }]
@@ -260,7 +265,6 @@ function parseMovieDetail(html, url) {
                 var epNumber = numberMatch ? parseInt(numberMatch[0], 10) : 1;
                 
                 return {
-                    // Thêm tiền tố 'play-' để VAAPP biết đây là link Player, click vào phát luôn
                     id: "play-" + ep.url, 
                     name: "Tập " + epNumber,
                     slug: isSingleEpisode ? "" : "tap-" + epNumber
