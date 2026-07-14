@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.6",             
+        "version": "3.7",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -246,12 +246,35 @@ function parseMovieDetail(html, url) {
 
 function parseDetailResponse(html, url) {
 	try {
-		
-		
-		
-		var customjs = textJS(servers);
+		var curent = url.match(/tapplay=(\d+)/)[1];
+		curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+		console.log("tap hien tai: " + curent)
+		var servers = [];
+		var activePage = "";
+		var check = 0;
+		_$(html).find('span:content("Danh Sách")').each(function() {
+			var servername = this.text().replace("Danh Sách ", "");
+			console.log(servername);
+			var box = this.parent();
+			box.find("a").each(function(index, el) {
+				var link = _$(el).attr("href");
+				var text = _$(el).text();
+				var number = text.match(/([0-9]+)/)[1];
+				number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+				console.log("Tập đã quet " + number)
+				if (number == curent) {
+					check++;
+					if (check == 1) {
+						activePage = link;
+					}
+					servers.push({ link: link, name: "Server: " + servername });
+				}
+			});
+		});
+		var customjs = "";
 		return JSON.stringify({
-			"url": stream,
+			"url": activePage,
+			"isEmbed": true,
 			"headers": {
 				"Referer": BASEURL,
 				"Origin": BASEURL,
@@ -277,9 +300,7 @@ function parseDetailResponse(html, url) {
 
 function parseEmbedResponse(html, sourceUrl) {
     try {
-        var customJs = CustomjQ(html, sourceUrl);
         var streamUrl = "";
-        
         // Bóc tách link phim thực tế (m3u8) từ tập thật được chuyển hướng đến
         var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
         if (rmatch && rmatch[1]) { 
@@ -287,7 +308,7 @@ function parseEmbedResponse(html, sourceUrl) {
         } else {
             streamUrl = sourceUrl;
         }
-
+				var customjs = textJS();
         return JSON.stringify({
             url: streamUrl,
             isEmbed: false, // Tắt embed để kích hoạt player gốc phát m3u8
@@ -295,7 +316,7 @@ function parseEmbedResponse(html, sourceUrl) {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
+                "Custom-Js": customjs.trim()
             }
         });
     } catch (e) {
