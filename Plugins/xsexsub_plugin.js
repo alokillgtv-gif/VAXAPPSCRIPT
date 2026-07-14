@@ -5,7 +5,7 @@ function getManifest() {
         "id": "xsexsub",
         "name": "Phim XXX Vietsub",
         "description": "XXX hay.",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://xsexsub.site",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -539,37 +539,6 @@ function injectCustomVideoControls(video) {
     });
 }
 
-// --- KHỞI TẠO SELECT BOX ---
-var html = document.body.innerHTML; 
-const regex = /data-link=["']([^"']+)["']/g;
-var number = 0;
-
-var selectHtml = '<select class="changeServer" onchange="changeServer(this)" style="background:black;color:white;opacity:0.8;border:none;padding:4px;font-size:14px;border-radius:4px;outline:none;">';
-for (const match of html.matchAll(regex)) {
-  number++;
-  const url = match[1]; 
-  selectHtml += '<option value="'+url+'">Server '+number+'</option>';
-}
-selectHtml += '</select>'; 
-
-const tempDiv = document.createElement('div');
-tempDiv.className = "wrap-server";
-tempDiv.innerHTML = selectHtml;
-tempDiv.style.cssText = "position:fixed;right:20px;top:10px;z-index:100000;background:black;color:white;padding:4px;border:1px solid #fff;border-radius:4px";
-
-const iframe = document.createElement('iframe');
-iframe.className = "frame-server";
-// Tăng z-index lên 9999 để đè hoàn toàn lên video, nhưng dưới nút chọn server (100000)
-iframe.style.cssText = "background:black;position:fixed;right:0px;top:0px;left:0px;bottom:0px;width:100%;height:100%;display:none;z-index:9999;border:none;";
-iframe.src = "about:blank";
-
-keepElementsAndInjectControls(["video"]);
-
-setTimeout(function(){
-    document.body.appendChild(tempDiv);
-    document.body.appendChild(iframe); 
-}, 2000);
-
 // --- XỬ LÝ CHUYỂN SERVER (ĐÃ FIX LỖI ĐÈ) ---
 window.changeServer = function(selectElement) {
     // Lấy chính xác video của bạn bằng Class
@@ -699,6 +668,36 @@ function initCustomVideoFix() {
     if (SCRIPTURL && SCRIPTURL !== "undefined") {
         injectScriptAfterLoad(SCRIPTURL);
     }
+			// --- KHỞI TẠO SELECT BOX ---
+			var html = document.body.innerHTML;
+			const regex = /data-link=["']([^"']+)["']/g;
+			var number = 0;
+			
+			var selectHtml = '<select class="changeServer" onchange="changeServer(this)" style="background:black;color:white;opacity:0.8;border:none;padding:4px;font-size:14px;border-radius:4px;outline:none;">';
+			for (const match of html.matchAll(regex)) {
+				number++;
+				const url = match[1];
+				selectHtml += '<option value="' + url + '">Server ' + number + '</option>';
+			}
+			selectHtml += '</select>';
+			
+			const tempDiv = document.createElement('div');
+			tempDiv.className = "wrap-server";
+			tempDiv.innerHTML = selectHtml;
+			tempDiv.style.cssText = "position:fixed;right:20px;top:10px;z-index:100000;background:black;color:white;padding:4px;border:1px solid #fff;border-radius:4px";
+			
+			const iframe = document.createElement('iframe');
+			iframe.className = "frame-server";
+			// Tăng z-index lên 9999 để đè hoàn toàn lên video, nhưng dưới nút chọn server (100000)
+			iframe.style.cssText = "background:black;position:fixed;right:0px;top:0px;left:0px;bottom:0px;width:100%;height:100%;display:none;z-index:9999;border:none;";
+			iframe.src = "about:blank";
+			
+			keepElementsAndInjectControls(["video"]);
+			
+			setTimeout(function() {
+				document.body.appendChild(tempDiv);
+				document.body.appendChild(iframe);
+			}, 2000);
 }
 
 if (document.readyState === 'loading') {
