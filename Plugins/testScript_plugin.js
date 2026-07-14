@@ -9,13 +9,13 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
         "isAdult": true,
         "type": "MOVIE",
-        "playerType": "auto"
+        "playerType": "embed"
     });
 }
 
@@ -282,14 +282,7 @@ function parseDetailResponse(html, url) {
 
 function parseEmbedResponse(html, sourceUrl) {
     try {
-        var streamUrl = "";
-        // Bóc tách link phim thực tế (m3u8) từ tập thật được chuyển hướng đến
-        var rmatch = html.match(/chooseStreamingServer[\s\S]*?data-link="([\s\S]*?)"/i);
-        if (rmatch && rmatch[1]) { 
-            streamUrl = rmatch[1]; 
-        } else {
-            streamUrl = sourceUrl;
-        }
+        var streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
 				var customjs = textJS();
         return JSON.stringify({
             url: streamUrl,
