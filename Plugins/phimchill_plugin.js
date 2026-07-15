@@ -459,9 +459,9 @@ if(LINKVIDEO == "false"){
 	SCRIPTURL = "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/main/removeADSVIDEO.js";
 }
 const style = document.createElement('style');
-var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black}';
 style.innerHTML = customcss;
-//document.head.appendChild(style);
+document.head.appendChild(style);
 
 /* Build Video Begin*/
 
