@@ -523,7 +523,7 @@ function injectScriptAfterLoad(scriptUrl) {
                 document.body.appendChild(scriptElement);
                // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
 								if (CHECKEPI == "true") {
-									showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!', 5000, true);
+									showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!', 60000, true);
 								}
 								else{
 									showToast(CHECKEPI, 30000, true,true);
