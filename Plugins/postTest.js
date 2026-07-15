@@ -11,7 +11,7 @@ function getManifest() {
         "id": "postTest",          
         "name": "postTest",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -143,14 +143,15 @@ function parseDetailResponse(html,url) {
         
         var post = BaseJSON.coded;
         */
+        var customjs = "";
         return JSON.stringify({
             "url": "https://phim4k.info/ajax", 
-            isEmbed: true,
-            postBody: "source=https%3A%2F%2Fb.dfplayer.cc%2Fv2%2Fs%2F1038.m3u8&type=hls",
+            "isEmbed": "true",
+            "postBody": "source=https%3A%2F%2Fb.dfplayer.cc%2Fv2%2Fs%2F1038.m3u8&type=hls",
             "headers": {
-                "Referer": refUrl,
-                "Origin": refUrl,
-                "User-Agent": agent,
+                "Referer": "https://phim4k.info",
+                "Origin": "https://phim4k.info",
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
               // Đánh lừa thuật toán Client Hints của tường lửa
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
                 "Sec-Ch-Ua-Mobile": "?1",
