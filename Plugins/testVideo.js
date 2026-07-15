@@ -15,7 +15,7 @@ function getManifest() {
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
-        "type": "Hàng cấm nhớ bật sang CloudFlare ở chỗ DNS trong cài đặt để bỏ chặn nha.",
+        "type": "VIDEO",
         "playerType": "embed"
     });
 }
