@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.5",   
+        "version": "1.7",   
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
@@ -282,7 +282,7 @@ function parseDetailResponse(html, url) {
 
 function parseEmbedResponse(html, sourceUrl) {
     try {
-        var streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
+        var streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
 				var customJs = textJS();
         return JSON.stringify({
 	          url: streamUrl,
