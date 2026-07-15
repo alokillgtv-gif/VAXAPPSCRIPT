@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.7",             
+        "version": "1.8",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -316,7 +316,6 @@ function parseDetailResponse(html, url) {
 			activePage = url;
 		}
 		
-		var customJs = textJS();
 		return JSON.stringify({
 			"url": activePage,
 			"isEmbed": true,
@@ -332,8 +331,7 @@ function parseDetailResponse(html, url) {
 				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
 				"Accept": "*/*",
 				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-				"X-Requested-With": "com.android.chrome",
-				"Custom-Js": customJs.trim()
+				"X-Requested-With": "com.android.chrome"
 			},
 			"subtitles": []
 		});
@@ -475,7 +473,7 @@ function showToast(message, duration, check) {
 
 function injectScriptAfterLoad(scriptUrl) {
 		if(CHECKEPI == "true"){
-			showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!',5000,true
+			showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!',5000,true);
 		}
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
