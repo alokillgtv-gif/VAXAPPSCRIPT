@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "2.4",             
+        "version": "2.5",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -369,10 +369,7 @@ function parseEmbedResponse(html, url) {
             var matchCurent = url.match(/tapplay=(\d+)/);
             var curentRaw = matchCurent ? matchCurent[1] : "1";
             var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "02", "22"...
-            
-            var curent = url.match(/tapplay=(\d+)/)[1];
-						curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-						checkepi = _$(html).find("h2").find("a").text() + "- Tập " + curent;
+   					checkepi = _$(html).find("h2").find("a").text() + "- Tập " + curent;
 				 }
         
         var customJs = textJS(typevideo, checkepi);
