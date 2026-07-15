@@ -11,7 +11,7 @@ function getManifest() {
         "id": "postTest",          
         "name": "postTest",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -131,6 +131,7 @@ function parseMovieDetail(html) {
 
 function parseDetailResponse(html,url) {
     try {
+    	/*
         // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
         var parsed = JSON.parse(html);
         BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
@@ -139,11 +140,13 @@ function parseDetailResponse(html,url) {
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
         //var customjs = BaseJSON.codec || "";
         //eval(BaseJSON.codec);
+        
         var post = BaseJSON.coded;
+        */
         return JSON.stringify({
-            "url": videoUrl, 
+            "url": "https://phim4k.info/ajax", 
             isEmbed: true,
-            postBody: post,
+            postBody: "source=https%3A%2F%2Fb.dfplayer.cc%2Fv2%2Fs%2F1038.m3u8&type=hls",
             "headers": {
                 "Referer": refUrl,
                 "Origin": refUrl,
