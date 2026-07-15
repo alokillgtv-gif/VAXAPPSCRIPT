@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.8",   
+        "version": "1.9",   
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
@@ -231,28 +231,34 @@ function parseMovieDetail(html, url) {
 
 function parseDetailResponse(html, url) {
 	try {
-		var curent = url.match(/tapplay=(\d+)/)[1];
-		curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-		var servers = [];
-		var activePage = "";
-		var check = 0;
-		_$(html).find('span:content("Danh Sách")').each(function() {
-			var servername = this.text().replace("Danh Sách ", "");
-			var box = this.parent();
-			box.find("a").each(function(index, el) {
-				var link = _$(el).attr("href");
-				var text = _$(el).text();
-				var number = text.match(/([0-9]+)/)[1];
-				number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-				if (number == curent) {
-					check++;
-					if (check == 1) {
-						activePage = link;
+		if (!url.match(/full/)) {
+			var curent = url.match(/tapplay=(\d+)/)[1];
+			curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+			var servers = [];
+			var activePage = "";
+			var check = 0;
+			_$(html).find('span:content("Danh Sách")').each(function() {
+				var servername = this.text().replace("Danh Sách ", "");
+				var box = this.parent();
+				box.find("a").each(function(index, el) {
+					var link = _$(el).attr("href");
+					var text = _$(el).text();
+					var number = text.match(/([0-9]+)/)[1];
+					number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+					if (number == curent) {
+						check++;
+						if (check == 1) {
+							activePage = link;
+						}
+						servers.push({ link: link, name: "Server: " + servername });
 					}
-					servers.push({ link: link, name: "Server: " + servername });
-				}
+				});
 			});
-		});
+		}
+		else {
+			activePage = url;
+		}
+		
 		var customJs = textJS();
 		return JSON.stringify({
 			"url": activePage,
