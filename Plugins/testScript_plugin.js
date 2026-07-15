@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.4",             
+        "version": "1.5",   
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
@@ -253,7 +253,7 @@ function parseDetailResponse(html, url) {
 				}
 			});
 		});
-		var customjs = textJS();
+		var customJs = textJS();
 		return JSON.stringify({
 			"url": activePage,
 			"isEmbed": true,
@@ -270,7 +270,7 @@ function parseDetailResponse(html, url) {
 				"Accept": "*/*",
 				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
 				"X-Requested-With": "com.android.chrome",
-				"Custom-Js": customjs.trim()
+				"Custom-Js": customJs.trim()
 			},
 			"subtitles": []
 		});
@@ -283,7 +283,7 @@ function parseDetailResponse(html, url) {
 function parseEmbedResponse(html, sourceUrl) {
     try {
         var streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
-				var customjs = textJS();
+				var customJs = textJS();
         return JSON.stringify({
 	          url: streamUrl,
 	          isEmbed: false,
