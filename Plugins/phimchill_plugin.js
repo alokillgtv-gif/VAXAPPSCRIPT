@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "2.2",             
+        "version": "2.3",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -257,15 +257,22 @@ function parseMovieDetail(html, url) {
     });
 }
 
+// Hàm bổ trợ chuẩn hóa tập phim an toàn, không lo lỗi "00"
+function formatEpisode(numStr) {
+    var num = parseInt(numStr, 10);
+    if (isNaN(num)) return "01"; 
+    return num < 10 ? "0" + num : "" + num;
+}
+
 function parseDetailResponse(html, url) {
     try {
         var activePage = "";
         
         if (!url.match(/full/)) {
-            // Kiểm tra an toàn trước khi match tapplay
             var matchCurent = url.match(/tapplay=(\d+)/);
-            var curent = matchCurent ? matchCurent[1] : "0";
-            curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+            // Lấy số tập từ URL, nếu không thấy thì mặc định là "1"
+            var curentRaw = matchCurent ? matchCurent[1] : "1";
+            var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "22",...
             
             var servers = [];
             var check = 0;
@@ -284,8 +291,8 @@ function parseDetailResponse(html, url) {
                     var link = _$(el).attr("href");
                     var text = _$(el).text();
                     var matchText = text.match(/([0-9]+)/);
-                    var number = matchText ? matchText[1] : "0";
-                    number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+                    var numberRaw = matchText ? matchText[1] : "1";
+                    var number = formatEpisode(numberRaw);
                     
                     if (Number(number) > Number(maxEpi)) {
                         maxEpi = number;
@@ -306,7 +313,6 @@ function parseDetailResponse(html, url) {
                 maxList.push(lineEpi);
             });
             
-            // Ép kiểu Number để so sánh logic chính xác
             const curentNum = Number(curent);
             const isLargerThanAll = maxList.every(item => {
                 const currentNum = Number(item.number);
@@ -360,13 +366,12 @@ function parseEmbedResponse(html, url) {
         if (url.indexOf("true") > -1) {
             checkepi = "true";
         } else {
-            // Kiểm tra an toàn cho tapplay
             var matchCurent = url.match(/tapplay=(\d+)/);
-            var curent = matchCurent ? matchCurent[1] : "0";
-            curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+            var curentRaw = matchCurent ? matchCurent[1] : "1";
+            var curent = formatEpisode(curentRaw); // Chuẩn hóa an toàn
             
             var title = _$(html).find("title").text();
-            // Đã sửa lỗi: Gán đè lại giá trị sau khi replace
+            // Thay thế số tập cũ bằng số tập hiện tại (đảm bảo không bị "Tập 00")
             title = title.replace(/Tập\s+(\d+)/i, "Tập " + curent);
             checkepi = title;
         }
