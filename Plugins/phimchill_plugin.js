@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.6",             
+        "version": "1.7",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -310,7 +310,7 @@ function parseDetailResponse(html, url) {
 			
 			// 3. In kết quả
 			if (isLargerThanAll) {
-				activePage = url;
+				activePage = url + "&check=true";
 			}
 		} else {
 			activePage = url;
@@ -352,12 +352,16 @@ function parseEmbedResponse(html, sourceUrl) {
     try {
         var streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
         var embed = _$(html).find('a[data-type="embed"]').attr("data-link");
+        var checkepi = "false";
         var typevideo = "true";
         if (!streamUrl) {
             var typevideo = "false";
             streamUrl = embed;
         }
-        var customJs = textJS(typevideo);
+        if(sourceUrl.indexOf("true") > -1){
+        	checkepi = "true"
+        }
+        var customJs = textJS(typevideo,checkepi);
         return JSON.stringify({
             url: streamUrl,
             isEmbed: false,
@@ -418,10 +422,11 @@ the-loai/phim-18.html@@Phim 18+
 `
 }
 
-function textJS($links) {
+function textJS($links,checkepi) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 LINKVIDEO = ${JSON.stringify($links)};
+CHECKEPI = ${JSON.stringify(checkepi)};
 SCRIPTURL = "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/main/buildVideo.js"; 
 if(LINKVIDEO == "false"){
 	SCRIPTURL = "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/main/removeADSVIDEO.js";
@@ -469,6 +474,9 @@ function showToast(message, duration, check) {
 /* Build Video End */
 
 function injectScriptAfterLoad(scriptUrl) {
+		if(CHECKEPI == "true"){
+			showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!',5000,true
+		}
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
         
