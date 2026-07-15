@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "2.3",             
+        "version": "2.4",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -368,18 +368,18 @@ function parseEmbedResponse(html, url) {
         } else {
             var matchCurent = url.match(/tapplay=(\d+)/);
             var curentRaw = matchCurent ? matchCurent[1] : "1";
-            var curent = formatEpisode(curentRaw); // Chuẩn hóa an toàn
+            var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "02", "22"...
             
-            var title = _$(html).find("title").text();
-            // Thay thế số tập cũ bằng số tập hiện tại (đảm bảo không bị "Tập 00")
-            title = title.replace(/Tập\s+(\d+)/i, "Tập " + curent);
-            checkepi = title;
-        }
+            var curent = url.match(/tapplay=(\d+)/)[1];
+						curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+						checkepi = _$(html).find("h2").find("a").text() + "- Tập " + curent;
+				 }
         
         var customJs = textJS(typevideo, checkepi);
         return JSON.stringify({
             url: streamUrl,
             isEmbed: false,
+            mimeType: "application/x-mpegURL",
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
@@ -394,6 +394,7 @@ function parseEmbedResponse(html, url) {
         });
     }
 }
+
 
 
 function parseCategoriesResponse(apiResponseJson) {
