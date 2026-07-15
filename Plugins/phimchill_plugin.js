@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.9",             
+        "version": "2.0",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -346,7 +346,7 @@ function parseDetailResponse(html, url) {
 //function textJS(){return ""}
 //parseDetailResponse(outerHTML,"https://phimchillhdz.im/phim/toi-la-nham-phi-pham/tap-01_1372039.html?tapplay=2")
 
-function parseEmbedResponse(html, sourceUrl) {
+function parseEmbedResponse(html, url) {
     try {
         var streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
         var embed = _$(html).find('a[data-type="embed"]').attr("data-link");
@@ -356,8 +356,15 @@ function parseEmbedResponse(html, sourceUrl) {
             var typevideo = "false";
             streamUrl = embed;
         }
-        if(sourceUrl.indexOf("true") > -1){
+        if(url.indexOf("true") > -1){
         	checkepi = "true"
+        }
+        else{
+        	var curent = url.match(/tapplay=(\d+)/)[1];
+					curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+					var title = _$(html).find("title").text();
+					title.replace(/Tập\s+(\d+)/i, "Tập " + curent);
+					checkepi = title;
         }
         var customJs = textJS(typevideo,checkepi);
         return JSON.stringify({
@@ -495,6 +502,9 @@ function injectScriptAfterLoad(scriptUrl) {
                // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
 								if (CHECKEPI == "true") {
 									showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!', 5000, true);
+								}
+								else{
+									showToast(CHECKEPI, 30000, true,true);
 								}
             })
             .catch(error => {
