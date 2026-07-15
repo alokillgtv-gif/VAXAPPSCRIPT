@@ -9,7 +9,7 @@ function getManifest() {
         "id": "testScript",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.7",   
+        "version": "1.8",   
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg", 
         "isEnabled": true,
@@ -283,7 +283,13 @@ function parseDetailResponse(html, url) {
 function parseEmbedResponse(html, sourceUrl) {
     try {
         var streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
-				var customJs = textJS();
+        var embed = _$(html).find('a[data-type="embed"]').attr("data-link");
+        var typevideo = "true";
+        if(!streamUrl){
+        	var typevideo = "false";
+        	streamUrl = embed;
+        }
+				var customJs = textJS(typevideo);
         return JSON.stringify({
 	          url: streamUrl,
 	          isEmbed: false,
@@ -341,8 +347,10 @@ function textJS($links) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 LINKVIDEO = ${JSON.stringify($links)};
-
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testScript&type=js"; 
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=buildVideo&type=js"; 
+if(LINKVIDEO == "false"){
+	SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=removeADS&type=js";
+}
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
 style.innerHTML = customcss;
@@ -428,37 +436,6 @@ function initCustomVideoFix() {
     if (SCRIPTURL && SCRIPTURL !== "undefined") {
         injectScriptAfterLoad(SCRIPTURL);
     }
-			// --- KHỞI TẠO SELECT BOX ---
-			var html = document.body.innerHTML;
-			const regex = /data-link=["']([^"']+)["']/g;
-			var number = 0;
-			
-			var selectHtml = '<select class="changeServer" onchange="changeServer(this)" style="background:black;color:white;opacity:0.8;border:none;padding:4px;font-size:14px;border-radius:4px;outline:none;">';
-			for (const match of html.matchAll(regex)) {
-				number++;
-				const url = match[1];
-				selectHtml += '<option value="' + url + '">Server ' + number + '</option>';
-			}
-			selectHtml += '</select>';
-			
-			const tempDiv = document.createElement('div');
-			tempDiv.className = "wrap-server";
-			tempDiv.innerHTML = selectHtml;
-			tempDiv.style.cssText = "position:fixed;right:20px;top:10px;z-index:100000;background:black;color:white;padding:4px;border:1px solid #fff;border-radius:4px";
-			
-			const iframe = document.createElement('iframe');
-			iframe.className = "frame-server";
-			// Tăng z-index lên 9999 để đè hoàn toàn lên video, nhưng dưới nút chọn server (100000)
-			iframe.style.cssText = "background:black;position:fixed;right:0px;top:0px;left:0px;bottom:0px;width:100%;height:100%;display:none;z-index:9999;border:none;";
-			iframe.src = "about:blank";
-			
-			
-			
-			setTimeout(function() {
-			keepElementsAndInjectControls(["video"]);
-				document.body.appendChild(tempDiv);
-				document.body.appendChild(iframe);
-			}, 2000);
 }
 
 if (document.readyState === 'loading') {
