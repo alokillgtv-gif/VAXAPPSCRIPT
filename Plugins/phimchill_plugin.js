@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "2.5",             
+        "version": "2.6",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -302,7 +302,7 @@ function parseDetailResponse(html, url) {
                     if (number == curent) {
                         check++;
                         if (check == 1) {
-                            activePage = link;
+                            activePage = link + "?tapplay=" + number;
                         }
                         servers.push({
                             link: link,
