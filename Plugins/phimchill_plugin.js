@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "2.7",             
+        "version": "2.8",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -366,8 +366,15 @@ function parseEmbedResponse(html, url) {
         
         if (!streamUrl) {
             typevideo = "false";
-            streamUrl = embed;
+            if(embed){
+            	streamUrl = embed;
+            }
+            else{
+            	typevideo = "false";
+            	streamUrl = url;
+            }
         }
+        
         
         if (url.indexOf("true") > -1) {
             checkepi = "true";
