@@ -1,3 +1,5 @@
+// "version": "1.5"
+
 function runVideo(){
     'use strict';
     var DEVELOPE = false;
@@ -165,7 +167,8 @@ function runVideo(){
         video.id = 'main-video';
         
         // Đã thay object-fit: contain thành cover (hoặc fill tùy bạn) và thêm outline:none
-        video.style.cssText = 'width:100%;height:100%;object-fit:cover;cursor:pointer;background:#000;outline:none;border:none;box-shadow:none;';
+        video.style.cssText = 'width:100%;height:100%;object-fit:contain;cursor:pointer;background:#000;outline:none;border:none;box-shadow:none;';
+
         video.controls = false;
         
         var container = document.createElement('div');
@@ -502,15 +505,18 @@ function runVideo(){
         video.addEventListener('ended', function() { btnPlay.textContent = '▶'; bigPlayBtn.style.display = 'flex'; isPlaying = false; clearSavedPosition(); });
         
         video.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (isDraggingVideo) { isDraggingVideo = false; return; }
-            var rect = video.getBoundingClientRect();
-            var x = e.clientX - rect.left;
-            var width = rect.width;
-            if (x < width * 0.3) seekVideo(-10);
-            else if (x > width * 0.7) seekVideo(10);
-            else togglePlay();
-        });
+			    e.stopPropagation();
+			    if (isDraggingVideo) { isDraggingVideo = false; return; }
+			    
+			    // Tính toán trực tiếp dựa trên độ rộng hiển thị của viewport để click chính xác hơn
+			    var width = window.innerWidth;
+			    var x = e.clientX;
+			    
+			    if (x < width * 0.3) seekVideo(-10);
+			    else if (x > width * 0.7) seekVideo(10);
+			    else togglePlay();
+			});
+
 
         video.addEventListener('volumechange', function() { btnMute.textContent = video.muted || video.volume === 0 ? '🔇' : '🔊'; });
         btnPlay.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
