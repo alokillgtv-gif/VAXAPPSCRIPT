@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.8",             
+        "version": "1.9",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -472,9 +472,6 @@ function showToast(message, duration, check) {
 /* Build Video End */
 
 function injectScriptAfterLoad(scriptUrl) {
-		if(CHECKEPI == "true"){
-			showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!',5000,true);
-		}
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
         
@@ -496,6 +493,9 @@ function injectScriptAfterLoad(scriptUrl) {
                 // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
                 document.body.appendChild(scriptElement);
                // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+								if (CHECKEPI == "true") {
+									showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!', 5000, true);
+								}
             })
             .catch(error => {
                 console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
