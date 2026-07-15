@@ -402,6 +402,7 @@
                                     <option value="19">19px</option>
                                     <option value="20">20px</option>
                                 </select>
+                                <button id="btnToggleWrap" class="lab-mini-btn lab-btn-wrap">Wrap: OFF</button>
                                 <button class="lab-mini-btn btn-success" id="labBtnRunJs" style="margin-right:4px;">▶ </button>
                                 <button class="lab-mini-btn lab-btn-max" data-target="#panelJs">🔲 </button>
                                 <button class="lab-mini-btn btn-danger" id="labBtnClearJs">Xóa</button>
@@ -1886,15 +1887,19 @@
             if (jsTextarea && !window.__labJsEditor) {
                 window.__labJsEditor = CodeMirror.fromTextArea(jsTextarea, {
                     mode: 'javascript', theme: 'dracula', lineNumbers: true,
-                    matchBrackets: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true,
+                    matchBrackets: true, autoCloseBrackets: true, tabSize: 2, indentUnit: 2, lineWrapping: true,
                     extraKeys: {
+                        "Tab": function(cm) {
+                          var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                          cm.replaceSelection(spaces);
+                        },
                         'Ctrl-Enter': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
                         'Ctrl-G': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
                         'Ctrl-B': function() { $("#labBtnClearConsole").click(); },
                         'Ctrl-Space': 'autocomplete'
                     }
                 });
-
+                window.editorProInstance = editorPro;
                 window.__labJsEditor.on('keyup', function(cm, event) {
                     if (!cm.state.completionActive && event.keyCode !== 13 && event.keyCode !== 27 && event.keyCode !== 8 && event.keyCode !== 32 && event.keyCode !== 17 && event.keyCode !== 18) {
                         const token = cm.getTokenAt(cm.getCursor());
@@ -1947,6 +1952,27 @@
         // --- MODULE: MINI TREE DOM SEARCH ---
 let miniSearchMatches = [];
 let miniSearchIndex = -1;
+
+$(document).on('click', '#btnToggleWrap', function() {
+  if (!window.editorProInstance || !window.editorCssInstance) return;
+  
+  // Lấy trạng thái hiện tại của editorPro (true hoặc false)
+  var currentWrap = window.editorProInstance.getOption('lineWrapping');
+  var newWrap = !currentWrap;
+  
+  // Set giá trị mới cho cả 2 ô
+  window.editorProInstance.setOption('lineWrapping', newWrap);
+  window.editorCssInstance.setOption('lineWrapping', newWrap);
+  
+  // Refresh lại giao diện ngay lập tức để tránh lỗi hiển thị con trỏ
+  window.editorProInstance.refresh();
+  window.editorCssInstance.refresh();
+  
+  // Cập nhật nhãn nút hiển thị
+  $(this).text('Wrap: ' + (newWrap ? 'ON' : 'OFF'));
+  $(this).toggleClass('active-wrap', newWrap); // có thể thêm class để đổi màu nút
+});
+
 
 $('#labMiniTreeSearch').on('keydown', function(e) {
     if (e.key === 'Enter') {
@@ -2175,6 +2201,12 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                 const $clickedPanel = $(this);
                 const css = `<style id="fontSizeLab">.CodeMirror{font-size:${px}px!important;line-height:${ln}px}</style>`;
                 $("body").append(css);
+                if (window.editorProInstance) {
+                  window.editorProInstance.refresh();
+                }
+                if (window.editorCssInstance) {
+                  window.editorCssInstance.refresh();
+                }
             });
             $(document).on('change', '.lab-sub-select', function(e) {
                 e.stopPropagation();

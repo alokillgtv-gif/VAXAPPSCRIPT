@@ -1,0 +1,485 @@
+BASEURL = "https://phim4k.info";
+// https://www.xxxfiles.com/favicon-32x32.png
+function getManifest() {
+    return JSON.stringify({
+        "id": "phim4kinfo",
+        "name": "Phim JAV 4K",
+        "description": "XXX hay.",
+        "version": "1.0",
+        "BASEURL": "https://phim4k.info",
+        "iconUrl": "https://i.imgur.com/74EUoki.png",
+        "isEnabled": true,
+        "type": "VIDEO",
+        "playerType": "embed"
+    });
+}
+
+// https://phim4k.info/video?page=4
+function getHomeSections() {
+    var listurl = `
+/video@@Phim Mới@@true
+`;
+    var menulist = buildMenu(listurl);
+    return JSON.stringify(menulist);
+}
+
+function getPrimaryCategories() {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
+    return JSON.stringify(menulist);
+}
+
+// ĐÃ SỬA: Lỗi cú pháp khai báo biến trong JSON.stringify
+function getFilterConfig() {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
+    return JSON.stringify({
+        category: menulist
+    });
+}
+
+// =============================================================================
+// URL GENERATION
+// =============================================================================
+
+function getUrlList(slug, filtersJson) {
+  try {
+    // 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
+    if (slug && slug.indexOf("http") > -1 || slug.indexOf("search") > -1) {
+      filtersJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+      var $filters = JSON.parse(filtersJson);
+      var $page = parseInt($filters.page) || 1;
+      if ($page > 1) {
+        return slug + "&page=" + $page;
+      }
+      else {
+        return slug;
+      }
+      // thường là link search sẽ bị trả về ở đây
+    }
+    let page = 1;
+    let path = slug || "";
+    
+    // 2. Xử lý an toàn filtersJson nếu có truyền vào
+    if (filtersJson) {
+      // Nếu có số trang hoặc  có menu categ
+      // Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
+      let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+        .replace(/:,/g, ':');
+      // Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
+      
+      try {
+        let filters = JSON.parse(fixedJson);
+        page = parseInt(filters.page) || 1;
+        
+        // Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
+        if (filters.category) {
+          if (Array.isArray(filters.category) && filters.category.length > 0) {
+            path = filters.category[0].slug;
+          } else if (typeof filters.category === 'string') {
+            path = filters.category;
+          }
+        }
+      } catch (jsonErr) {
+        //console.log("JSON parse lỗi, dùng giá trị mặc định");
+      }
+    }
+    
+    
+    // 4. Chuẩn hóa path (Xóa dấu gạch chéo thừa ở đầu/cuối để tránh nhân đôi dấu //)        
+    // 5. Nối chuỗi URL kết quả
+    let resultUrl = BASEURL;
+    if (path) {
+      resultUrl += path;
+    }
+    // https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
+    if (page > 1) {
+      resultUrl += "?page=" + page;
+    }
+    
+    // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
+    return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+    
+  } catch (e) {
+    // console.log("Lỗi hệ thống: " + e.message);
+    // Trả về URL gốc an toàn nếu có lỗi
+    let fallback = BASEURL + (slug ? "/" + slug : "");
+    return fallback.replace(/([^:]\/)\/+/g, "$1");
+  }
+}
+// https://phim4k.info/search?keyword=L%E1%BB%97%20Nh%E1%BB%8B&page=2
+// https://phim4k.info/genre/han-quoc-18?page=6
+// https://phim4k.info/video?page=8
+// JSON lỗi cú pháp (thiếu nháy kép) của bạn
+//var filtersJsonNoCat = '{page:11,category:[{"slug":"/hiep-dam/","name":"Thiếu niên"}]}'; 
+//var filtersJsonNoCat = '{page:22}';
+//console.log(getUrlList("", filtersJsonNoCat));
+
+
+function getUrlSearch(keyword, filtersJson) {
+    return BASEURL + "/search?keyword=" + encodeURIComponent(keyword);
+}
+
+function getUrlDetail(slug) {
+    if (!slug) return "";
+    if (slug.indexOf('http') === 0) return slug;
+    return BASEURL + "/" + slug;
+}
+
+function getUrlCategories() { return BASEURL; }
+function getUrlCountries() { return ""; }
+function getUrlYears() { return ""; }
+
+// =============================================================================
+// PARSERS
+// =============================================================================
+function parseListResponse(html, $url) {
+  try {
+    var items = [];
+    
+    _$(html).find(".last-film-box").find("li").each(function() {
+      var href = this.find("a").attr("href");
+      var title = this.find("a").attr("title");
+      var src = this.find(".public-film-item-thumb").attr("style");
+      // background-image:url('/images/thumbnails/chong-mai-me-lam-viec-vo-dit-nhau-cung-cau-trai-hang-xom-khoai-to.jpg')
+      src = src.match(/url\(["']([^"']+)["']/i)[1];
+      if (src.indexOf("http") == -1) {
+        src = BASEURL + src;
+      }
+      
+      if (href && href.indexOf("http") > -1) {
+        var cleanThumb = src.replace(/&amp;/g, '&');
+        
+        items.push({
+          "id": href,
+          "title": title.trim(),
+          "posterUrl": cleanThumb,
+          "backdropUrl": cleanThumb
+        });
+      }
+    });
+    
+    return JSON.stringify({
+      "items": items,
+      "pagination": { "currentPage": 1, "totalPages": 999 }
+    });
+    
+  } catch (e) {
+    return JSON.stringify({
+      "items": [{ "id": $url, "title": "Lỗi: " + e, "posterUrl": "", "backdropUrl": "" }],
+      "pagination": { "currentPage": 1, "totalPages": 1 }
+    });
+  }
+}
+///*
+//html = outerHTML;
+//JSON.parse(parseListResponse(html));
+// Bỏ dấu / ở đầu chuỗi
+//*/
+
+
+function parseSearchResponse(html) {
+    return parseListResponse(html);
+}
+
+
+
+function parseMovieDetail(html, url) {
+	var lurl = "";
+	var limg = "";
+	var lname = "Đang cập nhật...";
+	var ldes = "Không có mô tả.";
+	var year = 2026;
+	var direc = "????";
+	var cast = "????";
+	var status = "????";
+	var duration = "1:09:00 | 16 | 16";
+	var rating = "????";
+	var servers = [{}];
+	var $info = "";
+	var category = "";
+	var country = "";
+	var lang = "";
+	var streamUrl = "";
+	try {
+		limg = _$(html).find('meta[property="og:image"]').attr("content");
+		if (limg.indexOf("http") == -1) {
+			limg = BASEURL + limg;
+		}
+		lname = _$(html).find('meta[property="og:title"]').attr("content");
+		ldes = _$(html).find('meta[property="og:description"]').attr("content");
+		//cast = _$(html).find(".dien-vien").text();
+		var servers = [];
+		var epi = [];
+		epi.push({ id: url, name: "Xem Ngay", slug: "full" });
+		servers.push({
+			name: "Server",
+			episodes: epi
+		});
+		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
+		return JSON.stringify({
+			id: url,
+			title: lname,
+			posterUrl: limg,
+			backdropUrl: limg,
+			description: ldes,
+			servers: servers,
+			quality: "HD",
+			year: year,
+			status: status,
+			duration: duration,
+			casts: cast,
+			director: direc,
+			country: country,
+			category: category,
+			lang: lang
+		});
+		
+	}
+	catch (e) {
+		return JSON.stringify({
+			id: lurl,
+			title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
+			posterUrl: limg,
+			backdropUrl: limg,
+			description: ldes,
+			servers: servers,
+			quality: "HD",
+			year: year,
+			status: status,
+			duration: duration,
+			casts: cast,
+			director: direc
+		});
+	}
+}
+
+
+//BASEURL = "https://phimnganhdc.com";
+//var html = outerHTML;
+//var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
+//JSON.parse(parseMovieDetail(outerHTML,$url));
+
+// https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san-35032
+// https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san/tap-1-811897
+function parseDetailResponse(html, url) {
+	try {
+	  
+		var customjs = textJS("");
+		return JSON.stringify({
+			"url": embed,
+			"headers": {
+				"Referer": BASEURL,
+				"Origin": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+				// Đánh lừa thuật toán Client Hints của tường lửa
+				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+				"Sec-Ch-Ua-Mobile": "?1",
+				"Sec-Ch-Ua-Platform": '"Android"',
+				
+				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+				"Accept": "*/*",
+				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+				"X-Requested-With": "com.android.chrome",
+				"Custom-Js": customjs.trim()
+			},
+			"subtitles": []
+		});
+		
+	} catch (e) {
+		return JSON.stringify({ "url": "", "headers": {} });
+	}
+}
+
+//BASEURL = "https://phimnganhdc.com";
+//var html = outerHTML;
+//var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
+//JSON.parse(parseDetailResponse(html, url))
+
+function sortEpisodesByName(data) {
+    data.forEach(server => {
+        if (server.episodes && Array.isArray(server.episodes)) {
+            server.episodes.sort((a, b) => {
+                // Sử dụng Regex để tìm số đứng ngay sau chữ "Tập" (Không phân biệt hoa thường)
+                const matchA = a.name.match(/Tập\s*(\d+)/i);
+                const matchB = b.name.match(/Tập\s*(\d+)/i);
+                
+                // Nếu tìm thấy số thì chuyển thành kiểu Int, nếu không thấy thì mặc định là 0
+                const numA = matchA ? parseInt(matchA[1], 10) : 0;
+                const numB = matchB ? parseInt(matchB[1], 10) : 0;
+                
+                // Sắp xếp tăng dần: Số nhỏ xếp trước (lên trên), số lớn xếp sau (xuống dưới)
+                return numA - numB;
+            });
+        }
+    });
+    return data;
+}
+
+function textJS($links) {
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+    return `
+LINKVIDEO = ${JSON.stringify($links)}
+
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=xsexsub&type=js"; 
+const style = document.createElement('style');
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black;display:none!important}';
+style.innerHTML = customcss;
+//document.head.appendChild(style);
+
+/* Build Video Begin*/
+/**
+ * Dọn dẹp DOM, giữ lại các phần tử mong muốn và tự động gắn Control nếu có thẻ Video.
+/**
+ * Dọn dẹp DOM, giữ lại các phần tử mong muốn và tự động gắn Control nếu có thẻ Video.
+ */
+
+    var DEVELOPE = false;
+// ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
+function showToast(message, duration, check) {
+        if (typeof duration === 'undefined') duration = 7000;
+        if (typeof check === 'undefined') check = true;
+        if (check === false) return;
+        var container = document.getElementById('global-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'global-toast-container';
+            container.style.cssText =
+                'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
+            document.body.appendChild(container);
+        }
+        var toastEl = document.createElement('div');
+        toastEl.innerHTML = message;
+        toastEl.style.cssText =
+            'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
+        container.appendChild(toastEl);
+        setTimeout(function() {
+            toastEl.style.transform = 'translateX(0)';
+            toastEl.style.opacity = '1';
+        }, 10);
+        setTimeout(function() {
+            toastEl.style.transform = 'translateX(120%)';
+            toastEl.style.opacity = '0';
+            setTimeout(function() {
+                toastEl.remove();
+                if (container.childElementCount === 0) container.remove();
+            }, 300);
+        }, duration);
+    }
+
+/* Build Video End */
+
+function injectScriptAfterLoad(scriptUrl) {
+    function doFetchAndInject() {
+        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
+        
+        fetch(SCRIPTURL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
+                }
+                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
+            })
+            .then(codeText => {
+                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
+                const scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                
+                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
+                scriptElement.textContent = codeText;
+                
+                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
+                document.body.appendChild(scriptElement);
+               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+            })
+            .catch(error => {
+                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
+            });
+    }
+    
+    // Kiểm tra trạng thái tải của trang web
+    if (document.readyState !== 'loading') {
+        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
+        doFetchAndInject();
+    } else {
+        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
+        document.addEventListener('DOMContentLoaded', doFetchAndInject);
+    }
+}
+
+function initCustomVideoFix() {
+    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
+    if (SCRIPTURL && SCRIPTURL !== "undefined") {
+        injectScriptAfterLoad(SCRIPTURL);
+    }
+			// --- KHỞI TẠO SELECT BOX ---
+			var html = document.body.innerHTML;
+			const regex = /data-link=["']([^"']+)["']/g;
+			var number = 0;
+			
+			var selectHtml = '<select class="changeServer" onchange="changeServer(this)" style="background:black;color:white;opacity:0.8;border:none;padding:4px;font-size:14px;border-radius:4px;outline:none;">';
+			for (const match of html.matchAll(regex)) {
+				number++;
+				const url = match[1];
+				selectHtml += '<option value="' + url + '">Server ' + number + '</option>';
+			}
+			selectHtml += '</select>';
+			
+			const tempDiv = document.createElement('div');
+			tempDiv.className = "wrap-server";
+			tempDiv.innerHTML = selectHtml;
+			tempDiv.style.cssText = "position:fixed;right:20px;top:10px;z-index:100000;background:black;color:white;padding:4px;border:1px solid #fff;border-radius:4px";
+			
+			const iframe = document.createElement('iframe');
+			iframe.className = "frame-server";
+			// Tăng z-index lên 9999 để đè hoàn toàn lên video, nhưng dưới nút chọn server (100000)
+			iframe.style.cssText = "background:black;position:fixed;right:0px;top:0px;left:0px;bottom:0px;width:100%;height:100%;display:none;z-index:9999;border:none;";
+			iframe.src = "about:blank";
+			
+			
+			
+			setTimeout(function() {
+			keepElementsAndInjectControls(["video"]);
+				document.body.appendChild(tempDiv);
+				document.body.appendChild(iframe);
+			}, 2000);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+    initCustomVideoFix();
+}
+
+`;
+}
+
+
+function parseCategoriesResponse(apiResponseJson) {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
+    return JSON.stringify(menulist);
+}
+
+function parseCountriesResponse(html) { return "[]"; }
+function parseYearsResponse(html) { return "[]"; }
+
+function getLISTmenu() {
+    return `
+/trending@@Xu Hướng
+/search?keyword=hi%E1%BA%BFp%20d%C3%A2m@@Hiếp Dâm
+/search?keyword=t%E1%BA%ADp+th%E1%BB%83@@Tập Thể
+/search?keyword=lo%E1%BA%A1n+lu%C3%A2n@@Loạn Luân
+/search?keyword=L%E1%BB%97+Nh%E1%BB%8B@@Lỗ Nhị
+/genre/av-khong-che@@Không Che
+/genre/han-quoc-18@@Hàn Quốc
+/genre/my-chau-au@@Châu Âu
+/genre/trung-quoc@@Trung Quốc
+/genre/viet-nam-clip@@Việt Nam
+/genre/vietsub@@Vietsub
+`
+}
+
+function buildMenu(listurl){let menulist=[];if (!listurl)return menulist;let lines=listurl.split('\n');for (let i=0;i < lines.length;i++){let line=lines[i].trim();if (!line||line.indexOf('@@')===-1)continue;let parts=line.split('@@');let link=parts[0]?parts[0].trim():"";let name=parts[1]?parts[1].trim():"";let check=parts[2]?parts[2].trim():undefined;if (!link||!name)continue;let item={};if (check==="false"){item={"slug":link,"title":name,"type":"Horizontal"};}else if (check==="true"){item={"slug":link,"title":name,"type":"Grid"};}else{item={"slug":link,"name":name};}menulist.push(item);}return menulist;}
+
+function _$(htmlOrBlock) {if (htmlOrBlock && typeof htmlOrBlock === 'object' && htmlOrBlock.elements) {return htmlOrBlock;} var instance = {sourceHtml: typeof htmlOrBlock === 'string' ? htmlOrBlock : '',elements: Array.isArray(htmlOrBlock) ? htmlOrBlock : (htmlOrBlock ? [htmlOrBlock] : []),find: function(selector) {if (selector.indexOf(',') !== -1) {var results = [];var selectors = selector.split(',').map(function(s) {return s.trim();});for (var s = 0;s < selectors.length;s++) {if (selectors[s] === "") continue;var subInstance = this.find(selectors[s]);for (var r = 0;r < subInstance.elements.length;r++) {var element = subInstance.elements[r];if (results.indexOf(element) === -1) {results.push(element);}}} var multiInstance = _$(results);multiInstance.sourceHtml = this.sourceHtml;return multiInstance;} var results = [];var contentFilter = "";if (selector.indexOf(":content(") !== -1) {var contentMatch = selector.match(/:content\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/);if (contentMatch) {contentFilter = contentMatch[1] || contentMatch[2] || contentMatch[3] || "";selector = selector.replace(/:content\((?:"[^"]*"|'[^']*'|[^)]*)\)/,"");}} var attrNameFilter = "";var attrValueFilter = "";var hasAttrFilter = false;var attrMatch = selector.match(/\[([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\]"']*))\]/);if (attrMatch) {hasAttrFilter = true;attrNameFilter = attrMatch[1];attrValueFilter = attrMatch[2] || attrMatch[3] || attrMatch[4] || "";selector = selector.replace(/\[.*?\]/,"");} var notSelector = "";if (selector.indexOf(":not(") !== -1) {var notMatch = selector.match(/:not\(([^)]+)\)/);if (notMatch) {notSelector = notMatch[1];selector = selector.replace(/:not\([^)]+\)/,"");}} var isFirstFilter = selector.indexOf(":first") !== -1;var isLastFilter = selector.indexOf(":last") !== -1;selector = selector.replace(/:first|:last/g,"");var targetTagName = "";var targetId = "";var targetClasses = [];var selectorToParse = selector.trim();if (selectorToParse !== "") {var idIndex = selectorToParse.indexOf('#');if (idIndex !== -1) {var afterId = selectorToParse.substring(idIndex + 1);var nextDot = afterId.indexOf('.');targetId = nextDot === -1 ? afterId : afterId.substring(0,nextDot);selectorToParse = selectorToParse.substring(0,idIndex) + (nextDot === -1 ? "" : "." + afterId.substring(nextDot + 1));} var classParts = selectorToParse.split('.');var possibleTag = classParts.shift();if (possibleTag) {targetTagName = possibleTag.toLowerCase();} targetClasses = classParts.filter(function(c) {return c.length > 0;});} var isAttrOnly = (selector === "" && hasAttrFilter);for (var i = 0;i < this.elements.length;i++) {var currentHtml = this.elements[i];var pos = 0;var subResults = [];while ((pos = currentHtml.indexOf('<',pos)) !== -1) {if (currentHtml.charAt(pos + 1) === '/' || currentHtml.charAt(pos + 1) === '!') {pos++;continue;} var endOpenTag = currentHtml.indexOf('>',pos);if (endOpenTag === -1) break;var fullOpenTag = currentHtml.substring(pos,endOpenTag + 1);var spacePos = fullOpenTag.indexOf(' ');var currentTagName = "";if (spacePos === -1) {currentTagName = fullOpenTag.substring(1,fullOpenTag.length - 1).toLowerCase();} else {currentTagName = fullOpenTag.substring(1,spacePos).toLowerCase();} var isMatched = true;if (targetTagName && targetTagName !== currentTagName) {isMatched = false;} if (isMatched && targetId) {var idMatchStr = "";var idPos = fullOpenTag.indexOf('id="');if (idPos !== -1) {var startQuote = idPos + 4;idMatchStr = fullOpenTag.substring(startQuote,fullOpenTag.indexOf('"',startQuote));} else {idPos = fullOpenTag.indexOf("id='");if (idPos !== -1) {var startQuote = idPos + 4;idMatchStr = fullOpenTag.substring(startQuote,fullOpenTag.indexOf("'",startQuote));}} if (idMatchStr !== targetId) {isMatched = false;}} if (isMatched && targetClasses.length > 0) {var classMatchStr = "";var classPos = fullOpenTag.indexOf('class="');if (classPos !== -1) {var startQuote = classPos + 7;classMatchStr = fullOpenTag.substring(startQuote,fullOpenTag.indexOf('"',startQuote));} else {classPos = fullOpenTag.indexOf("class='");if (classPos !== -1) {var startQuote = classPos + 7;classMatchStr = fullOpenTag.substring(startQuote,fullOpenTag.indexOf("'",startQuote));}} if (classMatchStr) {var currentClasses = classMatchStr.trim().split(/\s+/);for (var c = 0;c < targetClasses.length;c++) {if (currentClasses.indexOf(targetClasses[c]) === -1) {isMatched = false;break;}}} else {isMatched = false;}} if (isMatched && hasAttrFilter) {var searchStr1 = attrNameFilter + '="' + attrValueFilter + '"';var searchStr2 = attrNameFilter + "='" + attrValueFilter + "'";if (fullOpenTag.indexOf(searchStr1) === -1 && fullOpenTag.indexOf(searchStr2) === -1) {isMatched = false;}} if (isMatched) {var startTagPos = pos;var endTagPos = endOpenTag + 1;var selfClosingTags = ['img','source','input','br','hr','link','meta'];if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {var depth = 1;var scanPos = endOpenTag + 1;var openStr = '<' + currentTagName;var closeStr = '</' + currentTagName + '>';while (depth > 0 && scanPos < currentHtml.length) {var nextOpen = currentHtml.indexOf(openStr,scanPos);var nextClose = currentHtml.indexOf(closeStr,scanPos);if (nextClose === -1) {scanPos = currentHtml.length;break;} if (nextOpen !== -1 && nextOpen < nextClose) {depth++;scanPos = nextOpen + openStr.length;} else {depth--;scanPos = nextClose + closeStr.length;if (depth === 0) endTagPos = nextClose + closeStr.length;}}} var foundBlock = currentHtml.substring(startTagPos,endTagPos);if (contentFilter) {var pureText = foundBlock.replace(/<[^>]+>/g,"").trim();if (pureText.indexOf(contentFilter) === -1) {pos = endTagPos;continue;}} if (notSelector) {var isNotClass = notSelector.indexOf('.') === 0;var isNotId = notSelector.indexOf('#') === 0;var notValue = notSelector.substring(1);var hasNot = false;if (isNotClass && fullOpenTag.indexOf('class="') !== -1 && fullOpenTag.indexOf(notValue) !== -1) hasNot = true;if (isNotId && fullOpenTag.indexOf('id="') !== -1 && fullOpenTag.indexOf(notValue) !== -1) hasNot = true;if (!hasNot) subResults.push(foundBlock);} else {subResults.push(foundBlock);} pos = endTagPos;} else {pos++;}} if (isFirstFilter && subResults.length > 0) subResults = [subResults[0]];if (isLastFilter && subResults.length > 0) subResults = [subResults[subResults.length - 1]];results = results.concat(subResults);} var newInstance = _$(results);newInstance.sourceHtml = this.sourceHtml || currentHtml;return newInstance;},each: function(callback) {for (var i = 0;i < this.elements.length;i++) {var childInstance = _$(this.elements[i]);childInstance.sourceHtml = this.sourceHtml;callback.call(childInstance,i,this.elements[i]);} return this;},eq: function(index) {if (index < 0) index = this.elements.length + index;var matchedElement = this.elements[index];this.elements = matchedElement ? [matchedElement] : [];return this;},attr: function(attrName) {if (this.elements.length === 0) return "";var elem = this.elements[0];var searchStr = attrName + '="';var pos = elem.indexOf(searchStr);if (pos === -1) {searchStr = attrName + "='";pos = elem.indexOf(searchStr);} if (pos === -1) return "";var start = pos + searchStr.length;var quoteType = elem.charAt(start - 1);var end = elem.indexOf(quoteType,start);return end === -1 ? "" : elem.substring(start,end);},html: function() {if (this.elements.length === 0) return "";var elem = this.elements[0];var start = elem.indexOf('>') + 1;var end = elem.lastIndexOf('</');if (start > 0 && end > start) return elem.substring(start,end);return "";},text: function() {if (this.elements.length === 0) return "";var elem = this.elements[0];var start = elem.indexOf('>') + 1;var end = elem.lastIndexOf('</');if (start > 0 && end > start) {var content = elem.substring(start,end);return content.replace(/<\/?[^>]+(>|$)/g,"").trim();} return "";},next: function() {var results = [];if (!this.sourceHtml) return this;for (var i = 0;i < this.elements.length;i++) {var elem = this.elements[i];var idx = this.sourceHtml.indexOf(elem);if (idx === -1) continue;var scanPos = idx + elem.length;var nextOpen = this.sourceHtml.indexOf('<',scanPos);if (nextOpen !== -1) {if (this.sourceHtml.charAt(nextOpen + 1) === '/') continue;var endOpenTag = this.sourceHtml.indexOf('>',nextOpen);if (endOpenTag === -1) continue;var fullOpenTag = this.sourceHtml.substring(nextOpen,endOpenTag + 1);var spacePos = fullOpenTag.indexOf(' ');var currentTagName = (spacePos === -1) ? fullOpenTag.substring(1,fullOpenTag.length - 1).toLowerCase() : fullOpenTag.substring(1,spacePos).toLowerCase();var startTagPos = nextOpen;var endTagPos = endOpenTag + 1;var selfClosingTags = ['img','source','input','br','hr','link','meta'];if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {var depth = 1;var sPos = endOpenTag + 1;var openStr = '<' + currentTagName;var closeStr = '</' + currentTagName + '>';while (depth > 0 && sPos < this.sourceHtml.length) {var nOpen = this.sourceHtml.indexOf(openStr,sPos);var nClose = this.sourceHtml.indexOf(closeStr,sPos);if (nClose === -1) break;if (nOpen !== -1 && nOpen < nClose) {depth++;sPos = nOpen + openStr.length;} else {depth--;sPos = nClose + closeStr.length;if (depth === 0) endTagPos = nClose + closeStr.length;}}} results.push(this.sourceHtml.substring(startTagPos,endTagPos));}} var nextInstance = _$(results);nextInstance.sourceHtml = this.sourceHtml;this.elements = results;return this;},parent: function() {var results = [];if (!this.sourceHtml) return this;for (var i = 0;i < this.elements.length;i++) {var elem = this.elements[i];var idx = this.sourceHtml.indexOf(elem);if (idx <= 0) continue;var scanPos = idx - 1;while (scanPos >= 0) {var openTagPos = this.sourceHtml.lastIndexOf('<',scanPos);if (openTagPos === -1) break;if (this.sourceHtml.charAt(openTagPos + 1) !== '/' && this.sourceHtml.charAt(openTagPos + 1) !== '!') {var endOpenTag = this.sourceHtml.indexOf('>',openTagPos);if (endOpenTag !== -1 && endOpenTag > openTagPos) {var fullOpenTag = this.sourceHtml.substring(openTagPos,endOpenTag + 1);var spacePos = fullOpenTag.indexOf(' ');var currentTagName = (spacePos === -1) ? fullOpenTag.substring(1,fullOpenTag.length - 1).toLowerCase() : fullOpenTag.substring(1,spacePos).toLowerCase();var endTagPos = endOpenTag + 1;var selfClosingTags = ['img','source','input','br','hr','link','meta'];if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {var depth = 1;var sPos = endOpenTag + 1;var openStr = '<' + currentTagName;var closeStr = '</' + currentTagName + '>';while (depth > 0 && sPos < this.sourceHtml.length) {var nOpen = this.sourceHtml.indexOf(openStr,sPos);var nClose = this.sourceHtml.indexOf(closeStr,sPos);if (nClose === -1) break;if (nOpen !== -1 && nOpen < nClose) {depth++;sPos = nOpen + openStr.length;} else {depth--;sPos = nClose + closeStr.length;if (depth === 0) endTagPos = nClose + closeStr.length;}}} if (endTagPos >= idx + elem.length) {var parentBlock = this.sourceHtml.substring(openTagPos,endTagPos);if (results.indexOf(parentBlock) === -1) results.push(parentBlock);break;}}} scanPos = openTagPos - 1;}} var parentInstance = _$(results);parentInstance.sourceHtml = this.sourceHtml;this.elements = results;return this;},closest: function(selector) {var results = [];if (!this.sourceHtml || this.elements.length === 0) return _$([]);for (var i = 0;i < this.elements.length;i++) {var currentElem = this.elements[i];var currentObj = _$(currentElem);currentObj.sourceHtml = this.sourceHtml;var selfCheck = _$(this.sourceHtml).find(selector);var isSelfMatched = false;for (var s = 0;s < selfCheck.elements.length;s++) {if (selfCheck.elements[s] === currentElem) {isSelfMatched = true;break;}} if (isSelfMatched) {if (results.indexOf(currentElem) === -1) results.push(currentElem);continue;} var parentObj = currentObj.parent();while (parentObj.elements.length > 0) {var parentElem = parentObj.elements[0];var checkMatch = _$(this.sourceHtml).find(selector);var isMatched = false;for (var j = 0;j < checkMatch.elements.length;j++) {if (checkMatch.elements[j] === parentElem) {isMatched = true;break;}} if (isMatched) {if (results.indexOf(parentElem) === -1) results.push(parentElem);break;} parentObj = parentObj.parent();}} var closestInstance = _$(results);closestInstance.sourceHtml = this.sourceHtml;return closestInstance;}};return instance;};
