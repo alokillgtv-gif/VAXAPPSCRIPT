@@ -15,20 +15,6 @@ function getManifest() {
     });
 }
 
-function getManifest() {
-    return JSON.stringify({
-        "id": "testScript",
-        "name": "Phim Chill",
-        "description": "Phim online",
-        "version": "2.0",
-        "baseUrl": "https://phimchillhdv.im",
-        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg",
-        "isEnabled": true,
-        "isAdult": true,
-        "type": "MOVIE",
-        "playerType": "embed"
-    });
-}
 
 function getHomeSections() {
     return JSON.stringify([{
