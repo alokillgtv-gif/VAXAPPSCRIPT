@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "1.5",             
+        "version": "1.6",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -258,66 +258,95 @@ function parseMovieDetail(html, url) {
 }
 
 function parseDetailResponse(html, url) {
-    try {
-        if (!url.match(/full/)) {
-            var curent = url.match(/tapplay=(\d+)/)[1];
-            curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-            var servers = [];
-            var activePage = "";
-            var check = 0;
-            _$(html).find('span:content("Danh Sách")').each(function () {
-                var servername = this.text().replace("Danh Sách ", "");
-                var box = this.parent();
-                box.find("a").each(function (index, el) {
-                    var link = _$(el).attr("href");
-                    var text = _$(el).text();
-                    var number = text.match(/([0-9]+)/)[1];
-                    number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-                    if (number == curent) {
-                        check++;
-                        if (check == 1) {
-                            activePage = link;
-                        }
-                        servers.push({
-                            link: link,
-                            name: "Server: " + servername
-                        });
-                    }
-                });
-            });
-        } else {
-            activePage = url;
-        }
-
-        var customJs = textJS();
-        return JSON.stringify({
-            "url": activePage,
-            "isEmbed": true,
-            "headers": {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-                // Đánh lừa thuật toán Client Hints của tường lửa
-                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                "Sec-Ch-Ua-Mobile": "?1",
-                "Sec-Ch-Ua-Platform": '"Android"',
-
-                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-                "Accept": "*/*",
-                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customJs.trim()
-            },
-            "subtitles": []
-        });
-
-    } catch (e) {
-        return JSON.stringify({
-            "url": "",
-            "headers": {}
-        });
-    }
+	try {
+		if (!url.match(/full/)) {
+			var curent = url.match(/tapplay=(\d+)/)[1];
+			curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+			var servers = [];
+			var activePage = "";
+			var check = 0;
+			var maxList = [];
+			
+			_$(html).find('span:content("Danh Sách")').each(function() {
+				var servername = this.text().replace("Danh Sách ", "");
+				var box = this.parent();
+				var maxEpi = 0;
+				var lineEpi = {
+					number: 0,
+					name: servername
+				};
+				box.find("a").each(function(index, el) {
+					var link = _$(el).attr("href");
+					var text = _$(el).text();
+					var number = text.match(/([0-9]+)/)[1];
+					number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+					if (number > maxEpi) {
+						maxEpi = number;
+						lineEpi.number = maxEpi;
+					}
+					if (number == curent) {
+						check++;
+						if (check == 1) {
+							activePage = link;
+						}
+						servers.push({
+							link: link,
+							name: "Server: " + servername
+						});
+					}
+				});
+				maxList.push(lineEpi);
+				
+			});
+			
+			// 2. Thực hiện kiểm tra
+			const isLargerThanAll = maxList.every(item => {
+				// Chuyển đổi giá trị 'number' sang kiểu Số (Number)
+				const currentNum = Number(item.number);
+				
+				// So sánh số 22 với số hiện tại
+				return curent > currentNum;
+			});
+			
+			// 3. In kết quả
+			if (isLargerThanAll) {
+				activePage = url;
+			}
+		} else {
+			activePage = url;
+		}
+		
+		var customJs = textJS();
+		return JSON.stringify({
+			"url": activePage,
+			"isEmbed": true,
+			"headers": {
+				"Referer": BASEURL,
+				"Origin": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+				// Đánh lừa thuật toán Client Hints của tường lửa
+				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+				"Sec-Ch-Ua-Mobile": "?1",
+				"Sec-Ch-Ua-Platform": '"Android"',
+				
+				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+				"Accept": "*/*",
+				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+				"X-Requested-With": "com.android.chrome",
+				"Custom-Js": customJs.trim()
+			},
+			"subtitles": []
+		});
+		
+	} catch (e) {
+		return JSON.stringify({
+			"url": "",
+			"headers": {}
+		});
+	}
 }
+//function textJS(){return ""}
+//parseDetailResponse(outerHTML,"https://phimchillhdz.im/phim/toi-la-nham-phi-pham/tap-01_1372039.html?tapplay=2")
 
 function parseEmbedResponse(html, sourceUrl) {
     try {
