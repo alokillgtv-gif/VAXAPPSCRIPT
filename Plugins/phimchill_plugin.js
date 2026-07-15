@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "2.1",             
+        "version": "2.2",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -258,93 +258,92 @@ function parseMovieDetail(html, url) {
 }
 
 function parseDetailResponse(html, url) {
-	try {
-		if (!url.match(/full/)) {
-			var curent = url.match(/tapplay=(\d+)/)[1];
-			curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-			var servers = [];
-			var activePage = "";
-			var check = 0;
-			var maxList = [];
-			
-			_$(html).find('span:content("Danh Sách")').each(function() {
-				var servername = this.text().replace("Danh Sách ", "");
-				var box = this.parent();
-				var maxEpi = 0;
-				var lineEpi = {
-					number: 0,
-					name: servername
-				};
-				box.find("a").each(function(index, el) {
-					var link = _$(el).attr("href");
-					var text = _$(el).text();
-					var number = text.match(/([0-9]+)/)[1];
-					number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-					if (number > maxEpi) {
-						maxEpi = number;
-						lineEpi.number = maxEpi;
-					}
-					if (number == curent) {
-						check++;
-						if (check == 1) {
-							activePage = link;
-						}
-						servers.push({
-							link: link,
-							name: "Server: " + servername
-						});
-					}
-				});
-				maxList.push(lineEpi);
-				
-			});
-			
-			// 2. Thực hiện kiểm tra
-			const isLargerThanAll = maxList.every(item => {
-				// Chuyển đổi giá trị 'number' sang kiểu Số (Number)
-				const currentNum = Number(item.number);
-				
-				// So sánh số 22 với số hiện tại
-				return curent > currentNum;
-			});
-			
-			// 3. In kết quả
-			if (isLargerThanAll) {
-				activePage = url + "&check=true";
-			}
-		} else {
-			activePage = url;
-		}
-		
-		return JSON.stringify({
-			"url": activePage,
-			"isEmbed": true,
-			"headers": {
-				"Referer": BASEURL,
-				"Origin": BASEURL,
-				"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-				// Đánh lừa thuật toán Client Hints của tường lửa
-				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-				"Sec-Ch-Ua-Mobile": "?1",
-				"Sec-Ch-Ua-Platform": '"Android"',
-				
-				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-				"Accept": "*/*",
-				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-				"X-Requested-With": "com.android.chrome"
-			},
-			"subtitles": []
-		});
-		
-	} catch (e) {
-		return JSON.stringify({
-			"url": "",
-			"headers": {}
-		});
-	}
+    try {
+        var activePage = "";
+        
+        if (!url.match(/full/)) {
+            // Kiểm tra an toàn trước khi match tapplay
+            var matchCurent = url.match(/tapplay=(\d+)/);
+            var curent = matchCurent ? matchCurent[1] : "0";
+            curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+            
+            var servers = [];
+            var check = 0;
+            var maxList = [];
+            
+            _$(html).find('span:content("Danh Sách")').each(function() {
+                var servername = this.text().replace("Danh Sách ", "");
+                var box = this.parent();
+                var maxEpi = 0;
+                var lineEpi = {
+                    number: 0,
+                    name: servername
+                };
+                
+                box.find("a").each(function(index, el) {
+                    var link = _$(el).attr("href");
+                    var text = _$(el).text();
+                    var matchText = text.match(/([0-9]+)/);
+                    var number = matchText ? matchText[1] : "0";
+                    number = number.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+                    
+                    if (Number(number) > Number(maxEpi)) {
+                        maxEpi = number;
+                        lineEpi.number = maxEpi;
+                    }
+                    
+                    if (number == curent) {
+                        check++;
+                        if (check == 1) {
+                            activePage = link;
+                        }
+                        servers.push({
+                            link: link,
+                            name: "Server: " + servername
+                        });
+                    }
+                });
+                maxList.push(lineEpi);
+            });
+            
+            // Ép kiểu Number để so sánh logic chính xác
+            const curentNum = Number(curent);
+            const isLargerThanAll = maxList.every(item => {
+                const currentNum = Number(item.number);
+                return curentNum > currentNum;
+            });
+            
+            if (isLargerThanAll) {
+                activePage = url + "&check=true";
+            }
+        } else {
+            activePage = url;
+        }
+        
+        return JSON.stringify({
+            "url": activePage,
+            "isEmbed": true,
+            "headers": {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": '"Android"',
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome"
+            },
+            "subtitles": []
+        });
+        
+    } catch (e) {
+        return JSON.stringify({
+            "url": "",
+            "headers": {}
+        });
+    }
 }
-//function textJS(){return ""}
-//parseDetailResponse(outerHTML,"https://phimchillhdz.im/phim/toi-la-nham-phi-pham/tap-01_1372039.html?tapplay=2")
 
 function parseEmbedResponse(html, url) {
     try {
@@ -352,21 +351,27 @@ function parseEmbedResponse(html, url) {
         var embed = _$(html).find('a[data-type="embed"]').attr("data-link");
         var checkepi = "false";
         var typevideo = "true";
+        
         if (!streamUrl) {
-            var typevideo = "false";
+            typevideo = "false";
             streamUrl = embed;
         }
-        if(url.indexOf("true") > -1){
-        	checkepi = "true"
+        
+        if (url.indexOf("true") > -1) {
+            checkepi = "true";
+        } else {
+            // Kiểm tra an toàn cho tapplay
+            var matchCurent = url.match(/tapplay=(\d+)/);
+            var curent = matchCurent ? matchCurent[1] : "0";
+            curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
+            
+            var title = _$(html).find("title").text();
+            // Đã sửa lỗi: Gán đè lại giá trị sau khi replace
+            title = title.replace(/Tập\s+(\d+)/i, "Tập " + curent);
+            checkepi = title;
         }
-        else{
-        	var curent = url.match(/tapplay=(\d+)/)[1];
-					curent = curent.replace(/(?<!\d)(\d)(?!\d)/g, '0$1');
-					var title = _$(html).find("title").text();
-					title.replace(/Tập\s+(\d+)/i, "Tập " + curent);
-					checkepi = title;
-        }
-        var customJs = textJS(typevideo,checkepi);
+        
+        var customJs = textJS(typevideo, checkepi);
         return JSON.stringify({
             url: streamUrl,
             isEmbed: false,
@@ -384,6 +389,7 @@ function parseEmbedResponse(html, url) {
         });
     }
 }
+
 
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
