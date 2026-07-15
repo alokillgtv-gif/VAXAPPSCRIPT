@@ -11,7 +11,7 @@ function getManifest() {
         "id": "postTest",          
         "name": "postTest",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -138,7 +138,7 @@ function parseDetailResponse(html,url) {
         var refUrl = BaseJSON.ref || "";
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
         //var customjs = BaseJSON.codec || "";
-        eval(BaseJSON.codec);
+        //eval(BaseJSON.codec);
         var post = BaseJSON.coded;
         return JSON.stringify({
             "url": videoUrl, 
@@ -175,7 +175,7 @@ function parseEmbedResponse(html, url) {
       url: iframeHtml,
       isEmbed: false,
       headers: {
-        "Referer": "https://play.vlstream.net/"
+        "Referer": url
       }
     });
   }
