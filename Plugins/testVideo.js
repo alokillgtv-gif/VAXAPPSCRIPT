@@ -11,11 +11,11 @@ function getManifest() {
         "id": "testvideo",          
         "name": "Test Embed",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2",             
+        "version": "2.1",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
-        "type": "VIDEO",
+        "type": "Hàng cấm nhớ bật sang CloudFlare ở chỗ DNS trong cài đặt để bỏ chặn nha.",
         "playerType": "embed"
     });
 }
