@@ -1,12 +1,12 @@
 BASEURL = "https://onflix.lat";
-BASEAPI = "https://k8s.onflixcdn.com/api"
+BASEAPI = "https://k8s.onflixcdn.com/api";
 // https://k8s.onflixcdn.com/api/themes/de-xuat-cho-ban?page=1&limit=24
 function getManifest() {
     return JSON.stringify({
         "id": "onflix",
         "name": "Onflix",
         "description": "Trang xem phim siêu hay.",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://onflix.lat",
         "iconUrl": "https://onflix.lat/app/asset/logo.png",
         "isEnabled": true,
@@ -208,7 +208,7 @@ function parseNextPayload(raw) {
         // Parse chuỗi đã làm sạch thành Array/Object JS
         return JSON.parse(cleanJsonStr);
     } catch (e) {
-        console.error("Lỗi khi parse payload:", e);
+        //console.error("Lỗi khi parse payload:", e);
         return null;
     }
 }
