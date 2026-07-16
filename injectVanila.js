@@ -1,3 +1,4 @@
+// "version": "2.1"
 // ============================================
 // Web Interactive Lab & Inspector Dashboard PRO v16.3
 // Standalone JavaScript — Inject directly into any website
