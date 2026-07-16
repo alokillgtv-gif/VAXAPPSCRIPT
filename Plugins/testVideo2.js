@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo2",          
         "name": "Test Exoplayer",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.6",             
+        "version": "2.7",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -102,14 +102,17 @@ function parseSearchResponse(html) {
 function parseMovieDetail(html) {
     try {
         var id = BaseURL;
-        
+        var parsed = JSON.parse(html);
+        BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
+        var videoUrl = BaseJSON.link;
+        var $url = BaseJSON.url || "";
         // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
         var streamUrl = ""; 
         var title = "Chưa rõ tên phim";
         var year = "2026";
         var des = html;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
-        var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
+        var episodes = [{ id: videoUrl, name: "Xem Ngay", slug: "full" }];
         
         return JSON.stringify({
             "id": id,
@@ -139,8 +142,8 @@ function parseDetailResponse(html,url) {
         var customjs = textJS(parsed);
         var $type = BaseJSON.codea;
         return JSON.stringify({
-            "url": videoUrl, 
-            "isEmbed": true,
+            "url": "", 
+            mimeType: "application/x-mpegURL",
             "headers": {
                 "Referer": refUrl,
                 "Origin": refUrl,
@@ -162,20 +165,7 @@ function parseDetailResponse(html,url) {
     }
 }
 
-function parseEmbedResponse(html, sourceUrl) {
-  var customjs = textJS(html);
-  const regex = /^(https?:\/\/(?:www\.)?[^\/\?\#:]+)/i;
-  const match = sourceUrl.match(regex);
-  return JSON.stringify({
-    url: "",
-    isEmbed: false,
-    mimeType: "application/x-mpegURL",
-    headers: { 
-      "Referer": match[1] + "/",
-      "Custom-Js": customjs.trim()
-    }
-  });
-}
+
 
 function textJS($links) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
