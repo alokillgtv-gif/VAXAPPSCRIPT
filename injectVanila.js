@@ -378,7 +378,7 @@
                         <div class="lab-layout-engine" id="labLayoutEngine">
                             <div class="lab-panel" id="panelTreeDom">
                                 <div class="lab-panel-header">
-                                    <span class="lab-panel-title">[ TREE DOM LAB ]</span>
+                                    <span class="lab-panel-title">DOM</span>
                                     <input type="text" id="labMiniTreeSearch" placeholder="🔍 Tìm trong cây..." style="background:#111; border:1px solid #333; color:#fff; padding:2px 6px; font-size:10px; margin-left:10px; border-radius:3px; outline:none; width:120px;">
                                     <div class="lab-panel-actions">
                                         <button class="lab-mini-btn lab-btn-max" data-target="#panelTreeDom">🔲 </button>
@@ -407,7 +407,7 @@
 
                             <div class="lab-panel" id="panelCss">
                                 <div class="lab-panel-header">
-                                    <span class="lab-panel-title">MÃ CSS INTERACTIVE (LIVE)</span>
+                                    <span class="lab-panel-title">CSS</span>
                                     <div class="lab-panel-actions">
                                         <select class="lab-select-size lab-font-size" title="Tăng size font">
                                             <option value="13">13px</option>
@@ -433,7 +433,7 @@
 
                             <div class="lab-panel" id="panelJs">
                                 <div class="lab-panel-header">
-                                    <span class="lab-panel-title">MÃ JS JQUERY (PRO EDITOR)</span>
+                                    <span class="lab-panel-title">RUN</span>
                                     <div class="lab-panel-actions">
                                         <select class="lab-select-size lab-font-size" title="Tăng size font">
                                             <option value="13">13px</option>
@@ -462,7 +462,7 @@
 
                             <div class="lab-panel" id="panelConsole">
                                 <div class="lab-panel-header">
-                                    <span style="color:#f1c40f; font-weight:bold;">CONSOLE LOG</span>
+                                    <span style="color:#f1c40f; font-weight:bold;">CONSOLE</span>
                                     <div class="lab-panel-actions">
                                         <button class="lab-mini-btn btn-success" id="labBtnCopyConsole" style="background:#0984e3; margin-right:4px;" title="Sao chép toàn bộ Log">📋</button>
                                         <button class="lab-mini-btn lab-btn-max" data-target="#panelConsole">🔲 </button>
