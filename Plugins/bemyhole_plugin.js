@@ -7,13 +7,31 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.6",
+        "version": "1.7",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
         "type": "VIDEO",
         "playerType": "embed"
     });
+}
+
+function base64Encode(str) {
+	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+	var encoded = '';
+	for (var i = 0; i < str.length; i += 3) {
+		var c1 = str.charCodeAt(i);
+		var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
+		var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
+		
+		var byte1 = c1 >> 2;
+		var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
+		var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
+		var byte4 = isNaN(c3) ? 64 : c3 & 63;
+		
+		encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
+	}
+	return encoded;
 }
 
 // https://www.bemyhole.com/latest-shemale-porn/2/
@@ -156,8 +174,8 @@ function parseListResponse(html, $url) {
 		
 		items.forEach(item => {
 			// Ví dụ: Thay thế tên miền cũ thành tên miền mới trong id
-			item.id = item.id + "?base64=" + listJS;
-			
+			item.id = item.id + "?base64=" + encodeURIComponent(listJS);
+
 			// Hoặc ví dụ: thêm tham số vào cuối id
 			// item.id = item.id + "?ref=myweb";
 		});
@@ -1404,24 +1422,6 @@ function base64Decode(base64String) {
 	catch (e) {
 		return "Lỗi decode.";
 	}
-}
-
-function base64Encode(str) {
-	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-	var encoded = '';
-	for (var i = 0; i < str.length; i += 3) {
-		var c1 = str.charCodeAt(i);
-		var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
-		var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
-		
-		var byte1 = c1 >> 2;
-		var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
-		var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
-		var byte4 = isNaN(c3) ? 64 : c3 & 63;
-		
-		encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
-	}
-	return encoded;
 }
 
 function parseCountriesResponse(html) { return "[]"; }
