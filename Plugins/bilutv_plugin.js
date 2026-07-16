@@ -6,12 +6,12 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.7",
+		"version": "1.8",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
 		"type": "MOVIE",
-		"playerType": "auto"
+		"playerType": "embed"
 	});
 }
 
@@ -427,7 +427,6 @@ function parseEmbedResponse(html, url) {
         return JSON.stringify({
             url: streamUrl || url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
             isEmbed: false,
-            mimeType: "application/x-mpegURL",
             headers: {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
