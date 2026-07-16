@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "2.0",
+		"version": "2.1",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -423,7 +423,7 @@ function parseEmbedResponse(html, url) {
             checkepi = titleText.trim() + " - Tập " + curent;
         }
         
-        var customJs = textJS(typevideo, checkepi);
+        var customJs = textJS(typevideo, checkepi, url, streamUrl);
         return JSON.stringify({
             url: streamUrl || url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
             isEmbed: false,
@@ -475,15 +475,14 @@ function sortEpisodesByName(data) {
     return data;
 }
 
-function textJS($links, checkepi) {
+function textJS($links, checkepi, url, stream) {
 	// Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
 	return `
 LINKVIDEO = ${JSON.stringify($links)};
 CHECKEPI = ${JSON.stringify(checkepi)};
-SCRIPTURL = "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/main/buildVideo.js"; 
-if(LINKVIDEO == "false"){
-	SCRIPTURL = "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/main/removeADSVIDEO.js";
-}
+URLPAGE = ${JSON.stringify(url)};
+STREMLINL = ${JSON.stringify(stream)};
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=bilutv&type=js";  
 const style = document.createElement('style');
 var customcss = 'body { background: black; overflow: hidden; }body * {background: black}';
 style.innerHTML = customcss;
