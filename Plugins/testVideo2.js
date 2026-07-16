@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo2",          
         "name": "Test Exoplayer",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.7",             
+        "version": "2.8",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -74,13 +74,9 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         // Lưu trữ object đầu tiên trực tiếp vào BaseJSON toàn cục để các hàm sau dùng tiện lợi
-        var parsed = JSON.parse(html);
-        BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
-        
-        var $url = BaseJSON.url || "";
         var items = [];
         items.push({
-            "id": $url,          
+            "id": BaseURL,          
             "title": $url, 
             "posterUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png",  
             "backdropUrl": "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png"
