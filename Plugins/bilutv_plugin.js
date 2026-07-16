@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.0",
+		"version": "1.1",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -138,10 +138,10 @@ function parseListResponse(html, $url) {
 		var items = [];
 		
 		_$(html).find(".bs").find("a").each(function() {
-            var year = "";
-            var lang = "";
-            var current = this.find(".epx").text();;
-            var quality = this.find(".Sub").text();
+			var year = "";
+			var lang = "";
+			var current = this.find(".epx").text();;
+			var quality = "HD";
 			var href = this.attr("href");
 			var title = this.attr("title");
 			var src = this.find("img").attr("src");
@@ -156,11 +156,7 @@ function parseListResponse(html, $url) {
 					"id": href,
 					"title": title.trim(),
 					"posterUrl": cleanThumb,
-					"backdropUrl": cleanThumb,
-                    "year": year,
-                    "quality": quality,
-                    "episode_current": current,
-                    "lang": lang
+					"backdropUrl": cleanThumb
 				});
 			}
 		});
