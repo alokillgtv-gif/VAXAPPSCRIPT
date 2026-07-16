@@ -7,7 +7,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.3",
+        "version": "1.4",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -214,7 +214,7 @@ function parseMovieDetail(html, url) {
 		var embed = _$(html).find("#okplayer-frame").attr("data-base");
 		var servers = [];
 		var epi = [];
-        epi.push({ id: url, name: "Xem Ngay", slug: "full" });
+        epi.push({ id: url, name: "Xem Ngay", slug: url });
     		servers.push({
         	name: "Server",
         	episodes: epi
