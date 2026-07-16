@@ -352,10 +352,7 @@ function parseDetailResponse(html, url) {
 				}
 				
 				if (number == curent) {
-					check++;
-					if (check == 1) {
-						activePage = link + "?tapplay=" + number + "&type=" + typeVD;
-					}
+					activePage = link + "?tapplay=" + number + "&type=" + typeVD;
 				}
 			});
 			
