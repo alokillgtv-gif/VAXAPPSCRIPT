@@ -353,16 +353,16 @@ function parseMovieDetail(html, $url) {
 		return JSON.stringify({
 			id: $url,
 			title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
-			posterUrl: limg,
-			backdropUrl: limg,
-			description: ldes,
-			servers: servers,
+			posterUrl: "",
+			backdropUrl: "",
+			description: "",
+			servers: "",
 			quality: "HD",
-			year: year,
-			status: status,
-			duration: duration,
-			casts: cast,
-			director: direc
+			year: "",
+			status: "",
+			duration: "",
+			casts: "",
+			director: ""
 		});
 	}
 }
