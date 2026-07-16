@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "onflix",
 		"name": "Onflix",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.5",
+		"version": "1.6",
 		"BASEURL": "https://onflix.lat",
 		"iconUrl": "https://onflix.lat/app/asset/logo.png",
 		"isEnabled": true,
@@ -284,8 +284,9 @@ function parseMovieDetail(html, $url) {
 
             // 2. Nếu chưa tồn tại, tạo mới server và đẩy vào mảng servers
             if (!server) {
+            	var serverName = episode.server_name;
             	/*
-                var serverName = episode.server_name;
+                
                 if(serverName.indexOf("(NC)") > -1){
                     serverName = "Nguồn C";
                 }
@@ -334,7 +335,7 @@ function parseMovieDetail(html, $url) {
 	}
 	catch (e) {
 		return JSON.stringify({
-			id: lurl,
+			id: $url,
 			title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
 			posterUrl: limg,
 			backdropUrl: limg,
