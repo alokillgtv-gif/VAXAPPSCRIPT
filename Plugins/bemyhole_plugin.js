@@ -7,7 +7,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.7",
+        "version": "1.8",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -148,7 +148,7 @@ function getUrlYears() { return ""; }
 // =============================================================================
 function parseListResponse(html, $url) {
 	try {
-		var items = [];
+		var itemsList = [];
 		var $listURL = [];
 		_$(html).find(".list-videos").find(".item").each(function() {
 			var href = this.attr("href");
@@ -162,7 +162,7 @@ function parseListResponse(html, $url) {
 				var cleanThumb = src.replace(/&amp;/g, '&');
 				var trimhref = href.replace(BASEURL,"");
 				$listURL.push(trimhref)
-				items.push({
+				itemsList.push({
 					"id": href,
 					"title": title.trim(),
 					"posterUrl": cleanThumb,
@@ -172,15 +172,11 @@ function parseListResponse(html, $url) {
 		});
 		var listJS = base64Encode(JSON.stringify($listURL));
 		
-		items.forEach(item => {
-			// Ví dụ: Thay thế tên miền cũ thành tên miền mới trong id
+		itemsList.forEach(function(item) {
 			item.id = item.id + "?base64=" + encodeURIComponent(listJS);
-
-			// Hoặc ví dụ: thêm tham số vào cuối id
-			// item.id = item.id + "?ref=myweb";
 		});
 		return JSON.stringify({
-			"items": items,
+			"items": itemsList,
 			"pagination": {
 				"currentPage": 1,
 				"totalPages": 999
