@@ -214,7 +214,7 @@ function parseMovieDetail(html, url) {
 		var embed = _$(html).find("#okplayer-frame").attr("data-base");
 		var servers = [];
 		var epi = [];
-        epi.push({ id: url, name: "Xem Ngay", slug: url });
+        epi.push({ id: url, name: "Xem Thôi", slug: url });
     		servers.push({
         	name: "Server",
         	episodes: epi
