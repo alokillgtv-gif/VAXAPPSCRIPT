@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.2",
+		"version": "1.3",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -218,46 +218,63 @@ function parseMovieDetail(html, url) {
 	var lang = "";
 	var streamUrl = "";
 	try {
-    limg = _$(html).find('meta[property="og:image"]').attr("content");
-    if (limg.indexOf("http") == -1) {
-    	limg = BASEURL + limg;
-    }
-    lname = _$(html).find('meta[property="og:title"]').attr("content");
-    ldes = _$(html).find('div[itemprop="description"]').find("p").text();
-    //year = _$(html).find('b:content("Năm phát hành")').parent().text().replace("Năm phát hành:","").replace(/\s\s/g,"");;
-    status = _$(html).find('b:content("Status:")').parent().text().replace("Status:","").replace(/\s\s/g,"");;
-    duration = _$(html).find('b:content("Thời lượng:")').parent().text().replace("Thời lượng:","").replace(/\s\s/g,"");;
-    cast = _$(html).find('b:content("Diễn viên:")').parent().text().replace("Diễn viên:","").replace(/\s\s/g,"");;
-    direc = _$(html).find('b:content("Đạo diễn:")').parent().text().replace("Đạo diễn:","").replace(/\s\s/g,"");;
-    country = _$(html).find('b:content("Quốc gia:")').parent().text().replace("Quốc gia:","").replace(/\s\s/g,"");;
-    category = _$(html).find('b:content("Định dạng:")').parent().text().replace("Định dạng:","").replace(/\s\s/g,"");
-    lang = _$(html).find('b:content("Chất lượng:")').parent().text().replace(/Chất lượng:|\s\s|^\s/g,"");
-    servers = [];
-    var epiOne = _$(html).find('span:content("Tập đầu")').parent().attr("href");
-    var epiEnd = _$(html).find('.epcurlast').text().match(/(\d+)/i);
-    var EndNumber = 1;
-    if(epiEnd && epiEnd[1]){
-        EndNumber = Number(epiEnd[1]) + 1;
-    }
-    var servers = [];
-    var epiM3U8 = [];
-    var epiEMBED = [];
-    for(var $j = 1;$j < EndNumber;$j++){
-        var numberEpi = formatEpisode($j);
-        var urlM3U8 = epiOne + "?tapplay=" + numberEpi + "&type=m3u8";
-        var urlEMBED = epiOne + "?tapplay=" + numberEpi + "&type=embed";
-        var nameEpi = "Tập " + numberEpi;
-        var slugEpi = "tap-" + numberEpi;
-        epiM3U8.push({ id: urlM3U8, name: nameEpi, slug: slugEpi });
-        epiEMBED.push({ id: urlEMBED, name: nameEpi, slug: slugEpi });
-    }
-    servers.push({
-        name: "Server M3U8",
-        episodes: epiM3U8
-    },{
-        name: "Server EMBED",
-        episodes: epiEMBED
-    });        
+		limg = _$(html).find('meta[property="og:image"]').attr("content");
+		if (limg.indexOf("http") == -1) {
+			limg = BASEURL + limg;
+		}
+		lname = _$(html).find('meta[property="og:title"]').attr("content");
+		ldes = _$(html).find('div[itemprop="description"]').find("p").text();
+		year = _$(html).find('b:content("Năm phát hành")').parent().text().replace("Năm phát hành:", "").replace(/\s\s/g, "");;
+		status = _$(html).find('b:content("Status:")').parent().text().replace("Status:", "").replace(/\s\s/g, "");;
+		duration = _$(html).find('b:content("Thời lượng:")').parent().text().replace("Thời lượng:", "").replace(/\s\s/g, "");;
+		cast = _$(html).find('b:content("Diễn viên:")').parent().text().replace("Diễn viên:", "").replace(/\s\s/g, "");;
+		direc = _$(html).find('b:content("Đạo diễn:")').parent().text().replace("Đạo diễn:", "").replace(/\s\s/g, "");;
+		country = _$(html).find('b:content("Quốc gia:")').parent().text().replace("Quốc gia:", "").replace(/\s\s/g, "");;
+		category = _$(html).find('b:content("Định dạng:")').parent().text().replace("Định dạng:", "").replace(/\s\s/g, "");
+		lang = _$(html).find('b:content("Chất lượng:")').parent().text().replace(/Chất lượng:|\s\s|^\s/g, "");
+		servers = [];
+		var epiOne = _$(html).find('span:content("Tập đầu")').parent().attr("href");
+		var servers = [];
+		var epiM3U8 = [];
+		var epiEMBED = [];
+		var epiEnd = _$(html).find('.epcurlast').text().match(/(\d+)/i);
+		var EndNumber = 1;
+		if (epiOne) {
+			if (epiEnd && epiEnd[1]) {
+				EndNumber = Number(epiEnd[1]) + 1;
+			}
+			
+			for (var $j = 1; $j < EndNumber; $j++) {
+				var numberEpi = formatEpisode($j);
+				var urlM3U8 = epiOne + "?tapplay=" + numberEpi + "&type=m3u8";
+				var urlEMBED = epiOne + "?tapplay=" + numberEpi + "&type=embed";
+				var nameEpi = "Tập " + numberEpi;
+				var slugEpi = "tap-" + numberEpi;
+				epiM3U8.push({ id: urlM3U8, name: nameEpi, slug: slugEpi });
+				epiEMBED.push({ id: urlEMBED, name: nameEpi, slug: slugEpi });
+			}
+			servers.push({
+				name: "Server M3U8",
+				episodes: epiM3U8
+			}, {
+				name: "Server EMBED",
+				episodes: epiEMBED
+			});
+		}
+		else {
+			var epiOne = _$(html).find(".bookmark").attr("href");;
+			var urlM3U8 = epiOne + "?tapplay=full&type=m3u8";
+			var urlEMBED = epiOne + "?tapplay=full&type=embed";
+			epiM3U8.push({ id: urlM3U8, name: "Xem Ngay", slug: "full" });
+			epiEMBED.push({ id: urlEMBED, name: "Xem Ngay", slug: "full" });
+			servers.push({
+				name: "Server M3U8",
+				episodes: epiM3U8
+			}, {
+				name: "Server EMBED",
+				episodes: epiEMBED
+			});
+		}
 		return JSON.stringify({
 			id: url,
 			title: lname,
