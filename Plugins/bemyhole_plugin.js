@@ -7,7 +7,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "2.2",
+        "version": "2.3",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -17,24 +17,22 @@ function getManifest() {
 }
 
 // Chú ý: viết thường chữ "function"
-function stringToHex(str) {
-    try {
-        // Chuyển chuỗi Unicode thành chuỗi byte UTF-8 an toàn
-        var utf8Str = unescape(encodeURIComponent(str));
-        var hex = '';
-        for (var i = 0; i < utf8Str.length; i++) {
-            var code = utf8Str.charCodeAt(i);
-            // Chuyển số code sang hệ 16, đảm bảo luôn có 2 chữ số (ví dụ: '0a' thay vì 'a')
-            var hexByte = code.toString(16);
-            if (hexByte.length < 2) {
-                hexByte = '0' + hexByte;
-            }
-            hex += hexByte;
-        }
-        return hex;
-    } catch (e) {
-        return '';
-    }
+function base64Encode(str) {
+	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+	var encoded = '';
+	for (var i = 0; i < str.length; i += 3) {
+		var c1 = str.charCodeAt(i);
+		var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
+		var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
+		
+		var byte1 = c1 >> 2;
+		var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
+		var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
+		var byte4 = isNaN(c3) ? 64 : c3 & 63;
+		
+		encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
+	}
+	return encoded;
 }
 
 
@@ -175,7 +173,7 @@ function parseListResponse(html, $url) {
 				});
 			}
 		});
-		var listJS = stringToHex(JSON.stringify(itemsList));
+		var listJS = base64Encode(JSON.stringify($listURL));
 		
 		for(var $k = 0;$k < itemsList.length;$k++){
 			itemsList[$k].id += "?base64=" + listJS;
