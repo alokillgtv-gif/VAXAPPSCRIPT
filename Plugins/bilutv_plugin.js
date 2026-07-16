@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.1",
+		"version": "1.2",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -224,7 +224,7 @@ function parseMovieDetail(html, url) {
     }
     lname = _$(html).find('meta[property="og:title"]').attr("content");
     ldes = _$(html).find('div[itemprop="description"]').find("p").text();
-    year = _$(html).find('b:content("Năm phát hành")').parent().text().replace("Năm phát hành:","").replace(/\s\s/g,"");;
+    //year = _$(html).find('b:content("Năm phát hành")').parent().text().replace("Năm phát hành:","").replace(/\s\s/g,"");;
     status = _$(html).find('b:content("Status:")').parent().text().replace("Status:","").replace(/\s\s/g,"");;
     duration = _$(html).find('b:content("Thời lượng:")').parent().text().replace("Thời lượng:","").replace(/\s\s/g,"");;
     cast = _$(html).find('b:content("Diễn viên:")').parent().text().replace("Diễn viên:","").replace(/\s\s/g,"");;
