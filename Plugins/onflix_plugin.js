@@ -6,7 +6,7 @@ function getManifest() {
         "id": "onflix",
         "name": "Onflix",
         "description": "Trang xem phim siêu hay.",
-        "version": "1.",
+        "version": "1.1",
         "BASEURL": "https://onflix.lat",
         "iconUrl": "https://onflix.lat/app/asset/logo.png",
         "isEnabled": true,
