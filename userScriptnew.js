@@ -2505,62 +2505,85 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             });
 
             // HÀM ĐƯỢC NÂNG CẤP: Thêm tham số customSelector để cố định vùng tìm kiếm dữ liệu
-            function v163ExtractLinksFromElement(rootElement, extractType = 'default', customSelector = '') {
-                if (!rootElement || rootElement.nodeType !== 1) return '';
-                const links = [];
-                const $root = $(rootElement);
-
-                // Xác định bộ chọn tìm kiếm: Ưu tiên bộ chọn tùy biến, nếu không có thì lấy mọi thẻ a[href]
-                const targetSelector = customSelector.trim() || 'a[href]';
-
-                // Tìm kiếm các phần tử nằm bên trong phạm vi nút gốc khớp với bộ chọn
-                $root.find(targetSelector).each(function() {
-                    if ($(this).is('a[href]')) {
-                        links.push(this);
-                    } else {
-                        // Nếu người dùng chỉ nhập nhóm cha (ví dụ: .list hoặc #id), đào sâu tìm các thẻ a[href] bên trong nó
-                        $(this).find('a[href]').each(function() {
-                            if (!links.includes(this)) links.push(this);
-                        });
-                    }
-                });
-
-                // Kiểm tra trường hợp đặc biệt nếu chính bản thân nút gốc khớp với bộ chọn thiết lập
-                if ($root.is(targetSelector) && $root.is('a[href]')) {
-                    if (!links.includes(rootElement)) links.push(rootElement);
-                }
-
-                return links.map(a => {
-                    const href = a.href || $(a).attr('href') || '';
-                    let name = '';
-                    const $a = $(a);
-
-                    // Danh sách các loại dùng thuộc tính (attribute)
-                    const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
-
-                    if (extractType === 'default') {
-                        // Mặc định ban đầu: Lấy text trực tiếp của thẻ <a>
-                        name = $a.text();
-                    } else if (attrTypes.includes(extractType)) {
-                        // Nếu chọn title, alt, data-... thì lấy attribute của thẻ <a> hoặc của ảnh bên trong nó
-                        name = $a.attr(extractType) || $a.find(`[${extractType}]`).first().attr(extractType) || '';
-                    } else {
-                        // Nếu chọn tag như h1, h2, h3, span, p, b, i...
-                        // Tìm thẻ đó nằm BÊN TRONG thẻ <a> trước, nếu không có thì fallback về text của <a>
-                        const $targetTag = $a.find(extractType);
-                        name = $targetTag.length ? $targetTag.text() : $a.text();
-                    }
-
-                    // Xử lý khoảng trắng và xuống dòng như cũ
-                    name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
-
-                    if (name.length < 4) {
-                        return "";
-                    }
-                    var stringurl = href + '@@' + name;
-                    return stringurl.replace(/^https?:\/\/[^\/]+/i, "")
-                }).filter(Boolean).join('\n');
-            }
+						function v163ExtractLinksFromElement(rootElement, extractType = 'default', customSelector = '') {
+						    if (!rootElement || rootElement.nodeType !== 1) return '';
+						    const links = [];
+						    let $root = $(rootElement);
+						
+						    // --- BƯỚC SỬA LỖI QUAN TRỌNG: TỰ ĐỘNG TÌM KHỐI CHA CHUNG ---
+						    // Nếu phần tử đang chọn là thẻ <a> hoặc nằm trong một thẻ <a>
+						    const $nearestA = $root.is('a[href]') ? $root : $root.closest('a[href]');
+						    if ($nearestA.length) {
+						        // Tìm thẻ cha chung chứa nhiều thẻ <a> khác (ví dụ: thẻ div.grid hoặc thẻ ul, div bao ngoài)
+						        const $parentContainer = $nearestA.parent();
+						        if ($parentContainer.length) {
+						            $root = $parentContainer; // Gán lại $root là khối cha lớn để quét được toàn bộ danh sách
+						        }
+						    }
+						
+						    // Xác định bộ chọn tìm kiếm: Ưu tiên bộ chọn tùy biến, nếu không có thì lấy mọi thẻ a[href]
+						    const targetSelector = customSelector.trim() || 'a[href';
+						
+						    // Tìm kiếm các phần tử nằm bên trong phạm vi nút gốc khớp với bộ chọn
+						    $root.find(targetSelector).each(function() {
+						        const $el = $(this);
+						        
+						        if ($el.is('a[href]')) {
+						            // Trường hợp 1: Khớp trực tiếp thẻ a
+						            if (!links.includes(this)) links.push(this);
+						        } else if ($el.closest('a[href]').length) {
+						            // Trường hợp 2: Chọn trúng thẻ con nằm TRONG thẻ a (ví dụ: div chứa text)
+						            const parentA = $el.closest('a[href]')[0];
+						            if (!links.includes(parentA)) links.push(parentA);
+						        } else {
+						            // Trường hợp 3: Người dùng chọn nhóm cha (ví dụ: .list), đào sâu tìm các thẻ a[href] bên trong nó
+						            $el.find('a[href]').each(function() {
+						                if (!links.includes(this)) links.push(this);
+						            });
+						        }
+						    });
+						
+						    // Kiểm tra trường hợp đặc biệt nếu chính bản thân nút gốc khớp với bộ chọn thiết lập
+						    if ($root.is(targetSelector)) {
+						        if ($root.is('a[href]')) {
+						            if (!links.includes($root[0])) links.push($root[0]);
+						        } else if ($root.closest('a[href]').length) {
+						            const parentA = $root.closest('a[href]')[0];
+						            if (!links.includes(parentA)) links.push(parentA);
+						        }
+						    }
+						
+						    // --- XỬ LÝ LẶP VÀ TRẢ VỀ TOÀN BỘ KẾT QUẢ ---
+						    return links.map(a => {
+						        const href = a.href || $(a).attr('href') || '';
+						        let name = '';
+						        const $a = $(a);
+						
+						        // Danh sách các loại dùng thuộc tính (attribute)
+						        const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
+						
+						        if (extractType === 'default') {
+						            // Mặc định ban đầu: Lấy text trực tiếp của thẻ <a>
+						            name = $a.text();
+						        } else if (attrTypes.includes(extractType)) {
+						            // Nếu chọn title, alt, data-... thì lấy attribute của thẻ <a> hoặc của ảnh bên trong nó
+						            name = $a.attr(extractType) || $a.find(`[${extractType}]`).first().attr(extractType) || '';
+						        } else {
+						            // Nếu chọn tag như h1, h2, h3, span, p, b, i, div...
+						            const $targetTag = $a.find(extractType);
+						            name = $targetTag.length ? $targetTag.text() : $a.text();
+						        }
+						
+						        // Xử lý khoảng trắng và xuống dòng
+						        name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
+						
+						        if (name.length < 4) {
+						            return "";
+						        }
+						        var stringurl = href + '@@' + name;
+						        return stringurl.replace(/^https?:\/\/[^\/]+/i, "");
+						    }).filter(Boolean).join('\n');
+						}
 
             $btnQuickExtract.on('click', function(e) {
                 e.preventDefault();
@@ -2995,7 +3018,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 
                         <!-- CẢI TIẾN: Bộ nạp URL để fetch tiếp các trang cùng Domain -->
                         <div style="display: flex !important; align-items: center !important; gap: 4px !important;">
-                            <input type="text" id="labHtmlUrlInput" placeholder="Đường dẫn trang mới (e.g. /categories)...">
+														<input type="text" value='$("#labHtmlEditorWrap #labHtmlTreeContainer .lab-dom-pure-text").html()' id="labHtmlUrlInput" >
+
                             <button class="lab-html-search-btn" id="labHtmlUrlFetchBtn" style="background: #2980b9 !important;" title="Fetch trang mới cùng Domain">⚡ Fetch URL</button>
                         </div>
 
