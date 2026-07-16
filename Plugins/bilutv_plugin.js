@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "2.6",
+		"version": "2.7",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -394,7 +394,7 @@ function parseDetailResponse(html, url) {
 
 function parseEmbedResponse(html, url) {
 	try {
-		if (url.indexOf("m3u8") > -1) {
+		if (url.toLowerCase().includes(".m3u8")) {
 			return JSON.stringify({
 				url: "", // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
 				mimeType: "application/x-mpegURL",
