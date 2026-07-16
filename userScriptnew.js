@@ -6,7 +6,7 @@
 // @description  Hồi sinh Click chuột Phải soi DOM trong Hard-Sandbox. Tự động lưu trạng thái. Tích hợp Pro CodeEditor Engine & Sub-Panel Splitter + Fix UI/Draggable.
 // @author       Gemini
 // @match        *://*/*
-//@run-at       document-start
+// @run-at       document-start
 // @grant        none
 // @require      https://code.jquery.com/jquery-3.7.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js
@@ -24,7 +24,7 @@
 (function() {
     'use strict';
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', () => { setTimeout(() => {
         window.outerHTML = document.getElementsByTagName("html")[0].outerHTML;
         if (window.self !== window.top) return;
 // END BLOCK: UserScript Header & IIFE Start
@@ -118,6 +118,7 @@
             .CodeMirror-hints { z-index: 2147483647 !important; font-family: 'Consolas', monospace !important; font-size: 12px !important; background: #252525 !important; border: 1px solid #3498db !important; box-shadow: 0 8px 20px rgba(0,0,0,0.8) !important; }
             .CodeMirror-hint { color: #f8f8f2 !important; padding: 4px 8px !important; }
             .CodeMirror-hint-active { background: #3498db !important; color: #fff !important; }
+            .CodeMirror-cursor { border-left: 2px solid #50fa7b !important; }
 
             /* Giao diện Console Output */
             .lab-console-output { flex: 1; background: #0d0d0d; border: 1px solid #333; border-radius: 4px; overflow: auto; font-family: 'Consolas', monospace; font-size: 12px; padding: 6px; display: flex; flex-direction: column; }
@@ -321,8 +322,7 @@
         // ==========================================
         // 2. KHỞI TẠO CẤU TRÚC HTML DASHBOARD
         // ==========================================
-        const dashboardHtml = `
-            <div class="lab-fab-wrapper"><button class="lab-fab-main" id="labFabBtn" title="Chuột trái: Đóng/Mở | Click Phải x1: Xuống đáy | Click Phải x2: Lên đỉnh">+</button></div>
+        const dashboardHtml = `<div class="lab-fab-wrapper"><button class="lab-fab-main" id="labFabBtn" title="Chuột trái: Đóng/Mở | Click Phải x1: Xuống đáy | Click Phải x2: Lên đỉnh">+</button></div>
 
             <div class="lab-dashboard-container mode-horizontal" id="labMainDashboard">
                 <div class="lab-restore-bar" id="labRestoreBar">
@@ -616,8 +616,7 @@
                 fetch(window.location.href, { cache: "no-store" })
                 .then(response => response.text())
                 .then(rawHtmlCode => {
-                    const clientSandboxControllerScript = `
-                        <script>
+                    const clientSandboxControllerScript = `<script>
                             (function() {
                                 window.console.log = function(...args) { window.parent.postMessage({ type: 'LAB_SANDBOX_LOG', logType: 'log', msg: args.join(' ') }, '*'); };
                                 window.console.error = function(...args) { window.parent.postMessage({ type: 'LAB_SANDBOX_LOG', logType: 'error', msg: args.join(' ') }, '*'); };
@@ -1151,14 +1150,15 @@
                 }
             }
 
-            $('*').removeClass('lab-pinned-child lab-pinned-parent lab-pinned-grand lab-pinned-great-grand lab-pinned-great-great-grand lab-pinned-ancestors lab-pinned-layer7 lab-pinned-layer8 lab-pinned-layer9 lab-pinned-layer10');
+            // [PERF] Chỉ xóa class từ node đã được highlight trước đó, không quét toàn bộ DOM
+            $('.lab-highlighted-node').removeClass('lab-pinned-child lab-pinned-parent lab-pinned-grand lab-pinned-great-grand lab-pinned-great-great-grand lab-pinned-ancestors lab-pinned-layer7 lab-pinned-layer8 lab-pinned-layer9 lab-pinned-layer10 lab-highlighted-node');
 
             const classes = [
                 'lab-pinned-child', 'lab-pinned-parent', 'lab-pinned-grand',
                 'lab-pinned-great-grand', 'lab-pinned-great-great-grand', 'lab-pinned-ancestors',
                 'lab-pinned-layer7', 'lab-pinned-layer8', 'lab-pinned-layer9', 'lab-pinned-layer10'
             ];
-            $(targetNode).addClass(classes[currentGeoDepth] || 'lab-pinned-ancestors');
+            $(targetNode).addClass(classes[currentGeoDepth] || 'lab-pinned-ancestors').addClass('lab-highlighted-node');
 
             if (typeof window.__labRenderMainTree === 'function') {
                 window.__labRenderMainTree(targetNode);
@@ -1304,8 +1304,31 @@
 
             $(window).on('mouseup.fabDrag', function() { $(window).off('mousemove.fabDrag mouseup.fabDrag'); });
         });
-        $fabBtn.on('click', function(e) {
+        // Long-press reset for FAB button
+        let fabResetTimer = null;
+        let fabResetTriggered = false;
+        $fabBtn.on('mousedown touchstart', function(e) {
             if (isFabDragging) return;
+            fabResetTriggered = false;
+            fabResetTimer = setTimeout(() => {
+                fabResetTriggered = true;
+                // Destroy all lab DOM structures before reload
+                $('#labMainDashboard, .lab-fab-wrapper, #interactive-dashboard-styles-v15-0, #lab-dynamic-live-css, #labSandboxIframe, #labCssExtractMenu, #lab-overlay-blocker, .lab-token-pointer-style').remove();
+                $('body').removeClass('lab-active-sandbox-mode lab-fullscreen-locked');
+                localStorage.clear();
+                $fabBtn.text('↻').css('background-color', '#9b59b6');
+                location.reload();
+            }, 2500);
+        });
+        $fabBtn.on('mouseup mouseleave touchend', function(e) {
+            if (fabResetTimer) {
+                clearTimeout(fabResetTimer);
+                fabResetTimer = null;
+            }
+        });
+
+        $fabBtn.on('click', function(e) {
+            if (isFabDragging || fabResetTriggered) { fabResetTriggered = false; return; }
             e.stopPropagation();
             if ($dashboard.is(':hidden')) {
                 $dashboard.css('display', 'flex');
@@ -1481,19 +1504,7 @@
         });
 
         $('#labCssQuickMenu').remove();
-        const $quickMenu = $(`
-            <div id="labCssQuickMenu" style="
-                position: fixed; display: none; z-index: 2147483647; background: #1e1e1e; border: 1px solid #3498db; border-radius: 6px;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.85); min-width: 240px; font-family: 'Segoe UI', sans-serif; font-size: 12px; overflow: hidden;
-                user-select: none; pointer-events: auto;
-            ">
-                <div style="background: #252525; padding: 6px 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: #f1c40f; font-weight: bold;">⚡ QUICK CSS LAB</span>
-                    <span id="labQuickMenuTarget" style="color: #50fa7b; font-family: monospace; font-weight: bold; background: #111; padding: 2px 6px; border-radius: 3px;"></span>
-                </div>
-                <div id="labQuickMenuList" style="max-height: 260px; overflow-y: auto; padding: 4px 0;"></div>
-            </div>
-        `);
+        const $quickMenu = $(`<div id="labCssQuickMenu" style="position: fixed; display: none; z-index: 2147483647; background: #1e1e1e; border: 1px solid #3498db; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.85); min-width: 240px; font-family: 'Segoe UI', sans-serif; font-size: 12px; overflow: hidden; user-select: none; pointer-events: auto;"><div style="background: #252525; padding: 6px 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;"><span style="color: #f1c40f; font-weight: bold;">⚡ QUICK CSS LAB</span><span id="labQuickMenuTarget" style="color: #50fa7b; font-family: monospace; font-weight: bold; background: #111; padding: 2px 6px; border-radius: 3px;"></span></div><div id="labQuickMenuList" style="max-height: 260px; overflow-y: auto; padding: 4px 0;"></div></div>`);
         $('body').append($quickMenu);
 
         const quickCssOptions = [
@@ -1509,12 +1520,7 @@
 
         const $menuList = $quickMenu.find('#labQuickMenuList');
         quickCssOptions.forEach(opt => {
-            const $item = $(`
-                <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-                    <span>${opt.name}</span>
-                    <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">${opt.css}</code>
-                </div>
-            `);
+            const $item = $(`<div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;"><span>${opt.name}</span><code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">${opt.css}</code></div>`);
             $item.on('mouseenter', () => $item.css('background', '#34495e'));
             $item.on('mouseleave', () => $item.css('background', 'transparent'));
             $item.on('click', function(e) {
@@ -1812,8 +1818,7 @@
         });
 
         $('#panelSnifferLab').remove();
-        const $snifferPanel = $(`
-            <div id="panelSnifferLab" class="lab-panel lab-panel-hidden" style="
+        const $snifferPanel = $(`<div id="panelSnifferLab" class="lab-panel lab-panel-hidden" style="
                 display: none; flex-direction: column; background: #1e1e1e !important; border: 2px solid #34495e !important; color: #fff !important;
                 box-sizing: border-box !important; position: fixed !important; z-index: 2147483647 !important; box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
                 border-radius: 4px; pointer-events: auto !important;
@@ -2188,8 +2193,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                     }
                 }, true);
 
-            const subSelectHtml = `
-                <select class="lab-sub-select" title="Chế độ xem phụ bên phải (rộng 3/7)">
+            const subSelectHtml = `<select class="lab-sub-select" title="Chế độ xem phụ bên phải (rộng 3/7)">
                     <option value="none">📌 Menu</option>
                     <option value="#panelTreeDom">👀 Tree DOM</option>
                     <option value="#panelCss">👀 CSS Live</option>
@@ -2505,85 +2509,62 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             });
 
             // HÀM ĐƯỢC NÂNG CẤP: Thêm tham số customSelector để cố định vùng tìm kiếm dữ liệu
-						function v163ExtractLinksFromElement(rootElement, extractType = 'default', customSelector = '') {
-						    if (!rootElement || rootElement.nodeType !== 1) return '';
-						    const links = [];
-						    let $root = $(rootElement);
-						
-						    // --- BƯỚC SỬA LỖI QUAN TRỌNG: TỰ ĐỘNG TÌM KHỐI CHA CHUNG ---
-						    // Nếu phần tử đang chọn là thẻ <a> hoặc nằm trong một thẻ <a>
-						    const $nearestA = $root.is('a[href]') ? $root : $root.closest('a[href]');
-						    if ($nearestA.length) {
-						        // Tìm thẻ cha chung chứa nhiều thẻ <a> khác (ví dụ: thẻ div.grid hoặc thẻ ul, div bao ngoài)
-						        const $parentContainer = $nearestA.parent();
-						        if ($parentContainer.length) {
-						            $root = $parentContainer; // Gán lại $root là khối cha lớn để quét được toàn bộ danh sách
-						        }
-						    }
-						
-						    // Xác định bộ chọn tìm kiếm: Ưu tiên bộ chọn tùy biến, nếu không có thì lấy mọi thẻ a[href]
-						    const targetSelector = customSelector.trim() || 'a[href';
-						
-						    // Tìm kiếm các phần tử nằm bên trong phạm vi nút gốc khớp với bộ chọn
-						    $root.find(targetSelector).each(function() {
-						        const $el = $(this);
-						        
-						        if ($el.is('a[href]')) {
-						            // Trường hợp 1: Khớp trực tiếp thẻ a
-						            if (!links.includes(this)) links.push(this);
-						        } else if ($el.closest('a[href]').length) {
-						            // Trường hợp 2: Chọn trúng thẻ con nằm TRONG thẻ a (ví dụ: div chứa text)
-						            const parentA = $el.closest('a[href]')[0];
-						            if (!links.includes(parentA)) links.push(parentA);
-						        } else {
-						            // Trường hợp 3: Người dùng chọn nhóm cha (ví dụ: .list), đào sâu tìm các thẻ a[href] bên trong nó
-						            $el.find('a[href]').each(function() {
-						                if (!links.includes(this)) links.push(this);
-						            });
-						        }
-						    });
-						
-						    // Kiểm tra trường hợp đặc biệt nếu chính bản thân nút gốc khớp với bộ chọn thiết lập
-						    if ($root.is(targetSelector)) {
-						        if ($root.is('a[href]')) {
-						            if (!links.includes($root[0])) links.push($root[0]);
-						        } else if ($root.closest('a[href]').length) {
-						            const parentA = $root.closest('a[href]')[0];
-						            if (!links.includes(parentA)) links.push(parentA);
-						        }
-						    }
-						
-						    // --- XỬ LÝ LẶP VÀ TRẢ VỀ TOÀN BỘ KẾT QUẢ ---
-						    return links.map(a => {
-						        const href = a.href || $(a).attr('href') || '';
-						        let name = '';
-						        const $a = $(a);
-						
-						        // Danh sách các loại dùng thuộc tính (attribute)
-						        const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
-						
-						        if (extractType === 'default') {
-						            // Mặc định ban đầu: Lấy text trực tiếp của thẻ <a>
-						            name = $a.text();
-						        } else if (attrTypes.includes(extractType)) {
-						            // Nếu chọn title, alt, data-... thì lấy attribute của thẻ <a> hoặc của ảnh bên trong nó
-						            name = $a.attr(extractType) || $a.find(`[${extractType}]`).first().attr(extractType) || '';
-						        } else {
-						            // Nếu chọn tag như h1, h2, h3, span, p, b, i, div...
-						            const $targetTag = $a.find(extractType);
-						            name = $targetTag.length ? $targetTag.text() : $a.text();
-						        }
-						
-						        // Xử lý khoảng trắng và xuống dòng
-						        name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
-						
-						        if (name.length < 4) {
-						            return "";
-						        }
-						        var stringurl = href + '@@' + name;
-						        return stringurl.replace(/^https?:\/\/[^\/]+/i, "");
-						    }).filter(Boolean).join('\n');
-						}
+            function v163ExtractLinksFromElement(rootElement, extractType = 'default', customSelector = '') {
+                if (!rootElement || rootElement.nodeType !== 1) return '';
+                const links = [];
+                const $root = $(rootElement);
+
+                // Xác định bộ chọn tìm kiếm: Ưu tiên bộ chọn tùy biến, nếu không có thì lấy mọi thẻ a[href]
+                const targetSelector = customSelector.trim() || 'a[href]';
+
+                // Tìm kiếm các phần tử nằm bên trong phạm vi nút gốc khớp với bộ chọn
+                $root.find(targetSelector).each(function() {
+                    if ($(this).is('a[href]')) {
+                        links.push(this);
+                    } else {
+                        // Nếu người dùng chỉ nhập nhóm cha (ví dụ: .list hoặc #id), đào sâu tìm các thẻ a[href] bên trong nó
+                        $(this).find('a[href]').each(function() {
+                            if (!links.includes(this)) links.push(this);
+                        });
+                    }
+                });
+
+                // Kiểm tra trường hợp đặc biệt nếu chính bản thân nút gốc khớp với bộ chọn thiết lập
+                if ($root.is(targetSelector) && $root.is('a[href]')) {
+                    if (!links.includes(rootElement)) links.push(rootElement);
+                }
+
+                return links.map(a => {
+                    const href = a.href || $(a).attr('href') || '';
+                    let name = '';
+                    const $a = $(a);
+
+                    // Danh sách các loại dùng thuộc tính (attribute)
+                    const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
+
+                    if (extractType === 'default') {
+                        // Mặc định ban đầu: Lấy text trực tiếp của thẻ <a>
+                        name = $a.text();
+                    } else if (attrTypes.includes(extractType)) {
+                        // Nếu chọn title, alt, data-... thì lấy attribute của thẻ <a> hoặc của ảnh bên trong nó
+                        name = $a.attr(extractType) || $a.find(`[${extractType}]`).first().attr(extractType) || '';
+                    } else {
+                        // Nếu chọn tag như h1, h2, h3, span, p, b, i...
+                        // Tìm thẻ đó nằm BÊN TRONG thẻ <a> trước, nếu không có thì fallback về text của <a>
+                        const $targetTag = $a.find(extractType);
+                        name = $targetTag.length ? $targetTag.text() : $a.text();
+                    }
+
+                    // Xử lý khoảng trắng và xuống dòng như cũ
+                    name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
+
+                    if (name.length < 4) {
+                        return "";
+                    }
+                    var stringurl = href + '@@' + name;
+                    return stringurl.replace(/^https?:\/\/[^\/]+/i, "")
+                }).filter(Boolean).join('\n');
+            }
 
             $btnQuickExtract.on('click', function(e) {
                 e.preventDefault();
@@ -2594,8 +2575,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                 const options = ['title', 'src', 'alt', 'data-title', 'data-alt', 'h1', 'h2', 'h3', 'span', 'p', 'b', 'i'];
 
                 // GIAO DIỆN MỚI: Bổ sung trường nhập Cố định Phạm vi CSS Selector
-                const $popup = $(`
-        <div id="quick-extract-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999999999999; display:flex; align-items:center; justify-content:center; font-family:Arial, sans-serif;">
+                const $popup = $(`<div id="quick-extract-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999999999999; display:flex; align-items:center; justify-content:center; font-family:Arial, sans-serif;">
             <div style="background:#fff; padding:20px; border-radius:8px; width:400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                 <h4 style="margin-top:0; color:#333; margin-bottom:12px;">Cấu hình trích xuất Link nâng cao</h4>
 
@@ -3011,15 +2991,13 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
         document.head.appendChild(htmlSourceStyle);
 
         (function initHtmlSourceViewer() {
-            const modalHtml = `
-                <div id="labHtmlSourceModal">
+            const modalHtml = `<div id="labHtmlSourceModal">
                     <div class="lab-html-modal-header">
                         <span class="lab-html-modal-title">🌳 Cây Cấu Trúc DOM Gốc</span>
 
                         <!-- CẢI TIẾN: Bộ nạp URL để fetch tiếp các trang cùng Domain -->
                         <div style="display: flex !important; align-items: center !important; gap: 4px !important;">
-														<input type="text" value='$("#labHtmlEditorWrap #labHtmlTreeContainer .lab-dom-pure-text").html()' id="labHtmlUrlInput" >
-
+                            <input type="text" id="labHtmlUrlInput" placeholder="Đường dẫn trang mới (e.g. /categories)...">
                             <button class="lab-html-search-btn" id="labHtmlUrlFetchBtn" style="background: #2980b9 !important;" title="Fetch trang mới cùng Domain">⚡ Fetch URL</button>
                         </div>
 
@@ -3825,8 +3803,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 
         function createExtractMenu() {
             if (!window.$) return;
-            $extractMenu = $(`
-                <div id="labCssExtractMenu" style="
+            $extractMenu = $(`<div id="labCssExtractMenu" style="
                     position: fixed; display: none; z-index: 2147483647; background: #1e1e1e; border: 1px solid #9b59b6; border-radius: 6px;
                     box-shadow: 0 8px 24px rgba(0,0,0,0.85); min-width: 320px; max-width: 420px; font-family: 'Segoe UI', sans-serif; font-size: 12px; overflow: hidden;
                     user-select: none; pointer-events: auto;
@@ -3976,8 +3953,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                 return;
             }
             _extractBlocks.forEach((block, idx) => {
-                const $row = $(`
-                    <div class="lab-extract-row" data-idx="${idx}" style="padding: 6px 10px; border-bottom: 1px solid #222; cursor: pointer; transition: background 0.15s;">
+                const $row = $(`<div class="lab-extract-row" data-idx="${idx}" style="padding: 6px 10px; border-bottom: 1px solid #222; cursor: pointer; transition: background 0.15s;">
                         <div style="color: #9b59b6; font-size: 10px; margin-bottom: 2px; font-weight: bold;">${__labEscHtml(block.source)}</div>
                         <pre style="color: #ddd; font-size: 11px; margin: 0; white-space: pre-wrap; word-break: break-word; font-family: Consolas, monospace; max-height: 120px; overflow: auto;">${__labEscHtml(block.cssText)}</pre>
                     </div>
@@ -4102,11 +4078,13 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
     } catch(err) {
         console.error('[Enhancement Module v17.1] Initialization error:', err);
     }
-})();;
+});
 // END BLOCK: Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED)
 
     // ### BLOCK START: IIFE & Event Listener Cleanup
-    });
+    }, 10);
+
+});
 
 })();
     // END BLOCK: IIFE & Event Listener Cleanup
