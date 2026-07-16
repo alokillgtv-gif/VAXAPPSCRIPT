@@ -2,200 +2,193 @@
     "version": 1,
     "plugins": [
         {
-            "id": "18porn",
-            "name": "18 Porn",
-            "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/18porn_plugin.js",
-            "iconUrl": "https://www.18porn.sex/images/logo.png"
-        },
-        {
             "id": "phimchill",
             "name": "Phim Chill",
-            "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/phimchill_plugin.js",
-            "iconUrl": "https://phimchillhdc.im/favicon.ico"
-        },
-    {
-            "id": "ophim",
-            "name": "OPhim",
-            "version": "1.0.4",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/ophim_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/ophim.ico"
+            "version": "2.9",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/e3ffd58af7e50c77071a6c36bb3bc0373b66c731/Plugins/phimchill_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/phimchill.ico"
         },
         {
-            "id": "kkphim",
-            "name": "KKPhim",
-            "version": "1.0.1",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png"
+            "id": "phimhayok",
+            "name": "Phim Hay Ok",
+            "version": "1.1",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/8d72b500b72259c9561abdffd6758b39f1a435d0/Plugins/phimhayok_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/phimhayok.jpg"
         },
         {
-            "id": "nguonc",
-            "name": "Phim NguonC",
-            "version": "1.1.5",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/nguonc_plugin.js",
+            "id": "nguoncnew",
+            "name": "Nguồn C No ADS",
+            "version": "1.26",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/14f90fe4bebcd6ebb05666cae694654e4f11934d/Plugins/nguoncnew.js",
             "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/nguonC.png"
         },
         {
-            "id": "hh3d",
-            "name": "HH3D - Hoạt Hình 3D",
-            "version": "1.0.3",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/hh3d_plugin.js",
-            "iconUrl": "https://hoathinh3d.co/wp-content/uploads/2023/09/favicon.png"
+            "id": "phimnganhdc",
+            "name": "Phim Ngắn HDC",
+            "version": "1.2",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/6fa3975162c3240f24f8e90631efbb0a5956fd34/Plugins/phimnganhdc_plugin.js",
+            "iconUrl": "https://phimnganhdc.com/storage/files/logo-phimnganhdc.png"
         },
         {
-            "id": "clbpx",
-            "name": "CLB Phim Xưa",
-            "version": "1.0.6",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/clbpx_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/clbpx.ico"
+            "id": "onflix",
+            "name": "Onfix Phim",
+            "version": "1.7",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/f4cf624e77b93ad611dc1e06b7025552a7278c19/Plugins/onflix_plugin.js",
+            "iconUrl": "https://onflix.lat/app/asset/logo.png"
         },
         {
-            "id": "sieutamphim",
-            "name": "Sưu Tầm Phim",
-            "version": "1.0.7",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/sieutamphim_plugin.js",
-            "iconUrl": "https://www.sieutamphim.pro/posts/2024/06/cropped-logosieutamphim-192x192.png"
+            "id": "sexdep",
+            "name": "Sex Đep",
+            "version": "1.4",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/15d5e51c2df08254c40711f0268a2d1444bdcf90/Plugins/sexdep_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg"
         },
         {
-            "id": "phimhdcs",
-            "name": "PhimHDCSS",
-            "version": "1.0.7",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/phimhdcs_plugin.js",
-            "iconUrl": "https://phimhdcss.com/favicon.ico"
-        },      
-        {
-            "id": "vmttv",
-            "name": "VMT TV",
-            "version": "1.0.2",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/vmttv_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/vuminhthanh12/vuminhthanh12/refs/heads/main/Logo.png"
+            "id": "xxxfiles",
+            "name": "XXXfiles",
+            "version": "1.8",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/02ed4fb4880012014f9d0d0c925fca621aa3e868/Plugins/xxxfiles_plugin.js",
+            "iconUrl": "https://www.xxxfiles.com/img/logo.png?v=3"
         },
         {
-            "id": "missav",
-            "name": "MissAV 1",
-            "version": "1.1.2",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/missav_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/missav.ico"
+            "id": "motherless",
+            "name": "Motherless",
+            "version": "1.4",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/64ca5fb2f4fd05ed70e3a9e3ba21fe635a76632a/Plugins/motherless_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpg"
         },
         {
-            "id": "missav2",
-            "name": "MissAV 2",
-            "version": "1.1.2",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/missav2_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/missav.ico"
+            "id": "heovl",
+            "name": "Heovl",
+            "version": "1.4",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/e60ddbcdc0fd78e80b33ad1b818c4d50b2dc35ba/Plugins/heovl_plugin.js",
+            "iconUrl": "https://heovl.im/resize/50/2024/05/09/3aecc32e86cf3a79a98ed9f567354ab1fdd5d5355ddefdbb24855553b519a396.png"
         },
         {
-            "id": "avdbapi",
-            "name": "AVDB JAV",
-            "version": "1.0.3",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/avdbapi_plugin.js",
-            "iconUrl": "https://avdbapi.com/favicon.ico"
-        },
-        {
-            "id": "sextop1",
-            "name": "Sextop1",
-            "version": "1.1.6",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/sextop1_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/sextop1.webp"
-        },
-        {
-            "id": "sextop2",
-            "name": "Sextop2",
-            "version": "1.1.6",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/sextop2_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/sextop1.webp"
-        },
-        {
-            "id": "topxx",
-            "name": "TopXX",
-            "version": "1.0.1",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/topxx_plugin.js",
-            "iconUrl": "https://topxx.vip/favicon.ico"
-        },
-        {
-            "id": "javhd",
-            "name": "JavHD",
-            "version": "1.0.5",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/javhd_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/javhd.ico"
-        },
-        {
-            "id": "vlxx",
-            "name": "VLXX",
-            "version": "1.0.4",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/vlxx_plugin.js",
-            "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/vlxx.ico"
-        },
-        {
-            "id": "otruyen",
-            "name": "OTruyen",
-            "version": "1.0.2",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/otruyen_plugin.js",
-            "iconUrl": "https://docs.otruyenapi.com/favicon-32x32.png"
-        },
-        {
-            "id": "sayhentai",
-            "name": "SayHentai",
-            "version": "1.0.4",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/sayhentai_plugin.js",
-            "iconUrl": "https://sayhentai.sh/favicon-32x32.png"
-        },
-        {
-            "id": "misskon",
-            "name": "MissKon",
-            "version": "1.0.1",
-            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/misskon_plugin.js",
-            "iconUrl": "https://misskon.com/favicon.ico"
+            "id": "newporn",
+            "name": "18 Porn",
+            "version": "1.1",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/c5a57cadced38c153692e5464c259b5128b17921/Plugins/18porn_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg"
         },
         {
             "id": "viet69",
             "name": "viet69",
-            "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/viet69_plugin.js",
-            "iconUrl": "https://viet69z.me/wp-content/uploads/2023/05/logo.png"
+            "version": "1.4",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/b84842bddc7bd1a53b344dc06b56ef2e8ba13d09/Plugins/viet69_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png"
         },
         {
             "id": "haysex",
             "name": "Haysex",
             "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/haysex_plugin.js",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/d6295579197874c80e0188ee5f960b60a1959a4e/Plugins/haysex_plugin.js",
             "iconUrl": "https://phimsexsuong3x.net/wp-content/uploads/2023/07/haysex3x-logo.png"
         },
         {
             "id": "xhamster",
             "name": "Xamster",
             "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/xhamster_plugin.js",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/d6295579197874c80e0188ee5f960b60a1959a4e/Plugins/xhamster_plugin.js",
             "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico"
         },
         {
             "id": "superporn",
             "name": "SuperPorn",
-            "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/superporn_plugin.js",
+            "version": "3.4",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/c5a57cadced38c153692e5464c259b5128b17921/Plugins/superporn_plugin.js",
             "iconUrl": "https://superporn.com/favicon.ico"
         },
         {
             "id": "sexmup",
-            "name": "sexmup",
-            "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/sexmup_plugin.js",
+            "name": "Sex Múp",
+            "version": "1.2",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/e6587a2d2efc865d52d95648f7bd383c113ac5e1/Plugins/sexmup_plugin.js",
             "iconUrl": "https://sexmupxinh.net/favicon.ico"
         },
         {
-            "id": "rophim",
-            "name": "Rổ Phim",
-            "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/rophim.js",
-            "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/logo.svg"
+            "id": "justporn",
+            "name": "Just Porn",
+            "version": "1.5",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/64ca5fb2f4fd05ed70e3a9e3ba21fe635a76632a/Plugins/just_porn_plugin.js",
+            "iconUrl": "https://c847a9a666.mjedge.net/contents/pkehlvuovbaw/theme/logo.png"
         },
         {
-            "id": "croonphim",
-            "name": "Croon Phim",
+            "id": "trannyone",
+            "name": "Tranny One",
+            "version": "2.1",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/8163159185526663fada50afde1836d99ce31926/Plugins/trannyone_plugin.js",
+            "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png"
+        },
+        {
+            "id": "trannymovs",
+            "name": "Tranny Movs",
+            "version": "1.5",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/8feb57d5867e3c42f61c8275b2e60aa22955f980/Plugins/trannymovs_plugin.js",
+            "iconUrl": "https://www.trannymovs.com/static/images/trannymovs-logo.png"
+        },
+        {
+            "id": "koreaporn",
+            "name": "Sex Hàn",
+            "version": "1.6",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/e0dd2eb9c14e209eb976a2ac1523de4c6b4a9ca2/Plugins/koreaporn_plugin.js",
+            "iconUrl": "https://koreanpornmovie.com/wp-content/uploads/2025/01/sadasdasdasdas.png"
+        },
+        {
+            "id": "chinesporn",
+            "name": "Sex Trung",
+            "version": "1.2",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/e118cd1b18c4872f0e46a790938ea38ffef99c74/Plugins/chinesporn_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/chinesporn.jpg"
+        },
+        {
+            "id": "krx18",
+            "name": "Phim 18+",
             "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/VAXAPPSCRIPT/main/Plugins/croonphim_plugin.js",
-            "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg"
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/23b50e4e047757cf21be309468ae06ee1f458d87/Plugins/krx18_plugin.js",
+            "iconUrl": "https://krx18.com/wp-content/uploads/2022/10/krx18B.png"
+        },
+        {
+            "id": "porn00",
+            "name": "Porn00",
+            "version": "1.6",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/29ad7c32982e9b8b453d2a28530b74e84725dc67/Plugins/porn00_plugin.js",
+            "iconUrl": "https://www.porn00.tv/static/images/logo.png"
+        },
+        {
+            "id": "cnporn",
+            "name": "Porn Gái Trung",
+            "version": "1.2",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/c9c5ebfc6eab49ca650a14fd5595081e68028028/Plugins/cnporn_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg"
+        },
+        {
+            "id": "letsporn",
+            "name": "Lets Porn",
+            "version": "1.4",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/d4c2427974dc3f5a037d752ab60b8b7bf5c6c4e9/Plugins/letsporn_plugin.js",
+            "iconUrl": "https://static.letsporn.com/static/img/logo.png?v=1.2"
+        },
+        {
+            "id": "xsexsub",
+            "name": "Phim XXX Vietsub",
+            "version": "1.3",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/6ef80c7d7c1d390db00a79c1159b3953c0985f2d/Plugins/xsexsub_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg"
+        },
+        {
+            "id": "4kporn",
+            "name": "Phim XXX 4K ",
+            "version": "1.2",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/cd9f0fc2f33ef1ba93d8ff2a1a6692432e98ee99/Plugins/4kporn_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg"
+        },
+        {
+            "id": "bemyhole",
+            "name": "XXX Độc Lạ",
+            "version": "1.6",
+            "scriptUrl": "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/8f2a35a7c21a1ee575024c8e4a2494041d69fe9b/Plugins/bemyhole_plugin.js",
+            "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg"
         }
     ]
 }
