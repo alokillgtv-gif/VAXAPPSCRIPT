@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "2.7",
+		"version": "2.9",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -421,7 +421,7 @@ function parseEmbedResponse(html, url) {
 				streamUrl = _$(html).find('iframe').attr("src") || _$(html).find('embed').attr(
 					"src") || "";
 			}
-			var customJs = textJS(typevideo, checkepi, url, streamUrl);
+			
 			var checkepi = "false";
 			var typevideo = "true";
 			if (url.indexOf("true") > -1) {
@@ -434,6 +434,7 @@ function parseEmbedResponse(html, url) {
 				var titleText = _$(html).find("h2").text() || _$(html).find("h1").text() || "Phim";
 				checkepi = titleText.trim() + " - Tập " + curent;
 			}
+			var customJs = textJS(typevideo, checkepi, url, streamUrl);
 			return JSON.stringify({
 				url: streamUrl ||
 					url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
