@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "2.2",
+		"version": "2.3",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -424,17 +424,32 @@ function parseEmbedResponse(html, url) {
         }
         
         var customJs = textJS(typevideo, checkepi, url, streamUrl);
-        return JSON.stringify({
-            url: streamUrl || url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
-            mimeType: "application/x-mpegURL",
-            isEmbed: false,
-            headers: {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
-            }
-        });
+        if(url.indexOf("m3u8") > -1){
+					return JSON.stringify({
+						url: "", // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
+						mimeType: "application/x-mpegURL",
+						isEmbed: false,
+						headers: {
+							"Referer": BASEURL,
+							"Origin": BASEURL,
+							"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+						}
+					});
+        }
+        else{
+					return JSON.stringify({
+						url: streamUrl || url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
+						mimeType: "application/x-mpegURL",
+						isEmbed: true,
+						headers: {
+							"Referer": BASEURL,
+							"Origin": BASEURL,
+							"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+							"Custom-Js": customJs.trim()
+						}
+					});
+        }
+        
     } catch (e) {
         return JSON.stringify({
             url: url,
