@@ -7,7 +7,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.8",
+        "version": "1.9",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -16,23 +16,32 @@ function getManifest() {
     });
 }
 
+// Chú ý: viết thường chữ "function"
 function base64Encode(str) {
-	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-	var encoded = '';
-	for (var i = 0; i < str.length; i += 3) {
-		var c1 = str.charCodeAt(i);
-		var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
-		var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
-		
-		var byte1 = c1 >> 2;
-		var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
-		var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
-		var byte4 = isNaN(c3) ? 64 : c3 & 63;
-		
-		encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
-	}
-	return encoded;
+    // Bước sửa lỗi Unicode: Chuyển đổi các ký tự UTF-16 có dấu thành chuỗi byte an toàn
+    try {
+        str = unescape(encodeURIComponent(str));
+    } catch (e) {
+        // Fallback nếu môi trường không hỗ trợ unescape
+    }
+
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    var encoded = '';
+    for (var i = 0; i < str.length; i += 3) {
+        var c1 = str.charCodeAt(i);
+        var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
+        var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
+        
+        var byte1 = c1 >> 2;
+        var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
+        var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
+        var byte4 = isNaN(c3) ? 64 : c3 & 63;
+        
+        encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
+    }
+    return encoded;
 }
+
 
 // https://www.bemyhole.com/latest-shemale-porn/2/
 function getHomeSections() {
@@ -173,7 +182,7 @@ function parseListResponse(html, $url) {
 		var listJS = base64Encode(JSON.stringify($listURL));
 		
 		itemsList.forEach(function(item) {
-			item.id = item.id + "?base64=" + encodeURIComponent(listJS);
+			item.id = item.id + "?base64=" + listJS;
 		});
 		return JSON.stringify({
 			"items": itemsList,
