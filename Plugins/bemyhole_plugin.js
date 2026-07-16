@@ -7,7 +7,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "2.5",
+        "version": "1.0",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -166,9 +166,9 @@ function parseListResponse(html, $url) {
 			if (href && href.indexOf("http") > -1) {
 				var cleanThumb = src.replace(/&amp;/g, '&');
 				var trimhref = href.replace(BASEURL,"");
-				//if(numberC < 6){
+				if(numberC < 10){
 					$listURL.push(trimhref)
-				//}
+				}
 				
 				itemsList.push({
 					"id": href,
