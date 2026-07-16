@@ -1,25 +1,27 @@
+// https://bilutv.asia
+BASEURL = "https://bilutv.asia";
 
-
-BASEURL = "https://www.bemyhole.com";
-// https://www.xxxfiles.com/favicon-32x32.png
 function getManifest() {
-    return JSON.stringify({
-        "id": "bemyhole",
-        "name": "Bemyhole XXX",
-        "description": "XXX Độc Lạ.",
-        "version": "1.5",
-        "BASEURL": "https://www.bemyhole.com",
-        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
-        "isEnabled": true,
-        "type": "VIDEO",
-        "playerType": "embed"
-    });
+	return JSON.stringify({
+		"id": "bilutv",
+		"name": "Nguồn Bilutv",
+		"description": "Trang xem phim siêu hay.",
+		"version": "1.6",
+		"BASEURL": "https://bilutv.asia",
+		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
+		"isEnabled": true,
+		"type": "MOVIE",
+		"playerType": "auto"
+	});
 }
 
-// https://www.bemyhole.com/latest-shemale-porn/2/
+// https://bilutv.asia/danh-sach/phim-moi?page=2
 function getHomeSections() {
     var listurl = `
-/latest-shemale-porn/@@Hàng Mới@@true
+/the-loai/phim-18@@Phim 18+@@false
+/danh-sach/phim-bo@@Phim Bộ@@false
+/danh-sach/phim-le@@Phim Lẻ@@false
+/danh-sach/phim-moi@@Phim Mới@@true
 `;
     var menulist = buildMenu(listurl);
     return JSON.stringify(menulist);
@@ -89,7 +91,7 @@ function getUrlList(slug, filtersJson) {
 		}
 		// https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
 		if (page > 1) {
-			resultUrl += "/" + page;
+			resultUrl += "?page=" + page;
 		}
 		
 		// Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
@@ -102,18 +104,21 @@ function getUrlList(slug, filtersJson) {
 		return fallback.replace(/([^:]\/)\/+/g, "$1");
 	}
 }
-// /tags/adorable-anal/
-// https://www.bemyhole.com/tags/
-// https://www.bemyhole.com/search/blacked/
-//var BASEURL = "https://www.bemyhole.com/";
-// JSON lỗi cú pháp (thiếu nháy kép) của bạn
-//var filtersJsonNoCat = '{page:11,category:[{"slug":"/hiep-dam/","name":"Thiếu niên"}]}'; 
-//var filtersJsonNoCat = '{page:22}';
-//console.log(getUrlList("https://www.bemyhole.com/search/blacked/", filtersJsonNoCat));
+// https://bilutv.asia/danh-sach/phim-moi?page=2
+// https://bilutv.asia/danh-sach/phim-le?page=7
+// https://bilutv.asia/?search=girl&page=2
 
+//var BASEURL = "https://bilutv.asia";
+//var BASEAPI = "https://k8s.onflixcdn.com/api";
+// JSON lỗi cú pháp (thiếu nháy kép) của bạn
+//var filtersJson = '{page:11,category:[{"slug":"/movies?sort=year_desc&limit=24&category=18-plus","name":"Thiếu niên"}]}'; 
+//var filtersJson = '{page:22}';
+//console.log(getUrlList("https://bilutv.asia/?search=girl", filtersJson));
+//getUrlSearch("naruto", filtersJson)
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/search/" + encodeURIComponent(keyword);
+	return BASEURL + "/?search=" + encodeURIComponent(keyword);
 }
+
 
 function getUrlDetail(slug) {
     if (!slug) return "";
@@ -132,10 +137,14 @@ function parseListResponse(html, $url) {
 	try {
 		var items = [];
 		
-		_$(html).find(".list-videos").find(".item").each(function() {
+		_$(html).find(".bs").find("a").each(function() {
+			var year = "";
+			var lang = "";
+			var current = this.find(".epx").text();;
+			var quality = "HD";
 			var href = this.attr("href");
 			var title = this.attr("title");
-			var src = this.find(".thumb").attr("src");
+			var src = this.find("img").attr("src");
 			if (src.indexOf("http") == -1) {
 				src = BASEURL + src;
 			}
@@ -175,16 +184,20 @@ function parseListResponse(html, $url) {
 		});
 	}
 }
-///*
-//BASEURL = "https://www.bemyhole.com";
-//html = outerHTML;
-//JSON.parse(parseListResponse(html));
-// Bỏ dấu / ở đầu chuỗi
-//*/
-
+//var BASEURL = "https://onflix.lat";
+//var BASEAPI = "https://k8s.onflixcdn.com/api";
+//var htmlsource = $("#labHtmlEditorWrap #labHtmlTreeContainer .lab-dom-pure-text").html();
+//JSON.parse(parseListResponse(outerHTML, BASEURL));
 
 function parseSearchResponse(html) {
     return parseListResponse(html);
+}
+
+
+function formatEpisode(numStr) {
+    var num = parseInt(numStr, 10);
+    if (isNaN(num)) return "01"; 
+    return num < 10 ? "0" + num : "" + num;
 }
 
 function parseMovieDetail(html, url) {
@@ -204,22 +217,65 @@ function parseMovieDetail(html, url) {
 	var country = "";
 	var lang = "";
 	var streamUrl = "";
-		try {
+	try {
 		limg = _$(html).find('meta[property="og:image"]').attr("content");
 		if (limg.indexOf("http") == -1) {
 			limg = BASEURL + limg;
 		}
 		lname = _$(html).find('meta[property="og:title"]').attr("content");
-		ldes = lname;
-		var embed = _$(html).find("#okplayer-frame").attr("data-base");
+		ldes = _$(html).find('div[itemprop="description"]').find("p").text();
+		year = _$(html).find('b:content("Năm phát hành")').parent().text().replace("Năm phát hành:", "").replace(/\s+/g, "");
+		year = Number(year);
+		status = _$(html).find('b:content("Status:")').parent().text().replace("Status:", "").replace(/\s\s/g, "");;
+		duration = _$(html).find('b:content("Thời lượng:")').parent().text().replace("Thời lượng:", "").replace(/\s\s/g, "");;
+		cast = _$(html).find('b:content("Diễn viên:")').parent().text().replace("Diễn viên:", "").replace(/\s\s/g, "");;
+		direc = _$(html).find('b:content("Đạo diễn:")').parent().text().replace("Đạo diễn:", "").replace(/\s\s/g, "");;
+		country = _$(html).find('b:content("Quốc gia:")').parent().text().replace("Quốc gia:", "").replace(/\s\s/g, "");;
+		category = _$(html).find('b:content("Định dạng:")').parent().text().replace("Định dạng:", "").replace(/\s\s/g, "");
+		lang = _$(html).find('b:content("Chất lượng:")').parent().text().replace(/Chất lượng:|\s\s|^\s/g, "");
+		servers = [];
+		var epiOne = _$(html).find('span:content("Tập đầu")').parent().attr("href");
 		var servers = [];
-		var epi = [];
-        epi.push({ id: url, name: "Xem Thôi", slug: url });
-    		servers.push({
-        	name: "Server",
-        	episodes: epi
-        });
-		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
+		var epiM3U8 = [];
+		var epiEMBED = [];
+		var epiEnd = _$(html).find('.epcurlast').text().match(/(\d+)/i);
+		var EndNumber = 1;
+		if (epiOne) {
+			if (epiEnd && epiEnd[1]) {
+				EndNumber = Number(epiEnd[1]) + 1;
+			}
+			
+			for (var $j = 1; $j < EndNumber; $j++) {
+				var numberEpi = formatEpisode($j);
+				var urlM3U8 = epiOne + "?tapplay=" + numberEpi + "&type=m3u8";
+				var urlEMBED = epiOne + "?tapplay=" + numberEpi + "&type=embed";
+				var nameEpi = "Tập " + numberEpi;
+				var slugEpi = "tap-" + numberEpi;
+				epiM3U8.push({ id: urlM3U8, name: nameEpi, slug: slugEpi });
+				epiEMBED.push({ id: urlEMBED, name: nameEpi, slug: slugEpi });
+			}
+			servers.push({
+				name: "Server M3U8",
+				episodes: epiM3U8
+			}, {
+				name: "Server EMBED",
+				episodes: epiEMBED
+			});
+		}
+		else {
+			var epiOne = _$(html).find(".bookmark").attr("href");;
+			var urlM3U8 = epiOne + "?tapplay=full&type=m3u8";
+			var urlEMBED = epiOne + "?tapplay=full&type=embed";
+			epiM3U8.push({ id: urlM3U8, name: "Xem Ngay", slug: "full" });
+			epiEMBED.push({ id: urlEMBED, name: "Xem Ngay", slug: "full" });
+			servers.push({
+				name: "Server M3U8",
+				episodes: epiM3U8
+			}, {
+				name: "Server EMBED",
+				episodes: epiEMBED
+			});
+		}
 		return JSON.stringify({
 			id: url,
 			title: lname,
@@ -262,54 +318,73 @@ function parseMovieDetail(html, url) {
 //var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
 //JSON.parse(parseMovieDetail(outerHTML,$url));
 
-// https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san-35032
-// https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san/tap-1-811897
 function parseDetailResponse(html, url) {
 	try {
-			var vdObj = "";
-			var script = _$(html).find('script:content("var flashvars")').html();
+		var activePage = "";
+		
+		if (!url.match(/full/)) {
+			var matchCurent = url.match(/tapplay=(\d+)/);
+			var typeVD = url.match(/type=(\w+)/)[1];
+			// Lấy số tập từ URL, nếu không thấy thì mặc định là "1"
+			var curentRaw = matchCurent ? matchCurent[1] : "1";
+			var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "22",...
+			var servers = [];
+			var check = 0;
+			var maxList = [];
+			var maxEpi = 0;
+			var lineEpi = {
+				number: 0,
+				name: "Server"
+			};
+			_$(html).find(".episodelist").find("li").each(function(index, el) {
+				var link = _$(el).find("a").attr("href");
+				if (link) {
+					maxEpi++
+				}
+				var text = _$(el).attr("data-name");
+				var matchText = text.match(/([0-9]+)/);
+				var numberRaw = matchText ? matchText[1] : "1";
+				var number = formatEpisode(numberRaw);
+				
+				if (Number(number) > Number(maxEpi)) {
+					maxEpi = number;
+					lineEpi.number = maxEpi;
+				}
+				
+				if (number == curent) {
+					activePage = link + "?tapplay=" + number + "&type=" + typeVD;
+				}
+			});
 			
-			var objectVD = script.match(/flashvars\s+=+\s({[\s\S]*?};)/i);
-			if(objectVD && objectVD[1]){
-			    vdObj = (new Function("return " + objectVD[1]))();
+			if (Number(curent) > lineEpi.number) {
+				activePage = url + "&check=true";
 			}
-			var $link = [];
-			var $stream = "";https://www.bemyhole.com/v/girls-screw-boyfriends-anal-with-monster-strapon-dildos-and-741759091920/
-			if(vdObj){
-			    var nameVDlow = vdObj.video_url_text;
-			    var nameVDhight = vdObj.video_alt_url_text;
-			    var urlVDlow = vdObj.video_url;
-			    var urlVDhight = vdObj.video_alt_url;
-			
-			    var $stream = urlVDhight;
-			    var $item = {"link":urlVDhight,"name":"Độ Phân Giải: " + nameVDhight}
-			    $link.push($item);
-			  	$item = {"link":urlVDlow,"name":"Độ Phân Giải: " + nameVDlow}
-			    $link.push($item);  
-			}
-			var customjs = textJS($link);
+		} else {
+			activePage = url + "&check=false";
+		}
+		
 		return JSON.stringify({
-			"url": $stream,
+			"url": activePage,
+			"isEmbed": true,
 			"headers": {
 				"Referer": BASEURL,
 				"Origin": BASEURL,
 				"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-				// Đánh lừa thuật toán Client Hints của tường lửa
 				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
 				"Sec-Ch-Ua-Mobile": "?1",
 				"Sec-Ch-Ua-Platform": '"Android"',
-				
-				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
 				"Accept": "*/*",
 				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-				"X-Requested-With": "com.android.chrome",
-				"Custom-Js": customjs.trim()
+				"X-Requested-With": "com.android.chrome"
 			},
 			"subtitles": []
 		});
 		
 	} catch (e) {
-		return JSON.stringify({ "url": "", "headers": {} });
+		return JSON.stringify({
+			"url": "",
+			"headers": {}
+		});
 	}
 }
 
@@ -317,6 +392,58 @@ function parseDetailResponse(html, url) {
 //var html = outerHTML;
 //var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
 //JSON.parse(parseDetailResponse(html, url))
+
+
+function parseEmbedResponse(html, url) {
+	try {
+		var $type = url.match(/type=(\w+)/i)[1];
+		var streamUrl = "";
+		if ($type == "m3u8") {
+			streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
+		}
+		else {
+			streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
+		}
+		var checkepi = "false";
+		var typevideo = "true";
+		if (url.indexOf("true") > -1) {
+			checkepi = "true";
+		} else {
+			var matchCurent = url.match(/tapplay=(\d+)/);
+			var curentRaw = matchCurent ? matchCurent[1] : "1";
+			var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "02", "22"...
+			checkepi = _$(html).find("h2").text() + "- Tập " + curent;
+		}
+		var customJs = textJS(typevideo, checkepi);
+		return JSON.stringify({
+			url: streamUrl,
+			isEmbed: false,
+			mimeType: "application/x-mpegURL",
+			headers: {
+				"Referer": BASEURL,
+				"Origin": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+				"Custom-Js": customJs.trim()
+			}
+		});
+	} catch (e) {
+		return JSON.stringify({
+			url: url,
+			headers: {}
+		});
+	}
+}
+/*
+var html = outerHTML;
+var url = "https://bilutv.asia/phim/kinh-thanh-ky-tham/tap-tap-01-398150?tapplay=12&type=m3u8";
+JSON.parse(parseEmbedResponse(html, url))
+function textJS(typevideo, checkepi){
+    return `
+    typevideo = '${typevideo}';
+    checkepi = '${checkepi}';
+    `
+}
+*/
 
 function sortEpisodesByName(data) {
     data.forEach(server => {
@@ -338,12 +465,13 @@ function sortEpisodesByName(data) {
     return data;
 }
 
-function textJS($links) {
-    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
-    return `
-LINKVIDEO = ${JSON.stringify($links)}
+function textJS($links, checkepi) {
+	// Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+	return `
+LINKVIDEO = ${JSON.stringify($links)};
+CHECKEPI = ${JSON.stringify(checkepi)};
 
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=bemyhole&type=js"; 
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=bilutv&type=js"; 
 const style = document.createElement('style');
 var customcss = 'body{background:#000000;overflow:hidden;margin:0;height:100vh;display:flex;justify-content:center;align-items:center;position:relative;font-family:sans-serif;}body::before{content:"";width:60px;height:60px;border:4px solid rgba(255, 255, 255, 0.1);border-top-color:#00ffcc;border-radius:50%;animation:spin 0.8s linear infinite;transform:translateY(-20px);box-shadow:0 0 10px rgba(0, 255, 204, 0.2);}body::after{content:"LOADING";position:absolute;color:#ffffff;font-size:11px;letter-spacing:3px;transform:translateY(40px);animation:pulse 1.5s ease-in-out infinite;opacity:0.8;}@keyframes spin{to{transform:translateY(-20px) rotate(360deg);}}@keyframes pulse{0%, 100%{opacity:0.3;}50%{opacity:1;text-shadow:0 0 8px rgba(0, 255, 204, 0.6);}}';
 style.innerHTML = customcss;
@@ -351,132 +479,6 @@ style.innerHTML = customcss;
 
 /* Build Video Begin*/
 
-    var DEVELOPE = false;
-
-    function GetlinkVideo() {
-        var playlist = scanSources();
-        var stream1 = playlist.activeSrc || '';
-        var stream2 = window.location.href;
-        showToast("Đang khởi chạy trình phát tốt hơn.", 5000, true);
-        if (LINKVIDEO && LINKVIDEO.length > 0) {
-            var $server = [];
-            for (var $j = 0; $j < LINKVIDEO.length; $j++) {
-                var $line = LINKVIDEO[$j];
-                var $link = $line.link;
-                var $name = $line.name;
-                var $item = {
-                    label: $name,
-                    src: $link,
-                    type: "server"
-                }
-                $server.push($item);
-                if ($j == 0) {
-                    playlist.activeSrc = $link;
-                }
-            }
-            playlist.servers = $server
-        }
-        buildVideo(stream1, stream2, playlist);
-    }
-
-    /*
-    VideoPlayerAPI.addServer({ label: 'Server 2', src: '...' }) Thêm server vào cuối danh sách
-    VideoPlayerAPI.addServerAt(0, { label: 'VIP', src: '...' }) Thêm server vào vị trí bất kỳ(ví dụ 0 là đầu tiên)
-    VideoPlayerAPI.addEpisode({ label: 'Tập 5', src: '...' }) Thêm tập phim vào cuối
-    VideoPlayerAPI.addEpisodeAt(2, { label: 'Tập 3', src: '...' }) Thêm tập vào vị trí chỉ định
-    VideoPlayerAPI.removeServer('Server 2') Xóa server theo label
-    VideoPlayerAPI.removeEpisode('Tập 5') Xóa tập theo label
-    VideoPlayerAPI.clearServers() Xóa toàn bộ server
-    VideoPlayerAPI.clearEpisodes() Xóa toàn bộ tập phim
-    VideoPlayerAPI.getServers() / getEpisodes() Lấy mảng hiện tại
-    VideoPlayerAPI.switchSource('https://...') Đổi nguồn phát ngay lập tức
-    VideoPlayerAPI.refresh() Vẽ lại giao diện playlist
-
-    */
-
-    // ─── QUÉT NGUỒN PHÁT VÀ PLAYLIST TRƯỚC KHI XÓA DOM ───
-    function scanSources() {
-        var activeSrc = '';
-        var servers = [];
-        var episodes = [];
-        var seen = new Set();
-
-        // 1. Quét video, iframe, source
-        var els = document.querySelectorAll('[class*="video"], [class*="player"], video, iframe');
-        for (var i = 0; i < els.length; i++) {
-            var el = els[i];
-            var src = el.src || el.getAttribute('data-src') || '';
-            if (!src) {
-                var s = el.querySelector('source');
-                if (s) src = s.src || s.getAttribute('src') || '';
-            }
-            if (src && (src.indexOf('.mp4') > -1 || src.indexOf('.m3u8') > -1 || src.indexOf(
-                        'embed') >
-                    -1)) {
-                if (!activeSrc) activeSrc = src;
-                if (!seen.has(src)) {
-                    seen.add(src);
-                    var lbl = 'Server ' + (servers.length + 1);
-                    if (src.indexOf('embed') > -1) lbl = 'Nhúng ' + (servers.length + 1);
-                    servers.push({
-                        label: lbl,
-                        src: src,
-                        type: 'server'
-                    });
-                }
-            }
-        }
-
-        // 2. Quét thêm các nút/data-link chuyển server
-        var allLinks = document.querySelectorAll('a, button, [role="button"], [data-link]');
-        for (var k = 0; k < allLinks.length; k++) {
-            var el2 = allLinks[k];
-            var href = el2.href || el2.getAttribute('href') || el2.getAttribute('data-src') || el2
-                .getAttribute('data-link') || '';
-            var txt = (el2.textContent || el2.innerText || '').trim();
-            if (!href || href === '#' || href === window.location.href || seen.has(href)) continue;
-            if (/(server|sv|nguồn|source|embed|link)/i.test(txt + ' ' + el2.className)) {
-                if (href.indexOf('.mp4') > -1 || href.indexOf('.m3u8') > -1 || href.indexOf(
-                        'embed') > -
-                    1) {
-                    seen.add(href);
-                    servers.push({
-                        label: txt || 'Server ' + (servers.length + 1),
-                        src: href,
-                        type: 'server'
-                    });
-                }
-            }
-        }
-
-        // 3. Quét link tập phim
-        var aTags = document.querySelectorAll('a');
-        for (var j = 0; j < aTags.length; j++) {
-            var a = aTags[j];
-            var aHref = a.href || a.getAttribute('href');
-            var aTxt = (a.textContent || a.innerText || '').trim();
-            if (!aHref || aHref === '#' || aHref === window.location.href) continue;
-            var isEpisode = false;
-            if (/(tập|tap|ep|episode|chap|part)\s*(\d+|[ivx]+)/i.test(aTxt)) isEpisode = true;
-            if (/(tập|tap|ep|episode|chap|part)[-\s]?(\d+|[ivx]+)/i.test(aHref)) isEpisode = true;
-            if (a.className && /(^|\s)(ep|episode|tap|chapter|part|tapphim)(\d+|$)/i.test(a
-                    .className))
-                isEpisode = true;
-            if (isEpisode) {
-                episodes.push({
-                    label: aTxt || 'Tập ' + (episodes.length + 1),
-                    src: aHref,
-                    type: 'episode'
-                });
-            }
-        }
-
-        return {
-            activeSrc: activeSrc,
-            servers: servers,
-            episodes: episodes
-        };
-    }
 
     // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
     function showToast(message, duration, check) {
@@ -508,808 +510,6 @@ style.innerHTML = customcss;
                 if (container.childElementCount === 0) container.remove();
             }, 300);
         }, duration);
-    }
-
-    function buildVideo(stream1, stream2, playlistData) {
-        var container = document.createElement('div');
-        container.id = 'custom-video-player';
-        container.style.cssText =
-            'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:Segoe UI,Roboto,sans-serif;user-select:none;-webkit-user-select:none;';
-
-        var video = document.createElement('video');
-        video.id = 'main-video';
-        video.style.cssText =
-            'width:100%;height:100%;object-fit:contain;cursor:pointer;background:#000;';
-        video.setAttribute('playsinline', 'true');
-        video.setAttribute('webkit-playsinline', 'true');
-        video.src = stream1;
-        video.autoplay = true;
-        video.muted = false;
-        video.controls = false;
-
-        var spinner = document.createElement('div');
-        spinner.id = 'video-spinner';
-        spinner.style.cssText =
-            'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:4px solid rgba(255,255,255,0.3);border-top:4px solid #fff;border-radius:50%;animation:spin 1s linear infinite;z-index:10;pointer-events:none;';
-        var spinStyle = document.createElement('style');
-        spinStyle.textContent =
-            '@keyframes spin{0%{transform:translate(-50%,-50%) rotate(0deg);}100%{transform:translate(-50%,-50%) rotate(360deg);}}';
-        document.head.appendChild(spinStyle);
-
-        var controls = document.createElement('div');
-        controls.id = 'video-controls';
-        controls.style.cssText =
-            'position:absolute;bottom:0;left:0;width:100%;background:linear-gradient(transparent,rgba(0,0,0,0.85));padding:12px 16px 20px;box-sizing:border-box;transition:opacity 0.3s;opacity:0;z-index:20;';
-
-        var progressWrap = document.createElement('div');
-        progressWrap.style.cssText =
-            'width:100%;height:6px;background:rgba(255,255,255,0.3);border-radius:3px;cursor:pointer;position:relative;margin-bottom:12px;';
-        var progressBar = document.createElement('div');
-        progressBar.style.cssText =
-            'height:100%;background:#e74c3c;width:0%;border-radius:3px;position:relative;pointer-events:none;';
-        var progressHandle = document.createElement('div');
-        progressHandle.style.cssText =
-            'position:absolute;right:-6px;top:-4px;width:14px;height:14px;background:#e74c3c;border-radius:50%;opacity:0;transition:opacity 0.2s;pointer-events:none;';
-        progressBar.appendChild(progressHandle);
-        progressWrap.appendChild(progressBar);
-        progressWrap.onmouseenter = function() {
-            progressHandle.style.opacity = '1';
-        };
-        progressWrap.onmouseleave = function() {
-            progressHandle.style.opacity = '0';
-        };
-
-        var btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display:flex;align-items:center;gap:12px;';
-
-        var btnPlay = createBtn('⏸', 'Phát / Tạm dừng');
-        var btnMute = createBtn('🔊', 'Tắt / Bật âm lượng');
-        var timeDisplay = document.createElement('span');
-        timeDisplay.style.cssText = 'color:#fff;font-size:13px;min-width:100px;';
-        timeDisplay.textContent = '0:00 / 0:00';
-        var btnReload = createBtn('🔄', 'Tải lại nguồn video');
-        var spacer = document.createElement('div');
-        spacer.style.cssText = 'flex:1;';
-        var speedIndicator = document.createElement('span');
-        speedIndicator.style.cssText = 'color:#fff;font-size:12px;opacity:0.8;';
-        speedIndicator.textContent = '1.0x';
-        var btnFullscreen = createBtn('⛶', 'Toàn màn hình');
-        var btnPlaylist = createBtn('☰', 'Danh sách phát / Server');
-
-        btnRow.appendChild(btnPlay);
-        btnRow.appendChild(btnMute);
-        btnRow.appendChild(timeDisplay);
-        btnRow.appendChild(spacer);
-        btnRow.appendChild(speedIndicator);
-        btnRow.appendChild(btnReload);
-        btnRow.appendChild(btnFullscreen);
-
-        controls.appendChild(progressWrap);
-        controls.appendChild(btnRow);
-
-        var bigPlayBtn = document.createElement('div');
-        bigPlayBtn.id = 'big-play-btn';
-        bigPlayBtn.textContent = '▶';
-        bigPlayBtn.style.cssText =
-            'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;background:rgba(0,0,0,0.6);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:36px;cursor:pointer;z-index:15;';
-
-        var seekOverlay = document.createElement('div');
-        seekOverlay.id = 'seek-overlay';
-        seekOverlay.style.cssText =
-            'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:#fff;padding:12px 24px;border-radius:8px;font-size:18px;font-weight:bold;pointer-events:none;opacity:0;transition:opacity 0.3s;z-index:30;';
-
-        // Playlist Panel
-        var playlistPanel = document.createElement('div');
-        playlistPanel.id = 'playlist-panel';
-        playlistPanel.style.cssText =
-            'position:fixed;top:0;right:0;width:300px;max-width:80%;height:100%;background:rgba(15,15,15,0.97);z-index:40;transform:translateX(100%);transition:transform 0.25s ease;overflow-y:auto;padding:20px;box-sizing:border-box;color:#fff;font-family:Segoe UI,Roboto,sans-serif;';
-
-        var plHeader = document.createElement('div');
-        plHeader.style.cssText =
-            'display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2);';
-        plHeader.innerHTML = '<span style="font-size:16px;font-weight:bold;">📋 Playlist</span>';
-        var plClose = document.createElement('button');
-        plClose.textContent = '✕';
-        plClose.style.cssText =
-            'background:none;border:none;color:#fff;font-size:18px;cursor:pointer;';
-        plClose.onclick = function(e) {
-            if (e) e.stopPropagation();
-            playlistPanel.style.transform = 'translateX(100%)';
-        };
-        plHeader.appendChild(plClose);
-        playlistPanel.appendChild(plHeader);
-
-        var plContent = document.createElement('div');
-        plContent.id = 'playlist-content';
-        playlistPanel.appendChild(plContent);
-
-        // Playlist state & API
-        var playlistState = {
-            servers: (playlistData && playlistData.servers) ? playlistData.servers.slice() : [],
-            episodes: (playlistData && playlistData.episodes) ? playlistData.episodes.slice() : []
-        };
-
-        function buildSection(title, items, onClick, parent) {
-            if (!items || items.length === 0) return;
-            var sec = document.createElement('div');
-            sec.style.cssText = 'margin-bottom:20px;';
-            var secTitle = document.createElement('div');
-            secTitle.textContent = title;
-            secTitle.style.cssText =
-                'font-size:13px;text-transform:uppercase;opacity:0.6;margin-bottom:10px;';
-            sec.appendChild(secTitle);
-            for (var i = 0; i < items.length; i++) {
-                (function(item) {
-                    var btn = document.createElement('button');
-                    btn.textContent = item.label;
-                    btn.style.cssText =
-                        'display:block;width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,0.08);border:none;border-radius:6px;color:#fff;font-size:14px;cursor:pointer;transition:background 0.2s;';
-                    btn.onmouseenter = function() {
-                        btn.style.background = 'rgba(231,76,60,0.3)';
-                    };
-                    btn.onmouseleave = function() {
-                        btn.style.background = 'rgba(255,255,255,0.08)';
-                    };
-                    btn.onclick = function(e) {
-                        if (e) e.stopPropagation();
-                        onClick(item);
-                    };
-                    sec.appendChild(btn);
-                })(items[i]);
-            }
-            parent.appendChild(sec);
-        }
-
-        function renderPlaylist() {
-            plContent.innerHTML = '';
-            var hasAny = false;
-            if (playlistState.servers.length > 1) {
-                buildSection('🎥 Chuyển Server', playlistState.servers, function(item) {
-                    switchSource(item.src);
-                }, plContent);
-                hasAny = true;
-            }
-            if (playlistState.episodes.length > 0) {
-                buildSection('📁 Tập phim', playlistState.episodes, function(item) {
-                    savePosition();
-                    window.location.href = item.src;
-                }, plContent);
-                hasAny = true;
-            }
-            if (hasAny) {
-                if (!btnPlaylist.parentNode) {
-                    btnRow.appendChild(btnPlaylist);
-                }
-                if (!playlistPanel.parentNode) {
-                    container.appendChild(playlistPanel);
-                }
-            } else {
-                if (btnPlaylist.parentNode) {
-                    btnPlaylist.parentNode.removeChild(btnPlaylist);
-                }
-            }
-        }
-
-        container.appendChild(video);
-        container.appendChild(spinner);
-        container.appendChild(bigPlayBtn);
-        container.appendChild(seekOverlay);
-        container.appendChild(controls);
-        container.appendChild(playlistPanel);
-
-        var htmlTAG = document.getElementsByTagName("html")[0];
-        htmlTAG.innerHTML = '';
-        document.body = document.createElement('body');
-        document.body.appendChild(container);
-        document.head.innerHTML =
-            '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">';
-        document.head.appendChild(spinStyle);
-        document.title = 'Video Player';
-
-        var isPlaying = false;
-        var isMuted = false;
-        var currentSpeed = 1.0;
-        var controlsTimeout = null;
-        var isDraggingProgress = false;
-        var isDraggingVideo = false;
-
-        // ─── LOCALSTORAGE: LƯU / KHÔI PHỤC VỊ TRÍ ───
-        var cleanStreamURL = stream1.split('?')[0];
-        var saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(cleanStreamURL);
-        var lastSaveTime = 0;
-
-        function savePosition() {
-            if (!video || video.ended || !video.currentTime || isNaN(video.currentTime)) return;
-            var now = Date.now();
-            if (now - lastSaveTime < 4000) return; // debounce 4 giây
-            lastSaveTime = now;
-            try {
-                // Chỉ lưu nếu đã xem quá 5s và còn hơn 5s cuối
-                if (video.currentTime > 5 && (!video.duration || isNaN(video.duration) || video
-                        .currentTime < video.duration - 5)) {
-                    localStorage.setItem(saveKey, JSON.stringify({
-                        time: video.currentTime,
-                        duration: video.duration || 0,
-                        savedAt: now
-                    }));
-                }
-            } catch (e) {}
-        }
-
-        function clearSavedPosition() {
-            try {
-                localStorage.removeItem(saveKey);
-            } catch (e) {}
-        }
-
-        function restorePosition() {
-            try {
-                var saved = localStorage.getItem(saveKey);
-                if (saved) {
-                    var data = JSON.parse(saved);
-                    // Chỉ cần có data.time > 5 là cho phép tua
-                    if (data && data.time && data.time > 5) {
-                        // Nếu video đã load được duration, check xem có phải đang ở 5s cuối không
-                        if (video.duration && !isNaN(video.duration) && data.time >= video
-                            .duration - 5) {
-                            return false;
-                        }
-                        video.currentTime = data.time;
-                        showToast('⏩ Đã tiếp tục phát từ ' + formatTime(data.time), 4000, true);
-                        return true;
-                    }
-                }
-            } catch (e) {}
-            return false;
-        }
-
-        function switchSource(newSrc) {
-            var wasPlaying = !video.paused;
-            var prevTime = video.currentTime;
-            stream1 = newSrc;
-            saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(stream1);
-            video.src = newSrc;
-            video.load();
-            spinner.style.display = 'block';
-            video.onloadeddata = function() {
-                spinner.style.display = 'none';
-                if (!restorePosition() && prevTime > 0) {
-                    video.currentTime = prevTime;
-                }
-                if (wasPlaying) video.play();
-                showToast('Đã chuyển nguồn phát');
-            };
-            video.onerror = function() {
-                spinner.style.display = 'none';
-                showToast('Không thể phát nguồn này!');
-            };
-            playlistPanel.style.transform = 'translateX(100%)';
-        }
-
-        function createBtn(icon, title) {
-            var btn = document.createElement('button');
-            btn.textContent = icon;
-            btn.title = title;
-            btn.style.cssText =
-                'background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:background 0.2s;outline:none;';
-            btn.onmouseenter = function() {
-                btn.style.background = 'rgba(255,255,255,0.2)';
-            };
-            btn.onmouseleave = function() {
-                btn.style.background = 'none';
-            };
-            return btn;
-        }
-
-        function showSeekOverlay(text) {
-            seekOverlay.textContent = text;
-            seekOverlay.style.opacity = '1';
-            clearTimeout(seekOverlay._timer);
-            seekOverlay._timer = setTimeout(function() {
-                seekOverlay.style.opacity = '0';
-            }, 800);
-        }
-
-        function formatTime(sec) {
-            if (!sec || isNaN(sec)) return '0:00';
-            var m = Math.floor(sec / 60);
-            var s = Math.floor(sec % 60);
-            return m + ':' + (s < 10 ? '0' + s : s);
-        }
-
-        function updateProgress() {
-            if (video.duration && !isNaN(video.duration) && !isDraggingProgress) {
-                var pct = (video.currentTime / video.duration) * 100;
-                progressBar.style.width = pct + '%';
-            }
-            timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video
-                .duration);
-        }
-
-        function seekVideo(seconds) {
-            var newTime = video.currentTime + seconds;
-            if (newTime < 0) newTime = 0;
-            if (video.duration && !isNaN(video.duration) && newTime > video.duration) newTime =
-                video
-                .duration;
-            video.currentTime = newTime;
-            showSeekOverlay((seconds > 0 ? '+' : '') + seconds + 's');
-        }
-
-        function togglePlay() {
-            if (video.paused) {
-                video.play().then(function() {
-                    isPlaying = true;
-                    btnPlay.textContent = '⏸';
-                    bigPlayBtn.style.display = 'none';
-                    spinner.style.display = 'none';
-                }).catch(function(e) {
-                    console.warn('Autoplay bị chặn:', e);
-                    video.muted = true;
-                    video.play().then(function() {
-                        isMuted = true;
-                        btnMute.textContent = '🔇';
-                        isPlaying = true;
-                        btnPlay.textContent = '⏸';
-                        bigPlayBtn.style.display = 'none';
-                        spinner.style.display = 'none';
-                    });
-                });
-            } else {
-                video.pause();
-                isPlaying = false;
-                btnPlay.textContent = '▶';
-                bigPlayBtn.style.display = 'flex';
-            }
-        }
-
-        function toggleMute() {
-            video.muted = !video.muted;
-            isMuted = video.muted;
-            btnMute.textContent = isMuted ? '🔇' : '🔊';
-            showToast(isMuted ? 'Đã tắt tiếng' : 'Đã bật tiếng');
-        }
-
-        function reloadVideo() {
-            spinner.style.display = 'block';
-            var currentTime = video.currentTime;
-            var wasPlaying = !video.paused;
-            video.src = stream1 + (stream1.indexOf('?') > -1 ? '&' : '?') + '_reload=' + Date.now();
-            video.load();
-            video.onloadeddata = function() {
-                spinner.style.display = 'none';
-                video.currentTime = currentTime;
-                restorePosition();
-                if (wasPlaying) video.play();
-                showToast('Đã tải lại nguồn video');
-            };
-            video.onerror = function() {
-                spinner.style.display = 'none';
-                if (stream2 && stream2 !== stream1) {
-                    showToast('Nguồn 1 lỗi, thử nguồn dự phòng...');
-                    stream1 = stream2;
-                    saveKey = 'videoPlayer_lastPos_' + encodeURIComponent(stream1);
-                    video.src = stream1;
-                    video.load();
-                } else {
-                    showToast('Lỗi tải video! Kiểm tra nguồn.');
-                }
-            };
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(function() {});
-            } else {
-                document.exitFullscreen().catch(function() {});
-            }
-        }
-
-        function showControls() {
-            controls.style.opacity = '1';
-            clearTimeout(controlsTimeout);
-            controlsTimeout = setTimeout(function() {
-                if (!isDraggingProgress) controls.style.opacity = '0';
-            }, 3000);
-        }
-
-        video.addEventListener('loadeddata', function() {
-            spinner.style.display = 'none';
-            updateProgress();
-            if (isMuted && video.muted) {
-                video.muted = false;
-                isMuted = false;
-                btnMute.textContent = '🔊';
-            }
-            // Khôi phục vị trí đã lưu
-            restorePosition();
-        });
-
-        // Giữ nguyên cụm loadeddata cũ để ẩn spinner
-        video.addEventListener('loadeddata', function() {
-            spinner.style.display = 'none';
-            updateProgress();
-            if (isMuted && video.muted) {
-                video.muted = false;
-                isMuted = false;
-                btnMute.textContent = '🔊';
-            }
-        });
-
-        // THÊM SỰ KIỆN NÀY ĐỂ CHUYÊN LÀM NHIỆM VỤ TUA VIDEO
-        video.addEventListener('loadedmetadata', function() {
-            restorePosition();
-        });
-
-        video.addEventListener('waiting', function() {
-            spinner.style.display = 'block';
-        });
-        video.addEventListener('playing', function() {
-            spinner.style.display = 'none';
-            bigPlayBtn.style.display = 'none';
-        });
-        video.addEventListener('error', function() {
-            spinner.style.display = 'none';
-            showToast('Lỗi phát video! Nhấn 🔄 để tải lại.');
-            btnPlay.textContent = '▶';
-            bigPlayBtn.style.display = 'flex';
-        });
-        video.addEventListener('timeupdate', function() {
-            updateProgress();
-            savePosition();
-        });
-        video.addEventListener('ended', function() {
-            btnPlay.textContent = '▶';
-            bigPlayBtn.style.display = 'flex';
-            isPlaying = false;
-            clearSavedPosition();
-        });
-
-        video.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (isDraggingVideo) {
-                isDraggingVideo = false;
-                return;
-            }
-            var rect = video.getBoundingClientRect();
-            var x = e.clientX - rect.left;
-            var width = rect.width;
-            if (x < width * 0.3) {
-                seekVideo(-10);
-            } else if (x > width * 0.7) {
-                seekVideo(10);
-            } else {
-                togglePlay();
-            }
-        });
-
-        video.addEventListener('volumechange', function() {
-            btnMute.textContent = video.muted || video.volume === 0 ? '🔇' : '🔊';
-        });
-
-        btnPlay.addEventListener('click', function(e) {
-            e.stopPropagation();
-            togglePlay();
-        });
-        btnMute.addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleMute();
-        });
-        btnReload.addEventListener('click', function(e) {
-            e.stopPropagation();
-            reloadVideo();
-        });
-        btnFullscreen.addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleFullscreen();
-        });
-        btnPlaylist.addEventListener('click', function(e) {
-            e.stopPropagation();
-            playlistPanel.style.transform = 'translateX(0)';
-        });
-
-        progressWrap.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var rect = progressWrap.getBoundingClientRect();
-            var pct = (e.clientX - rect.left) / rect.width;
-            if (video.duration && !isNaN(video.duration)) {
-                video.currentTime = pct * video.duration;
-            }
-            updateProgress();
-        });
-        progressWrap.addEventListener('mousedown', function(e) {
-            isDraggingProgress = true;
-            showControls();
-        });
-        document.addEventListener('mousemove', function(e) {
-            if (isDraggingProgress && video.duration && !isNaN(video.duration)) {
-                var rect = progressWrap.getBoundingClientRect();
-                var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                progressBar.style.width = (pct * 100) + '%';
-                video.currentTime = pct * video.duration;
-                updateProgress();
-            }
-        });
-        document.addEventListener('mouseup', function() {
-            isDraggingProgress = false;
-        });
-
-        container.addEventListener('mousemove', showControls);
-        container.addEventListener('click', function() {
-            showControls();
-        });
-        bigPlayBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            togglePlay();
-        });
-
-        document.addEventListener('keydown', function(e) {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            showControls();
-            switch (e.key) {
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    e.shiftKey ? seekVideo(-30) : (e.ctrlKey || e.altKey) ? seekVideo(-5) :
-                        seekVideo(-
-                            10);
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    e.shiftKey ? seekVideo(30) : (e.ctrlKey || e.altKey) ? seekVideo(5) :
-                        seekVideo(10);
-                    break;
-                case ' ':
-                case 'k':
-                case 'K':
-                    e.preventDefault();
-                    togglePlay();
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    video.volume = Math.min(1, video.volume + 0.1);
-                    showToast('Âm lượng: ' + Math.round(video.volume * 100) + '%');
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    video.volume = Math.max(0, video.volume - 0.1);
-                    showToast('Âm lượng: ' + Math.round(video.volume * 100) + '%');
-                    break;
-                case 'm':
-                case 'M':
-                    e.preventDefault();
-                    toggleMute();
-                    break;
-                case 'f':
-                case 'F':
-                    e.preventDefault();
-                    toggleFullscreen();
-                    break;
-                case 'r':
-                case 'R':
-                    e.preventDefault();
-                    reloadVideo();
-                    break;
-                case 'Home':
-                    e.preventDefault();
-                    video.currentTime = 0;
-                    showToast('Về đầu video');
-                    break;
-                case 'End':
-                    e.preventDefault();
-                    if (video.duration && !isNaN(video.duration)) video.currentTime = video
-                        .duration - 1;
-                    break;
-                case '>':
-                case '.':
-                    e.preventDefault();
-                    currentSpeed = Math.min(4, currentSpeed + 0.25);
-                    video.playbackRate = currentSpeed;
-                    speedIndicator.textContent = currentSpeed.toFixed(1) + 'x';
-                    showToast('Tốc độ: ' + currentSpeed.toFixed(1) + 'x');
-                    break;
-                case '<':
-                case ',':
-                    e.preventDefault();
-                    currentSpeed = Math.max(0.25, currentSpeed - 0.25);
-                    video.playbackRate = currentSpeed;
-                    speedIndicator.textContent = currentSpeed.toFixed(1) + 'x';
-                    showToast('Tốc độ: ' + currentSpeed.toFixed(1) + 'x');
-                    break;
-                case '0':
-                    e.preventDefault();
-                    video.currentTime = 0;
-                    break;
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    e.preventDefault();
-                    if (video.duration && !isNaN(video.duration)) {
-                        video.currentTime = video.duration * (parseInt(e.key) / 10);
-                    }
-                    break;
-            }
-        });
-
-        var touchStartX = 0;
-        var touchStartY = 0;
-        var touchStartTime = 0;
-        var isSwiping = false;
-
-        container.addEventListener('touchstart', function(e) {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchStartTime = Date.now();
-            isSwiping = false;
-        }, {
-            passive: true
-        });
-
-        container.addEventListener('touchmove', function(e) {
-            if (e.touches.length !== 1) return;
-            var dx = e.touches[0].clientX - touchStartX;
-            var dy = e.touches[0].clientY - touchStartY;
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
-                isSwiping = true;
-                var seekSec = Math.round(dx / 15);
-                if (Math.abs(seekSec) >= 1) {
-                    seekVideo(seekSec);
-                    touchStartX = e.touches[0].clientX;
-                }
-            }
-            if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 20) {
-                isSwiping = true;
-                var screenWidth = window.innerWidth;
-                var isRightSide = touchStartX > screenWidth / 2;
-                if (isRightSide) {
-                    var volChange = -dy / 200;
-                    video.volume = Math.max(0, Math.min(1, video.volume + volChange));
-                    showToast('🔊 ' + Math.round(video.volume * 100) + '%');
-                    touchStartY = e.touches[0].clientY;
-                }
-            }
-        }, {
-            passive: true
-        });
-
-        var regionStartX = 0;
-        var regionOverlay = null;
-
-        video.addEventListener('mousedown', function(e) {
-            if (e.button !== 0) return;
-            isDraggingVideo = false;
-            regionStartX = e.clientX;
-            regionOverlay = document.createElement('div');
-            regionOverlay.style.cssText =
-                'position:fixed;top:0;height:100vh;background:rgba(231,76,60,0.3);pointer-events:none;z-index:25;';
-            document.body.appendChild(regionOverlay);
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            if (!regionOverlay) return;
-            isDraggingVideo = true;
-            var left = Math.min(regionStartX, e.clientX);
-            var width = Math.abs(e.clientX - regionStartX);
-            regionOverlay.style.left = left + 'px';
-            regionOverlay.style.width = width + 'px';
-        });
-
-        document.addEventListener('mouseup', function(e) {
-            if (!regionOverlay) return;
-            var endX = e.clientX;
-            var deltaX = endX - regionStartX;
-            var minDrag = 50;
-            if (Math.abs(deltaX) > minDrag && video.duration && !isNaN(video.duration)) {
-                var screenWidth = window.innerWidth;
-                var startPct = Math.min(regionStartX, endX) / screenWidth;
-                var endPct = Math.max(regionStartX, endX) / screenWidth;
-                var startTime = startPct * video.duration;
-                var endTime = endPct * video.duration;
-                if (deltaX > 0) {
-                    video.currentTime = startTime;
-                    showToast('▶ Phát vùng ' + formatTime(startTime) + ' - ' + formatTime(
-                        endTime));
-                } else {
-                    video.currentTime = startTime;
-                    showToast('⏩ Tua đến ' + formatTime(startTime));
-                }
-                if (video.paused) togglePlay();
-            }
-            regionOverlay.remove();
-            regionOverlay = null;
-        });
-
-        video.play().then(function() {
-            spinner.style.display = 'none';
-            btnPlay.textContent = '⏸';
-            isPlaying = true;
-            bigPlayBtn.style.display = 'none';
-            console.log('Video autoplay thành công với tiếng');
-            showToast('Đã phát video thành công. Xem vui nhé friend', 5000, true);
-        }).catch(function(err) {
-            console.log('Autoplay bị chặn, thử muted...');
-            video.muted = true;
-            isMuted = true;
-            btnMute.textContent = '🔇';
-            video.play().then(function() {
-                spinner.style.display = 'none';
-                btnPlay.textContent = '⏸';
-                isPlaying = true;
-                bigPlayBtn.style.display = 'none';
-                showToast('Đã tự phát (chưa bật tiếng) - Nhấn M để bật tiếng');
-            }).catch(function(err2) {
-                spinner.style.display = 'none';
-                bigPlayBtn.style.display = 'flex';
-                showToast('Không thể phát video: ', 3000, DEVELOPE);
-            });
-        });
-
-        // ─── EXPOSE API CHO PLAYLIST CUSTOM ───
-        renderPlaylist();
-
-        window.VideoPlayerAPI = {
-            addServer: function(item) {
-                if (!item || !item.src) return;
-                playlistState.servers.push(item);
-                renderPlaylist();
-                showToast('Đã thêm server: ' + (item.label || item.src));
-            },
-            addServerAt: function(index, item) {
-                if (!item || !item.src) return;
-                playlistState.servers.splice(index, 0, item);
-                renderPlaylist();
-                showToast('Đã thêm server [' + index + ']: ' + (item.label || item.src));
-            },
-            addEpisode: function(item) {
-                if (!item || !item.src) return;
-                playlistState.episodes.push(item);
-                renderPlaylist();
-                showToast('Đã thêm tập: ' + (item.label || item.src));
-            },
-            addEpisodeAt: function(index, item) {
-                if (!item || !item.src) return;
-                playlistState.episodes.splice(index, 0, item);
-                renderPlaylist();
-                showToast('Đã thêm tập [' + index + ']: ' + (item.label || item.src));
-            },
-            removeServer: function(label) {
-                playlistState.servers = playlistState.servers.filter(function(s) {
-                    return s.label !== label;
-                });
-                renderPlaylist();
-            },
-            removeEpisode: function(label) {
-                playlistState.episodes = playlistState.episodes.filter(function(s) {
-                    return s.label !== label;
-                });
-                renderPlaylist();
-            },
-            clearServers: function() {
-                playlistState.servers = [];
-                renderPlaylist();
-            },
-            clearEpisodes: function() {
-                playlistState.episodes = [];
-                renderPlaylist();
-            },
-            getServers: function() {
-                return playlistState.servers.slice();
-            },
-            getEpisodes: function() {
-                return playlistState.episodes.slice();
-            },
-            switchSource: function(src) {
-                switchSource(src);
-            },
-            refresh: function() {
-                renderPlaylist();
-            }
-        };
     }
 
     if (document.readyState === 'loading') {
@@ -1384,29 +584,48 @@ function parseCategoriesResponse(apiResponseJson) {
 
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
-
+// https://k8s.onflixcdn.com/api/movies?sort=year_desc&limit=24&category=chien-tranh
 function getLISTmenu() {
     return `
-/tags/amateur/@@amateur
-/tags/anal/@@anal
-/tags/asian/@@asian
-/tags/babe/@@babe
-/tags/big-cock/@@big cock
-/tags/blowjob/@@blowjob
-/tags/creampie/@@creampie
-/tags/crossdresser/@@crossdresser
-/tags/cumshot/@@cumshot
-/tags/ebony/@@ebony
-/tags/facial/@@facial
-/tags/femboy-porn/@@femboy
-/tags/gangbang/@@gangbang
-/tags/hardcore-porn/@@hardcore
-/tags/interracial/@@interracial
-/tags/ladyboy/@@ladyboy
-/tags/lingerie/@@lingerie
-/tags/milf/@@milf
-/tags/solo/@@solo
-/tags/threesome/@@threesome
+/the-loai/short-drama@@Short Drama
+/the-loai/co-trang@@Cổ Trang
+/the-loai/hai-huoc@@Hài Hước
+/the-loai/hinh-su@@Hình Sự
+/the-loai/chinh-kich@@Chính kịch
+/the-loai/vo-thuat@@Võ Thuật
+/the-loai/kinh-di@@Kinh Dị
+/the-loai/bi-an@@Bí ẩn
+/the-loai/tinh-cam@@Tình Cảm
+/the-loai/tam-ly@@Tâm Lý
+/the-loai/phieu-luu@@Phiêu Lưu
+/the-loai/gia-dinh@@Gia Đình
+/the-loai/hoat-hinh@@Hoạt Hình
+/the-loai/vien-tuong@@Viễn Tưởng
+/the-loai/khoa-hoc@@Khoa Học
+/the-loai/the-thao@@Thể Thao
+/the-loai/tai-lieu@@Tài Liệu
+/the-loai/hanh-dong@@Hành Động
+/the-loai/tv-shows@@TV Shows
+/the-loai/chien-tranh@@Chiến Tranh
+/the-loai/am-nhac@@Âm Nhạc
+/the-loai/hoc-duong@@Học Đường
+/the-loai/phim-bo@@Phim bộ
+/the-loai/gia-tuong@@Giả Tưởng
+/the-loai/lang-man@@Lãng Mạn
+/the-loai/phim-hai@@Phim Hài
+/the-loai/phim-le@@Phim lẻ
+/the-loai/khoa-hoc-vien-tuong@@Khoa Học Viễn Tưởng
+/the-loai/gay-can@@Gây Cấn
+/the-loai/phim-nhac@@Phim Nhạc
+/the-loai/tre-em@@Trẻ Em
+/the-loai/phim-dang-chieu@@Phim đang chiếu
+/the-loai/than-thoai@@Thần Thoại
+/the-loai/lich-su@@Lịch Sử
+/the-loai/mien-tay@@Miền Tây
+/the-loai/phim-18@@Phim 18+
+/the-loai/subteam@@Subteam
+/the-loai/kinh-dien@@Kinh Điển
+/the-loai/phim-ngan@@Phim Ngắn
 `
 }
 

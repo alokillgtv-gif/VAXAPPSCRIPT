@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.6",
+		"version": "1.7",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -319,73 +319,71 @@ function parseMovieDetail(html, url) {
 //JSON.parse(parseMovieDetail(outerHTML,$url));
 
 function parseDetailResponse(html, url) {
-	try {
-		var activePage = "";
-		
-		if (!url.match(/full/)) {
-			var matchCurent = url.match(/tapplay=(\d+)/);
-			var typeVD = url.match(/type=(\w+)/)[1];
-			// Lấy số tập từ URL, nếu không thấy thì mặc định là "1"
-			var curentRaw = matchCurent ? matchCurent[1] : "1";
-			var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "22",...
-			var servers = [];
-			var check = 0;
-			var maxList = [];
-			var maxEpi = 0;
-			var lineEpi = {
-				number: 0,
-				name: "Server"
-			};
-			_$(html).find(".episodelist").find("li").each(function(index, el) {
-				var link = _$(el).find("a").attr("href");
-				if (link) {
-					maxEpi++
-				}
-				var text = _$(el).attr("data-name");
-				var matchText = text.match(/([0-9]+)/);
-				var numberRaw = matchText ? matchText[1] : "1";
-				var number = formatEpisode(numberRaw);
-				
-				if (Number(number) > Number(maxEpi)) {
-					maxEpi = number;
-					lineEpi.number = maxEpi;
-				}
-				
-				if (number == curent) {
-					activePage = link + "?tapplay=" + number + "&type=" + typeVD;
-				}
-			});
-			
-			if (Number(curent) > lineEpi.number) {
-				activePage = url + "&check=true";
-			}
-		} else {
-			activePage = url + "&check=false";
-		}
-		
-		return JSON.stringify({
-			"url": activePage,
-			"isEmbed": true,
-			"headers": {
-				"Referer": BASEURL,
-				"Origin": BASEURL,
-				"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-				"Sec-Ch-Ua-Mobile": "?1",
-				"Sec-Ch-Ua-Platform": '"Android"',
-				"Accept": "*/*",
-				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-				"X-Requested-With": "com.android.chrome"
-			},
-			"subtitles": []
-		});
-		
-	} catch (e) {
-		return JSON.stringify({
-			"url": "",
-			"headers": {}
-		});
-	}
+    try {
+        var activePage = "";
+        // Bọc an toàn khi lấy tham số type và tapplay từ URL
+        var matchType = url.match(/type=(\w+)/);
+        var typeVD = matchType ? matchType[1] : "m3u8"; 
+        
+        var matchCurent = url.match(/tapplay=(\d+)/);
+        var curentRaw = matchCurent ? matchCurent[1] : "1";
+        var curent = formatEpisode(curentRaw); // "01", "02"...
+
+        if (url.indexOf("full") === -1) {
+            var foundActive = false;
+            
+            // Duyệt qua danh sách tập thực tế trên web để tìm tập khớp với tập giả lập
+            _$(html).find(".episodelist").find("li").each(function(index, el) {
+                var link = _$(el).find("a").attr("href");
+                var text = _$(el).attr("data-name") || _$(el).text() || "";
+                var matchText = text.match(/([0-9]+)/);
+                var numberRaw = matchText ? matchText[1] : "1";
+                var number = formatEpisode(numberRaw);
+                
+                if (number === curent && link) {
+                    // Tạo url đích hoàn chỉnh chứa đủ thông tin để hàm parseEmbedResponse phía sau xử lý
+                    activePage = link;
+                    if (activePage.indexOf("http") === -1) {
+                        activePage = BASEURL + (activePage.indexOf("/") === 0 ? "" : "/") + activePage;
+                    }
+                    // Giữ lại tham số để truyền tiếp cho bước sau
+                    activePage += (activePage.indexOf("?") > -1 ? "&" : "?") + "tapplay=" + number + "&type=" + typeVD;
+                    foundActive = true;
+                }
+            });
+            
+            // Fallback: Nếu không parse được danh sách tập thực tế, dùng luôn URL hiện tại
+            if (!foundActive) {
+                activePage = url;
+            }
+        } else {
+            activePage = url + (url.indexOf("?") > -1 ? "&" : "?") + "check=false";
+        }
+        
+        return JSON.stringify({
+            "url": activePage,
+            "isEmbed": true,
+            "headers": {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                "Accept": "*/*",
+                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                "X-Requested-With": "com.android.chrome"
+            },
+            "subtitles": []
+        });
+        
+    } catch (e) {
+        // Trả về chính URL truyền vào thay vì chuỗi rỗng để tránh làm chết luồng phát phim
+        return JSON.stringify({
+            "url": url,
+            "isEmbed": true,
+            "headers": {
+                "Referer": BASEURL
+            }
+        });
+    }
 }
 
 //BASEURL = "https://phimnganhdc.com";
@@ -395,43 +393,56 @@ function parseDetailResponse(html, url) {
 
 
 function parseEmbedResponse(html, url) {
-	try {
-		var $type = url.match(/type=(\w+)/i)[1];
-		var streamUrl = "";
-		if ($type == "m3u8") {
-			streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
-		}
-		else {
-			streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
-		}
-		var checkepi = "false";
-		var typevideo = "true";
-		if (url.indexOf("true") > -1) {
-			checkepi = "true";
-		} else {
-			var matchCurent = url.match(/tapplay=(\d+)/);
-			var curentRaw = matchCurent ? matchCurent[1] : "1";
-			var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "02", "22"...
-			checkepi = _$(html).find("h2").text() + "- Tập " + curent;
-		}
-		var customJs = textJS(typevideo, checkepi);
-		return JSON.stringify({
-			url: streamUrl,
-			isEmbed: false,
-			mimeType: "application/x-mpegURL",
-			headers: {
-				"Referer": BASEURL,
-				"Origin": BASEURL,
-				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-				"Custom-Js": customJs.trim()
-			}
-		});
-	} catch (e) {
-		return JSON.stringify({
-			url: url,
-			headers: {}
-		});
-	}
+    try {
+        // Đảm bảo không bị crash nếu regex không tìm thấy "type"
+        var matchType = url.match(/type=(\w+)/i);
+        var $type = matchType ? matchType[1] : "m3u8";
+        
+        var streamUrl = "";
+        if ($type === "m3u8") {
+            streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
+        } else {
+            streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
+        }
+        
+        // Nếu không tìm thấy link qua thuộc tính data-link, thử tìm link trong thẻ iframe/embed dự phòng
+        if (!streamUrl) {
+            streamUrl = _$(html).find('iframe').attr("src") || _$(html).find('embed').attr("src") || "";
+        }
+        
+        var checkepi = "false";
+        var typevideo = "true";
+        if (url.indexOf("true") > -1) {
+            checkepi = "true";
+        } else {
+            var matchCurent = url.match(/tapplay=(\d+)/);
+            var curentRaw = matchCurent ? matchCurent[1] : "1";
+            var curent = formatEpisode(curentRaw);
+            
+            var titleText = _$(html).find("h2").text() || _$(html).find("h1").text() || "Phim";
+            checkepi = titleText.trim() + " - Tập " + curent;
+        }
+        
+        var customJs = textJS(typevideo, checkepi);
+        return JSON.stringify({
+            url: streamUrl || url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
+            isEmbed: false,
+            mimeType: "application/x-mpegURL",
+            headers: {
+                "Referer": BASEURL,
+                "Origin": BASEURL,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Custom-Js": customJs.trim()
+            }
+        });
+    } catch (e) {
+        return JSON.stringify({
+            url: url,
+            headers: {
+                "Referer": BASEURL
+            }
+        });
+    }
 }
 /*
 var html = outerHTML;
