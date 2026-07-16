@@ -320,36 +320,74 @@ function parseMovieDetail(html, url) {
 
 function parseDetailResponse(html, url) {
 	try {
-		var $stream = "";
-		var $type = "application/x-mpegURL";
-		if(url.indexOf("embed") > -1){
-			$stream = url;
-			$type = "";
+		var activePage = "";
+		
+		if (!url.match(/full/)) {
+			var matchCurent = url.match(/tapplay=(\d+)/);
+			var typeVD = url.match(/type=(\w+)/)[1];
+			// Lấy số tập từ URL, nếu không thấy thì mặc định là "1"
+			var curentRaw = matchCurent ? matchCurent[1] : "1";
+			var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "22",...
+			var servers = [];
+			var check = 0;
+			var maxList = [];
+			var maxEpi = 0;
+			var lineEpi = {
+				number: 0,
+				name: "Server"
+			};
+			_$(html).find(".episodelist").find("li").each(function(index, el) {
+				var link = _$(el).find("a").attr("href");
+				if (link) {
+					maxEpi++
+				}
+				var text = _$(el).attr("data-name");
+				var matchText = text.match(/([0-9]+)/);
+				var numberRaw = matchText ? matchText[1] : "1";
+				var number = formatEpisode(numberRaw);
+				
+				if (Number(number) > Number(maxEpi)) {
+					maxEpi = number;
+					lineEpi.number = maxEpi;
+				}
+				
+				if (number == curent) {
+					check++;
+					if (check == 1) {
+						activePage = link + "?tapplay=" + number + "&type=" + typeVD;
+					}
+				}
+			});
+			
+			if (Number(curent) > lineEpi.number) {
+				activePage = url + "&check=true";
+			}
+		} else {
+			activePage = url + "&check=false";
 		}
-		var customjs = textJS(url);
+		
 		return JSON.stringify({
-			"url": $stream,
-			"mimeType": $type,
+			"url": activePage,
+			"isEmbed": true,
 			"headers": {
 				"Referer": BASEURL,
 				"Origin": BASEURL,
 				"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-				// Đánh lừa thuật toán Client Hints của tường lửa
 				"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
 				"Sec-Ch-Ua-Mobile": "?1",
 				"Sec-Ch-Ua-Platform": '"Android"',
-				
-				// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
 				"Accept": "*/*",
 				"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-				"X-Requested-With": "com.android.chrome",
-				"Custom-Js": customjs.trim()
+				"X-Requested-With": "com.android.chrome"
 			},
 			"subtitles": []
 		});
 		
 	} catch (e) {
-		return JSON.stringify({ "url": "", "headers": {} });
+		return JSON.stringify({
+			"url": "",
+			"headers": {}
+		});
 	}
 }
 
@@ -357,6 +395,58 @@ function parseDetailResponse(html, url) {
 //var html = outerHTML;
 //var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
 //JSON.parse(parseDetailResponse(html, url))
+
+
+function parseEmbedResponse(html, url) {
+	try {
+		var $type = url.match(/type=(\w+)/i)[1];
+		var streamUrl = "";
+		if ($type == "m3u8") {
+			streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
+		}
+		else {
+			streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
+		}
+		var checkepi = "false";
+		var typevideo = "true";
+		if (url.indexOf("true") > -1) {
+			checkepi = "true";
+		} else {
+			var matchCurent = url.match(/tapplay=(\d+)/);
+			var curentRaw = matchCurent ? matchCurent[1] : "1";
+			var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "02", "22"...
+			checkepi = _$(html).find("h2").text() + "- Tập " + curent;
+		}
+		var customJs = textJS(typevideo, checkepi);
+		return JSON.stringify({
+			url: streamUrl,
+			isEmbed: false,
+			mimeType: "application/x-mpegURL",
+			headers: {
+				"Referer": BASEURL,
+				"Origin": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+				"Custom-Js": customJs.trim()
+			}
+		});
+	} catch (e) {
+		return JSON.stringify({
+			url: url,
+			headers: {}
+		});
+	}
+}
+/*
+var html = outerHTML;
+var url = "https://bilutv.asia/phim/kinh-thanh-ky-tham/tap-tap-01-398150?tapplay=12&type=m3u8";
+JSON.parse(parseEmbedResponse(html, url))
+function textJS(typevideo, checkepi){
+    return `
+    typevideo = '${typevideo}';
+    checkepi = '${checkepi}';
+    `
+}
+*/
 
 function sortEpisodesByName(data) {
     data.forEach(server => {
@@ -378,12 +468,13 @@ function sortEpisodesByName(data) {
     return data;
 }
 
-function textJS($links) {
-    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
-    return `
-LINKVIDEO = ${JSON.stringify($links)}
+function textJS($links, checkepi) {
+	// Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+	return `
+LINKVIDEO = ${JSON.stringify($links)};
+CHECKEPI = ${JSON.stringify(checkepi)};
 
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=onflix&type=js"; 
+SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=bilutv&type=js"; 
 const style = document.createElement('style');
 var customcss = 'body{background:#000000;overflow:hidden;margin:0;height:100vh;display:flex;justify-content:center;align-items:center;position:relative;font-family:sans-serif;}body::before{content:"";width:60px;height:60px;border:4px solid rgba(255, 255, 255, 0.1);border-top-color:#00ffcc;border-radius:50%;animation:spin 0.8s linear infinite;transform:translateY(-20px);box-shadow:0 0 10px rgba(0, 255, 204, 0.2);}body::after{content:"LOADING";position:absolute;color:#ffffff;font-size:11px;letter-spacing:3px;transform:translateY(40px);animation:pulse 1.5s ease-in-out infinite;opacity:0.8;}@keyframes spin{to{transform:translateY(-20px) rotate(360deg);}}@keyframes pulse{0%, 100%{opacity:0.3;}50%{opacity:1;text-shadow:0 0 8px rgba(0, 255, 204, 0.6);}}';
 style.innerHTML = customcss;
