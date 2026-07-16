@@ -1,18 +1,18 @@
 BASEURL = "https://onflix.lat";
 BASEAPI = "https://k8s.onflixcdn.com/api";
-// https://k8s.onflixcdn.com/api/themes/de-xuat-cho-ban?page=1&limit=24
+
 function getManifest() {
-    return JSON.stringify({
-        "id": "onflix",
-        "name": "Onflix",
-        "description": "Trang xem phim siêu hay.",
-        "version": "1.2",
-        "BASEURL": "https://onflix.lat",
-        "iconUrl": "https://onflix.lat/app/asset/logo.png",
-        "isEnabled": true,
-        "type": "Movie",
-        "playerType": "auto"
-    });
+	return JSON.stringify({
+		"id": "onflix",
+		"name": "Onflix",
+		"description": "Trang xem phim siêu hay.",
+		"version": "1.4",
+		"BASEURL": "https://onflix.lat",
+		"iconUrl": "https://onflix.lat/app/asset/logo.png",
+		"isEnabled": true,
+		"type": "VIDEO",
+		"playerType": "auto"
+	});
 }
 
 // https://onflix.lat/kham-pha?page=2
