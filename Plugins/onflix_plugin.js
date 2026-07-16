@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "onflix",
 		"name": "Onflix",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.6",
+		"version": "1.7",
 		"BASEURL": "https://onflix.lat",
 		"iconUrl": "https://onflix.lat/app/asset/logo.png",
 		"isEnabled": true,
@@ -285,18 +285,6 @@ function parseMovieDetail(html, $url) {
             // 2. Nếu chưa tồn tại, tạo mới server và đẩy vào mảng servers
             if (!server) {
             	var serverName = episode.server_name;
-            	/*
-                
-                if(serverName.indexOf("(NC)") > -1){
-                    serverName = "Nguồn C";
-                }
-                if(serverName.indexOf("(PA)") > -1){
-                    serverName = "KK Phim";
-                }
-                if(serverName.indexOf("(OP)") > -1){
-                    serverName = "Ổ Phim";
-                }
-                */
                 server = {
                     name: serverName,
                     episodes: []
@@ -314,6 +302,34 @@ function parseMovieDetail(html, $url) {
                 name: "Tập " + episode.slug,      // Tập + slug (ví dụ: Tập 1)
                 slug: "tap-" + episode.slug       // tap-slug (ví dụ: tap-1)
             });
+        });
+        function renameServer(originalName) {
+            let newName = originalName;
+            if (originalName.includes("PA")) {
+                newName = originalName.replace("PA", "KK Phim");
+            } else if (originalName.includes("OP")) {
+                newName = originalName.replace("OP", "Ổ Phim");
+            } else if (originalName.includes("NC")) {
+                newName = originalName.replace("NC", "Nguồn C");
+            }
+            return newName;
+        }
+
+        // 2. Chạy vòng lặp đổi tên cho toàn bộ server trước
+        servers.forEach(server => {
+            server.name = renameServer(server.name);
+        });
+
+        // 3. Sắp xếp lại danh sách theo tên mới đã được đổi
+        servers.sort((a, b) => {
+            const getPriority = (name) => {
+                if (name.includes("KK Phim")) return 1;  // KK Phim (PA cũ) lên đầu
+                if (name.includes("Ổ Phim")) return 2;   // Ổ Phim (OP cũ) xếp thứ hai
+                if (name.includes("Nguồn C")) return 4;  // Nguồn C (NC cũ) xuống cuối cùng
+                return 3;                                // Các nguồn còn lại (SN, v.v.) nằm giữa
+            };
+
+            return getPriority(a.name) - getPriority(b.name);
         });
         return JSON.stringify({
             id: $url,
@@ -351,20 +367,18 @@ function parseMovieDetail(html, $url) {
 	}
 }
 
-//BASEURL = "https://phimnganhdc.com";
-//var html = outerHTML;
-//var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
-//JSON.parse(parseMovieDetail(outerHTML,$url));
-
-// https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san-35032
-// https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san/tap-1-811897
 function parseDetailResponse(html, url) {
 	try {
-			
+		var $stream = "";
+		var $type = "application/x-mpegURL";
+		if(url.indexOf("embed") > -1){
+			$stream = url;
+			$type = "";
+		}
 		var customjs = textJS(url);
 		return JSON.stringify({
-			"url": "",
-			"mimeType": "application/x-mpegURL",
+			"url": $stream,
+			"mimeType": $type,
 			"headers": {
 				"Referer": BASEURL,
 				"Origin": BASEURL,
