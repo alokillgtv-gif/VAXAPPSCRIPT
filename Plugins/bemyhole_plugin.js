@@ -7,7 +7,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.",
+        "version": "1.0",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
