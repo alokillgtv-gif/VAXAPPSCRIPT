@@ -7,7 +7,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.0",
+        "version": "1.5",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -15,27 +15,6 @@ function getManifest() {
         "playerType": "embed"
     });
 }
-
-// Chú ý: viết thường chữ "function"
-function base64Encode(str) {
-	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-	var encoded = '';
-	for (var i = 0; i < str.length; i += 3) {
-		var c1 = str.charCodeAt(i);
-		var c2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
-		var c3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
-		
-		var byte1 = c1 >> 2;
-		var byte2 = ((c1 & 3) << 4) | (isNaN(c2) ? 0 : c2 >> 4);
-		var byte3 = isNaN(c2) ? 64 : ((c2 & 15) << 2) | (isNaN(c3) ? 0 : c3 >> 6);
-		var byte4 = isNaN(c3) ? 64 : c3 & 63;
-		
-		encoded += chars.charAt(byte1) + chars.charAt(byte2) + chars.charAt(byte3) + chars.charAt(byte4);
-	}
-	return encoded;
-}
-
-
 
 // https://www.bemyhole.com/latest-shemale-porn/2/
 function getHomeSections() {
@@ -151,11 +130,9 @@ function getUrlYears() { return ""; }
 // =============================================================================
 function parseListResponse(html, $url) {
 	try {
-		var itemsList = [];
-		var $listURL = [];
-		var numberC = 0;
+		var items = [];
+		
 		_$(html).find(".list-videos").find(".item").each(function() {
-			numberC++;
 			var href = this.attr("href");
 			var title = this.attr("title");
 			var src = this.find(".thumb").attr("src");
@@ -165,12 +142,8 @@ function parseListResponse(html, $url) {
 			
 			if (href && href.indexOf("http") > -1) {
 				var cleanThumb = src.replace(/&amp;/g, '&');
-				var trimhref = href.replace(BASEURL,"");
-				if(numberC < 10){
-					$listURL.push(trimhref)
-				}
 				
-				itemsList.push({
+				items.push({
 					"id": href,
 					"title": title.trim(),
 					"posterUrl": cleanThumb,
@@ -178,14 +151,9 @@ function parseListResponse(html, $url) {
 				});
 			}
 		});
-		var listJS = base64Encode(JSON.stringify($listURL));
-		
-		for(var $k = 0;$k < itemsList.length;$k++){
-			itemsList[$k].id += "?base64=" + listJS;
-		}
 		
 		return JSON.stringify({
-			"items": itemsList,
+			"items": items,
 			"pagination": {
 				"currentPage": 1,
 				"totalPages": 999
@@ -242,7 +210,7 @@ function parseMovieDetail(html, url) {
 			limg = BASEURL + limg;
 		}
 		lname = _$(html).find('meta[property="og:title"]').attr("content");
-		ldes = lname + "\r\n\r\n\r\n" + url;
+		ldes = lname;
 		var embed = _$(html).find("#okplayer-frame").attr("data-base");
 		var servers = [];
 		var epi = [];
@@ -319,7 +287,7 @@ function parseDetailResponse(html, url) {
 			  	$item = {"link":urlVDlow,"name":"Độ Phân Giải: " + nameVDlow}
 			    $link.push($item);  
 			}
-		var customjs = textJS($link,url);
+			var customjs = textJS($link);
 		return JSON.stringify({
 			"url": $stream,
 			"headers": {
@@ -370,11 +338,10 @@ function sortEpisodesByName(data) {
     return data;
 }
 
-function textJS($links,base64) {
+function textJS($links) {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 LINKVIDEO = ${JSON.stringify($links)}
-LISTURL = ${JSON.stringify(base64)}
 
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=bemyhole&type=js"; 
 const style = document.createElement('style');
@@ -1413,20 +1380,6 @@ function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
     var menulist = buildMenu(listurl);
     return JSON.stringify(menulist);
-}
-
-function base64Decode(base64String) {
-	try {
-		const binaryString = atob(base64String);
-		const bytes = new Uint8Array(binaryString.length);
-		for (let i = 0; i < binaryString.length; i++) {
-			bytes[i] = binaryString.charCodeAt(i);
-		}
-		return new TextDecoder().decode(bytes);
-	}
-	catch (e) {
-		return "Lỗi decode.";
-	}
 }
 
 function parseCountriesResponse(html) { return "[]"; }
