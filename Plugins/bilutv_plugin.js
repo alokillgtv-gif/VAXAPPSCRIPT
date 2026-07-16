@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "2.4",
+		"version": "2.6",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -393,71 +393,69 @@ function parseDetailResponse(html, url) {
 
 
 function parseEmbedResponse(html, url) {
-    try {
-        // Đảm bảo không bị crash nếu regex không tìm thấy "type"
-        var matchType = url.match(/type=(\w+)/i);
-        var $type = matchType ? matchType[1] : "m3u8";
-        
-        var streamUrl = "";
-        if ($type === "m3u8") {
-            streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
-        } else {
-            streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
-        }
-        
-        // Nếu không tìm thấy link qua thuộc tính data-link, thử tìm link trong thẻ iframe/embed dự phòng
-        if (!streamUrl) {
-            streamUrl = _$(html).find('iframe').attr("src") || _$(html).find('embed').attr("src") || "";
-        }
-        
-        var checkepi = "false";
-        var typevideo = "true";
-        if (url.indexOf("true") > -1) {
-            checkepi = "true";
-        } else {
-            var matchCurent = url.match(/tapplay=(\d+)/);
-            var curentRaw = matchCurent ? matchCurent[1] : "1";
-            var curent = formatEpisode(curentRaw);
-            
-            var titleText = _$(html).find("h2").text() || _$(html).find("h1").text() || "Phim";
-            checkepi = titleText.trim() + " - Tập " + curent;
-        }
-        
-        var customJs = textJS(typevideo, checkepi, url, streamUrl);
-        if(url.indexOf("m3u8") > -1){
-					return JSON.stringify({
-						url: url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
-						mimeType: "application/x-mpegURL",
-						isEmbed: false,
-						headers: {
-							"Referer": BASEURL,
-							"Origin": BASEURL,
-							"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-						}
-					});
-        }
-        else{
-					return JSON.stringify({
-						url: streamUrl || url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
-						mimeType: "application/x-mpegURL",
-						isEmbed: true,
-						headers: {
-							"Referer": BASEURL,
-							"Origin": BASEURL,
-							"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-							"Custom-Js": customJs.trim()
-						}
-					});
-        }
-        
-    } catch (e) {
-        return JSON.stringify({
-            url: url,
-            headers: {
-                "Referer": BASEURL
-            }
-        });
-    }
+	try {
+		if (url.indexOf("m3u8") > -1) {
+			return JSON.stringify({
+				url: "", // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
+				mimeType: "application/x-mpegURL",
+				isEmbed: false,
+				headers: {
+					"Referer": BASEURL,
+					"Origin": BASEURL,
+					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+				}
+			});
+		} else {
+			var matchType = url.match(/type=(\w+)/i);
+			var $type = matchType ? matchType[1] : "m3u8";
+			
+			var streamUrl = "";
+			if ($type === "m3u8") {
+				streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
+			} else {
+				streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
+			}
+			
+			// Nếu không tìm thấy link qua thuộc tính data-link, thử tìm link trong thẻ iframe/embed dự phòng
+			if (!streamUrl) {
+				streamUrl = _$(html).find('iframe').attr("src") || _$(html).find('embed').attr(
+					"src") || "";
+			}
+			var customJs = textJS(typevideo, checkepi, url, streamUrl);
+			var checkepi = "false";
+			var typevideo = "true";
+			if (url.indexOf("true") > -1) {
+				checkepi = "true";
+			} else {
+				var matchCurent = url.match(/tapplay=(\d+)/);
+				var curentRaw = matchCurent ? matchCurent[1] : "1";
+				var curent = formatEpisode(curentRaw);
+				
+				var titleText = _$(html).find("h2").text() || _$(html).find("h1").text() || "Phim";
+				checkepi = titleText.trim() + " - Tập " + curent;
+			}
+			return JSON.stringify({
+				url: streamUrl ||
+					url, // Trả về url gốc nếu hoàn toàn không tìm thấy streamUrl để player tự load xử lý
+				mimeType: "application/x-mpegURL",
+				isEmbed: true,
+				headers: {
+					"Referer": BASEURL,
+					"Origin": BASEURL,
+					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+					"Custom-Js": customJs.trim()
+				}
+			});
+		}
+		
+	} catch (e) {
+		return JSON.stringify({
+			url: url,
+			headers: {
+				"Referer": BASEURL
+			}
+		});
+	}
 }
 /*
 var html = outerHTML;
