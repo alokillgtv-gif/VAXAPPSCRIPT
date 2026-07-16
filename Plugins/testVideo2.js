@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo2",          
         "name": "Test Exoplayer",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.2",             
+        "version": "2.3",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -109,7 +109,7 @@ function parseMovieDetail(html) {
         var year = "2026";
         var des = html;
         var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
-        var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
+        var episodes = [{ id: "https://v7.kkphimplayer7.com/20260714/HoK0b00I/index.m3u8", name: "Xem Ngay", slug: "full" }];
         
         return JSON.stringify({
             "id": id,
@@ -139,7 +139,7 @@ function parseDetailResponse(html,url) {
         var customjs = BaseJSON.codec || "";
         var $type = BaseJSON.codea;
         return JSON.stringify({
-            "url": videoUrl, 
+            "url": "", 
             "mimeType": $type,
             "headers": {
                 "Referer": refUrl,
