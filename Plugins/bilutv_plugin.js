@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.9",
+		"version": "2.0",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -480,18 +480,20 @@ function textJS($links, checkepi) {
 	return `
 LINKVIDEO = ${JSON.stringify($links)};
 CHECKEPI = ${JSON.stringify(checkepi)};
-
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=bilutv&type=js"; 
+SCRIPTURL = "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/main/buildVideo.js"; 
+if(LINKVIDEO == "false"){
+	SCRIPTURL = "https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/main/removeADSVIDEO.js";
+}
 const style = document.createElement('style');
-var customcss = 'body{background:#000000;overflow:hidden;margin:0;height:100vh;display:flex;justify-content:center;align-items:center;position:relative;font-family:sans-serif;}body::before{content:"";width:60px;height:60px;border:4px solid rgba(255, 255, 255, 0.1);border-top-color:#00ffcc;border-radius:50%;animation:spin 0.8s linear infinite;transform:translateY(-20px);box-shadow:0 0 10px rgba(0, 255, 204, 0.2);}body::after{content:"LOADING";position:absolute;color:#ffffff;font-size:11px;letter-spacing:3px;transform:translateY(40px);animation:pulse 1.5s ease-in-out infinite;opacity:0.8;}@keyframes spin{to{transform:translateY(-20px) rotate(360deg);}}@keyframes pulse{0%, 100%{opacity:0.3;}50%{opacity:1;text-shadow:0 0 8px rgba(0, 255, 204, 0.6);}}';
+var customcss = 'body { background: black; overflow: hidden; }body * {background: black}';
 style.innerHTML = customcss;
-//document.head.appendChild(style);
+document.head.appendChild(style);
 
 /* Build Video Begin*/
 
-
-    // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
-    function showToast(message, duration, check) {
+    var DEVELOPE = false;
+// ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
+function showToast(message, duration, check) {
         if (typeof duration === 'undefined') duration = 7000;
         if (typeof check === 'undefined') check = true;
         if (check === false) return;
@@ -522,13 +524,6 @@ style.innerHTML = customcss;
         }, duration);
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', GetlinkVideo);
-    } else {
-        
-    }
-
-
 /* Build Video End */
 
 function injectScriptAfterLoad(scriptUrl) {
@@ -553,6 +548,12 @@ function injectScriptAfterLoad(scriptUrl) {
                 // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
                 document.body.appendChild(scriptElement);
                // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
+								if (CHECKEPI == "true") {
+									showToast('Tập phim bạn chọn chưa có hoặc đã lỗi. Đã tự động đưa bạn về tập 1!', 60000, true);
+								}
+								else{
+									showToast(CHECKEPI, 30000, true,true);
+								}
             })
             .catch(error => {
                 console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
@@ -577,9 +578,9 @@ function initCustomVideoFix() {
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+	document.addEventListener('DOMContentLoaded', initCustomVideoFix);
 } else {
-    initCustomVideoFix();
+	initCustomVideoFix();
 }
 
 `;
