@@ -7,7 +7,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "2.0",
+        "version": "2.1",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -177,9 +177,10 @@ function parseListResponse(html, $url) {
 		});
 		var listJS = stringToHex(JSON.stringify($listURL));
 		
-		itemsList.forEach(function(item) {
-			item.id = item.id + "?base64=" + listJS;
-		});
+		for(var $k = 0;$k < itemsList.length;$k++){
+			itemsList[$k].id += "?base64=" + listJS;
+		}
+		
 		return JSON.stringify({
 			"items": itemsList,
 			"pagination": {
