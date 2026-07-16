@@ -683,8 +683,44 @@
       editor.setValue(newCode);
       showToast('🚫 Đã xóa sạch toàn bộ thẻ <script>', 2000);
       updateStats();
+      addHostToStatic();
     }
   }
+  
+  function addHostToStatic() {
+  // 1. Lấy nội dung từ editor
+	  var code = editor.getValue();
+	  
+	  // 2. Lấy giá trị host từ input và loại bỏ khoảng trắng thừa
+	  var host = document.getElementById('frFind').value.trim();
+	  
+	  if (!host) {
+	    showToast('⚠️ Vui lòng nhập domain vào ô tìm kiếm!', 2000);
+	    return;
+	  }
+	
+	  // 3. Chuẩn hóa host (Đảm bảo có http/https và không có dấu / ở cuối)
+	  if (!/^https?:\/\//i.test(host)) {
+	    host = 'https://' + host; // Mặc định thêm https nếu user chỉ gõ "domain.com"
+	  }
+	  host = host.replace(/\/+$/, ''); // Xóa dấu "/" ở cuối nếu user lỡ nhập "domain.com/"
+	
+	  // 4. Regex quét các đường dẫn bắt đầu bằng /static/ nằm trong dấu nháy
+	  var regex = /(["'])\/(?!\/)([^"'\s]+)\1/g;
+
+	
+	  // 5. Thay thế và kiểm tra xem có thay đổi gì không
+	  var newCode = code.replace(regex, `$1${host}/static/$2$1`);
+	
+	  if (code === newCode) {
+	    showToast('Không tìm thấy đường dẫn /static/ nào phù hợp!', 2000);
+	  } else {
+	    editor.setValue(newCode);
+	    showToast('✅ Đã thêm host vào toàn bộ đường dẫn /static/', 2000);
+	    updateStats();
+	  }
+	}
+
 
   // 2. Rút gọn JS thành 1 dòng (Minify JS cơ bản)
   function minifyJS() {
