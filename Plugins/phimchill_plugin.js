@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.6.2",             
+        "version": "3.6.3",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -187,6 +187,7 @@ function parseMovieDetail(html, url) {
 					servers.push(server);
 				}
 			})
+			servers = [{"name":"Danh Sách OP - Vietsub #1","episodes":[{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-1_1357094.html","name":"Tập 1","slug":"tap-1"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-2_1359587.html","name":"Tập 2","slug":"tap-2"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-3_1359588.html","name":"Tập 3","slug":"tap-3"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-4_1364821.html","name":"Tập 4","slug":"tap-4"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-5_1367565.html","name":"Tập 5","slug":"tap-5"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-6_1372671.html","name":"Tập 6","slug":"tap-6"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-7_1372673.html","name":"Tập 7","slug":"tap-7"}]}]
 			return JSON.stringify({
 				servers: servers
 			});
