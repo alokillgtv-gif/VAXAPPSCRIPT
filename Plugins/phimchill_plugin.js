@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.6",             
+        "version": "3.6.1",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -191,8 +191,6 @@ function parseMovieDetail(html, url) {
 				servers: servers
 			});
 		} else {
-			var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
-			extra = playBtnMatch;
 			var lurl = "";
 			var limg = "";
 			var lname = "Đang cập nhật...";
@@ -235,6 +233,8 @@ function parseMovieDetail(html, url) {
 				lduran = rmatch[1];
 			}
 			ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
+			var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
+			extra = playBtnMatch;
 			return JSON.stringify({
 				id: url,
 				title: lname,
@@ -244,6 +244,7 @@ function parseMovieDetail(html, url) {
 				quality: "HD",
 				year: 2026,
 				rating: 8.5,
+				servers: "",
 				status: "Sẵn sàng",
 				duration: lduran || "",
 				casts: lactor || "",
