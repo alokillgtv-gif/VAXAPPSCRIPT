@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.4",             
+        "version": "3.5",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -163,106 +163,95 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-	
-    var lurl = "";
-    var limg = "";
-    var lname = "Đang cập nhật...";
-    var ldes = "Không có mô tả.";
-    var ldirec = "";
-    var lactor = "";
-    var lduran = "";
 
-    var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
-    if (rmatch && rmatch[1]) {
-        lurl = rmatch[1];
-    }
-
-    rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
-    if (rmatch && rmatch[1]) {
-        limg = rmatch[1];
-    }
-
-    rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
-    if (rmatch && rmatch[1]) {
-        lname = rmatch[1];
-    }
-
-    rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
-    if (rmatch && rmatch[1]) {
-        ldes = rmatch[1];
-    }
-
-    rmatch = html.match(/meta\s+property="video:director"\s+content="([^"]+)"/i);
-    if (rmatch && rmatch[1]) {
-        ldirec = rmatch[1];
-    }
-
-    rmatch = html.match(/meta\s+property="video:actor"\s+content="([^"]+)"/i);
-    if (rmatch && rmatch[1]) {
-        lactor = rmatch[1];
-    }
-
-    rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
-    if (rmatch && rmatch[1]) {
-        lduran = rmatch[1];
-    }
-
-    // Tìm URL nút "Xem Phim" chứa ID thật của trang chiếu phim (Ví dụ: /tap-1_1368851.html)
-    var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
+		// Cách kiểm tra nhanh bằng Regex siêu gọn:
+		var isPlayPage = /\/tap-[^/]+?\.html$/.test(url);
+		var extra = "";
 		var servers = [];
-		_$(html).find('span:content("Danh Sách")').each(function(index, el) {
-			var $box = this.next();
-			var $nameserver = $(el).text();
-			var $items = [];
-			$box.find("a").each(function(index, bl) {
-				var $link = $(bl).attr("href");
-				var $number = $(bl).text();
-				var $item = { id: $link, name: "Tập " + $number, slug: "tap-" + $number }
-				$items.push($item)
-			})
-			if ($items.length > 0) {
-				server = {
-					name: $nameserver,
-					episodes: $items
-				};
-				servers.push(server);
-			}
-		})
-
-        // Tạo extra url để tải đầy đủ tập từ trang xem-phim
-        // Kiểm tra bằng canonical URL (biến id) thay vì search toàn HTML vì trang
-        // detail có nav link chứa chuỗi "xem-phim" gây nhận nhầm.
-        // https://phimchillhdz.im/phim/giay-chung-nhan-quan-he-gia-dinh/tap-1_1370127.html
-        // https://phimchillhdz.im/phim/giay-chung-nhan-quan-he-gia-dinh_46928.html
-				// Cách kiểm tra nhanh bằng Regex siêu gọn:
-				var isPlayPage = /\/tap-[^/]+?\.html$/.test(url);
-				
-				if (isPlayPage) {
-					// Nếu đuôi URL có dạng /tap-...html -> Đây là trang xem (áp dụng cho cả phim bộ lẫn phim lẻ)
-					//console.log("Đây là trang xem phim");
-				} else {
-					var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
-					extra = playBtnMatch;
+		if (isPlayPage) {
+			var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
+			var servers = [];
+			_$(html).find('span:content("Danh Sách")').each(function(index, el) {
+				var $box = this.next();
+				var $nameserver = $(el).text();
+				var $items = [];
+				$box.find("a").each(function(index, bl) {
+					var $link = $(bl).attr("href");
+					var $number = $(bl).text();
+					var $item = { id: $link, name: "Tập " + $number, slug: "tap-" + $number }
+					$items.push($item)
+				})
+				if ($items.length > 0) {
+					server = {
+						name: $nameserver,
+						episodes: $items
+					};
+					servers.push(server);
 				}
-    
-    ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
-    return JSON.stringify({
-        id: url,
-        title: lname,
-        posterUrl: limg,
-        backdropUrl: limg,
-        description: ldes,
-        servers: servers,
-        quality: "HD",
-        year: 2026,
-        rating: 8.5,
-        status: "Sẵn sàng",
-        duration: lduran || "",
-        casts: lactor || "",
-        director: ldirec || "",
-        category: "Phim",
-        extra: extra
-    });
+			})
+		} else {
+			var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
+			extra = playBtnMatch;
+			var lurl = "";
+			var limg = "";
+			var lname = "Đang cập nhật...";
+			var ldes = "Không có mô tả.";
+			var ldirec = "";
+			var lactor = "";
+			var lduran = "";
+			
+			var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) {
+				lurl = rmatch[1];
+			}
+			
+			rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) {
+				limg = rmatch[1];
+			}
+			
+			rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) {
+				lname = rmatch[1];
+			}
+			
+			rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) {
+				ldes = rmatch[1];
+			}
+			
+			rmatch = html.match(/meta\s+property="video:director"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) {
+				ldirec = rmatch[1];
+			}
+			
+			rmatch = html.match(/meta\s+property="video:actor"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) {
+				lactor = rmatch[1];
+			}
+			rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) {
+				lduran = rmatch[1];
+			}
+			ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
+			return JSON.stringify({
+				id: url,
+				title: lname,
+				posterUrl: limg,
+				backdropUrl: limg,
+				description: ldes,
+				servers: servers,
+				quality: "HD",
+				year: 2026,
+				rating: 8.5,
+				status: "Sẵn sàng",
+				duration: lduran || "",
+				casts: lactor || "",
+				director: ldirec || "",
+				category: "Phim",
+				extra: extra
+			});
+		}
 }
 
 // Hàm bổ trợ chuẩn hóa tập phim an toàn, không lo lỗi "00"
