@@ -163,14 +163,8 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-    // Chặn đệ quy nếu click từ trang phát
-    if (url && (url.includes("play-") || url.includes("?tap="))) {
-        return JSON.stringify({
-            id: url,
-            servers: []
-        });
-    }
 
+\
     var lurl = "";
     var limg = "";
     var lname = "Đang cập nhật...";
@@ -215,7 +209,7 @@ function parseMovieDetail(html, url) {
     }
 
     var servers = [];
-
+		
     // Tìm URL nút "Xem Phim" chứa ID thật của trang chiếu phim (Ví dụ: /tap-1_1368851.html)
     var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
     // BÓC TÁCH SỐ TẬP TỪ BIẾN lduran (Thời lượng / Số tập)
@@ -239,6 +233,24 @@ function parseMovieDetail(html, url) {
         episodes: episodes
     });
     ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
+    
+        // Tạo extra url để tải đầy đủ tập từ trang xem-phim
+        // Kiểm tra bằng canonical URL (biến id) thay vì search toàn HTML vì trang
+        // detail có nav link chứa chuỗi "xem-phim" gây nhận nhầm.
+        // https://phimchillhdz.im/phim/giay-chung-nhan-quan-he-gia-dinh/tap-1_1370127.html
+        // https://phimchillhdz.im/phim/giay-chung-nhan-quan-he-gia-dinh_46928.html
+				// Cách kiểm tra nhanh bằng Regex siêu gọn:
+				var isPlayPage = /\/tap-[^/]+?\.html$/.test(url);
+				
+				if (isPlayPage) {
+					// Nếu đuôi URL có dạng /tap-...html -> Đây là trang xem (áp dụng cho cả phim bộ lẫn phim lẻ)
+					//console.log("Đây là trang xem phim");
+				} else {
+					var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
+					extra = playBtnMatch;
+				}
+    
+    
     return JSON.stringify({
         id: url,
         title: lname,
@@ -253,7 +265,8 @@ function parseMovieDetail(html, url) {
         duration: lduran || "",
         casts: lactor || "",
         director: ldirec || "",
-        category: "Phim"
+        category: "Phim",
+        extra: extra
     });
 }
 
