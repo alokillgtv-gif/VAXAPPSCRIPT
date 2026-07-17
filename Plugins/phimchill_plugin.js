@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "2.9",             
+        "version": "3.0",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -354,10 +354,12 @@ function parseDetailResponse(html, url) {
 function parseEmbedResponse(html, url) {
     try {
         var streamUrl = "";
+        var VDtype = "";
 				_$(html).find('a[data-type="m3u8"]').each(function() {
 					var link = this.attr("data-link");
 					if (link.indexOf("mtstreamc") < 0) {
 						streamUrl = link;
+						VDtype = "m3u8"
 					}
 				});
         var embed = _$(html).find('a[data-type="embed"]').attr("data-link");
@@ -368,6 +370,7 @@ function parseEmbedResponse(html, url) {
             typevideo = "false";
             if(embed){
             	streamUrl = embed;
+            	VDtype = "embed";
             }
             else{
             	typevideo = "false";
@@ -384,19 +387,41 @@ function parseEmbedResponse(html, url) {
             var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "02", "22"...
    					checkepi = _$(html).find("h2").find("a").text() + "- Tập " + curent;
 				 }
-        
         var customJs = textJS(typevideo, checkepi);
-        return JSON.stringify({
-            url: streamUrl,
-            isEmbed: false,
-            mimeType: "application/x-mpegURL",
-            headers: {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs.trim()
-            }
-        });
+        
+        if(VDtype == "m3u8"){
+					  return JSON.stringify({
+						 	"url": streamUrl,
+						 	"isEmbed": false,
+						 	"mimeType": "application/x-mpegURL",
+						 	"headers": {
+						 		"Referer": BASEURL,
+						 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+						 	},
+						 	"subtitles": []
+						 });
+        }
+        else{
+						return JSON.stringify({
+							"url": streamUrl,
+							"headers": {
+								"Referer": BASEURL,
+								"Origin": BASEURL,
+								"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+								// Đánh lừa thuật toán Client Hints của tường lửa
+								"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+								"Sec-Ch-Ua-Mobile": "?1",
+								"Sec-Ch-Ua-Platform": '"Android"',
+								
+								// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+								"Accept": "*/*",
+								"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+								"X-Requested-With": "com.android.chrome",
+								"Custom-Js": customJs.trim()
+							},
+							"subtitles": []
+						});
+        }
     } catch (e) {
         return JSON.stringify({
             url: url,
