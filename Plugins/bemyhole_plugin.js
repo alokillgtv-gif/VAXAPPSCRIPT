@@ -5,7 +5,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.7",
+        "version": "1.7.1",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -225,9 +225,9 @@ function parseMovieDetail(html, url) {
 			    var urlVDhight = vdObj.video_alt_url;
 			
 			    var $stream = urlVDhight;
-			    var $item = {"id":urlVDhight,"name":"Độ Phân Giải: " + nameVDhight,slug:"full"}
+			    var $item = {"id":urlVDhight + "#video.m3u8","name":"Độ Phân Giải: " + nameVDhight,slug:"full"}
 			    $link.push($item);
-			  	$item = {"id":urlVDlow,"name":"Độ Phân Giải: " + nameVDlow,slug:"full"}
+			  	$item = {"id":urlVDlow + "#video.m3u8","name":"Độ Phân Giải: " + nameVDlow,slug:"full"}
 			    $link.push($item);  
 			}
 		var servers = [];
