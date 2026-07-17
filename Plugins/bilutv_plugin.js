@@ -480,7 +480,7 @@ function parseEmbedResponse(html, url) {
 		}
 		
 	} catch (e) {
-		
+		log(e);
 		return JSON.stringify({
 			url: url,
 			headers: {
