@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.7.2",             
+        "version": "3.7.3",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -163,121 +163,124 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(htmlContent, url) {
-    try {
-        // === BƯỚC 1: ĐỒNG NHẤT ID PHIM BẰNG REGEX META (Y hệt tác giả) ===
-        var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(htmlContent) 
-                      || /<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(htmlContent);
-        var id = idMatch ? idMatch[1] : (url || "");
-
-        var slug = "";
-        if (id) {
-            var slugMatch = /\/phim\/([^/_.]+)/.exec(id);
-            slug = slugMatch ? slugMatch[1] : id;
-        }
-        if (!slug) {
-            var slugMatch2 = /\/phim\/([^/_.]+)/.exec(htmlContent);
-            slug = slugMatch2 ? slugMatch2[1] : "";
-        }
-
-        // === BƯỚC 2: TRÍCH XUẤT THÔNG TIN PHIM ===
-        var lurl = "";
-        var limg = "";
-        var lname = "Đang cập nhật...";
-        var ldes = "Không có mô tả.";
-        var ldirec = "";
-        var lactor = "";
-        var lduran = "";
-        
-        var rmatch = htmlContent.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
-        if (rmatch && rmatch[1]) lurl = rmatch[1];
-        
-        rmatch = htmlContent.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
-        if (rmatch && rmatch[1]) limg = rmatch[1];
-        
-        rmatch = htmlContent.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
-        if (rmatch && rmatch[1]) lname = rmatch[1];
-        
-        rmatch = htmlContent.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
-        if (rmatch && rmatch[1]) ldes = rmatch[1];
-        
-        rmatch = htmlContent.match(/meta\s+property="video:director"\s+content="([^"]+)"/i);
-        if (rmatch && rmatch[1]) ldirec = rmatch[1];
-        
-        rmatch = htmlContent.match(/meta\s+property="video:actor"\s+content="([^"]+)"/i);
-        if (rmatch && rmatch[1]) lactor = rmatch[1];
-
-        rmatch = htmlContent.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
-        if (rmatch && rmatch[1]) lduran = rmatch[1];
-
-        // === BƯỚC 3: QUÉT TẬP PHIM (Nếu đang ở trang Xem phim thì sẽ tìm thấy) ===
-        var servers = [];
-        _$(htmlContent).find('span:content("Danh Sách")').each(function(index, el) {
-            var $box = this.next();
-            var $nameserver = _$(el).text();
-            var $items = [];
-            
-            $box.find("a").each(function(idx, bl) {
-                var $link = _$(bl).attr("href");
-                var $number = _$(bl).text();
-                
-                if ($link) {
-                    if ($link.indexOf('http') !== 0) {
-                        $link = "https://phimchillhdz.im" + ($link.startsWith('/') ? '' : '/') + $link;
-                    }
-                    $items.push({ 
-                        id: $link, 
-                        name: "Tập " + $number.trim(), 
-                        slug: "tap-" + $number.trim() 
-                    });
-                }
-            });
-            
-            if ($items.length > 0) {
-                servers.push({
-                    name: $nameserver.trim() || "Danh Sách OP",
-                    episodes: $items
-                });
-            }
-        });
-
-        // === BƯỚC 4: NHẬN DIỆN TRANG VÀ THIẾT LẬP EXTRA ===
-        var extra = "";
-        
-        // Nhận diện trang xem phim: URL có đuôi ".html" kèm theo "tap-" HOẶC HTML chứa danh sách tập thực tế
-        var isPlayPage = /\/tap-[^/]+?\.html$/.test(url || id)
-
-        if (!isPlayPage) {
-            // Đang ở trang chi tiết -> Lấy link nút "Xem phim" để gán vào extra
-            var playBtnMatch = _$(htmlContent).find(".text-center").find(".mx-auto").attr("href");
-            if (playBtnMatch) {
-                extra = playBtnMatch;
-            }
-        }
-        // Tạo chuỗi mô tả ẩn JSON servers giống hệt tác giả
-        ldes += extra + "\r\n\r\n\r\n" + JSON.stringify(servers);
-
-        // === BƯỚC 5: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ID ===
-        return JSON.stringify({
-            id: slug || url, // BẮT BUỘC: ID phải là slug rút gọn của bộ phim để cả 2 lần fetch khớp nhau
-            title: lname,
-            posterUrl: limg,
-            backdropUrl: limg,
-            description: ldes,
-            quality: "HD",
-            year: 2026,
-            rating: 8.5,
-            servers: servers, // Lần 1 (trang chi tiết) sẽ là []. Lần 2 (khi chạy qua extra) sẽ có đầy đủ tập
-            status: "Sẵn sàng",
-            duration: lduran || "",
-            casts: lactor || "",
-            director: ldirec || "",
-            category: "Phim",
-            extra: extra // Lần 2 (trang xem phim) extra sẽ rỗng để dừng chu kỳ tải ngầm
-        });
-
-    } catch (e) {
-        return JSON.stringify({ id: slug || url || "error", title: "error", servers: [] });
-    }
+	try {
+		// === BƯỚC 1: ĐỒNG NHẤT ID PHIM BẰNG REGEX META (Y hệt tác giả) ===
+		var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(htmlContent) ||
+			/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(htmlContent);
+		var id = idMatch ? idMatch[1] : (url || "");
+		
+		var slug = "";
+		if (id) {
+			var slugMatch = /\/phim\/([^/_.]+)/.exec(id);
+			slug = slugMatch ? slugMatch[1] : id;
+		}
+		if (!slug) {
+			var slugMatch2 = /\/phim\/([^/_.]+)/.exec(htmlContent);
+			slug = slugMatch2 ? slugMatch2[1] : "";
+		}
+		
+		// === BƯỚC 2: TRÍCH XUẤT THÔNG TIN PHIM ===
+		var lurl = "";
+		var limg = "";
+		var lname = "Đang cập nhật...";
+		var ldes = "Không có mô tả.";
+		var ldirec = "";
+		var lactor = "";
+		var lduran = "";
+		
+		var rmatch = htmlContent.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) lurl = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) limg = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) lname = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) ldes = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="video:director"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) ldirec = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="video:actor"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) lactor = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) lduran = rmatch[1];
+		
+		// === BƯỚC 3: QUÉT TẬP PHIM (Nếu đang ở trang Xem phim thì sẽ tìm thấy) ===
+		var servers = [];
+		_$(htmlContent).find('span:content("Danh Sách")').each(function(index, el) {
+			var $box = this.next();
+			var $nameserver = _$(el).text();
+			var $items = [];
+			
+			$box.find("a").each(function(idx, bl) {
+				var $link = _$(bl).attr("href");
+				var $number = _$(bl).text();
+				
+				if ($link) {
+					if ($link.indexOf('http') !== 0) {
+						$link = "https://phimchillhdz.im" + ($link.startsWith('/') ?
+							'' : '/') + $link;
+					}
+					$items.push({
+						id: $link,
+						name: "Tập " + $number.trim(),
+						slug: "tap-" + $number.trim()
+					});
+				}
+			});
+			
+			if ($items.length > 0) {
+				servers.push({
+					name: $nameserver.trim() || "Danh Sách OP",
+					episodes: $items
+				});
+			}
+		});
+		
+		// === BƯỚC 4: NHẬN DIỆN TRANG VÀ THIẾT LẬP EXTRA ===
+		var extra = "";
+		
+		// Nhận diện trang xem phim: URL có đuôi ".html" kèm theo "tap-" HOẶC HTML chứa danh sách tập thực tế
+		var isPlayPage = /\/tap-[^/]+?\.html$/.test(url || id)
+		
+		if (!isPlayPage) {
+			// Đang ở trang chi tiết -> Lấy link nút "Xem phim" để gán vào extra
+			var playBtnMatch = _$(htmlContent).find(".text-center").find(".mx-auto").attr("href");
+			if (playBtnMatch) {
+				extra = playBtnMatch;
+			}
+		}
+		// Tạo chuỗi mô tả ẩn JSON servers giống hệt tác giả
+		ldes += "\r\n\r\n\r\n" + extra + "\r\n\r\n\r\n" + JSON.stringify(servers);
+		
+		// === BƯỚC 5: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ID ===
+		return JSON.stringify({
+			id: slug || url, // BẮT BUỘC: ID phải là slug rút gọn của bộ phim để cả 2 lần fetch khớp nhau
+			title: lname,
+			posterUrl: limg,
+			backdropUrl: limg,
+			description: ldes,
+			quality: "HD",
+			year: 2026,
+			rating: 8.5,
+			servers: servers, // Lần 1 (trang chi tiết) sẽ là []. Lần 2 (khi chạy qua extra) sẽ có đầy đủ tập
+			duration: lduran || "",
+			casts: lactor || "",
+			director: ldirec || "",
+			extra: extra // Lần 2 (trang xem phim) extra sẽ rỗng để dừng chu kỳ tải ngầm
+		});
+		
+	} catch (e) {
+		return JSON.stringify({
+			id: slug || url || "error",
+			title: "error",
+			servers: []
+		});
+	}
 }
 
 
@@ -288,6 +291,87 @@ function formatEpisode(numStr) {
     return num < 10 ? "0" + num : "" + num;
 }
 
+
+function parseDetailResponse(html, url) {
+	try {
+		var streamUrl = "";
+		var VDtype = "";
+		_$(html).find('a[data-type="m3u8"]').each(function() {
+			var link = this.attr("data-link");
+			streamUrl = link;
+			VDtype = "m3u8"
+		});
+		var embed = _$(html).find('a[data-type="embed"]').attr("data-link");
+		var checkepi = "false";
+		var typevideo = "true";
+		
+		if (!streamUrl) {
+			typevideo = "false";
+			if (embed) {
+				streamUrl = embed;
+				VDtype = "embed";
+			}
+			else {
+				typevideo = "false";
+				streamUrl = url;
+			}
+		}
+		
+		
+		if (url.indexOf("true") > -1) {
+			checkepi = "true";
+		} else {
+			var matchCurent = url.match(/tapplay=(\d+)/);
+			var curentRaw = matchCurent ? matchCurent[1] : "1";
+			var curent = formatEpisode(curentRaw); // Chuẩn hóa thành "01", "02", "22"...
+			checkepi = _$(html).find("h2").find("a").text() + "- Tập " + curent;
+		}
+		var customJs = textJS(typevideo, checkepi);
+		
+		if (VDtype == "m3u8") {
+			return JSON.stringify({
+				"url": streamUrl,
+				"isEmbed": false,
+				"mimeType": "application/x-mpegURL",
+				"headers": {
+					"Referer": BASEURL,
+					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+				},
+				"subtitles": []
+			});
+		}
+		else {
+			return JSON.stringify({
+				"url": streamUrl,
+				"headers": {
+					"Referer": BASEURL,
+					"Origin": BASEURL,
+					"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+					// Đánh lừa thuật toán Client Hints của tường lửa
+					"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+					"Sec-Ch-Ua-Mobile": "?1",
+					"Sec-Ch-Ua-Platform": '"Android"',
+					
+					// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+					"Accept": "*/*",
+					"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+					"X-Requested-With": "com.android.chrome",
+					"Custom-Js": customJs.trim()
+				},
+				"subtitles": []
+			});
+		}
+	} catch (e) {
+		return JSON.stringify({
+			url: url,
+			headers: {}
+		});
+	}
+}
+
+
+
+/*
 function parseDetailResponse(html, url) {
     try {
         var activePage = "";
@@ -360,7 +444,6 @@ function parseDetailResponse(html, url) {
                 "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
                 "Sec-Ch-Ua-Mobile": "?1",
                 "Sec-Ch-Ua-Platform": '"Android"',
-                "Accept": "*/*",
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
                 "X-Requested-With": "com.android.chrome"
             },
@@ -436,7 +519,6 @@ function parseEmbedResponse(html, url) {
 								"Sec-Ch-Ua-Platform": '"Android"',
 								
 								// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-								"Accept": "*/*",
 								"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
 								"X-Requested-With": "com.android.chrome",
 								"Custom-Js": customJs.trim()
@@ -452,7 +534,7 @@ function parseEmbedResponse(html, url) {
     }
 }
 
-
+*/
 
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
