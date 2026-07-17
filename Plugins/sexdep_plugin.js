@@ -9,13 +9,13 @@ function getManifest() {
         "id": "sexdep",
         "name": "sexdep",
         "description": "XXX Hay",
-        "version": "1.4",
+        "version": "1.4.1",
         "BASEURL": "https://sexdeplon.blog",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "embed"
+        "playerType": "EMBEDTOEXOPLAY"
     });
 }
 
