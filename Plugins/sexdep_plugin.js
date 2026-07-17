@@ -15,7 +15,7 @@ function getManifest() {
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "EMBEDTOEXOPLAY"
+        "playerType": "embedtoexoplay"
     });
 }
 
