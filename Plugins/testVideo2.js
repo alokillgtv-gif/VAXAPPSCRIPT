@@ -137,25 +137,17 @@ function parseDetailResponse(html,url) {
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
         var customjs = textJS(parsed);
         var $type = BaseJSON.codea;
-        return JSON.stringify({
-            "url": "", 
-            mimeType: "application/x-mpegURL",
-            "headers": {
-                "Referer": refUrl,
-                "Origin": refUrl,
-                "User-Agent": agent,
-              // Đánh lừa thuật toán Client Hints của tường lửa
-                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                "Sec-Ch-Ua-Mobile": "?1",
-                "Sec-Ch-Ua-Platform": '"Android"',
-                "Accept": "*/*",
-                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim()
-            },
-            "subtitles": []
-        });
-
+				return JSON.stringify({
+					"url": "",
+					"isEmbed": false,
+					"mimeType": $type,
+					"headers": {
+						"Referer": refUrl,
+						"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+					},
+					"subtitles": []
+				});
+      
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
