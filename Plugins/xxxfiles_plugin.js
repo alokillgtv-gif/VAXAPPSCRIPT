@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.9",
+        "version": "1.9.1",
         "BASEURL": "https://www.xxxfiles.com",
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -311,7 +311,7 @@ function parseDetailResponse(html, url) {
     }
         var customjs = textJS();
         return JSON.stringify({
-          "url": $link + "#video.m3u8",
+          "url": $link + "#video=.m3u8",
           "isEmbed": false,
           "mimeType": "application/x-mpegURL",
           "headers": {
