@@ -5,7 +5,7 @@ function getManifest() {
         "id": "koreaporn",          
         "name": "Sex Hàn",
         "description": "Nguồn XXX Hay",
-        "version": "1.7.1",             
+        "version": "1.7.2",             
         "BASEURL": "https://koreanpornmovie.com",
         "iconUrl": "https://koreanpornmovie.com/wp-content/uploads/2025/01/sadasdasdasdas.png", 
         "isEnabled": true,
@@ -270,8 +270,6 @@ function parseDetailResponse(html,url) {
         if ($linkURL && $linkURL[1]) {
             $stream = $linkURL[1];
         }
-        var customjs = textJS("", $stream);
-
         return JSON.stringify({
             url: $stream,
             isEmbed: true // Vẫn cần fetch tiếp
