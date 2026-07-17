@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.0",
+		"version": "1.1",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -452,7 +452,6 @@ function parseEmbedResponse(html, url) {
 				return JSON.stringify({
 					"url": streamUrl,
 					"isEmbed": false,
-					"mimeType": "application/x-mpegURL",
 					"headers": {
 						"Referer": BASEURL,
 						"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
