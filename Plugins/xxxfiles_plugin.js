@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xxxfiles",
         "name": "xxxfiles",
         "description": "XXX Hay",
-        "version": "1.9.1",
+        "version": "1.9.2",
         "BASEURL": "https://www.xxxfiles.com",
         "iconUrl": "https://www.xxxfiles.com/favicon-32x32.png",
         "isEnabled": true,
@@ -263,12 +263,16 @@ function parseMovieDetail(html, $url) {
         
         
         var episodes = [];
-        var serverMatches = html.match(/video\s+id=["']video[[\s\S]*?src=["']([\s\S]*?)["']/i);
+         var $link = "";
+          var serverMatches = html.match(/video\s+id=["']video[[\s\S]*?src=["']([\s\S]*?)["']/i);
+          if (serverMatches && serverMatches[1]) {
+            $link = serverMatches[1]
+          }
         
         if (serverMatches && serverMatches[1]) {
             lurl = serverMatches[1];
             episodes.push({
-                id: $url,
+                id: $link + "#video.m3u8",
                 name: "Xem Ngay",
                 slug: "tap-1"
             });
@@ -304,16 +308,10 @@ function parseMovieDetail(html, $url) {
 
 function parseDetailResponse(html, url) {
     try {
-    var $link = "";
-    var serverMatches = html.match(/video\s+id=["']video[[\s\S]*?src=["']([\s\S]*?)["']/i);
-    if (serverMatches && serverMatches[1]) {
-        $link = serverMatches[1]
-    }
-        var customjs = textJS();
         return JSON.stringify({
-          "url": $link + "#video=.m3u8",
+          "url":"",
           "isEmbed": false,
-          "mimeType": "application/x-mpegURL",
+          "mimeType": "video/mp4",
           "headers": {
             "Referer": BASEURL,
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
