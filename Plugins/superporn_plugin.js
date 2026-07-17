@@ -5,7 +5,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "3.5",             
+        "version": "3.6",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -175,23 +175,25 @@ function parseMovieDetail(html,$url) {
 
     rmatch = html.match(/meta\s+property="og:description"\s+content="([\s\S]*?)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
-    rmatch = html.match(/id="superporn_player_html5_api[\s\S]*?source\ssrc="([\s\S]*?)"/i);
-    var streamUrl = "None";
-        if (rmatch && rmatch[1]) {
-            streamUrl = rmatch[1] + "#video.m3u8";
-        }	
+    var streamUrl = "";
+    var rmatch = html.match(/id="superporn_player_html5_api[\s\S]*?source\ssrc="([\s\S]*?)"/i);
+    if (rmatch && rmatch[1]) {
+            streamUrl = rmatch[1];
+    }	
+    var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
+
      
     return JSON.stringify({
         id: $url,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n" + streamUrl,
+        description: ldes + "\r\n" + decodedUrl + "#video.m3u8",
         servers: [
             {
                 name: "Full",
                 episodes: [
-                    { id: streamUrl, name: "Full", slug: "" }
+                    { id: decodedUrl + "#video.m3u8", name: "Full", slug: "" }
                 ]
             }
         ],
