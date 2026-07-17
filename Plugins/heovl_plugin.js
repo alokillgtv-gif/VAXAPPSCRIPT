@@ -335,10 +335,6 @@ function parseMovieDetail(html,ourl) {
 //var iframeRegex = /class="[^"]*video-player[^"]*"[\s\S]*?iframe\s+src="([^"]+)"/i;
 //var iframeMatch = html.match(iframeRegex);
 
-
-// =================================================================
-// TẦNG 1: Xử lý trang xem phim gốc (link_xem_phim)
-// =================================================================
 function parseDetailResponse(html,url) {
     try {
     // Đọc trực tiếp từ thuộc tính của BaseJSON đã lưu ở bước đầu tiên
