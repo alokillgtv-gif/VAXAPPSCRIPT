@@ -737,6 +737,4 @@ function checkResume() {
 		}, 1000); // Quét lại sau mỗi 1 giây (1000ms)
 	})();
 }
-setTimeOut(function(){
-	checkResume();
-},5000)
+setTimeout(checkResume, 5000);

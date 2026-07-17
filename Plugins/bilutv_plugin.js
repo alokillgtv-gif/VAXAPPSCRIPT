@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "3.3",
+		"version": "1.0",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
@@ -1292,9 +1292,7 @@ function checkResume() {
 		}, 1000); // Quét lại sau mỗi 1 giây (1000ms)
 	})();
 }
-setTimeOut(function(){
-	checkResume();
-},5000)
+setTimeout(checkResume, 5000);
 
 
 
