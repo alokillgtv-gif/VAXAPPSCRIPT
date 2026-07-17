@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.6.6",             
+        "version": "3.6.7",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -223,7 +223,8 @@ function parseMovieDetail(html, url) {
 
             // Trả về JSON chứa danh sách server để hệ thống gộp tự động
             return JSON.stringify({
-                servers: servers
+                servers: servers,
+                description: "sadsdsadsadsdsa"
             });
 
         } else {
@@ -269,9 +270,9 @@ function parseMovieDetail(html, url) {
                 var slugMatch = /\/phim\/([^/_\.]+)/.exec(lurl);
                 movieSlug = slugMatch ? slugMatch[1] : lurl;
             }
-
+						ldes += "\r\n\r\n\r\n" + extra
             return JSON.stringify({
-                id: movieSlug, // ID đóng vai trò định danh để App mapping và gộp dữ liệu từ extra
+                id: url, // ID đóng vai trò định danh để App mapping và gộp dữ liệu từ extra
                 title: lname,
                 posterUrl: limg,
                 backdropUrl: limg,
