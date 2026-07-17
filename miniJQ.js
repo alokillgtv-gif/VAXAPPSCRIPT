@@ -1,4 +1,4 @@
-// "version": "1.8"  
+// "version": "1.9"  
 window.BASEURL = window.location.origin;
 window._$ = function (htmlOrBlock) {
     if (htmlOrBlock && typeof htmlOrBlock === 'object' && htmlOrBlock.elements) {
@@ -86,22 +86,40 @@ window._$ = function (htmlOrBlock) {
                         pos++;
                         continue;
                     }
-                    var endOpenTag = currentHtml.indexOf('>', pos);
+                    
+                    // SỬA TẬN GỐC: Tìm đúng dấu đóng '>' của thẻ mở hiện tại (Bỏ qua thuộc tính chứa dấu > nếu có)
+                    var endOpenTag = -1;
+                    var insideQuote = false;
+                    var quoteChar = '';
+                    for (var j = pos + 1; j < currentHtml.length; j++) {
+                        var char = currentHtml.charAt(j);
+                        if ((char === '"' || char === "'") && currentHtml.charAt(j - 1) !== '\\') {
+                            if (!insideQuote) {
+                                insideQuote = true;
+                                quoteChar = char;
+                            } else if (char === quoteChar) {
+                                insideQuote = false;
+                            }
+                        }
+                        if (char === '>' && !insideQuote) {
+                            endOpenTag = j;
+                            break;
+                        }
+                    }
+                    
                     if (endOpenTag === -1) break;
                     var fullOpenTag = currentHtml.substring(pos, endOpenTag + 1);
-                    var spacePos = fullOpenTag.indexOf(' ');
-                    var currentTagName = "";
-                    if (spacePos === -1) {
-                        currentTagName = fullOpenTag.substring(1, fullOpenTag.length - 1).toLowerCase();
-                    } else {
-                        currentTagName = fullOpenTag.substring(1, spacePos).toLowerCase();
-                    }
+                    
+                    // Lấy tên thẻ chuẩn (xử lý cả khoảng trắng/xuống dòng sau tên thẻ)
+                    var tagMatch = fullOpenTag.match(/^<([a-zA-Z0-9_-]+)/);
+                    var currentTagName = tagMatch ? tagMatch[1].toLowerCase() : "";
+                    
                     var isMatched = true;
                     if (targetTagName && targetTagName !== currentTagName) {
                         isMatched = false;
                     }
                     
-                    // Trích xuất giá trị thuộc tính bằng Regex (Triệt để cho id, class, v.v.)
+                    // Trích xuất thuộc tính (Dùng thuộc tính toàn cục modifier 's' để khớp cả dấu xuống dòng)
                     var getClassAttr = fullOpenTag.match(/class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
                     var classMatchStr = getClassAttr ? (getClassAttr[1] || getClassAttr[2] || getClassAttr[3] || "") : "";
                     
@@ -112,7 +130,6 @@ window._$ = function (htmlOrBlock) {
                         isMatched = false;
                     }
                     
-                    // SỬA LỖI TÌM THEO .CLASS
                     if (isMatched && targetClasses.length > 0) {
                         if (classMatchStr) {
                             var currentClasses = classMatchStr.trim().split(/\s+/);
@@ -127,7 +144,6 @@ window._$ = function (htmlOrBlock) {
                         }
                     }
                     
-                    // SỬA LỖI TÌM THEO [class*="..."] HOẶC THUỘC TÍNH KHÁC
                     if (isMatched && hasAttrFilter) {
                         var actualValue = "";
                         if (attrNameFilter === "class") {
