@@ -1,4 +1,4 @@
-// "version": "1.7"  
+// "version": "1.8"  
 window.BASEURL = window.location.origin;
 window._$ = function (htmlOrBlock) {
     if (htmlOrBlock && typeof htmlOrBlock === 'object' && htmlOrBlock.elements) {
@@ -76,7 +76,7 @@ window._$ = function (htmlOrBlock) {
                 }
                 targetClasses = classParts.filter(function (c) { return c.length > 0; });
             }
-            var isAttrOnly = (selector === "" && hasAttrFilter);
+            
             for (var i = 0; i < this.elements.length; i++) {
                 var currentHtml = this.elements[i];
                 var pos = 0;
@@ -100,36 +100,20 @@ window._$ = function (htmlOrBlock) {
                     if (targetTagName && targetTagName !== currentTagName) {
                         isMatched = false;
                     }
-                    if (isMatched && targetId) {
-                        var idMatchStr = "";
-                        var idPos = fullOpenTag.indexOf('id="');
-                        if (idPos !== -1) {
-                            var startQuote = idPos + 4;
-                            idMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
-                        } else {
-                            idPos = fullOpenTag.indexOf("id='");
-                            if (idPos !== -1) {
-                                var startQuote = idPos + 4;
-                                idMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
-                            }
-                        }
-                        if (idMatchStr !== targetId) {
-                            isMatched = false;
-                        }
+                    
+                    // Trích xuất giá trị thuộc tính bằng Regex (Triệt để cho id, class, v.v.)
+                    var getClassAttr = fullOpenTag.match(/class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+                    var classMatchStr = getClassAttr ? (getClassAttr[1] || getClassAttr[2] || getClassAttr[3] || "") : "";
+                    
+                    var getIdAttr = fullOpenTag.match(/id\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+                    var idMatchStr = getIdAttr ? (getIdAttr[1] || getIdAttr[2] || getIdAttr[3] || "") : "";
+
+                    if (isMatched && targetId && idMatchStr !== targetId) {
+                        isMatched = false;
                     }
+                    
+                    // SỬA LỖI TÌM THEO .CLASS
                     if (isMatched && targetClasses.length > 0) {
-                        var classMatchStr = "";
-                        var classPos = fullOpenTag.indexOf('class="');
-                        if (classPos !== -1) {
-                            var startQuote = classPos + 7;
-                            classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
-                        } else {
-                            classPos = fullOpenTag.indexOf("class='");
-                            if (classPos !== -1) {
-                                var startQuote = classPos + 7;
-                                classMatchStr = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
-                            }
-                        }
                         if (classMatchStr) {
                             var currentClasses = classMatchStr.trim().split(/\s+/);
                             for (var c = 0; c < targetClasses.length; c++) {
@@ -142,20 +126,21 @@ window._$ = function (htmlOrBlock) {
                             isMatched = false;
                         }
                     }
+                    
+                    // SỬA LỖI TÌM THEO [class*="..."] HOẶC THUỘC TÍNH KHÁC
                     if (isMatched && hasAttrFilter) {
                         var actualValue = "";
-                        var attrPos = fullOpenTag.indexOf(attrNameFilter + '="');
-                        if (attrPos !== -1) {
-                            var startQuote = attrPos + attrNameFilter.length + 2;
-                            actualValue = fullOpenTag.substring(startQuote, fullOpenTag.indexOf('"', startQuote));
+                        if (attrNameFilter === "class") {
+                            actualValue = classMatchStr;
+                        } else if (attrNameFilter === "id") {
+                            actualValue = idMatchStr;
                         } else {
-                            attrPos = fullOpenTag.indexOf(attrNameFilter + "='");
-                            if (attrPos !== -1) {
-                                var startQuote = attrPos + attrNameFilter.length + 2;
-                                actualValue = fullOpenTag.substring(startQuote, fullOpenTag.indexOf("'", startQuote));
-                            }
+                            var getAnyAttr = fullOpenTag.match(new RegExp(attrNameFilter + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i'));
+                            actualValue = getAnyAttr ? (getAnyAttr[1] || getAnyAttr[2] || getAnyAttr[3] || "") : "";
                         }
-                        if (attrPos === -1) {
+                        
+                        var attrExists = fullOpenTag.search(new RegExp(attrNameFilter + '\\s*=', 'i')) !== -1;
+                        if (!attrExists) {
                             isMatched = false;
                         } else {
                             if (attrOperator === "=") {
@@ -213,8 +198,8 @@ window._$ = function (htmlOrBlock) {
                             var isNotId = notSelector.indexOf('#') === 0;
                             var notValue = notSelector.substring(1);
                             var hasNot = false;
-                            if (isNotClass && fullOpenTag.indexOf('class="') !== -1 && fullOpenTag.indexOf(notValue) !== -1) hasNot = true;
-                            if (isNotId && fullOpenTag.indexOf('id="') !== -1 && fullOpenTag.indexOf(notValue) !== -1) hasNot = true;
+                            if (isNotClass && classMatchStr.indexOf(notValue) !== -1) hasNot = true;
+                            if (isNotId && idMatchStr.indexOf(notValue) !== -1) hasNot = true;
                             if (!hasNot) subResults.push(foundBlock);
                         } else {
                             subResults.push(foundBlock);
@@ -249,17 +234,8 @@ window._$ = function (htmlOrBlock) {
         attr: function (attrName) {
             if (this.elements.length === 0) return "";
             var elem = this.elements[0];
-            var searchStr = attrName + '="';
-            var pos = elem.indexOf(searchStr);
-            if (pos === -1) {
-                searchStr = attrName + "='";
-                pos = elem.indexOf(searchStr);
-            }
-            if (pos === -1) return "";
-            var start = pos + searchStr.length;
-            var quoteType = elem.charAt(start - 1);
-            var end = elem.indexOf(quoteType, start);
-            return end === -1 ? "" : elem.substring(start, end);
+            var getAttr = elem.match(new RegExp(attrName + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i'));
+            return getAttr ? (getAttr[1] || getAttr[2] || getAttr[3] || "") : "";
         },
         html: function () {
             if (this.elements.length === 0) return "";
