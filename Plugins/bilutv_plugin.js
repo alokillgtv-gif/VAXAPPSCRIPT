@@ -2,25 +2,25 @@
 BASEURL = "https://bilutv.asia";
 
 function getManifest() {
-	return JSON.stringify({
-		"id": "bilutv",
-		"name": "Nguồn Bilutv",
-		"description": "Trang xem phim siêu hay.",
-		"version": "1.3",
-		"BASEURL": "https://bilutv.asia",
-		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
-		"isEnabled": true,
-		"type": "MOVIE",
-		"playerType": "auto"
-	});
+    return JSON.stringify({
+        "id": "bilutv",
+        "name": "Nguồn Bilutv",
+        "description": "Trang xem phim siêu hay.",
+        "version": "1.4",
+        "BASEURL": "https://bilutv.asia",
+        "iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
+        "isEnabled": true,
+        "type": "MOVIE",
+        "playerType": "auto"
+    });
 }
 
 function log(msg) {
-	if (typeof nativeLog !== 'undefined') {
-		nativeLog("[PhimHDCS] " + msg);
-	} else if (typeof console !== 'undefined' && console.log) {
-		console.log("[PhimHDCS] " + msg);
-	}
+    if (typeof nativeLog !== 'undefined') {
+        nativeLog("[PhimHDCS] " + msg);
+    } else if (typeof console !== 'undefined' && console.log) {
+        console.log("[PhimHDCS] " + msg);
+    }
 }
 
 // https://bilutv.asia/danh-sach/phim-moi?page=2
@@ -54,63 +54,61 @@ function getFilterConfig() {
 // URL GENERATION
 // =============================================================================
 
-
 function getUrlList(slug, filtersJson) {
-	try {
-		// 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
-		if (slug && slug.indexOf("http") > -1 || slug.indexOf("search") > -1) {
-			// thường là link search sẽ bị trả về ở đây
-			return slug;
-		}
-		let page = 1;
-		let path = slug || "";
-		
-		// 2. Xử lý an toàn filtersJson nếu có truyền vào
-		if (filtersJson) {
-			// Nếu có số trang hoặc  có menu categ
-			// Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
-			let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
-				.replace(/:,/g, ':');
-			// Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
-			
-			try {
-				let filters = JSON.parse(fixedJson);
-				page = parseInt(filters.page) || 1;
-				
-				// Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
-				if (filters.category) {
-					if (Array.isArray(filters.category) && filters.category.length > 0) {
-						path = filters.category[0].slug;
-					} else if (typeof filters.category === 'string') {
-						path = filters.category;
-					}
-				}
-			} catch (jsonErr) {
-				//console.log("JSON parse lỗi, dùng giá trị mặc định");
-			}
-		}
-		
-		
-		// 4. Chuẩn hóa path (Xóa dấu gạch chéo thừa ở đầu/cuối để tránh nhân đôi dấu //)        
-		// 5. Nối chuỗi URL kết quả
-		let resultUrl = BASEURL;
-		if (path) {
-			resultUrl += path;
-		}
-		// https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
-		if (page > 1) {
-			resultUrl += "?page=" + page;
-		}
-		
-		// Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
-		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
-		
-	} catch (e) {
-		// console.log("Lỗi hệ thống: " + e.message);
-		// Trả về URL gốc an toàn nếu có lỗi
-		let fallback = BASEURL + (slug ? "/" + slug : "");
-		return fallback.replace(/([^:]\/)\/+/g, "$1");
-	}
+    try {
+        // 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
+        if (slug && slug.indexOf("http") > -1 || slug.indexOf("search") > -1) {
+            // thường là link search sẽ bị trả về ở đây
+            return slug;
+        }
+        let page = 1;
+        let path = slug || "";
+
+        // 2. Xử lý an toàn filtersJson nếu có truyền vào
+        if (filtersJson) {
+            // Nếu có số trang hoặc  có menu categ
+            // Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
+            let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':');
+            // Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
+
+            try {
+                let filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+
+                // Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
+                if (filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {
+                //console.log("JSON parse lỗi, dùng giá trị mặc định");
+            }
+        }
+
+        // 4. Chuẩn hóa path (Xóa dấu gạch chéo thừa ở đầu/cuối để tránh nhân đôi dấu //)        
+        // 5. Nối chuỗi URL kết quả
+        let resultUrl = BASEURL;
+        if (path) {
+            resultUrl += path;
+        }
+        // https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
+        if (page > 1) {
+            resultUrl += "?page=" + page;
+        }
+
+        // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        // console.log("Lỗi hệ thống: " + e.message);
+        // Trả về URL gốc an toàn nếu có lỗi
+        let fallback = BASEURL + (slug ? "/" + slug : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
 }
 // https://bilutv.asia/danh-sach/phim-moi?page=2
 // https://bilutv.asia/danh-sach/phim-le?page=7
@@ -124,9 +122,8 @@ function getUrlList(slug, filtersJson) {
 //console.log(getUrlList("https://bilutv.asia/?search=girl", filtersJson));
 //getUrlSearch("naruto", filtersJson)
 function getUrlSearch(keyword, filtersJson) {
-	return BASEURL + "/?search=" + encodeURIComponent(keyword);
+    return BASEURL + "/?search=" + encodeURIComponent(keyword);
 }
-
 
 function getUrlDetail(slug) {
     if (!slug) return "";
@@ -134,63 +131,71 @@ function getUrlDetail(slug) {
     return BASEURL + "/" + slug;
 }
 
-function getUrlCategories() { return BASEURL; }
-function getUrlCountries() { return ""; }
-function getUrlYears() { return ""; }
+function getUrlCategories() {
+    return BASEURL;
+}
+
+function getUrlCountries() {
+    return "";
+}
+
+function getUrlYears() {
+    return "";
+}
 
 // =============================================================================
 // PARSERS
 // =============================================================================
 function parseListResponse(html, $url) {
-	try {
-		var items = [];
-		
-		_$(html).find(".bs").find("a").each(function() {
-			var year = "";
-			var lang = "";
-			var current = this.find(".epx").text();;
-			var quality = "HD";
-			var href = this.attr("href");
-			var title = this.attr("title");
-			var src = this.find("img").attr("src");
-			if (src.indexOf("http") == -1) {
-				src = BASEURL + src;
-			}
-			
-			if (href && href.indexOf("http") > -1) {
-				var cleanThumb = src.replace(/&amp;/g, '&');
-				
-				items.push({
-					"id": href,
-					"title": title.trim(),
-					"posterUrl": cleanThumb,
-					"backdropUrl": cleanThumb
-				});
-			}
-		});
-		
-		return JSON.stringify({
-			"items": items,
-			"pagination": {
-				"currentPage": 1,
-				"totalPages": 999
-			}
-		});
-		
-	} catch (e) {
-		return JSON.stringify({
-			"items": [{
-				"id": $url,
-				"title": "Lỗi: " + e,
-				"posterUrl": "",
-				"backdropUrl": ""
-			}],
-			"pagination": {
-				"currentPage": 1,
-				"totalPages": 1
-			}
-		});
-	}
+    try {
+        var items = [];
+
+        _$(html).find(".bs").find("a").each(function () {
+            var year = "";
+            var lang = "";
+            var current = this.find(".epx").text();;
+            var quality = "HD";
+            var href = this.attr("href");
+            var title = this.attr("title");
+            var src = this.find("img").attr("src");
+            if (src.indexOf("http") == -1) {
+                src = BASEURL + src;
+            }
+
+            if (href && href.indexOf("http") > -1) {
+                var cleanThumb = src.replace(/&amp;/g, '&');
+
+                items.push({
+                    "id": href,
+                    "title": title.trim(),
+                    "posterUrl": cleanThumb,
+                    "backdropUrl": cleanThumb
+                });
+            }
+        });
+
+        return JSON.stringify({
+            "items": items,
+            "pagination": {
+                "currentPage": 1,
+                "totalPages": 999
+            }
+        });
+
+    } catch (e) {
+        return JSON.stringify({
+            "items": [{
+                "id": $url,
+                "title": "Lỗi: " + e,
+                "posterUrl": "",
+                "backdropUrl": ""
+            }],
+            "pagination": {
+                "currentPage": 1,
+                "totalPages": 1
+            }
+        });
+    }
 }
 //var BASEURL = "https://onflix.lat";
 //var BASEAPI = "https://k8s.onflixcdn.com/api";
@@ -201,124 +206,145 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-
 function formatEpisode(numStr) {
     var num = parseInt(numStr, 10);
-    if (isNaN(num)) return "01"; 
+    if (isNaN(num)) return "01";
     return num < 10 ? "0" + num : "" + num;
 }
 
 function parseMovieDetail(html, url) {
-	var lurl = "";
-	var limg = "";
-	var lname = "Đang cập nhật...";
-	var ldes = "Không có mô tả.";
-	var year = 2026;
-	var direc = "????";
-	var cast = "????";
-	var status = "????";
-	var duration = "1:09:00 | 16 | 16";
-	var rating = "????";
-	var servers = [{}];
-	var $info = "";
-	var category = "";
-	var country = "";
-	var lang = "";
-	var streamUrl = "";
-	try {
-		limg = _$(html).find('meta[property="og:image"]').attr("content");
-		if (limg.indexOf("http") == -1) {
-			limg = BASEURL + limg;
-		}
-		lname = _$(html).find('meta[property="og:title"]').attr("content");
-		ldes = _$(html).find('div[itemprop="description"]').find("p").text();
-		year = _$(html).find('b:content("Năm phát hành")').parent().text().replace("Năm phát hành:", "").replace(/\s+/g, "");
-		year = Number(year);
-		status = _$(html).find('b:content("Status:")').parent().text().replace("Status:", "").replace(/\s\s/g, "");;
-		duration = _$(html).find('b:content("Thời lượng:")').parent().text().replace("Thời lượng:", "").replace(/\s\s/g, "");;
-		cast = _$(html).find('b:content("Diễn viên:")').parent().text().replace("Diễn viên:", "").replace(/\s\s/g, "");;
-		direc = _$(html).find('b:content("Đạo diễn:")').parent().text().replace("Đạo diễn:", "").replace(/\s\s/g, "");;
-		country = _$(html).find('b:content("Quốc gia:")').parent().text().replace("Quốc gia:", "").replace(/\s\s/g, "");;
-		category = _$(html).find('b:content("Định dạng:")').parent().text().replace("Định dạng:", "").replace(/\s\s/g, "");
-		lang = _$(html).find('b:content("Chất lượng:")').parent().text().replace(/Chất lượng:|\s\s|^\s/g, "");
-		servers = [];
-		var epiOne = _$(html).find('span:content("Tập đầu")').parent().attr("href");
-		var servers = [];
-		var epiM3U8 = [];
-		var epiEMBED = [];
-		var epiEnd = _$(html).find('.epcurlast').text().match(/(\d+)/i);
-		var EndNumber = 1;
-		if (epiOne) {
-			if (epiEnd && epiEnd[1]) {
-				EndNumber = Number(epiEnd[1]) + 1;
-			}
-			
-			for (var $j = 1; $j < EndNumber; $j++) {
-				var numberEpi = formatEpisode($j);
-				var urlM3U8 = epiOne + "?tapplay=" + numberEpi + "&type=m3u8";
-				var urlEMBED = epiOne + "?tapplay=" + numberEpi + "&type=embed";
-				var nameEpi = "Tập " + numberEpi;
-				var slugEpi = "tap-" + numberEpi;
-				epiM3U8.push({ id: urlM3U8, name: nameEpi, slug: slugEpi });
-				epiEMBED.push({ id: urlEMBED, name: nameEpi, slug: slugEpi });
-			}
-			servers.push({
-				name: "Server M3U8",
-				episodes: epiM3U8
-			}, {
-				name: "Server EMBED",
-				episodes: epiEMBED
-			});
-		}
-		else {
-			var epiOne = _$(html).find(".bookmark").attr("href");;
-			var urlM3U8 = epiOne + "?tapplay=full&type=m3u8";
-			var urlEMBED = epiOne + "?tapplay=full&type=embed";
-			epiM3U8.push({ id: urlM3U8, name: "Xem Ngay", slug: "full" });
-			epiEMBED.push({ id: urlEMBED, name: "Xem Ngay", slug: "full" });
-			servers.push({
-				name: "Server M3U8",
-				episodes: epiM3U8
-			}, {
-				name: "Server EMBED",
-				episodes: epiEMBED
-			});
-		}
-		return JSON.stringify({
-			id: url,
-			title: lname,
-			posterUrl: limg,
-			backdropUrl: limg,
-			description: ldes,
-			servers: servers,
-			quality: "HD",
-			year: year,
-			status: status,
-			duration: duration,
-			casts: cast,
-			director: direc,
-			country: country,
-			category: category,
-			lang: lang
-		});
-		
-	}
-	catch (e) {
-		return JSON.stringify({
-			id: lurl,
-			title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
-			posterUrl: limg,
-			backdropUrl: limg,
-			description: ldes,
-			servers: servers,
-			quality: "HD",
-			year: year,
-			status: status,
-			duration: duration,
-			casts: cast,
-			director: direc
-		});
-	}
+    var lurl = "";
+    var limg = "";
+    var lname = "Đang cập nhật...";
+    var ldes = "Không có mô tả.";
+    var year = 2026;
+    var direc = "????";
+    var cast = "????";
+    var status = "????";
+    var duration = "1:09:00 | 16 | 16";
+    var rating = "????";
+    var servers = [{}];
+    var $info = "";
+    var category = "";
+    var country = "";
+    var lang = "";
+    var streamUrl = "";
+    try {
+        limg = _$(html).find('meta[property="og:image"]').attr("content");
+        if (limg.indexOf("http") == -1) {
+            limg = BASEURL + limg;
+        }
+        lname = _$(html).find('meta[property="og:title"]').attr("content");
+        ldes = _$(html).find('div[itemprop="description"]').find("p").text();
+        year = _$(html).find('b:content("Năm phát hành")').parent().text().replace("Năm phát hành:",
+            "").replace(/\s+/g, "");
+        year = Number(year);
+        status = _$(html).find('b:content("Status:")').parent().text().replace("Status:", "")
+            .replace(/\s\s/g, "");;
+        duration = _$(html).find('b:content("Thời lượng:")').parent().text().replace("Thời lượng:",
+            "").replace(/\s\s/g, "");;
+        cast = _$(html).find('b:content("Diễn viên:")').parent().text().replace("Diễn viên:", "")
+            .replace(/\s\s/g, "");;
+        direc = _$(html).find('b:content("Đạo diễn:")').parent().text().replace("Đạo diễn:", "")
+            .replace(/\s\s/g, "");;
+        country = _$(html).find('b:content("Quốc gia:")').parent().text().replace("Quốc gia:", "")
+            .replace(/\s\s/g, "");;
+        category = _$(html).find('b:content("Định dạng:")').parent().text().replace("Định dạng:",
+            "").replace(/\s\s/g, "");
+        lang = _$(html).find('b:content("Chất lượng:")').parent().text().replace(
+            /Chất lượng:|\s\s|^\s/g, "");
+        servers = [];
+        var epiOne = _$(html).find('span:content("Tập đầu")').parent().attr("href");
+        var servers = [];
+        var epiM3U8 = [];
+        var epiEMBED = [];
+        var epiEnd = _$(html).find('.epcurlast').text().match(/(\d+)/i);
+        var EndNumber = 1;
+        if (epiOne) {
+            if (epiEnd && epiEnd[1]) {
+                EndNumber = Number(epiEnd[1]) + 1;
+            }
+
+            for (var $j = 1; $j < EndNumber; $j++) {
+                var numberEpi = formatEpisode($j);
+                var urlM3U8 = epiOne + "?tapplay=" + numberEpi + "&type=m3u8";
+                var urlEMBED = epiOne + "?tapplay=" + numberEpi + "&type=embed";
+                var nameEpi = "Tập " + numberEpi;
+                var slugEpi = "tap-" + numberEpi;
+                epiM3U8.push({
+                    id: urlM3U8,
+                    name: nameEpi,
+                    slug: slugEpi
+                });
+                epiEMBED.push({
+                    id: urlEMBED,
+                    name: nameEpi,
+                    slug: slugEpi
+                });
+            }
+            servers.push({
+                name: "Server M3U8",
+                episodes: epiM3U8
+            }, {
+                name: "Server EMBED",
+                episodes: epiEMBED
+            });
+        } else {
+            var epiOne = _$(html).find(".bookmark").attr("href");;
+            var urlM3U8 = epiOne + "?tapplay=full&type=m3u8";
+            var urlEMBED = epiOne + "?tapplay=full&type=embed";
+            epiM3U8.push({
+                id: urlM3U8,
+                name: "Xem Ngay",
+                slug: "full"
+            });
+            epiEMBED.push({
+                id: urlEMBED,
+                name: "Xem Ngay",
+                slug: "full"
+            });
+            servers.push({
+                name: "Server M3U8",
+                episodes: epiM3U8
+            }, {
+                name: "Server EMBED",
+                episodes: epiEMBED
+            });
+        }
+        return JSON.stringify({
+            id: url,
+            title: lname,
+            posterUrl: limg,
+            backdropUrl: limg,
+            description: ldes,
+            servers: servers,
+            quality: "HD",
+            year: year,
+            status: status,
+            duration: duration,
+            casts: cast,
+            director: direc,
+            country: country,
+            category: category,
+            lang: lang
+        });
+
+    } catch (e) {
+        return JSON.stringify({
+            id: lurl,
+            title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
+            posterUrl: limg,
+            backdropUrl: limg,
+            description: ldes,
+            servers: servers,
+            quality: "HD",
+            year: year,
+            status: status,
+            duration: duration,
+            casts: cast,
+            director: direc
+        });
+    }
 }
 
 //BASEURL = "https://phimnganhdc.com";
@@ -331,35 +357,37 @@ function parseDetailResponse(html, url) {
         var activePage = "";
         // Bọc an toàn khi lấy tham số type và tapplay từ URL
         var matchType = url.match(/type=(\w+)/);
-        var typeVD = matchType ? matchType[1] : "m3u8"; 
-        
+        var typeVD = matchType ? matchType[1] : "m3u8";
+
         var matchCurent = url.match(/tapplay=(\d+)/);
         var curentRaw = matchCurent ? matchCurent[1] : "1";
         var curent = formatEpisode(curentRaw); // "01", "02"...
 
         if (url.indexOf("full") === -1) {
             var foundActive = false;
-            
+
             // Duyệt qua danh sách tập thực tế trên web để tìm tập khớp với tập giả lập
-            _$(html).find(".episodelist").find("li").each(function(index, el) {
+            _$(html).find(".episodelist").find("li").each(function (index, el) {
                 var link = _$(el).find("a").attr("href");
                 var text = _$(el).attr("data-name") || _$(el).text() || "";
                 var matchText = text.match(/([0-9]+)/);
                 var numberRaw = matchText ? matchText[1] : "1";
                 var number = formatEpisode(numberRaw);
-                
+
                 if (number === curent && link) {
                     // Tạo url đích hoàn chỉnh chứa đủ thông tin để hàm parseEmbedResponse phía sau xử lý
                     activePage = link;
                     if (activePage.indexOf("http") === -1) {
-                        activePage = BASEURL + (activePage.indexOf("/") === 0 ? "" : "/") + activePage;
+                        activePage = BASEURL + (activePage.indexOf("/") === 0 ? "" : "/") +
+                            activePage;
                     }
                     // Giữ lại tham số để truyền tiếp cho bước sau
-                    activePage += (activePage.indexOf("?") > -1 ? "&" : "?") + "tapplay=" + number + "&type=" + typeVD;
+                    activePage += (activePage.indexOf("?") > -1 ? "&" : "?") + "tapplay=" +
+                        number + "&type=" + typeVD;
                     foundActive = true;
                 }
             });
-            
+
             // Fallback: Nếu không parse được danh sách tập thực tế, dùng luôn URL hiện tại
             if (!foundActive) {
                 activePage = url;
@@ -367,7 +395,7 @@ function parseDetailResponse(html, url) {
         } else {
             activePage = url + (url.indexOf("?") > -1 ? "&" : "?") + "check=false";
         }
-        
+
         return JSON.stringify({
             "url": activePage,
             "isEmbed": true,
@@ -381,7 +409,7 @@ function parseDetailResponse(html, url) {
             },
             "subtitles": []
         });
-        
+
     } catch (e) {
         // Trả về chính URL truyền vào thay vì chuỗi rỗng để tránh làm chết luồng phát phim
         return JSON.stringify({
@@ -399,95 +427,93 @@ function parseDetailResponse(html, url) {
 //var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
 //JSON.parse(parseDetailResponse(html, url))
 
-
 function parseEmbedResponse(html, url) {
-	try {
-		if (url.toLowerCase().includes(".m3u8")) {
-			return JSON.stringify({
-				"url": url,
-				"isEmbed": false,
-				"mimeType": "application/x-mpegURL",
-				"headers": {
-					"Referer": BASEURL,
-					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-				},
-				"subtitles": []
-			});
-		} else {
-			var matchType = url.match(/type=(\w+)/i);
-			var $type = matchType ? matchType[1] : "m3u8";
-			
-			var streamUrl = "";
-			if ($type === "m3u8") {
-				streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
-			} else {
-				streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
-			}
-			
-			// Nếu không tìm thấy link qua thuộc tính data-link, thử tìm link trong thẻ iframe/embed dự phòng
-			if (!streamUrl) {
-				streamUrl = _$(html).find('iframe').attr("src") || _$(html).find('embed').attr(
-					"src") || "";
-			}
-			
-			var checkepi = "false";
-			var typevideo = "true";
-			if (url.indexOf("true") > -1) {
-				checkepi = "true";
-			} else {
-				var matchCurent = url.match(/tapplay=(\d+)/);
-				var curentRaw = matchCurent ? matchCurent[1] : "1";
-				var curent = formatEpisode(curentRaw);
-				
-				var titleText = _$(html).find("h2").text() || _$(html).find("h1").text() || "Phim";
-				checkepi = titleText.trim() + " - Tập " + curent;
-			}
-			var customJs = textJS(typevideo, checkepi, url, streamUrl);
-			// "Custom-Js": customJs.trim()
-			if($type == "m3u8"){
-				return JSON.stringify({
-					"url": streamUrl,
-					"isEmbed": false,
-					"mimeType": "application/x-mpegURL",
-					"headers": {
-						"Referer": BASEURL,
-						"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-					},
-					"subtitles": []
-				});
-			}
-			else{
-	       return JSON.stringify({
-					"url": streamUrl,
-					"headers": {
-						"Referer": BASEURL,
-						"Origin": BASEURL,
-						"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-						// Đánh lừa thuật toán Client Hints của tường lửa
-						"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-						"Sec-Ch-Ua-Mobile": "?1",
-						"Sec-Ch-Ua-Platform": '"Android"',
-						
-						// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-						"Accept": "*/*",
-						"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-						"X-Requested-With": "com.android.chrome",
-						"Custom-Js": customJs.trim()
-					},
-					"subtitles": []
-				});
-			}
-		}
-		
-	} catch (e) {
-		log(e);
-		return JSON.stringify({
-			url: url,
-			headers: {
-				"Referer": BASEURL
-			}
-		});
-	}
+    try {
+        if (url.toLowerCase().includes(".m3u8")) {
+            return JSON.stringify({
+                "url": url,
+                "isEmbed": false,
+                "mimeType": "application/x-mpegURL",
+                "headers": {
+                    "Referer": BASEURL,
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                },
+                "subtitles": []
+            });
+        } else {
+            var matchType = url.match(/type=(\w+)/i);
+            var $type = matchType ? matchType[1] : "m3u8";
+
+            var streamUrl = "";
+            if ($type === "m3u8") {
+                streamUrl = _$(html).find('a[data-type="m3u8"]').attr("data-link");
+            } else {
+                streamUrl = _$(html).find('a[data-type="embed"]').attr("data-link");
+            }
+
+            // Nếu không tìm thấy link qua thuộc tính data-link, thử tìm link trong thẻ iframe/embed dự phòng
+            if (!streamUrl) {
+                streamUrl = _$(html).find('iframe').attr("src") || _$(html).find('embed').attr(
+                    "src") || "";
+            }
+
+            var checkepi = "false";
+            var typevideo = "true";
+            if (url.indexOf("true") > -1) {
+                checkepi = "true";
+            } else {
+                var matchCurent = url.match(/tapplay=(\d+)/);
+                var curentRaw = matchCurent ? matchCurent[1] : "1";
+                var curent = formatEpisode(curentRaw);
+
+                var titleText = _$(html).find("h2").text() || _$(html).find("h1").text() || "Phim";
+                checkepi = titleText.trim() + " - Tập " + curent;
+            }
+            var customJs = textJS(typevideo, checkepi, url, streamUrl);
+            // "Custom-Js": customJs.trim()
+            if ($type == "m3u8") {
+                return JSON.stringify({
+                    "url": streamUrl,
+                    "isEmbed": false,
+                    "mimeType": "application/x-mpegURL",
+                    "headers": {
+                        "Referer": BASEURL,
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    },
+                    "subtitles": []
+                });
+            } else {
+                return JSON.stringify({
+                    "url": streamUrl,
+                    "headers": {
+                        "Referer": BASEURL,
+                        "Origin": BASEURL,
+                        "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                        // Đánh lừa thuật toán Client Hints của tường lửa
+                        "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                        "Sec-Ch-Ua-Mobile": "?1",
+                        "Sec-Ch-Ua-Platform": '"Android"',
+
+                        // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+                        "Accept": "*/*",
+                        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+                        "X-Requested-With": "com.android.chrome",
+                        "Custom-Js": customJs.trim()
+                    },
+                    "subtitles": []
+                });
+            }
+        }
+
+    } catch (e) {
+        log(e);
+        return JSON.stringify({
+            url: url,
+            headers: {
+                "Referer": BASEURL
+            }
+        });
+    }
 }
 /*
 var html = outerHTML;
@@ -508,11 +534,11 @@ function sortEpisodesByName(data) {
                 // Sử dụng Regex để tìm số đứng ngay sau chữ "Tập" (Không phân biệt hoa thường)
                 const matchA = a.name.match(/Tập\s*(\d+)/i);
                 const matchB = b.name.match(/Tập\s*(\d+)/i);
-                
+
                 // Nếu tìm thấy số thì chuyển thành kiểu Int, nếu không thấy thì mặc định là 0
                 const numA = matchA ? parseInt(matchA[1], 10) : 0;
                 const numB = matchB ? parseInt(matchB[1], 10) : 0;
-                
+
                 // Sắp xếp tăng dần: Số nhỏ xếp trước (lên trên), số lớn xếp sau (xuống dưới)
                 return numA - numB;
             });
@@ -522,8 +548,8 @@ function sortEpisodesByName(data) {
 }
 
 function textJS($links, checkepi, url, stream) {
-	// Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
-	return `
+    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
+    return `
 LINKVIDEO = ${JSON.stringify($links)};
 CHECKEPI = ${JSON.stringify(checkepi)};
 URLPAGE = ${JSON.stringify(url)};
@@ -538,22 +564,67 @@ document.head.appendChild(style);
 
     var DEVELOPE = false;
 // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
-function showToast(message, duration, check) {
+globalThis.toastScrollQueue = globalThis.toastScrollQueue || [];
+globalThis.isToastScrollRunning = globalThis.isToastScrollRunning || false;
+globalThis.showToast = function(message, duration, check, scroll) {
         if (typeof duration === 'undefined') duration = 7000;
         if (typeof check === 'undefined') check = true;
+        if (typeof scroll === 'undefined') scroll = false;
         if (check === false) return;
+        
+        if (scroll) {
+            globalThis.toastScrollQueue.push({ message, duration });
+            function processScrollQueue() {
+                if (globalThis.isToastScrollRunning || globalThis.toastScrollQueue.length === 0) return;
+                globalThis.isToastScrollRunning = true;
+                var current = globalThis.toastScrollQueue.shift();
+                var topContainer = document.getElementById('global-toast-top-container');
+                if (!topContainer) {
+                    topContainer = document.createElement('div');
+                    topContainer.id = 'global-toast-top-container';
+                    topContainer.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:9999999;background:rgba(0,0,0,0.75);color:#fff;font-family:sans-serif;font-size:13px;padding:6px 15px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:28px;box-shadow:0 2px 10px rgba(0,0,0,0.3);opacity:0;transition:opacity 0.3s ease;';
+                    document.body.appendChild(topContainer);
+                }
+                topContainer.innerHTML = '';
+                topContainer.style.opacity = '1';
+                var textEl = document.createElement('span');
+                textEl.style.cssText = 'white-space:nowrap;border-right:2px solid transparent;letter-spacing:0.5px;';
+                topContainer.appendChild(textEl);
+                var fullText = current.message;
+                var charIndex = 0;
+                var typingTimer;
+                function typeWriter() {
+                    if (charIndex < fullText.length) {
+                        textEl.innerHTML += fullText.charAt(charIndex);
+                        charIndex++;
+                        typingTimer = setTimeout(typeWriter, 40);
+                    } else {
+                        setTimeout(function() {
+                            topContainer.style.opacity = '0';
+                            setTimeout(function() {
+                                topContainer.remove();
+                                globalThis.isToastScrollRunning = false;
+                                processScrollQueue();
+                            }, 300);
+                        }, 10000);
+                    }
+                }
+                typeWriter();
+            }
+            processScrollQueue();
+            return;
+        }
+        
         var container = document.getElementById('global-toast-container');
         if (!container) {
             container = document.createElement('div');
             container.id = 'global-toast-container';
-            container.style.cssText =
-                'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
+            container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
             document.body.appendChild(container);
         }
         var toastEl = document.createElement('div');
         toastEl.innerHTML = message;
-        toastEl.style.cssText =
-            'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
+        toastEl.style.cssText = 'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
         container.appendChild(toastEl);
         setTimeout(function() {
             toastEl.style.transform = 'translateX(0)';
@@ -567,11 +638,7 @@ function showToast(message, duration, check) {
                 if (container.childElementCount === 0) container.remove();
             }, 300);
         }, duration);
-    }
-
-/* Build Video End */
-// "version": "1.6"
-
+};
 function runVideo(){
     'use strict';
     var DEVELOPE = false;
@@ -1309,7 +1376,7 @@ function checkResume() {
 		}, 1000); // Quét lại sau mỗi 1 giây (1000ms)
 	})();
 }
-setTimeout(checkResume, 5000);
+setTimeout(checkResume, 1000);
 
 
 
@@ -1373,7 +1440,6 @@ if (document.readyState === 'loading') {
 
 `;
 }
-
 
 function parseCategoriesResponse(apiResponseJson) {
     var listurl = getLISTmenu();
