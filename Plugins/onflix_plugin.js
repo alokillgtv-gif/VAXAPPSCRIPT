@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "onflix",
 		"name": "Onflix",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.7.2",
+		"version": "1.7.3",
 		"BASEURL": "https://onflix.lat",
 		"iconUrl": "https://onflix.lat/app/asset/logo.png",
 		"isEnabled": true,
@@ -356,16 +356,16 @@ function parseMovieDetail(html, $url) {
 		return JSON.stringify({
 			id: $url,
 			title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
-			posterUrl: limg,
-			backdropUrl: limg,
+			posterUrl: "",
+			backdropUrl: "",
 			description: e + "\r\n\r\n" + ldes,
-			servers: servers,
+			servers: [],
 			quality: "HD",
-			year: year,
-			status: status,
-			duration: duration,
-			casts: cast,
-			director: direc
+			year: 2030,
+			status: "",
+			duration: "",
+			casts: "",
+			director: ""
 		});
 	}
 }
