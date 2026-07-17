@@ -4,7 +4,7 @@ function getManifest() {
         "id": "trannyone",          
         "name": "Tranny One",
         "description": "XXX dành cho người có sở thích đặc biệt",
-        "version": "2.3",             
+        "version": "2.3.4",             
         "baseUrl": "https://www.tranny.one",
         "iconUrl": "https://cdn1.tranny.one/trannystatic/v30/common/lib-tr/img/logo-2x.png", 
         "isEnabled": true,
@@ -204,7 +204,6 @@ function parseMovieDetail(html,$url) {
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
     
     var episodes = [];
-    var $stream = url;
     var mathser = html.match(/videoContainer[^>]+data-low=["']([^"']+)["'][^>]+data-high=["']([^"']+)["']/i)
     if (mathser && mathser[1]) {
       episodes.push({
