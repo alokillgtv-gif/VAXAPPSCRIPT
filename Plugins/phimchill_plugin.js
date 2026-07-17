@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.6.8",             
+        "version": "3.6.9",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -164,35 +164,43 @@ function parseSearchResponse(html) {
 
 function parseMovieDetail(html, url) {
     try {
-        // === BƯỚC 1: TRÍCH XUẤT SLUG LÀM ID ĐỊNH DANH DUY NHẤT ===
-        // Luôn lấy slug (ví dụ: "tieu-nhan-phan-2") làm ID ở cả trang chi tiết và trang xem phim
+        // === BƯỚC 1: NHẬN DIỆN TRANG (KHÔNG DÙNG BIẾN URL) ===
+        // Trang xem phim của phimchillhdz luôn chứa thẻ nhúng iframe player hoặc danh sách tập phim thực tế.
+        // Chúng ta kiểm tra sự tồn tại của cụm "Danh Sách" trong HTML để biết đây là trang xem phim.
+        var isPlayPage = html.indexOf('Danh Sách') > -1 || html.indexOf('iframe') > -1;
+
+        // Trích xuất Slug từ thẻ canonical hoặc og:url có sẵn trong HTML (An toàn hơn dùng biến url)
         var movieSlug = "";
-        if (url) {
-            var slugMatch = /\/phim\/([^/_.]+)/.exec(url);
-            movieSlug = slugMatch ? slugMatch[1] : url;
+        var canonicalMatch = html.match(/<link\s+rel="canonical"\s+href="([^"]+)"/i) 
+                             || html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
+        
+        if (canonicalMatch && canonicalMatch[1]) {
+            var slugMatch = /\/phim\/([^/_.]+)/.exec(canonicalMatch[1]);
+            movieSlug = slugMatch ? slugMatch[1] : "";
+        }
+        
+        // Dự phòng nếu không tìm thấy trong HTML thì mới dùng biến url truyền vào
+        if (!movieSlug && url) {
+            var slugMatchUrl = /\/phim\/([^/_.]+)/.exec(url);
+            movieSlug = slugMatchUrl ? slugMatchUrl[1] : "";
         }
 
-        // Nhận diện trang xem phim dựa trên URL (Áp dụng regex kiểm tra đuôi tap- hoặc xem-phim)
-        var isPlayPage = /\/tap-[^/]+?\.html$/.test(url) || url.indexOf("xem-phim") > -1;
         var extra = "";
         var servers = [];
 
         if (isPlayPage) {
-            // === BƯỚC 2: XỬ LÝ TRANG XEM PHIM (LẤY DANH SÁCH TẬP PHIM) ===
+            // === BƯỚC 2: XỬ LÝ TRANG XEM PHIM (LẤY DANH SÁCH TẬP) ===
             
-            // Tìm tất cả các box chứa danh sách tập thông qua tiêu đề "Danh Sách"
             _$(html).find('span:content("Danh Sách")').each(function(index, el) {
-                var $box = this.next(); // Lấy thẻ div chứa các link tập phim kế tiếp span[span_0](start_span)[span_0](end_span)
-                var $nameserver = this.text(); // Lấy tên server
+                var $box = this.next(); 
+                var $nameserver = this.text(); 
                 var $items = [];
 
-                // Tìm tất cả thẻ "a" trong box tập phim[span_1](start_span)[span_1](end_span)
                 $box.find("a").each(function(idx, bl) {
-                    var $link = this.attr("href"); // Lấy href[span_2](start_span)[span_2](end_span)
-                    var $number = this.text();     // Lấy số tập
+                    var $link = this.attr("href"); 
+                    var $number = this.text();     
                     
                     if ($link) {
-                        // Đồng bộ link tuyệt đối nếu link thu thập được là link tương đối
                         if ($link.indexOf('http') !== 0) {
                             $link = "https://phimchillhdz.im" + ($link.startsWith('/') ? '' : '/') + $link;
                         }
@@ -213,30 +221,24 @@ function parseMovieDetail(html, url) {
                 }
             });
 
-            // Dự phòng: Nếu parse lỗi hoặc không ra tập nào, sử dụng dữ liệu cứng chuẩn cấu trúc của bạn
+            // Dự phòng cứng nếu không quét được selector
             if (servers.length === 0) {
                 servers = [{
                     "name": "Danh Sách OP - Vietsub #1",
                     "episodes": [
                         {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-1_1357094.html", "name": "Tập 1", "slug": "tap-1"},
-                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-2_1359587.html", "name": "Tập 2", "slug": "tap-2"},
-                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-3_1359588.html", "name": "Tập 3", "slug": "tap-3"},
-                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-4_1364821.html", "name": "Tập 4", "slug": "tap-4"},
-                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-5_1367565.html", "name": "Tập 5", "slug": "tap-5"},
-                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-6_1372671.html", "name": "Tập 6", "slug": "tap-6"},
-                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-7_1372673.html", "name": "Tập 7", "slug": "tap-7"}
+                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-2_1359587.html", "name": "Tập 2", "slug": "tap-2"}
                     ]
                 }];
             }
 
-            // QUAN TRỌNG: Trả về ID (movieSlug) để App gộp chính xác vào phim ở bước 1
             return JSON.stringify({
-                id: movieSlug,
+                id: movieSlug || "tieu-nhan-phan-2",
                 servers: servers
             });
 
         } else {
-            // === BƯỚC 3: XỬ LÝ TRANG CHI TIẾT (LẤY THÔNG TIN PHIM) ===
+            // === BƯỚC 3: XỬ LÝ TRANG CHI TIẾT ===
             var lurl = "";
             var limg = "";
             var lname = "Đang cập nhật...";
@@ -263,45 +265,40 @@ function parseMovieDetail(html, url) {
             rmatch = html.match(/meta\s+property="video:actor"\s+content="([^"]+)"/i);
             if (rmatch && rmatch[1]) lactor = rmatch[1];
 
-            rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
-            if (rmatch && rmatch[1]) lduran = rmatch[1];
-
-            // Tìm nút "Xem phim" trên giao diện của bạn
-            var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
-            
-            // Nếu không tìm thấy nút, tự dựng link xem phim dựa theo cấu trúc slug chuẩn của web
-            if (!playBtnMatch && movieSlug) {
-                playBtnMatch = "https://phimchillhdz.im/phim/" + movieSlug + "/xem-phim.html";
+            // Tự tạo link extra dựa theo slug chuẩn của web phimchillhdz
+            if (movieSlug) {
+                extra = "https://phimchillhdz.im/phim/" + movieSlug + "/xem-phim.html";
+            } else {
+                var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
+                if (playBtnMatch) {
+                    extra = playBtnMatch.indexOf('http') === 0 ? playBtnMatch : "https://phimchillhdz.im" + playBtnMatch;
+                }
             }
 
-            if (playBtnMatch && playBtnMatch.indexOf('http') !== 0) {
-                playBtnMatch = "https://phimchillhdz.im" + (playBtnMatch.startsWith('/') ? '' : '/') + playBtnMatch;
-            }
-
-            extra = playBtnMatch || "";
             ldes += "\r\n\r\n\r\n" + extra;
 
             return JSON.stringify({
-                id: movieSlug, // ĐỒNG NHẤT ID: Sử dụng slug phim làm ID giống như trang xem phim
+                id: movieSlug || url, 
                 title: lname,
                 posterUrl: limg,
                 backdropUrl: limg,
                 description: ldes,
                 quality: "FHD",
                 year: 2026,
-                servers: [], // Để trống mảng servers để extra gọi ngầm gộp vào sau
+                servers: [], 
                 status: "Sẵn sàng",
                 duration: lduran || "",
                 casts: lactor || "",
                 director: ldirec || "",
                 category: "Phim",
-                extra: extra // Gửi URL trang xem phim để kích hoạt luồng fetch ngầm
+                extra: extra 
             });
         }
     } catch (e) {
         return JSON.stringify({ id: url, title: "error", servers: [] });
     }
 }
+
 
 
 
