@@ -5,7 +5,7 @@ function getManifest() {
     "id": "justporn",
     "name": "Just Porn",
     "description": "XXX Hay",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "baseUrl": "https://www.justporn.com",
     "iconUrl": "https://c847a9a666.mjedge.net/contents/pkehlvuovbaw/theme/logo.png",
     "isEnabled": true,
@@ -226,14 +226,14 @@ function parseMovieDetail(html, $url) {
     if (jsonObj.video_alt_url && jsonObj.video_alt_url.match(/http|.mp4/)) {
       stream1 = jsonObj.video_alt_url;
       streamname1 = "Độ Phân Giải: " + jsonObj.video_alt_url_text;
-      epi.push({id: stream1 + "#video.m3u8",name: streamname1",slug: "full"});
+      epi.push({id: stream1 + "#video.m3u8",name: streamname1,slug: "full"});
       stream2 = jsonObj.video_url;
       streamname2 = "Độ Phân Giải: " + jsonObj.video_url_text;
-      epi.push({id: stream2 + "#video.m3u8",name: streamname2",slug: "full"});
+      epi.push({id: stream2 + "#video.m3u8",name: streamname2,slug: "full"});
     } else {
       stream1 = jsonObj.video_url;
       streamname1 = "Độ Phân Giải: " + jsonObj.video_url_text;
-      epi.push({id: stream1 + "#video.m3u8",name: streamname1",slug: "full"});
+      epi.push({id: stream1 + "#video.m3u8",name: streamname1,slug: "full"});
     }
   }
   
