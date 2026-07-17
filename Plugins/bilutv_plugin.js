@@ -436,7 +436,7 @@ function parseEmbedResponse(html, url) {
 			}
 			var customJs = textJS(typevideo, checkepi, url, streamUrl);
 			// "Custom-Js": customJs.trim()
-			if($type == "m3u8"{
+			if($type == "m3u8"){
 				return JSON.stringify({
 					"url": streamUrl,
 					"isEmbed": false,
