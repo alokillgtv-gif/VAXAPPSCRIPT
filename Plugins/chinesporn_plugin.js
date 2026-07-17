@@ -211,7 +211,7 @@ function parseMovieDetail(html,$url) {
         var $linkURL = html.match(/var\sstream[^"']+["']([^"']+)["']/i);
         if ($linkURL && $linkURL[1]) {
           $stream = $linkURL[1];
-          epi.push({ id: $stream + "#video.m3u8", name: "Xem Ngay 1", slug: "full" });
+          epi.push({ id: $stream + "#video.m3u8", name: "Xem Ngay 1", slug: $url });
         }
     
     return JSON.stringify({
