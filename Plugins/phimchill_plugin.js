@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.6.7",             
+        "version": "3.6.8",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -164,24 +164,32 @@ function parseSearchResponse(html) {
 
 function parseMovieDetail(html, url) {
     try {
-        // Nhận diện trang xem phim dựa trên URL (Áp dụng regex tối giản đã tối ưu)
-        var isPlayPage = /\/tap-[^/]+?\.html$/.test(url);
+        // === BƯỚC 1: TRÍCH XUẤT SLUG LÀM ID ĐỊNH DANH DUY NHẤT ===
+        // Luôn lấy slug (ví dụ: "tieu-nhan-phan-2") làm ID ở cả trang chi tiết và trang xem phim
+        var movieSlug = "";
+        if (url) {
+            var slugMatch = /\/phim\/([^/_.]+)/.exec(url);
+            movieSlug = slugMatch ? slugMatch[1] : url;
+        }
+
+        // Nhận diện trang xem phim dựa trên URL (Áp dụng regex kiểm tra đuôi tap- hoặc xem-phim)
+        var isPlayPage = /\/tap-[^/]+?\.html$/.test(url) || url.indexOf("xem-phim") > -1;
         var extra = "";
         var servers = [];
 
         if (isPlayPage) {
-            // === XỬ LÝ TRANG XEM PHIM (LẤY DANH SÁCH TẬP PHIM) ===
+            // === BƯỚC 2: XỬ LÝ TRANG XEM PHIM (LẤY DANH SÁCH TẬP PHIM) ===
             
             // Tìm tất cả các box chứa danh sách tập thông qua tiêu đề "Danh Sách"
             _$(html).find('span:content("Danh Sách")').each(function(index, el) {
-                var $box = this.next(); // Lấy thẻ div chứa các link tập phim kế tiếp span[span_3](start_span)[span_3](end_span)
-                var $nameserver = this.text(); // Sử dụng 'this' (chính là _$(el) trong hàm each) để lấy tên server
+                var $box = this.next(); // Lấy thẻ div chứa các link tập phim kế tiếp span[span_0](start_span)[span_0](end_span)
+                var $nameserver = this.text(); // Lấy tên server
                 var $items = [];
 
-                // Tìm tất cả thẻ "a" trong box tập phim[span_4](start_span)[span_4](end_span)
+                // Tìm tất cả thẻ "a" trong box tập phim[span_1](start_span)[span_1](end_span)
                 $box.find("a").each(function(idx, bl) {
-                    var $link = this.attr("href"); // Dùng 'this' đại diện cho _$(bl) để lấy href[span_5](start_span)[span_5](end_span)
-                    var $number = this.text();     // Dùng 'this' lấy text đại diện số tập[span_6](start_span)[span_6](end_span)
+                    var $link = this.attr("href"); // Lấy href[span_2](start_span)[span_2](end_span)
+                    var $number = this.text();     // Lấy số tập
                     
                     if ($link) {
                         // Đồng bộ link tuyệt đối nếu link thu thập được là link tương đối
@@ -221,14 +229,14 @@ function parseMovieDetail(html, url) {
                 }];
             }
 
-            // Trả về JSON chứa danh sách server để hệ thống gộp tự động
+            // QUAN TRỌNG: Trả về ID (movieSlug) để App gộp chính xác vào phim ở bước 1
             return JSON.stringify({
-                servers: servers,
-                description: "sadsdsadsadsdsa"
+                id: movieSlug,
+                servers: servers
             });
 
         } else {
-            // === XỬ LÝ TRANG CHI TIẾT (LẤY THÔNG TIN PHIM) ===
+            // === BƯỚC 3: XỬ LÝ TRANG CHI TIẾT (LẤY THÔNG TIN PHIM) ===
             var lurl = "";
             var limg = "";
             var lname = "Đang cập nhật...";
@@ -258,42 +266,43 @@ function parseMovieDetail(html, url) {
             rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
             if (rmatch && rmatch[1]) lduran = rmatch[1];
 
-            // Trích xuất nút "Xem phim" để tạo liên kết extra tải tập phim ngầm
-            // Thư viện đã nâng cấp hỗ trợ *= giúp tìm kiếm class phức tạp chính xác[span_7](start_span)[span_7](end_span)
+            // Tìm nút "Xem phim" trên giao diện của bạn
             var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
             
-            extra = playBtnMatch;
-
-            // Lấy ID/Slug từ URL phim để làm định danh duy nhất cho bộ phim
-            var movieSlug = "";
-            if (lurl) {
-                var slugMatch = /\/phim\/([^/_\.]+)/.exec(lurl);
-                movieSlug = slugMatch ? slugMatch[1] : lurl;
+            // Nếu không tìm thấy nút, tự dựng link xem phim dựa theo cấu trúc slug chuẩn của web
+            if (!playBtnMatch && movieSlug) {
+                playBtnMatch = "https://phimchillhdz.im/phim/" + movieSlug + "/xem-phim.html";
             }
-						ldes += "\r\n\r\n\r\n" + extra
+
+            if (playBtnMatch && playBtnMatch.indexOf('http') !== 0) {
+                playBtnMatch = "https://phimchillhdz.im" + (playBtnMatch.startsWith('/') ? '' : '/') + playBtnMatch;
+            }
+
+            extra = playBtnMatch || "";
+            ldes += "\r\n\r\n\r\n" + extra;
+
             return JSON.stringify({
-                id: url, // ID đóng vai trò định danh để App mapping và gộp dữ liệu từ extra
+                id: movieSlug, // ĐỒNG NHẤT ID: Sử dụng slug phim làm ID giống như trang xem phim
                 title: lname,
                 posterUrl: limg,
                 backdropUrl: limg,
                 description: ldes,
                 quality: "FHD",
                 year: 2026,
-                servers: [], // Trang chi tiết để trống mảng servers để extra lo phần này
+                servers: [], // Để trống mảng servers để extra gọi ngầm gộp vào sau
                 status: "Sẵn sàng",
                 duration: lduran || "",
                 casts: lactor || "",
                 director: ldirec || "",
                 category: "Phim",
-                extra: extra // Gửi URL trang xem phim đi để App fetch lấy servers gộp vào sau
+                extra: extra // Gửi URL trang xem phim để kích hoạt luồng fetch ngầm
             });
         }
     } catch (e) {
-        // Log lỗi chi tiết ra console để dễ debug nếu có lỗi phát sinh
-        //console.error("parseMovieDetail error: " + e.message);
         return JSON.stringify({ id: url, title: "error", servers: [] });
     }
 }
+
 
 
 // Hàm bổ trợ chuẩn hóa tập phim an toàn, không lo lỗi "00"
