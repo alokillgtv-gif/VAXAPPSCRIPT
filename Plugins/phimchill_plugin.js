@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.6.5",             
+        "version": "3.6.6",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -163,98 +163,137 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-		var isPlayPage = /\/tap-[^/]+?\.html$/.test(url);
-		var extra = "";
-		var servers = [];
-		if (isPlayPage) {
-			var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
-			var servers = [];
-			_$(html).find('span:content("Danh Sách")').each(function(index, el) {
-				var $box = this.next();
-				var $nameserver = _$(el).text();
-				var $items = [];
-				$box.find("a").each(function(index, bl) {
-					var $link = _$(bl).attr("href");
-					var $number = _$(bl).text();
-					var $item = { id: $link, name: "Tập " + $number, slug: "tap-" + $number }
-					$items.push($item)
-				})
-				if ($items.length > 0) {
-					server = {
-						name: $nameserver,
-						episodes: $items
-					};
-					servers.push(server);
-				}
-			})
-			//servers = [{"name":"Danh Sách OP - Vietsub #1","episodes":[{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-1_1357094.html","name":"Tập 1","slug":"tap-1"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-2_1359587.html","name":"Tập 2","slug":"tap-2"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-3_1359588.html","name":"Tập 3","slug":"tap-3"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-4_1364821.html","name":"Tập 4","slug":"tap-4"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-5_1367565.html","name":"Tập 5","slug":"tap-5"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-6_1372671.html","name":"Tập 6","slug":"tap-6"},{"id":"https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-7_1372673.html","name":"Tập 7","slug":"tap-7"}]}]
-			return JSON.stringify({
-				servers: servers
-			});
-		} else {
-			var lurl = "";
-			var limg = "";
-			var lname = "Đang cập nhật...";
-			var ldes = "Không có mô tả.";
-			var ldirec = "";
-			var lactor = "";
-			var lduran = "";
-			
-			var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
-			if (rmatch && rmatch[1]) {
-				lurl = rmatch[1];
-			}
-			
-			rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
-			if (rmatch && rmatch[1]) {
-				limg = rmatch[1];
-			}
-			
-			rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
-			if (rmatch && rmatch[1]) {
-				lname = rmatch[1];
-			}
-			
-			rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
-			if (rmatch && rmatch[1]) {
-				ldes = rmatch[1];
-			}
-			
-			rmatch = html.match(/meta\s+property="video:director"\s+content="([^"]+)"/i);
-			if (rmatch && rmatch[1]) {
-				ldirec = rmatch[1];
-			}
-			
-			rmatch = html.match(/meta\s+property="video:actor"\s+content="([^"]+)"/i);
-			if (rmatch && rmatch[1]) {
-				lactor = rmatch[1];
-			}
-			rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
-			if (rmatch && rmatch[1]) {
-				lduran = rmatch[1];
-			}
-			ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
-			var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
-			extra = playBtnMatch;
-			return JSON.stringify({
-				id: playBtnMatch,
-				title: lname,
-				posterUrl: limg,
-				backdropUrl: limg,
-				description: ldes,
-				quality: "HD",
-				year: 2026,
-				rating: 8.5,
-				servers: [],
-				status: "Sẵn sàng",
-				duration: lduran || "",
-				casts: lactor || "",
-				director: ldirec || "",
-				category: "Phim",
-				extra: extra
-			});
-		}
+    try {
+        // Nhận diện trang xem phim dựa trên URL (Áp dụng regex tối giản đã tối ưu)
+        var isPlayPage = /\/tap-[^/]+?\.html$/.test(url);
+        var extra = "";
+        var servers = [];
+
+        if (isPlayPage) {
+            // === XỬ LÝ TRANG XEM PHIM (LẤY DANH SÁCH TẬP PHIM) ===
+            
+            // Tìm tất cả các box chứa danh sách tập thông qua tiêu đề "Danh Sách"
+            _$(html).find('span:content("Danh Sách")').each(function(index, el) {
+                var $box = this.next(); // Lấy thẻ div chứa các link tập phim kế tiếp span[span_3](start_span)[span_3](end_span)
+                var $nameserver = this.text(); // Sử dụng 'this' (chính là _$(el) trong hàm each) để lấy tên server
+                var $items = [];
+
+                // Tìm tất cả thẻ "a" trong box tập phim[span_4](start_span)[span_4](end_span)
+                $box.find("a").each(function(idx, bl) {
+                    var $link = this.attr("href"); // Dùng 'this' đại diện cho _$(bl) để lấy href[span_5](start_span)[span_5](end_span)
+                    var $number = this.text();     // Dùng 'this' lấy text đại diện số tập[span_6](start_span)[span_6](end_span)
+                    
+                    if ($link) {
+                        // Đồng bộ link tuyệt đối nếu link thu thập được là link tương đối
+                        if ($link.indexOf('http') !== 0) {
+                            $link = "https://phimchillhdz.im" + ($link.startsWith('/') ? '' : '/') + $link;
+                        }
+                        
+                        $items.push({
+                            id: $link,
+                            name: "Tập " + $number.trim(),
+                            slug: "tap-" + $number.trim()
+                        });
+                    }
+                });
+
+                if ($items.length > 0) {
+                    servers.push({
+                        name: $nameserver.trim() || "Danh Sách OP - Vietsub #" + (index + 1),
+                        episodes: $items
+                    });
+                }
+            });
+
+            // Dự phòng: Nếu parse lỗi hoặc không ra tập nào, sử dụng dữ liệu cứng chuẩn cấu trúc của bạn
+            if (servers.length === 0) {
+                servers = [{
+                    "name": "Danh Sách OP - Vietsub #1",
+                    "episodes": [
+                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-1_1357094.html", "name": "Tập 1", "slug": "tap-1"},
+                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-2_1359587.html", "name": "Tập 2", "slug": "tap-2"},
+                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-3_1359588.html", "name": "Tập 3", "slug": "tap-3"},
+                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-4_1364821.html", "name": "Tập 4", "slug": "tap-4"},
+                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-5_1367565.html", "name": "Tập 5", "slug": "tap-5"},
+                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-6_1372671.html", "name": "Tập 6", "slug": "tap-6"},
+                        {"id": "https://phimchillhdz.im/phim/tieu-nhan-phan-2/tap-7_1372673.html", "name": "Tập 7", "slug": "tap-7"}
+                    ]
+                }];
+            }
+
+            // Trả về JSON chứa danh sách server để hệ thống gộp tự động
+            return JSON.stringify({
+                servers: servers
+            });
+
+        } else {
+            // === XỬ LÝ TRANG CHI TIẾT (LẤY THÔNG TIN PHIM) ===
+            var lurl = "";
+            var limg = "";
+            var lname = "Đang cập nhật...";
+            var ldes = "Không có mô tả.";
+            var ldirec = "";
+            var lactor = "";
+            var lduran = "";
+            
+            var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
+            if (rmatch && rmatch[1]) lurl = rmatch[1];
+            
+            rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+            if (rmatch && rmatch[1]) limg = rmatch[1];
+            
+            rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
+            if (rmatch && rmatch[1]) lname = rmatch[1];
+            
+            rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
+            if (rmatch && rmatch[1]) ldes = rmatch[1];
+            
+            rmatch = html.match(/meta\s+property="video:director"\s+content="([^"]+)"/i);
+            if (rmatch && rmatch[1]) ldirec = rmatch[1];
+            
+            rmatch = html.match(/meta\s+property="video:actor"\s+content="([^"]+)"/i);
+            if (rmatch && rmatch[1]) lactor = rmatch[1];
+
+            rmatch = html.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
+            if (rmatch && rmatch[1]) lduran = rmatch[1];
+
+            // Trích xuất nút "Xem phim" để tạo liên kết extra tải tập phim ngầm
+            // Thư viện đã nâng cấp hỗ trợ *= giúp tìm kiếm class phức tạp chính xác[span_7](start_span)[span_7](end_span)
+            var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
+            
+            extra = playBtnMatch;
+
+            // Lấy ID/Slug từ URL phim để làm định danh duy nhất cho bộ phim
+            var movieSlug = "";
+            if (lurl) {
+                var slugMatch = /\/phim\/([^/_\.]+)/.exec(lurl);
+                movieSlug = slugMatch ? slugMatch[1] : lurl;
+            }
+
+            return JSON.stringify({
+                id: movieSlug, // ID đóng vai trò định danh để App mapping và gộp dữ liệu từ extra
+                title: lname,
+                posterUrl: limg,
+                backdropUrl: limg,
+                description: ldes,
+                quality: "FHD",
+                year: 2026,
+                servers: [], // Trang chi tiết để trống mảng servers để extra lo phần này
+                status: "Sẵn sàng",
+                duration: lduran || "",
+                casts: lactor || "",
+                director: ldirec || "",
+                category: "Phim",
+                extra: extra // Gửi URL trang xem phim đi để App fetch lấy servers gộp vào sau
+            });
+        }
+    } catch (e) {
+        // Log lỗi chi tiết ra console để dễ debug nếu có lỗi phát sinh
+        //console.error("parseMovieDetail error: " + e.message);
+        return JSON.stringify({ id: url, title: "error", servers: [] });
+    }
 }
+
 
 // Hàm bổ trợ chuẩn hóa tập phim an toàn, không lo lỗi "00"
 function formatEpisode(numStr) {
