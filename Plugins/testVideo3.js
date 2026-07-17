@@ -139,9 +139,8 @@ function parseDetailResponse(html,url) {
         var $type = BaseJSON.codea;
         var $reg = BaseJSON.codee;
 				return JSON.stringify({
-					"url": "",
-					"isEmbed": false,
-					"mimeType": $type,
+					"url": videoUrl,
+					"isEmbed": true,
 					"embedRegex": $reg,
 					"headers": {
 						"Referer": refUrl,
@@ -153,6 +152,21 @@ function parseDetailResponse(html,url) {
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
+}
+function parseEmbedResponse(html, fallbackUrl) {
+	// If the streaming link is doodstream or streamwish, the app core might handle it
+	// Or if `parseDetailResponse` marked `isEmbed = true`, App's engine intercepts it.
+	// If we need to extract raw mp4/m3u8 from the iframe body, add logic here.
+	return JSON.stringify({
+		url: fallbackUrl || "",
+		"mimeType": $type,
+		headers: {
+			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+			"Referer": BaseURL
+		},
+		subtitles: [],
+		isEmbed: false
+	});
 }
 
 
