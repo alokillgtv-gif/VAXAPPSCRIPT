@@ -6,7 +6,7 @@ function getManifest() {
         "id": "yanhh3d",
         "name": "Yanhh3d",
         "description": "Trang xem phim Hoạt Hình siêu hay.",
-        "version": "1.1",
+        "version": "1.1.1",
         "BASEURL": "https://yanhh3d.ac",
         "iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
         "isEnabled": true,
@@ -152,7 +152,7 @@ function parseListResponse(html, $url) {
             var year = "";
             var lang = "";
             var current = this.find(".tick-rate").text();
-            var href = this.find("a").attr("href") + "/tap-1";
+            var href = this.find("a").attr("href");
             var quality = this.find(".tick-dub").text();
             var title = this.find("a").attr("title");
             var src = this.find("img").attr("src");
