@@ -1,5 +1,3 @@
-
-
 BASEURL = "https://www.bemyhole.com";
 // https://www.xxxfiles.com/favicon-32x32.png
 function getManifest() {
@@ -7,12 +5,12 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.5",
+        "version": "1.6",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
         "type": "VIDEO",
-        "playerType": "embed"
+        "playerType": "exoplayer"
     });
 }
 
@@ -211,13 +209,31 @@ function parseMovieDetail(html, url) {
 		}
 		lname = _$(html).find('meta[property="og:title"]').attr("content");
 		ldes = lname;
-		var embed = _$(html).find("#okplayer-frame").attr("data-base");
+		
+		var vdObj = "";
+		var script = _$(html).find('script:content("var flashvars")').html();
+		var objectVD = script.match(/flashvars\s+=+\s({[\s\S]*?};)/i);
+			if(objectVD && objectVD[1]){
+			    vdObj = (new Function("return " + objectVD[1]))();
+			}
+			var $link = [];
+			var $stream = "";https://www.bemyhole.com/v/girls-screw-boyfriends-anal-with-monster-strapon-dildos-and-741759091920/
+			if(vdObj){
+			    var nameVDlow = vdObj.video_url_text;
+			    var nameVDhight = vdObj.video_alt_url_text;
+			    var urlVDlow = vdObj.video_url;
+			    var urlVDhight = vdObj.video_alt_url;
+			
+			    var $stream = urlVDhight;
+			    var $item = {"id":urlVDhight,"name":"Độ Phân Giải: " + nameVDhight,slug:"full"}
+			    $link.push($item);
+			  	$item = {"id":urlVDlow,"name":"Độ Phân Giải: " + nameVDlow,slug:"full"}
+			    $link.push($item);  
+			}
 		var servers = [];
-		var epi = [];
-        epi.push({ id: url, name: "Xem Thôi", slug: url });
     		servers.push({
         	name: "Server",
-        	episodes: epi
+        	episodes: $link
         });
 		ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
 		return JSON.stringify({
@@ -266,27 +282,7 @@ function parseMovieDetail(html, url) {
 // https://phimnganhdc.com/dem-kinh-thanh-nho-em-xuyen-thanh-ban-gai-cu-doc-ac-cua-cau-chu-pha-san/tap-1-811897
 function parseDetailResponse(html, url) {
 	try {
-			var vdObj = "";
-			var script = _$(html).find('script:content("var flashvars")').html();
 			
-			var objectVD = script.match(/flashvars\s+=+\s({[\s\S]*?};)/i);
-			if(objectVD && objectVD[1]){
-			    vdObj = (new Function("return " + objectVD[1]))();
-			}
-			var $link = [];
-			var $stream = "";https://www.bemyhole.com/v/girls-screw-boyfriends-anal-with-monster-strapon-dildos-and-741759091920/
-			if(vdObj){
-			    var nameVDlow = vdObj.video_url_text;
-			    var nameVDhight = vdObj.video_alt_url_text;
-			    var urlVDlow = vdObj.video_url;
-			    var urlVDhight = vdObj.video_alt_url;
-			
-			    var $stream = urlVDhight;
-			    var $item = {"link":urlVDhight,"name":"Độ Phân Giải: " + nameVDhight}
-			    $link.push($item);
-			  	$item = {"link":urlVDlow,"name":"Độ Phân Giải: " + nameVDlow}
-			    $link.push($item);  
-			}
 			var customjs = textJS($link);
 		return JSON.stringify({
 			"url": $stream,
