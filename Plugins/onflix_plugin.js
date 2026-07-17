@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "onflix",
 		"name": "Onflix",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.7.4",
+		"version": "1.7.6",
 		"BASEURL": "https://onflix.lat",
 		"iconUrl": "https://onflix.lat/app/asset/logo.png",
 		"isEnabled": true,
@@ -259,27 +259,36 @@ function extractCleanData(data) {
 }
 
 function parseMovieDetail(html, $url) {
-	try {
-// 3. Gán vào biến dataVD
-        var script = _$(html).find("script:content('link_embed')").text();
-        if(!script){
-            script = _$(html).find("script:content('link_m3u8')").text();
+    try {
+        // 3. Gán vào biến dataVD
+        var script = _$(html).find("script:content('original_name')").text();
+        if (!script) {
+            script = _$(html).find("script:content('episode_current')").text();
         }
         var rawVD = parseNextPayload(script);
-        dataVD = extractCleanData(rawVD);
-        movie = dataVD.movie;
+        var dataVD = extractCleanData(rawVD);
+        var movie = dataVD.movie;
         var actors = "";
-        movie.actors.forEach(actor => {
-            actors += actor.name + ", "; 
-            // In ra: "สุภัสสรา ธนชาต", "ขุนณรงค์ ประเทศรัตน์", ...
-        });
-        var $listEpi = dataVD.episodes;
-        // Giả sử episodesData là mảng 18 tập phim gốc của bạn
+        
+        if (movie && movie.actors) {
+            movie.actors.forEach(actor => {
+                actors += actor.name + ", ";
+                // In ra: "สุภัสสรา ธนชาต", "ขุนณรงค์ ประเทศรัตน์", ...
+            });
+        }
 
-        // Khởi tạo mảng servers rỗng
+        var scriptEmbed = _$(html).find("script:content('\"link_embed\\\":\\\"http')").text();
+        if (!scriptEmbed) {
+            scriptEmbed = _$(html).find("script:content('\"link_m3u8\\\":\\\"http')").text();
+        }
+        var rawVDEmbed = parseNextPayload(scriptEmbed);
+        dataVD = extractCleanData(rawVDEmbed);
+        
+        var $listEpi = dataVD.episodes;
         var servers = [];
-		if($listEpi){
-        // Duyệt qua từng tập phim trong dữ liệu gốc
+
+        // Xử lý danh sách tập phim nếu tồn tại
+        if ($listEpi) {
             $listEpi.forEach(episode => {
                 // 1. Tìm xem server này đã tồn tại trong mảng servers chưa
                 let server = servers.find(s => s.name === episode.server_name);
@@ -296,7 +305,7 @@ function parseMovieDetail(html, $url) {
 
                 // 3. Đẩy thông tin tập phim được format lại vào mảng episodes của server tương ứng
                 var streamLink = episode.link_m3u8;
-                if(episode.link_m3u8.indexOf("https://ss.onflixstream.site/playlist?url") > -1){
+                if (episode.link_m3u8.indexOf("https://ss.onflixstream.site/playlist?url") > -1) {
                     streamLink = episode.link_embed;
                 }
                 server.episodes.push({
@@ -306,6 +315,8 @@ function parseMovieDetail(html, $url) {
                 });
             });
         }
+
+        // Hàm đổi tên server
         function renameServer(originalName) {
             let newName = originalName;
             if (originalName.includes("PA")) {
@@ -334,6 +345,8 @@ function parseMovieDetail(html, $url) {
 
             return getPriority(a.name) - getPriority(b.name);
         });
+
+        // Trả về kết quả JSON
         return JSON.stringify({
             id: $url,
             title: movie.title,
@@ -347,27 +360,28 @@ function parseMovieDetail(html, $url) {
             duration: movie.time,
             casts: actors,
             director: movie.directors,
-            category: movie.categories[0].name,
+            category: movie.categories && movie.categories[0] ? movie.categories[0].name : "",
             lang: movie.lang,
-            country: movie.countries[0].name
-        });	
-	}
-	catch (e) {
-		return JSON.stringify({
-			id: $url,
-			title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
-			posterUrl: "",
-			backdropUrl: "",
-			description: e,
-			servers: [],
-			quality: "HD",
-			year: 2030,
-			status: "",
-			duration: "",
-			casts: "",
-			director: ""
-		});
-	}
+            country: movie.countries && movie.countries[0] ? movie.countries[0].name : ""
+        });
+    } 
+    catch (e) {
+        //console.log(e);
+        return JSON.stringify({
+            id: $url,
+            title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
+            posterUrl: "",
+            backdropUrl: "",
+            description: e.message || e,
+            servers: [],
+            quality: "HD",
+            year: 2030,
+            status: "",
+            duration: "",
+            casts: "",
+            director: ""
+        });
+    }
 }
 
 function parseDetailResponse(html, url) {
