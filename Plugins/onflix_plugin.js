@@ -6,7 +6,7 @@ function getManifest() {
 		"id": "onflix",
 		"name": "Onflix",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.7.1",
+		"version": "1.7.2",
 		"BASEURL": "https://onflix.lat",
 		"iconUrl": "https://onflix.lat/app/asset/logo.png",
 		"isEnabled": true,
@@ -353,13 +353,12 @@ function parseMovieDetail(html, $url) {
         });	
 	}
 	catch (e) {
-        console.log(e);
 		return JSON.stringify({
 			id: $url,
 			title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
 			posterUrl: limg,
 			backdropUrl: limg,
-			description: ldes,
+			description: e + "\r\n\r\n" + ldes,
 			servers: servers,
 			quality: "HD",
 			year: year,
