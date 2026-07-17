@@ -1,4 +1,4 @@
-window.BASEURL = window.location.origin;
+// "version": "1.3",
 window._$ = function (htmlOrBlock) {
     if (htmlOrBlock && typeof htmlOrBlock === 'object' && htmlOrBlock.elements) {
         return htmlOrBlock;
