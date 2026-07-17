@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.3",             
+        "version": "3.4",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -163,8 +163,7 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-
-\
+	
     var lurl = "";
     var limg = "";
     var lname = "Đang cập nhật...";
@@ -208,32 +207,28 @@ function parseMovieDetail(html, url) {
         lduran = rmatch[1];
     }
 
-    var servers = [];
-		
     // Tìm URL nút "Xem Phim" chứa ID thật của trang chiếu phim (Ví dụ: /tap-1_1368851.html)
     var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
-    // BÓC TÁCH SỐ TẬP TỪ BIẾN lduran (Thời lượng / Số tập)
-    var totalEpisodes = 1;
-    totalEpisodes = _$(html).find("dt:content('Số Tập')").next().text();
-    totalEpisodes = totalEpisodes.match(/([0-9]+)/i)[1];
-    totalEpisodes = Number(totalEpisodes)
-    var episodes = [];
-    for (var k = 1; k <= totalEpisodes; k++) {
-        // ID giả: play-[Trang_Xem_Phim_Gốc]?tap=K
-        var epId = playBtnMatch + "?tapplay=" + k;
+		var servers = [];
+		_$(html).find('span:content("Danh Sách")').each(function(index, el) {
+			var $box = this.next();
+			var $nameserver = $(el).text();
+			var $items = [];
+			$box.find("a").each(function(index, bl) {
+				var $link = $(bl).attr("href");
+				var $number = $(bl).text();
+				var $item = { id: $link, name: "Tập " + $number, slug: "tap-" + $number }
+				$items.push($item)
+			})
+			if ($items.length > 0) {
+				server = {
+					name: $nameserver,
+					episodes: $items
+				};
+				servers.push(server);
+			}
+		})
 
-        episodes.push({
-            id: epId,
-            name: "Tập " + k,
-            slug: "tap-" + k
-        });
-    }
-    servers.push({
-        name: "Server Phim Chill",
-        episodes: episodes
-    });
-    ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
-    
         // Tạo extra url để tải đầy đủ tập từ trang xem-phim
         // Kiểm tra bằng canonical URL (biến id) thay vì search toàn HTML vì trang
         // detail có nav link chứa chuỗi "xem-phim" gây nhận nhầm.
@@ -250,7 +245,7 @@ function parseMovieDetail(html, url) {
 					extra = playBtnMatch;
 				}
     
-    
+    ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
     return JSON.stringify({
         id: url,
         title: lname,

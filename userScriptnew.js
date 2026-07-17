@@ -817,7 +817,7 @@
 
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/141e0ae522428d767692196c11fe980f0ede3ba4/miniJQ.js';
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/ecfb4a1583e1243c7d065286dcd35360e8815ba0/miniJQ.js';
 
                     const response = await fetch(helperUrl);
                     if (!response.ok) {
