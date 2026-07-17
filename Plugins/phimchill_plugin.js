@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.5",             
+        "version": "3.6",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -163,8 +163,6 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html, url) {
-
-		// Cách kiểm tra nhanh bằng Regex siêu gọn:
 		var isPlayPage = /\/tap-[^/]+?\.html$/.test(url);
 		var extra = "";
 		var servers = [];
@@ -189,6 +187,9 @@ function parseMovieDetail(html, url) {
 					servers.push(server);
 				}
 			})
+			return JSON.stringify({
+				servers: servers
+			});
 		} else {
 			var playBtnMatch = _$(html).find(".text-center").find(".mx-auto").attr("href");
 			extra = playBtnMatch;
@@ -240,7 +241,6 @@ function parseMovieDetail(html, url) {
 				posterUrl: limg,
 				backdropUrl: limg,
 				description: ldes,
-				servers: servers,
 				quality: "HD",
 				year: 2026,
 				rating: 8.5,
