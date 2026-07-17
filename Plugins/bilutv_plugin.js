@@ -6,12 +6,12 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "3.0",
+		"version": "3.2",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
 		"type": "MOVIE",
-		"playerType": "exoplayer"
+		"playerType": "auto"
 	});
 }
 
@@ -436,16 +436,31 @@ function parseEmbedResponse(html, url) {
 			}
 			var customJs = textJS(typevideo, checkepi, url, streamUrl);
 			// "Custom-Js": customJs.trim()
-			return JSON.stringify({
-				"url": streamUrl,
-				"isEmbed": false,
-				"mimeType": "application/x-mpegURL",
-				"headers": {
-					"Referer": BASEURL,
-					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-				},
-				"subtitles": []
-			});
+			if($type == "m3u8"{
+				return JSON.stringify({
+					"url": streamUrl,
+					"isEmbed": false,
+					"mimeType": "application/x-mpegURL",
+					"headers": {
+						"Referer": BASEURL,
+						"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+					},
+					"subtitles": []
+				});
+			}
+			else{
+				return JSON.stringify({
+					"url": streamUrl,
+					"isEmbed": false,
+					"mimeType": "application/x-mpegURL",
+					"headers": {
+						"Referer": BASEURL,
+						"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+						"Custom-Js": customJs.trim()
+					},
+					"subtitles": []
+				});
+			}
 		}
 		
 	} catch (e) {
