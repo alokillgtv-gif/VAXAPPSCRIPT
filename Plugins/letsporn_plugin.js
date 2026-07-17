@@ -6,7 +6,7 @@ function getManifest() {
         "id": "letsporn",
         "name": "Lets Porn",
         "description": "XXX Hay.",
-        "version": "1.7.1",
+        "version": "1.7.2",
         "BASEURL": "https://letsporn.com",
         "iconUrl": "https://static.letsporn.com/static/img/logo.png?v=1.2",
         "isEnabled": true,
@@ -209,12 +209,12 @@ function parseMovieDetail(html,$url) {
 		
 		var $split2 = html.match(/video_alt_url:\s+["']([^"']+)["'][^}]*video_alt_url_text:\s+["']([^"']+)["']/i);
 		if ($split2 && $split2[1]) {
-			var $item = { id: $split2[1] + "#video.m3u8", "name": "Độ Phân Giải " + $split2[2],slug:lname.replace(/\s/g,"_") }
+			var $item = { id: $split2[1] + "#video.m3u8", "name": "Độ Phân Giải " + $split2[2],slug:"full" }
 			$stream = $split2[1];
 			$link.push($item);
 		}
 		if ($split && $split[1]) {
-			var $item = { id: $split[1] + "#video.m3u8", "name": "Độ Phân Giải " + $split[2], slug: lname.replace(/\s/g,"_") }
+			var $item = { id: $split[1] + "#video.m3u8", "name": "Độ Phân Giải " + $split[2], slug: "full" }
 			$link.push($item);
 		}
     
