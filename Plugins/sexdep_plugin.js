@@ -9,7 +9,7 @@ function getManifest() {
         "id": "sexdep",
         "name": "sexdep",
         "description": "XXX Hay",
-        "version": "1.4.1",
+        "version": "1.4.2",
         "BASEURL": "https://sexdeplon.blog",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -320,6 +320,8 @@ function parseDetailResponse(html, url) {
         var customjs = textJS();
         return JSON.stringify({
             "url": url,
+            isEmbed: true,
+            embedRegex: "['\"](https?:\\/\\/[^\\s'\"]+\\.m3u8[^'\"]*)['\"]",
             "headers": {
                 "Referer": BASEURL,
                 "Origin": BASEURL,
@@ -341,6 +343,21 @@ function parseDetailResponse(html, url) {
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
+}
+
+function parseEmbedResponse(html, fallbackUrl) {
+    // If the streaming link is doodstream or streamwish, the app core might handle it
+    // Or if `parseDetailResponse` marked `isEmbed = true`, App's engine intercepts it.
+    // If we need to extract raw mp4/m3u8 from the iframe body, add logic here.
+    return JSON.stringify({
+        url: fallbackUrl || "",
+        headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": "https://javhdz.today/"
+        },
+        subtitles: [],
+        isEmbed: false
+    });
 }
 
 function textJS() {
