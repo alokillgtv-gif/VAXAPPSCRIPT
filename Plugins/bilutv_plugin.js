@@ -6,13 +6,21 @@ function getManifest() {
 		"id": "bilutv",
 		"name": "Nguồn Bilutv",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.1",
+		"version": "1.2",
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
 		"type": "MOVIE",
 		"playerType": "auto"
 	});
+}
+
+function log(msg) {
+	if (typeof nativeLog !== 'undefined') {
+		nativeLog("[PhimHDCS] " + msg);
+	} else if (typeof console !== 'undefined' && console.log) {
+		console.log("[PhimHDCS] " + msg);
+	}
 }
 
 // https://bilutv.asia/danh-sach/phim-moi?page=2
@@ -449,13 +457,22 @@ function parseEmbedResponse(html, url) {
 				});
 			}
 			else{
-				return JSON.stringify({
+	       return JSON.stringify({
 					"url": streamUrl,
-					"isEmbed": false,
 					"headers": {
 						"Referer": BASEURL,
-						"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-						"Custom-Js": customJs.trim()
+						"Origin": BASEURL,
+						"User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+						// Đánh lừa thuật toán Client Hints của tường lửa
+						"Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+						"Sec-Ch-Ua-Mobile": "?1",
+						"Sec-Ch-Ua-Platform": '"Android"',
+						
+						// Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
+						"Accept": "*/*",
+						"Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+						"X-Requested-With": "com.android.chrome",
+						"Custom-Js": customjs.trim()
 					},
 					"subtitles": []
 				});
