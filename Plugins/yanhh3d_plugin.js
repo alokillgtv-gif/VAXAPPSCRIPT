@@ -208,139 +208,109 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html, url) {
-    var lurl = "";
-    var limg = "";
-    var lname = "Đang cập nhật...";
-    var ldes = "Không có mô tả.";
-    var year = 2026;
-    var direc = "????";
-    var cast = "????";
-    var status = "????";
-    var duration = "1:09:00 | 16 | 16";
-    var rating = "????";
-    var servers = [{}];
-    var $info = "";
-    var category = "";
-    var country = "";
-    var lang = "";
-    var streamUrl = "";
-    try {
-        limg = _$(html).find('meta[property="og:image"]').attr("content");
-        if (limg.indexOf("http") == -1) {
-            limg = BASEURL + limg;
-        }
-        lname = _$(html).find('meta[property="og:title"]').attr("content");
-        ldes = _$(html).find('div[itemprop="description"]').find("p").text();
-        year = _$(html).find('b:content("Năm phát hành")').parent().text().replace("Năm phát hành:",
-            "").replace(/\s+/g, "");
-        year = Number(year);
-        status = _$(html).find('b:content("Status:")').parent().text().replace("Status:", "")
-            .replace(/\s\s/g, "");;
-        duration = _$(html).find('b:content("Thời lượng:")').parent().text().replace("Thời lượng:",
-            "").replace(/\s\s/g, "");;
-        cast = _$(html).find('b:content("Diễn viên:")').parent().text().replace("Diễn viên:", "")
-            .replace(/\s\s/g, "");;
-        direc = _$(html).find('b:content("Đạo diễn:")').parent().text().replace("Đạo diễn:", "")
-            .replace(/\s\s/g, "");;
-        country = _$(html).find('b:content("Quốc gia:")').parent().text().replace("Quốc gia:", "")
-            .replace(/\s\s/g, "");;
-        category = _$(html).find('b:content("Định dạng:")').parent().text().replace("Định dạng:",
-            "").replace(/\s\s/g, "");
-        lang = _$(html).find('b:content("Chất lượng:")').parent().text().replace(
-            /Chất lượng:|\s\s|^\s/g, "");
-        servers = [];
-        var epiOne = _$(html).find('span:content("Tập đầu")').parent().attr("href");
+function parseMovieDetail(htmlContent, url) {
+	try {
+		// === BƯỚC 1: ĐỒNG NHẤT ID PHIM BẰNG REGEX META (Y hệt tác giả) ===
+		var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(htmlContent) ||
+			/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(htmlContent);
+		var id = idMatch ? idMatch[1] : (url || "");
+		
+		var slug = "";
+		if (id) {
+			var slugMatch = /\/phim\/([^/_.]+)/.exec(id);
+			slug = slugMatch ? slugMatch[1] : id;
+		}
+		if (!slug) {
+			var slugMatch2 = /\/phim\/([^/_.]+)/.exec(htmlContent);
+			slug = slugMatch2 ? slugMatch2[1] : "";
+		}
+		
+		// === BƯỚC 2: TRÍCH XUẤT THÔNG TIN PHIM ===
+		var lurl = "";
+		var limg = "";
+		var lname = "Đang cập nhật...";
+		var ldes = "Không có mô tả.";
+		var ldirec = "";
+		var lactor = "";
+		var lduran = "";
+		var status = "";
+        var category = "";
+        var episode_current = "";
+
+		var rmatch = htmlContent.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) lurl = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) limg = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) lname = rmatch[1];
+		
+		rmatch = htmlContent.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) ldes = rmatch[1];
+		
+		
+		rmatch = htmlContent.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
+		if (rmatch && rmatch[1]) lduran = rmatch[1];
+
+        status = _$(htmlContent).find("span:content('Trạng thái:')").next().text();
+        year = _$(htmlContent).find("span:content('Năm:')").next().text();
+        category = _$(htmlContent).find("span:content('Thể loại:')").parent().text(", ").replace('Thể loại:, ', '');
+        episode_current = _$(htmlContent).find("span:content('Tập mới nhất:')").next().text();
         var servers = [];
-        var epiM3U8 = [];
-        var epiEMBED = [];
-        var epiEnd = _$(html).find('.epcurlast').text().match(/(\d+)/i);
-        var EndNumber = 1;
-        if (epiOne) {
-            if (epiEnd && epiEnd[1]) {
-                EndNumber = Number(epiEnd[1]) + 1;
-            }
-
-            for (var $j = 1; $j < EndNumber; $j++) {
-                var numberEpi = formatEpisode($j);
-                var urlM3U8 = epiOne + "?tapplay=" + numberEpi + "&type=m3u8";
-                var urlEMBED = epiOne + "?tapplay=" + numberEpi + "&type=embed";
-                var nameEpi = "Tập " + numberEpi;
-                var slugEpi = "tap-" + numberEpi;
-                epiM3U8.push({
-                    id: urlM3U8,
-                    name: nameEpi,
-                    slug: slugEpi
-                });
-                epiEMBED.push({
-                    id: urlEMBED,
-                    name: nameEpi,
-                    slug: slugEpi
-                });
-            }
-            servers.push({
-                name: "Server M3U8",
-                episodes: epiM3U8
-            }, {
-                name: "Server EMBED",
-                episodes: epiEMBED
-            });
-        } else {
-            var epiOne = _$(html).find(".bookmark").attr("href");;
-            var urlM3U8 = epiOne + "?tapplay=full&type=m3u8";
-            var urlEMBED = epiOne + "?tapplay=full&type=embed";
-            epiM3U8.push({
-                id: urlM3U8,
-                name: "Xem Ngay",
-                slug: "full"
-            });
-            epiEMBED.push({
-                id: urlEMBED,
-                name: "Xem Ngay",
-                slug: "full"
-            });
-            servers.push({
-                name: "Server M3U8",
-                episodes: epiM3U8
-            }, {
-                name: "Server EMBED",
-                episodes: epiEMBED
-            });
-        }
-        return JSON.stringify({
-            id: url,
-            title: lname,
-            posterUrl: limg,
-            backdropUrl: limg,
-            description: ldes,
-            servers: servers,
-            quality: "HD",
-            year: year,
-            status: status,
-            duration: duration,
-            casts: cast,
-            director: direc,
-            country: country,
-            category: category,
-            lang: lang
+        $parent = _$(htmlContent).find('.detail-infor-content');
+        $child = $parent.find("li");
+        $child.find("a").each(function(){
+            var nameServer = this.text();
+            var idserver = this.attr("href");
+            var items = [];
+            $parent.find(idserver).find("a").each(function(){
+                var name = this.find("div").text();
+                var item = {id:this.attr("href"),name:name,slug:"tap-" + name.replace(/\s/,"-")}
+                items.push(item)
+            })
+            servers.push({name:nameServer,episodes:items})
         });
+	
+		var extra = "";
 
-    } catch (e) {
-        return JSON.stringify({
-            id: lurl,
-            title: "Lỗi rồi bạn ơi. Tên miền đã bị đổi",
-            posterUrl: limg,
-            backdropUrl: limg,
-            description: ldes,
-            servers: servers,
-            quality: "HD",
-            year: year,
-            status: status,
-            duration: duration,
-            casts: cast,
-            director: direc
-        });
-    }
+		var isPlayPage = /\/tap-/.test(id)
+		
+		if (!isPlayPage) {
+			// Đang ở trang chi tiết -> Lấy link nút "Xem phim" để gán vào extra
+			var playBtnMatch = _$(htmlContent).find(".film-buttons").find("a").attr("href");
+			if (playBtnMatch) {
+				extra = playBtnMatch;
+			}
+		}
+		// Tạo chuỗi mô tả ẩn JSON servers giống hệt tác giả
+		// === BƯỚC 5: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ID ===
+		return JSON.stringify({
+			id: id, // BẮT BUỘC: ID phải là slug rút gọn của bộ phim để cả 2 lần fetch khớp nhau
+			title: lname,
+			posterUrl: limg,
+			backdropUrl: limg,
+			description: ldes,
+			quality: "HD",
+			year: year,
+			rating: 8.5,
+      status: status,
+      category: category,
+      episode_current: episode_current,
+			servers: servers, // Lần 1 (trang chi tiết) sẽ là []. Lần 2 (khi chạy qua extra) sẽ có đầy đủ tập
+			duration: lduran || "",
+			casts: lactor || "",
+			director: ldirec || "",
+			extra: extra // Lần 2 (trang xem phim) extra sẽ rỗng để dừng chu kỳ tải ngầm
+		});
+		
+	} catch (e) {
+		return JSON.stringify({
+			id: slug || url || "error",
+			title: "error",
+			servers: []
+		});
+	}
 }
 
 //BASEURL = "https://phimnganhdc.com";
