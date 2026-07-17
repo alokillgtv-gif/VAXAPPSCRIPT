@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo2",          
         "name": "Test Exoplayer",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
