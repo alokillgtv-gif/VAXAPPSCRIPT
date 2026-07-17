@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.7.3",             
+        "version": "3.7.4",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -240,7 +240,16 @@ function parseMovieDetail(htmlContent, url) {
 				});
 			}
 		});
-		
+		servers.sort((a, b) => {
+      const getPriority = (name) => {
+        		if (name.includes("OP")) return 1; // KK Phim (PA cũ) lên đầu
+        		if (name.includes("Danh Sách Vietsub")) return 2; // Ổ Phim (OP cũ) xếp thứ hai
+        		if (name.includes("NC")) return 4; // Nguồn C (NC cũ) xuống cuối cùng
+        		return 3; // Các nguồn còn lại (SN, v.v.) nằm giữa
+    	};
+        	
+    return getPriority(a.name) - getPriority(b.name);
+   });
 		// === BƯỚC 4: NHẬN DIỆN TRANG VÀ THIẾT LẬP EXTRA ===
 		var extra = "";
 		
