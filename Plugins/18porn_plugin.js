@@ -5,13 +5,13 @@ function getManifest() {
         "id": "newporn",          
         "name": "18porn",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": "https://www.18porn.sex",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "embed"
+        "playerType": "exoplayer"
     });
 }
 
@@ -199,7 +199,7 @@ function parseSearchResponse(html) {
  return parseListResponse(html);
 }
 
-function parseMovieDetail(html) {
+function parseMovieDetail(html,url) {
  var limg = "";
  var lname = "Đang cập nhật...";
  var ldes = "Không có mô tả.";
@@ -250,7 +250,7 @@ function parseMovieDetail(html) {
   ];
 
   return JSON.stringify({
-   id: elink,
+   id: url,
    title: lname,
    originName: lname || "",
    posterUrl: limg,
