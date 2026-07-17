@@ -10,8 +10,8 @@ function getManifest() {
 		"BASEURL": "https://bilutv.asia",
 		"iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
 		"isEnabled": true,
-		"type": "TV_SHOWS",
-		"playerType": "embed"
+		"type": "MOVIE",
+		"playerType": "exoplayer"
 	});
 }
 
