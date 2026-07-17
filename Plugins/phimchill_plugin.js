@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.7.1",             
+        "version": "3.7.2",             
         "baseUrl": "https://phimchillhdv.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -244,7 +244,7 @@ function parseMovieDetail(htmlContent, url) {
         var extra = "";
         
         // Nhận diện trang xem phim: URL có đuôi ".html" kèm theo "tap-" HOẶC HTML chứa danh sách tập thực tế
-        var isPlayPage = /\/tap-[^/]+?\.html$/.test(url || id) || htmlContent.indexOf('Danh Sách') > -1;
+        var isPlayPage = /\/tap-[^/]+?\.html$/.test(url || id)
 
         if (!isPlayPage) {
             // Đang ở trang chi tiết -> Lấy link nút "Xem phim" để gán vào extra
@@ -253,9 +253,8 @@ function parseMovieDetail(htmlContent, url) {
                 extra = playBtnMatch;
             }
         }
-
         // Tạo chuỗi mô tả ẩn JSON servers giống hệt tác giả
-        ldes += "\r\n\r\n\r\n" + JSON.stringify(servers);
+        ldes += extra + "\r\n\r\n\r\n" + JSON.stringify(servers);
 
         // === BƯỚC 5: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ID ===
         return JSON.stringify({
