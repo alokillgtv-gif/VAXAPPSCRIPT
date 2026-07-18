@@ -6,7 +6,7 @@ function getManifest() {
         "id": "cnporn",
         "name": "Porn Gái Trung",
         "description": "Nguồn XXX Hay",
-        "version": "1.4",
+        "version": "1.6",
         "BASEURL": "https://cnporn.org",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -267,6 +267,9 @@ function parseDetailResponse(html, url) {
 			const allLinks = matches ? matches.map(link => link.replace(/\\/g, '')) : [];
 			// 2. Dùng Set để lọc trùng
 			streamlink = [...new Set(allLinks)];
+			if(streamlink[0]){
+				streamlink = streamlink[0]
+			}
 		}
 		
 		return JSON.stringify({
