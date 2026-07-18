@@ -1,9 +1,9 @@
 // ### BLOCK START: UserScript Header & IIFE Start
 // ==UserScript==
-// @name         Web Interactive Lab & Inspector Dashboard PRO v16.3 (Stable Patch)
+// @name         Web Interactive Lab & Inspector Dashboard PRO v16.5 (Stable Patch)
 // @namespace    http://tampermonkey.net/
-// @version      16.3
-// @description  Hồi sinh Click chuột Phải soi DOM trong Hard-Sandbox. Tự động lưu trạng thái. Tích hợp Pro CodeEditor Engine & Sub-Panel Splitter + Fix UI/Draggable.
+// @version      16.6
+// @description  Hồi sinh Click chuột Phải soi DOM trong Hard-Sandbox. Tự động lưu trạng thái. Tích hợp Pro CodeEditor Engine & Sub-Panel Splitter + Fix UI/Draggable. [FIX] Remove invalid CSS @require.
 // @author       Gemini
 // @match        *://*/*
 // @run-at       document-start
@@ -18,6 +18,9 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js
 // ==/UserScript==
 
@@ -119,6 +122,20 @@
             .CodeMirror-hint { color: #f8f8f2 !important; padding: 4px 8px !important; }
             .CodeMirror-hint-active { background: #3498db !important; color: #fff !important; }
             .CodeMirror-cursor { border-left: 2px solid #50fa7b !important; }
+            .CodeMirror-foldgutter { width: 14px !important; }
+            .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { cursor: pointer !important; color: #888 !important; font-size: 12px !important; text-align: center !important; line-height: 1.5 !important; }
+            .CodeMirror-foldgutter-open:hover, .CodeMirror-foldgutter-folded:hover { color: #3498db !important; }
+            .CodeMirror-foldmarker { color: #3498db !important; background: rgba(52,152,219,0.15) !important; border: 1px solid #3498db !important; border-radius: 3px !important; padding: 0 4px !important; font-family: 'Consolas', monospace !important; font-size: 11px !important; }
+
+            /* JS Editor Tabs */
+            .lab-js-tabs-bar { display: flex; gap: 2px; background: #151515; padding: 3px 4px 0; border-bottom: 1px solid #252525; flex-shrink: 0; align-items: center; }
+            .lab-js-tab { padding: 4px 10px; font-size: 11px; color: #aaa; background: #1a1a1a; border: 1px solid #333; border-bottom: none; border-radius: 3px 3px 0 0; cursor: pointer; user-select: none; position: relative; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .lab-js-tab:hover { background: #252525; color: #ccc; }
+            .lab-js-tab.active { background: #1e1e1e; color: #3498db; font-weight: bold; border-color: #3498db; }
+            .lab-js-tab-add { padding: 4px 8px; font-size: 13px; color: #2ecc71; background: transparent; border: 1px dashed #333; border-radius: 3px; cursor: pointer; margin-left: 4px; }
+            .lab-js-tab-add:hover { background: rgba(46,204,113,0.1); border-color: #2ecc71; }
+            .lab-js-tab-close { margin-left: 6px; font-size: 10px; color: #888; display: inline-block; }
+            .lab-js-tab-close:hover { color: #e74c3c; }
 
             /* Giao diện Console Output */
             .lab-console-output { flex: 1; background: #0d0d0d; border: 1px solid #333; border-radius: 4px; overflow: auto; font-family: 'Consolas', monospace; font-size: 12px; padding: 6px; display: flex; flex-direction: column; }
@@ -424,6 +441,7 @@
                             </div>
                         </div>
                         <div class="lab-panel-body">
+                            <div class="lab-js-tabs-bar" id="labJsTabsBar"></div>
                             <div class="lab-editor-container">
                                 <textarea id="labJsInput" placeholder="// Viết code jQuery/JS... Ấn Ctrl + Enter để thực thi"></textarea>
                             </div>
@@ -488,7 +506,14 @@
             setTimeout(() => { updateScreenSplitting(); }, 200);
         }
 
-        $jsInput.on('input', function() { localStorage.setItem('lab_saved_js', $(this).val()); });
+        $jsInput.on('input', function() {
+            const val = $(this).val();
+            localStorage.setItem('lab_saved_js', val);
+            if (window.__labJsTabs && window.__labJsTabs[window.__labJsActiveTab]) {
+                window.__labJsTabs[window.__labJsActiveTab].content = val;
+                try { localStorage.setItem('lab_js_tabs', JSON.stringify(window.__labJsTabs)); } catch(e) {}
+            }
+        });
         $cssInput.on('input', function() {
             const currentVal = $(this).val();
             localStorage.setItem('lab_saved_css', currentVal);
@@ -803,7 +828,15 @@
             }
     // [2] Hàm thực thi chính
             async function executeJsEngine() {
-                let userCode = window.__labJsEditor ? window.__labJsEditor.getValue() : $('#labJsInput').val();
+                let userCode = '';
+                if (window.__labJsEditor && window.__labJsTabs) {
+                    // Save current tab first
+                    window.__labJsTabs[window.__labJsActiveTab].content = window.__labJsEditor.getValue();
+                    // Concatenate all tabs
+                    userCode = window.__labJsTabs.map(t => t.content).join('\n\n');
+                } else {
+                    userCode = window.__labJsEditor ? window.__labJsEditor.getValue() : $('#labJsInput').val();
+                }
                 if (!userCode || !userCode.trim()) return;
 
                 const $consoleBox = $('#labConsoleLogBody');
@@ -817,7 +850,7 @@
 
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/ecfb4a1583e1243c7d065286dcd35360e8815ba0/miniJQ.js';
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/2637a36bdc7275ab067e24565df84bbe2908ef40/miniJQ.js';
 
                     const response = await fetch(helperUrl);
                     if (!response.ok) {
@@ -1479,6 +1512,38 @@
         const $btnExtractMeta = $('<button class="lab-mini-btn btn-success" id="labBtnExtractMeta" style="margin-right: 4px;" title="Trích xuất Meta/Link">📋 </button>');
         $treeDomHeaderActions.prepend($btnExtractMeta);
 
+        // [NEW] Collapse/Expand All for Tree DOM
+        $('#labBtnCollapseAllTree').remove();
+        const $btnCollapseAllTree = $('<button class="lab-mini-btn" id="labBtnCollapseAllTree" style="margin-right: 4px;" title="Thu gọn/Mở rộng tất cả">⤓ </button>');
+        $treeDomHeaderActions.prepend($btnCollapseAllTree);
+        let _labTreeAllCollapsed = false;
+        $btnCollapseAllTree.on('click', function(e) {
+            e.stopPropagation();
+            _labTreeAllCollapsed = !_labTreeAllCollapsed;
+            const $toggles = $('#labTreeDomBody').find('.lab-dom-toggle.has-children');
+            console.log('[Lab] CollapseAll toggles found:', $toggles.length);
+            $toggles.each(function() {
+                const $toggle = $(this);
+                const $node = $toggle.closest('.lab-dom-node');
+                const $childrenContainer = $node.children('.lab-dom-children');
+                const $blockClose = $node.children('.lab-dom-block-close');
+                if (!$childrenContainer.length) return;
+                if (_labTreeAllCollapsed) {
+                    $childrenContainer.hide();
+                    if ($blockClose.length) $blockClose.hide();
+                    $toggle.closest('.lab-dom-header').find('.lab-dom-summary').show();
+                    $toggle.closest('.lab-dom-header').find('.lab-dom-tag-close').hide();
+                    $toggle.text('▸');
+                } else {
+                    $childrenContainer.show();
+                    if ($blockClose.length) $blockClose.show();
+                    $toggle.closest('.lab-dom-header').find('.lab-dom-summary').hide();
+                    $toggle.closest('.lab-dom-header').find('.lab-dom-tag-close').show();
+                    $toggle.text('▾');
+                }
+            });
+        });
+
         function copyToClipboard(text) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).catch(err => { console.error("Lỗi sao chép nhanh: ", err); });
@@ -1697,151 +1762,721 @@
         });
         // END BLOCK: Smart CSS Grouping & Quick-Option Popover
 
-        // ### BLOCK START: Zero-Impact Sniffer & Deep Network Interceptor
-        // ==========================================
-        // 12. EXTENSION PRO++ V12: ZERO-IMPACT SNIFFER & DEEP NETWORK INTERCEPTOR
-        // ==========================================
-        if (!window.__labCapturedLinks) {
-            window.__labCapturedLinks = { get: new Map(), post: new Map(), media: new Map(), embed: new Map() };
-        }
 
-        function checkAndStorageLink(url, type, networkDetails = null) {
-            if (!url || typeof url !== 'string' || url.startsWith('data:') || url.startsWith('blob:')) return;
-            let targetGroup = type.toLowerCase();
-            const lowerUrl = url.toLowerCase();
+        // ### BLOCK START: DevTools-Style Network Monitor v19
+        // ==========================================
+        // 12. EXTENSION PRO++ V19: DEVTOOLS-STYLE NETWORK MONITOR
+        // ==========================================
+        // CHANGES v19:
+        // - 4-Category Grouping: XHR | Resources | Media | Other
+        // - Anti-Detection: bypass debugger traps, console detection, visibility checks
+        // - Hotkey: Ctrl+L to toggle panel
+        // - Panel prepended to body (top layer) + auto-dominate siblings
+        // - Z-index 2147483647 with !important enforcement
+        // - Passive monitoring (always on)
+        // - Captures: XHR, fetch, WebSocket, sendBeacon, images, scripts, CSS, media, fonts
+        // - Full request & response headers + body capture
+        // - DevTools-style table with sortable columns + detail inspector
+        // - Blocked Detection: auto-detect when panel is hidden/removed by website
+        // - Recovery Modal: prompt to reset tools or accept being blocked
 
-            if (lowerUrl.includes('.mp4') || lowerUrl.includes('.m3u8') || lowerUrl.includes('.ts') || lowerUrl.includes('.mp3')) {
-                targetGroup = 'media';
-            } else if (lowerUrl.includes('embed') || lowerUrl.includes('iframe') || lowerUrl.includes('player')) {
-                targetGroup = 'embed';
+        // --- ANTI-DETECTION LAYER (protects the whole module) ---
+        (function __labAntiDetect() {
+            const _origConsole = {
+                log: console.log.bind(console),
+                warn: console.warn.bind(console),
+                error: console.error.bind(console),
+                info: console.info.bind(console),
+                debug: console.debug.bind(console)
+            };
+            window.__labOrigConsole = _origConsole;
+
+            let _debuggerBypass = false;
+            const _origFunction = Function.prototype.constructor;
+            try {
+                Function.prototype.constructor = function(...args) {
+                    const code = args.join(',');
+                    if (code.includes('debugger') && code.length < 200) {
+                        _debuggerBypass = true;
+                        return function() {};
+                    }
+                    return _origFunction.apply(this, args);
+                };
+            } catch(e) {}
+
+            const _origDefineProperty = Object.defineProperty;
+            try {
+                Object.defineProperty = function(obj, prop, desc) {
+                    if (obj === console && ['log','warn','error','info','debug'].includes(prop)) {
+                        return obj;
+                    }
+                    return _origDefineProperty.call(Object, obj, prop, desc);
+                };
+            } catch(e) {}
+
+            const _origAddEventListener = window.addEventListener;
+            window.addEventListener = function(type, listener, options) {
+                if (type === 'blur' || type === 'focus' || type === 'visibilitychange') {
+                    const wrapped = function(ev) {
+                        if (window.__labPanelVisible && type === 'blur') return;
+                        return listener.apply(this, arguments);
+                    };
+                    return _origAddEventListener.call(this, type, wrapped, options);
+                }
+                return _origAddEventListener.apply(this, arguments);
+            };
+
+            const _origVisDesc = Object.getOwnPropertyDescriptor(Document.prototype, 'visibilityState') || Object.getOwnPropertyDescriptor(document, 'visibilityState');
+            if (_origVisDesc) {
+                Object.defineProperty(document, 'visibilityState', {
+                    get: function() {
+                        if (window.__labPanelVisible) return 'visible';
+                        return _origVisDesc.get.call(this);
+                    },
+                    configurable: true
+                });
             }
 
-            const finalDetails = networkDetails || { method: type.toUpperCase(), headers: "No Headers Captured", response: "No Response Body Captured" };
+            const _origHiddenDesc = Object.getOwnPropertyDescriptor(Document.prototype, 'hidden') || Object.getOwnPropertyDescriptor(document, 'hidden');
+            if (_origHiddenDesc) {
+                Object.defineProperty(document, 'hidden', {
+                    get: function() {
+                        if (window.__labPanelVisible) return false;
+                        return _origHiddenDesc.get.call(this);
+                    },
+                    configurable: true
+                });
+            }
 
-            if (!window.__labCapturedLinks[targetGroup].has(url)) {
-                window.__labCapturedLinks[targetGroup].set(url, finalDetails);
-                if (typeof window.__labRenderSnifferTree === 'function') window.__labRenderSnifferTree();
-            } else if (networkDetails && networkDetails.response !== "No Response Body Captured") {
-                window.__labCapturedLinks[targetGroup].set(url, finalDetails);
+            try {
+                const _owDesc = Object.getOwnPropertyDescriptor(window, 'outerWidth');
+                const _ohDesc = Object.getOwnPropertyDescriptor(window, 'outerHeight');
+                if (_owDesc) Object.defineProperty(window, 'outerWidth', { get: function() { return window.innerWidth; }, configurable: true });
+                if (_ohDesc) Object.defineProperty(window, 'outerHeight', { get: function() { return window.innerHeight; }, configurable: true });
+            } catch(e) {}
+
+            const _origPerfNow = performance.now.bind(performance);
+            let _perfBase = _origPerfNow();
+            let _perfFake = _origPerfNow();
+            performance.now = function() {
+                const real = _origPerfNow();
+                _perfFake += (real - _perfBase);
+                _perfBase = real;
+                return _perfFake;
+            };
+        })();
+
+        // --- GLOBAL STATE ---
+        if (!window.__labNetworkLog) {
+            window.__labNetworkLog = [];
+            window.__labNetworkLogMax = 500;
+            window.__labNetworkPaused = false;
+            window.__labNetworkAutoOpen = false;
+            window.__labNetworkFilter = 'all';
+            window.__labNetworkSearch = '';
+            window.__labNetworkSelectedId = null;
+            window.__labNetworkGroup = 'xhr';
+            window.__labPanelVisible = false;
+        }
+
+        function __labCategorizeEntry(entry) {
+            const t = entry.type || 'other';
+            const m = (entry.method || 'GET').toUpperCase();
+            const url = entry.url || '';
+            if (t === 'xhr' || t === 'fetch' || t === 'beacon') return 'xhr';
+            if ((m === 'POST' || m === 'PUT' || m === 'PATCH' || m === 'DELETE') && !/\.(js|css|png|jpg|jpeg|gif|webp|svg|woff|woff2|ttf|eot|mp4|mp3|webm|ogg|avi|mov)$/i.test(url)) {
+                return 'xhr';
+            }
+            if (t === 'media' || /\.(mp4|webm|ogg|mp3|wav|flac|aac|m4a|mov|avi|mkv|flv)$/i.test(url)) return 'media';
+            if (t === 'img' || t === 'script' || t === 'css' || t === 'font') return 'resource';
+            if (/\.(png|jpg|jpeg|gif|webp|svg|ico|bmp|tiff|js|css|woff|woff2|ttf|eot|otf|pdf|doc|docx|zip|rar|tar|gz)$/i.test(url)) return 'resource';
+            return 'other';
+        }
+
+        function __labAddNetworkEntry(entry) {
+            if (window.__labNetworkPaused) return;
+            entry.id = entry.id || (Date.now() + '_' + Math.random().toString(36).substr(2, 9));
+            entry.endTime = entry.endTime || performance.now();
+            entry.duration = entry.duration || (entry.endTime - entry.startTime);
+            entry._group = __labCategorizeEntry(entry);
+            window.__labNetworkLog.unshift(entry);
+            if (window.__labNetworkLog.length > window.__labNetworkLogMax) {
+                window.__labNetworkLog.pop();
+            }
+
+            if (typeof __labRenderNetworkTable === 'function') {
+                __labRenderNetworkTable();
             }
         }
 
+        function __labFormatBytes(bytes) {
+            if (bytes === null || bytes === undefined || bytes === 0) return '-';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function __labFormatDuration(ms) {
+            if (ms === null || ms === undefined) return '-';
+            if (ms < 1000) return Math.round(ms) + ' ms';
+            return (ms / 1000).toFixed(2) + ' s';
+        }
+
+        function __labStatusColor(status) {
+            if (!status || status === 0) return '#e74c3c';
+            if (status >= 200 && status < 300) return '#2ecc71';
+            if (status >= 300 && status < 400) return '#f39c12';
+            if (status >= 400) return '#e74c3c';
+            return '#95a5a6';
+        }
+
+        function __labMethodColor(method) {
+            const colors = { GET: '#3498db', POST: '#2ecc71', PUT: '#f39c12', DELETE: '#e74c3c', PATCH: '#9b59b6', HEAD: '#95a5a6', OPTIONS: '#1abc9c', WS: '#e67e22' };
+            return colors[method] || '#bdc3c7';
+        }
+
+        function __labGroupColor(group) {
+            return { xhr: '#3498db', resource: '#2ecc71', media: '#e67e22', other: '#95a5a6' }[group] || '#bdc3c7';
+        }
+
+        function __labGroupLabel(group) {
+            return { xhr: 'XHR/API', resource: 'Resources', media: 'Media', other: 'Other' }[group] || group;
+        }
+
+        // --- XHR Interceptor ---
         if (!window.__labXhrOverridden) {
-            const originalXHROpen = window.XMLHttpRequest.prototype.open;
-            const originalXHRSend = window.XMLHttpRequest.prototype.send;
-            const originalXHRSetHeader = window.XMLHttpRequest.prototype.setRequestHeader;
+            const origOpen = window.XMLHttpRequest.prototype.open;
+            const origSend = window.XMLHttpRequest.prototype.send;
+            const origSetHeader = window.XMLHttpRequest.prototype.setRequestHeader;
 
             window.XMLHttpRequest.prototype.open = function(method, url) {
-                this._labMethod = method;
-                this._labUrl = (typeof url === 'string') ? url : url.toString();
-                this._labHeaders = {};
-                return originalXHROpen.apply(this, arguments);
+                this._labNetEntry = {
+                    type: 'xhr', method: (method || 'GET').toUpperCase(), url: String(url),
+                    startTime: performance.now(), requestHeaders: {}, requestBody: null,
+                    status: null, statusText: '', responseHeaders: {}, responseBody: null,
+                    responseType: null, duration: null, size: null, timing: {}
+                };
+                return origOpen.apply(this, arguments);
             };
 
             window.XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
-                if (!this._labHeaders) this._labHeaders = {};
-                this._labHeaders[header] = value;
-                return originalXHRSetHeader.apply(this, arguments);
+                if (this._labNetEntry) { this._labNetEntry.requestHeaders[header] = value; }
+                return origSetHeader.apply(this, arguments);
             };
 
-            window.XMLHttpRequest.prototype.send = function() {
-                this.addEventListener('readystatechange', function() {
-                    if (this.readyState === 4) {
-                        let responseText = "No Response Body Captured";
-                        try {
-                            if (this.responseType === '' || this.responseType === 'text') responseText = this.responseText;
-                            else if (this.responseType === 'json') responseText = JSON.stringify(this.response, null, 2);
-                            else responseText = `[Type: ${this.responseType || 'Unknown binary object'}]`;
-                        } catch(e) { responseText = "[Error reading response context]"; }
-
-                        const detailsObj = {
-                            method: this._labMethod || "UNKNOWN",
-                            headers: (this._labHeaders && Object.keys(this._labHeaders).length > 0) ? this._labHeaders : "No Custom Headers Set",
-                            response: responseText || "Empty Response"
-                        };
-                        checkAndStorageLink(this._labUrl, (this._labMethod === 'POST') ? 'post' : 'get', detailsObj);
-                    }
+            window.XMLHttpRequest.prototype.send = function(body) {
+                if (this._labNetEntry) {
+                    this._labNetEntry.requestBody = body;
+                    this._labNetEntry.startTime = performance.now();
+                }
+                const handleLoad = () => {
+                    if (!this._labNetEntry) return;
+                    const entry = this._labNetEntry;
+                    entry.endTime = performance.now();
+                    entry.duration = entry.endTime - entry.startTime;
+                    entry.status = this.status;
+                    entry.statusText = this.statusText;
+                    entry.responseType = this.responseType;
+                    try {
+                        const rawHeaders = this.getAllResponseHeaders();
+                        if (rawHeaders) {
+                            rawHeaders.split('\r\n').forEach(line => {
+                                const idx = line.indexOf(':');
+                                if (idx > 0) {
+                                    entry.responseHeaders[line.substr(0, idx).trim()] = line.substr(idx + 1).trim();
+                                }
+                            });
+                        }
+                    } catch(e) {}
+                    try {
+                        if (this.responseType === '' || this.responseType === 'text') {
+                            entry.responseBody = this.responseText;
+                            entry.size = entry.responseBody ? entry.responseBody.length : 0;
+                        } else if (this.responseType === 'json') {
+                            entry.responseBody = JSON.stringify(this.response, null, 2);
+                            entry.size = entry.responseBody.length;
+                        } else if (this.responseType === 'blob') {
+                            entry.responseBody = '[Blob: ' + (this.response ? this.response.size : 0) + ' bytes]';
+                            entry.size = this.response ? this.response.size : 0;
+                        } else if (this.responseType === 'arraybuffer') {
+                            entry.responseBody = '[ArrayBuffer: ' + (this.response ? this.response.byteLength : 0) + ' bytes]';
+                            entry.size = this.response ? this.response.byteLength : 0;
+                        } else {
+                            entry.responseBody = '[Type: ' + this.responseType + ']';
+                        }
+                    } catch(e) { entry.responseBody = '[Error reading response]'; }
+                    __labAddNetworkEntry(entry);
+                };
+                this.addEventListener('load', handleLoad);
+                this.addEventListener('error', () => {
+                    if (!this._labNetEntry) return;
+                    this._labNetEntry.status = 0; this._labNetEntry.statusText = 'Network Error';
+                    this._labNetEntry.endTime = performance.now();
+                    this._labNetEntry.duration = this._labNetEntry.endTime - this._labNetEntry.startTime;
+                    __labAddNetworkEntry(this._labNetEntry);
                 });
-                return originalXHRSend.apply(this, arguments);
+                this.addEventListener('abort', () => {
+                    if (!this._labNetEntry) return;
+                    this._labNetEntry.status = 0; this._labNetEntry.statusText = 'Aborted';
+                    this._labNetEntry.endTime = performance.now();
+                    this._labNetEntry.duration = this._labNetEntry.endTime - this._labNetEntry.startTime;
+                    __labAddNetworkEntry(this._labNetEntry);
+                });
+                this.addEventListener('timeout', () => {
+                    if (!this._labNetEntry) return;
+                    this._labNetEntry.status = 0; this._labNetEntry.statusText = 'Timeout';
+                    this._labNetEntry.endTime = performance.now();
+                    this._labNetEntry.duration = this._labNetEntry.endTime - this._labNetEntry.startTime;
+                    __labAddNetworkEntry(this._labNetEntry);
+                });
+                return origSend.apply(this, arguments);
             };
             window.__labXhrOverridden = true;
         }
 
+        // --- Fetch Interceptor ---
         if (!window.__labFetchOverridden) {
-            const originalFetch = window.fetch;
+            const origFetch = window.fetch;
             window.fetch = async function(input, init) {
-                let url = ''; let method = 'GET'; let reqHeaders = "No Custom Headers Set";
-                if (typeof input === 'string') url = input;
-                else if (input instanceof Request) { url = input.url; method = input.method; }
-                else url = String(input);
-
+                const entry = {
+                    type: 'fetch', method: 'GET', url: '', startTime: performance.now(),
+                    requestHeaders: {}, requestBody: null, status: null, statusText: '',
+                    responseHeaders: {}, responseBody: null, duration: null, size: null, timing: {}
+                };
+                if (typeof input === 'string') { entry.url = input; }
+                else if (input instanceof Request) {
+                    entry.url = input.url; entry.method = input.method.toUpperCase();
+                    try { input.headers.forEach((v, k) => { entry.requestHeaders[k] = v; }); } catch(e) {}
+                    try { entry.requestBody = await input.clone().text().catch(() => null); } catch(e) {}
+                } else { entry.url = String(input); }
                 if (init) {
-                    if (init.method) method = init.method.toUpperCase();
+                    if (init.method) entry.method = init.method.toUpperCase();
                     if (init.headers) {
-                        try { reqHeaders = (init.headers instanceof Headers) ? Object.fromEntries(init.headers.entries()) : init.headers; }
-                        catch(e) { reqHeaders = init.headers; }
+                        try {
+                            if (init.headers instanceof Headers) { init.headers.forEach((v, k) => { entry.requestHeaders[k] = v; }); }
+                            else if (typeof init.headers === 'object') { Object.assign(entry.requestHeaders, init.headers); }
+                        } catch(e) {}
                     }
+                    if (init.body) entry.requestBody = init.body;
                 }
-
                 try {
-                    const response = await originalFetch.apply(this, arguments);
-                    const cloneRes = response.clone();
-                    cloneRes.text().then(text => {
-                        let parsedRes = text;
-                        try { parsedRes = JSON.stringify(JSON.parse(text), null, 2); } catch(e){}
-                        checkAndStorageLink(url, method === 'POST' ? 'post' : 'get', { method: method, headers: reqHeaders, response: parsedRes || "Empty Response" });
-                    }).catch(() => {
-                        checkAndStorageLink(url, method === 'POST' ? 'post' : 'get', { method, headers: reqHeaders, response: "[Blob/Stream]" });
-                    });
+                    const response = await origFetch.apply(this, arguments);
+                    const clone = response.clone();
+                    entry.status = response.status; entry.statusText = response.statusText;
+                    entry.endTime = performance.now(); entry.duration = entry.endTime - entry.startTime;
+                    try { response.headers.forEach((v, k) => { entry.responseHeaders[k] = v; }); } catch(e) {}
+                    try {
+                        const text = await clone.text();
+                        entry.size = text.length;
+                        try { const json = JSON.parse(text); entry.responseBody = JSON.stringify(json, null, 2); }
+                        catch(e) { entry.responseBody = text; }
+                    } catch(e) { entry.responseBody = '[Unreadable Body]'; }
+                    __labAddNetworkEntry(entry);
                     return response;
                 } catch (err) {
-                    checkAndStorageLink(url, method === 'POST' ? 'post' : 'get', { method, headers: reqHeaders, response: `[Network Request Failed: ${err.message}]` });
+                    entry.status = 0; entry.statusText = err.name || 'Network Error';
+                    entry.endTime = performance.now(); entry.duration = entry.endTime - entry.startTime;
+                    __labAddNetworkEntry(entry);
                     throw err;
                 }
             };
             window.__labFetchOverridden = true;
         }
 
-        const $treeDomHeader = $('#panelTreeDom .lab-panel-actions');
-        $('#labBtnClearTreeDom').remove();
-        $('#labBtnToggleSniffer').remove();
+        // --- WebSocket Interceptor ---
+        if (!window.__labWebSocketOverridden && window.WebSocket) {
+            const OriginalWebSocket = window.WebSocket;
+            window.WebSocket = function(url, protocols) {
+                const ws = new OriginalWebSocket(url, protocols);
+                const entry = {
+                    type: 'websocket', method: 'WS', url: url, startTime: performance.now(),
+                    requestHeaders: { 'Upgrade': 'websocket', 'Connection': 'Upgrade' },
+                    requestBody: null, status: 101, statusText: 'Switching Protocols',
+                    responseHeaders: {}, responseBody: '[WebSocket Connection Established]',
+                    duration: null, size: 0, timing: {}
+                };
+                ws.addEventListener('open', () => {
+                    entry.endTime = performance.now(); entry.duration = entry.endTime - entry.startTime;
+                    __labAddNetworkEntry(entry);
+                });
+                ws.addEventListener('message', (e) => {
+                    entry.size = (entry.size || 0) + (e.data ? String(e.data).length : 0);
+                    if (typeof __labRenderNetworkTable === 'function') __labRenderNetworkTable();
+                });
+                ws.addEventListener('close', () => {
+                    entry.statusText = 'Closed'; entry.endTime = performance.now();
+                    entry.duration = entry.endTime - entry.startTime;
+                    if (typeof __labRenderNetworkTable === 'function') __labRenderNetworkTable();
+                });
+                ws.addEventListener('error', () => {
+                    entry.status = 0; entry.statusText = 'Error'; entry.endTime = performance.now();
+                    entry.duration = entry.endTime - entry.startTime;
+                    if (typeof __labRenderNetworkTable === 'function') __labRenderNetworkTable();
+                });
+                return ws;
+            };
+            Object.setPrototypeOf(window.WebSocket, OriginalWebSocket);
+            Object.setPrototypeOf(window.WebSocket.prototype, OriginalWebSocket.prototype);
+            window.__labWebSocketOverridden = true;
+        }
 
-        const $btnClearTreeDom = $('<button class="lab-mini-btn btn-danger" id="labBtnClearTreeDom" style="margin-right: 4px;" title="Xóa cây DOM">🗑️ </button>');
-        const $btnToggleSniffer = $('<button class="lab-mini-btn" id="labBtnToggleSniffer" style="background: #27ae60; color: white; margin-right: 4px;" title="Bật/Tắt Sniffer">🌐 </button>');
+        // --- PerformanceObserver for static resources ---
+        if (!window.__labPerfObserverStarted && window.PerformanceObserver) {
+            try {
+                const perfObserver = new PerformanceObserver((list) => {
+                    for (const perfEntry of list.getEntries()) {
+                        if (perfEntry.entryType === 'resource') {
+                            const existing = window.__labNetworkLog.find(e =>
+                                e.url === perfEntry.name && Math.abs(e.startTime - perfEntry.startTime) < 5 && e.type !== 'xhr' && e.type !== 'fetch'
+                            );
+                            if (!existing) {
+                                const typeMap = {
+                                    'img': 'img', 'image': 'img', 'script': 'script', 'css': 'css',
+                                    'link': 'css', 'xmlhttprequest': 'xhr', 'fetch': 'fetch',
+                                    'video': 'media', 'audio': 'media', 'track': 'media',
+                                    'font': 'font', 'subdocument': 'other'
+                                };
+                                const mappedType = typeMap[perfEntry.initiatorType] || 'other';
+                                __labAddNetworkEntry({
+                                    type: mappedType, method: 'GET', url: perfEntry.name,
+                                    startTime: perfEntry.startTime, endTime: perfEntry.responseEnd,
+                                    requestHeaders: {}, requestBody: null,
+                                    status: perfEntry.responseStatus || 200, statusText: '', responseHeaders: {},
+                                    responseBody: '[Resource loaded via Performance API]',
+                                    duration: perfEntry.duration, size: perfEntry.transferSize || 0,
+                                    timing: {
+                                        dns: perfEntry.domainLookupEnd - perfEntry.domainLookupStart,
+                                        connect: perfEntry.connectEnd - perfEntry.connectStart,
+                                        ssl: perfEntry.secureConnectionStart ? (perfEntry.connectEnd - perfEntry.secureConnectionStart) : 0,
+                                        ttfb: perfEntry.responseStart - perfEntry.fetchStart,
+                                        download: perfEntry.responseEnd - perfEntry.responseStart
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+                perfObserver.observe({ entryTypes: ['resource'] });
+                window.__labPerfObserverStarted = true;
+            } catch(e) {}
+        }
+
+        // --- sendBeacon Interceptor ---
+        if (!window.__labBeaconOverridden && navigator.sendBeacon) {
+            const origBeacon = navigator.sendBeacon.bind(navigator);
+            navigator.sendBeacon = function(url, data) {
+                const entry = {
+                    type: 'beacon', method: 'POST', url: url, startTime: performance.now(),
+                    requestHeaders: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    requestBody: data, status: 204, statusText: 'No Content',
+                    responseHeaders: {}, responseBody: '[Beacon sent]', duration: null, size: 0, timing: {}
+                };
+                const result = origBeacon(url, data);
+                entry.endTime = performance.now(); entry.duration = entry.endTime - entry.startTime;
+                __labAddNetworkEntry(entry);
+                return result;
+            };
+            window.__labBeaconOverridden = true;
+        }
+
+        // --- Navigation Timing ---
+        if (!window.__labNavTimingCaptured) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    try {
+                        const nav = performance.getEntriesByType('navigation')[0];
+                        if (nav) {
+                            __labAddNetworkEntry({
+                                type: 'navigation', method: 'GET', url: location.href,
+                                startTime: nav.startTime, endTime: nav.loadEventEnd,
+                                requestHeaders: {}, requestBody: null, status: 200, statusText: 'OK',
+                                responseHeaders: {}, responseBody: '[Page Navigation]',
+                                duration: nav.duration, size: nav.transferSize || 0,
+                                timing: {
+                                    dns: nav.domainLookupEnd - nav.domainLookupStart,
+                                    connect: nav.connectEnd - nav.connectStart,
+                                    ssl: nav.secureConnectionStart ? (nav.connectEnd - nav.secureConnectionStart) : 0,
+                                    ttfb: nav.responseStart - nav.fetchStart,
+                                    download: nav.responseEnd - nav.responseStart,
+                                    dom: nav.domContentLoadedEventEnd - nav.domContentLoadedEventStart,
+                                    load: nav.loadEventEnd - nav.loadEventStart
+                                }
+                            });
+                        }
+                    } catch(e) {}
+                }, 0);
+            });
+            window.__labNavTimingCaptured = true;
+        }
+
+        // ==========================================
+        // UI SETUP — DOM CREATION & EVENT BINDING
+        // ==========================================
+
+        // Cleanup old UI
+        $('#labBtnToggleSniffer').remove(); $('#labBtnPauseSniffer').remove(); $('#labBtnGroupSniffer').remove();
+        $('#labSearchSniffer').remove(); $('#panelSnifferLab').remove();
+        $('#__labTopLayerContainer').remove();
+        $('#__labBlockedModal').remove();
+        $('#lab-net-style').remove();
+
+        // Buttons
+        const $btnToggleSniffer = $('<button class="lab-mini-btn" id="labBtnToggleSniffer" style="background: #e74c3c; color: white; margin-right: 4px;" title="Network Monitor (Ctrl+L)">🌐 </button>');
+        const $btnPauseSniffer = $('<button class="lab-mini-btn" id="labBtnPauseSniffer" style="background: #2ecc71; color: white; margin-right: 4px;" title="Pause Recording">⏸ </button>');
+        const $btnGroupSniffer = $('<button class="lab-mini-btn" id="labBtnGroupSniffer" style="background: #9b59b6; color: white; margin-right: 4px;" title="Group: XHR">📂 XHR</button>');
         $('.sanbox-group').prepend($btnToggleSniffer);
-        $treeDomHeader.prepend($btnClearTreeDom);
+        $('.sanbox-group').prepend($btnPauseSniffer);
+        $('.sanbox-group').prepend($btnGroupSniffer);
 
-        $btnClearTreeDom.on('click', function(e) {
-            e.stopPropagation();
-            $treeDomBody.empty();
-            $familyTreeBar.hide();
-        });
+        // Panel HTML
+        const $snifferPanel = $('<div id="panelSnifferLab" class="lab-panel" style="display: none; flex-direction: column; background: #1e1e1e !important; border: 2px solid #34495e !important; color: #fff !important; box-sizing: border-box !important; position: fixed !important; z-index: 2147483645 !important; box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important; border-radius: 4px; pointer-events: auto !important; overflow: hidden !important;"></div>');
 
-        $('#panelSnifferLab').remove();
-        const $snifferPanel = $(`<div id="panelSnifferLab" class="lab-panel lab-panel-hidden" style="
-                display: none; flex-direction: column; background: #1e1e1e !important; border: 2px solid #34495e !important; color: #fff !important;
-                box-sizing: border-box !important; position: fixed !important; z-index: 2147483647 !important; box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
-                border-radius: 4px; pointer-events: auto !important;
-            ">
-                <div class="lab-panel-header" style="display: flex; justify-content: flex-end; align-items: center; background: #2c3e50; padding: 6px 10px; font-weight: bold; font-size: 12px; user-select: none;">
-                    <span>🌐</span>
-                    <div class="lab-panel-actions" style="display: flex; align-items: center;">
-                        <button class="lab-mini-btn btn-danger" id="labBtnClearSniffer" style="margin-right: 4px;">🗑️ </button>
-                        <button class="lab-mini-btn" id="labBtnCloseSniffer" style="background:#e74c3c; color:white;">×</button>
-                    </div>
-                </div>
-                <div id="labSnifferBody" style="flex: 1; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.6;"></div>
-            </div>
-        `);
+        const panelHeader = '<div class="lab-panel-header" style="display: flex; justify-content: space-between; align-items: center; background: #2c3e50; padding: 6px 10px; font-weight: bold; font-size: 12px; user-select: none; flex-shrink: 0;">' +
+            '<span>🌐 Network Monitor</span>' +
+            '<div class="lab-panel-actions" style="display: flex; align-items: center;">' +
+                '<input type="text" id="labSearchSniffer" placeholder="Filter URL..." style="background:#1a1a1a; color:#fff; border:1px solid #444; border-radius:3px; padding:3px 6px; font-size:11px; width:120px; margin-right:6px;">' +
+                '<button class="lab-mini-btn btn-danger" id="labBtnClearSniffer" style="margin-right: 4px;" title="Clear">🗑️ </button>' +
+                '<button class="lab-mini-btn" id="labBtnFullscreenSniffer" style="background:#2980b9; color:white; margin-right: 4px;" title="Fullscreen">⛶</button>' +
+                '<button class="lab-mini-btn" id="labBtnCloseSniffer" style="background:#e74c3c; color:white;" title="Close">×</button>' +
+            '</div>' +
+        '</div>';
 
-        $('body').append($snifferPanel);
-        $snifferPanel.append('<div class="lab-resizer resizer-x"></div><div class="lab-resizer resizer-y"></div>');
+        const groupTabs = '<div id="labNetworkGroupTabs" style="display: flex; background: #252525; border-bottom: 1px solid #444; padding: 0; font-size: 11px; flex-shrink: 0; overflow-x: auto;">' +
+            '<button class="lab-net-group-tab active" data-group="xhr" style="background:transparent; border:none; color:#fff; padding:5px 12px; cursor:pointer; font-size:11px; border-bottom:2px solid #3498db; white-space:nowrap;">XHR/API</button>' +
+            '<button class="lab-net-group-tab" data-group="resource" style="background:transparent; border:none; color:#aaa; padding:5px 12px; cursor:pointer; font-size:11px; border-bottom:2px solid transparent; white-space:nowrap;">Resources</button>' +
+            '<button class="lab-net-group-tab" data-group="media" style="background:transparent; border:none; color:#aaa; padding:5px 12px; cursor:pointer; font-size:11px; border-bottom:2px solid transparent; white-space:nowrap;">Media</button>' +
+            '<button class="lab-net-group-tab" data-group="other" style="background:transparent; border:none; color:#aaa; padding:5px 12px; cursor:pointer; font-size:11px; border-bottom:2px solid transparent; white-space:nowrap;">Other</button>' +
+        '</div>';
 
-        // Bỏ việc chặn sự kiện mousedown/mouseup/mousemove để kéo thả mượt mà hơn
-        $snifferPanel.on('click contextmenu', function(e) {
-            e.stopPropagation();
-        });
+        const tableHeader = '<div id="labNetworkTableHeader" style="display: flex; background: #252525; border-bottom: 1px solid #444; padding: 4px 8px; font-size: 11px; color: #aaa; font-weight: bold; flex-shrink: 0; user-select: none;">' +
+            '<span style="width: 50px; flex-shrink: 0;">Method</span>' +
+            '<span style="width: 50px; flex-shrink: 0;">Status</span>' +
+            '<span style="flex: 1; min-width: 0;">URL</span>' +
+            '<span style="width: 22px; flex-shrink: 0; text-align: center;"></span>' +
+            '<span style="width: 60px; flex-shrink: 0; text-align: right;">Size</span>' +
+            '<span style="width: 60px; flex-shrink: 0; text-align: right;">Time</span>' +
+        '</div>';
 
+        const detailTabs = '<div id="labNetworkDetailTabs" style="display: flex; background: #252525; border-bottom: 1px solid #444; flex-shrink: 0;">' +
+            '<button class="lab-net-tab active" data-tab="headers" style="background:transparent; border:none; color:#fff; padding:5px 12px; cursor:pointer; font-size:11px; border-bottom:2px solid #3498db;">Headers</button>' +
+            '<button class="lab-net-tab" data-tab="response" style="background:transparent; border:none; color:#aaa; padding:5px 12px; cursor:pointer; font-size:11px; border-bottom:2px solid transparent;">Response</button>' +
+            '<button class="lab-net-tab" data-tab="preview" style="background:transparent; border:none; color:#aaa; padding:5px 12px; cursor:pointer; font-size:11px; border-bottom:2px solid transparent;">Preview</button>' +
+            '<button class="lab-net-tab" data-tab="timing" style="background:transparent; border:none; color:#aaa; padding:5px 12px; cursor:pointer; font-size:11px; border-bottom:2px solid transparent;">Timing</button>' +
+        '</div>';
+
+        const panelBody = '<div id="labSnifferBody" style="flex: 1; padding: 0; overflow: hidden; font-family: monospace; font-size: 12px; line-height: 1.6; display: flex; flex-direction: column;">' +
+            groupTabs + tableHeader +
+            '<div id="labNetworkTableBody" style="flex: 1; overflow-y: auto; padding: 0;"></div>' +
+            '<div id="labSnifferHResizer" style="display: none; flex-shrink: 0; height: 6px; background: #333; cursor: ns-resize; border-top: 1px solid #444; border-bottom: 1px solid #444; position: relative; z-index: 5;"><div style="position: absolute; left: 50%; top: 1px; transform: translateX(-50%); width: 30px; height: 4px; background: #555; border-radius: 2px;"></div></div>' +
+            '<div id="labNetworkDetail" style="display: none; height: 45%; border-top: 2px solid #444; background: #1a1a1a; flex-direction: column; flex-shrink: 0;">' +
+                detailTabs +
+                '<div id="labNetworkDetailContent" style="flex: 1; overflow-y: auto; padding: 8px; font-size: 11px; color: #ddd;"></div>' +
+            '</div>' +
+        '</div>';
+
+        $snifferPanel.append(panelHeader);
+        $snifferPanel.append(panelBody);
+
+        // Top layer container
+        const $labContainer = $('<div id="__labTopLayerContainer" style="position: fixed !important; top: 0 !important; left: 0 !important; width: 0 !important; height: 0 !important; z-index: 2147483645 !important; pointer-events: none !important;"></div>');
+        $('body').prepend($labContainer);
+        $('body').prepend($snifferPanel);
+
+        // DOMINATE SIBLINGS
+        function __labDominateSiblings() {
+            try {
+                const container = document.getElementById('__labTopLayerContainer');
+                if (!container) return;
+                const parent = container.parentNode;
+                if (!parent) return;
+                for (let i = 0; i < parent.children.length; i++) {
+                    const el = parent.children[i];
+                    if (el === container) continue;
+                    if (el.id && (el.id.startsWith('lab') || el.id.startsWith('__lab'))) continue;
+                    const style = window.getComputedStyle(el);
+                    if (style.position === 'fixed' || style.position === 'absolute' || style.position === 'sticky' || style.position === 'relative') {
+                        const currentZ = parseInt(style.zIndex) || 0;
+                        if (currentZ >= 2147483000) {
+                            el.style.setProperty('z-index', '2147483000', 'important');
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        (function __labSetupDominationObserver() {
+            try {
+                const observer = new MutationObserver(function(mutations) {
+                    let needDominate = false;
+                    for (const m of mutations) { if (m.type === 'childList' && m.addedNodes.length) needDominate = true; }
+                    if (needDominate) setTimeout(__labDominateSiblings, 50);
+                });
+                observer.observe(document.body, { childList: true, subtree: false });
+            } catch(e) {}
+        })();
+        setInterval(__labDominateSiblings, 2000);
+
+        // Resizers
+        $snifferPanel.append('<div class="lab-resizer resizer-x" style="position:absolute; right:0; top:0; bottom:0; width:6px; cursor:ew-resize; z-index:10;"></div>');
+        $snifferPanel.append('<div class="lab-resizer resizer-y" style="position:absolute; bottom:0; left:0; right:0; height:6px; cursor:ns-resize; z-index:10;"></div>');
+        $snifferPanel.append('<div class="lab-resizer resizer-top" style="position:absolute; top:0; left:0; right:0; height:6px; cursor:ns-resize; z-index:10;" title="Kéo để thay đổi chiều cao từ trên"></div>');
+
+        // Styles
+        const $netStyle = $('<style id="lab-net-style"></style>');
+        $netStyle.text(
+            '#labNetworkTableBody .lab-net-row { display: flex; padding: 3px 8px; border-bottom: 1px solid #2a2a2a; cursor: pointer; font-size: 11px; align-items: center; transition: background 0.1s; }' +
+            '#labNetworkTableBody .lab-net-row:hover { background: #2a2a2a; }' +
+            '#labNetworkTableBody .lab-net-row.selected { background: #1a3a5c; }' +
+            '#labNetworkTableBody .lab-net-row .net-method { width: 50px; flex-shrink: 0; font-weight: bold; }' +
+            '#labNetworkTableBody .lab-net-row .net-status { width: 50px; flex-shrink: 0; }' +
+            '#labNetworkTableBody .lab-net-row .net-url { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }' +
+            '#labNetworkTableBody .lab-net-row .net-size { width: 60px; flex-shrink: 0; text-align: right; }' +
+            '#labNetworkTableBody .lab-net-row .net-time { width: 60px; flex-shrink: 0; text-align: right; }' +
+            '#labNetworkDetailContent .net-detail-section { margin-bottom: 10px; }' +
+            '#labNetworkDetailContent .net-detail-title { color: #3498db; font-weight: bold; margin-bottom: 4px; font-size: 12px; }' +
+            '#labNetworkDetailContent .net-detail-table { width: 100%; border-collapse: collapse; }' +
+            '#labNetworkDetailContent .net-detail-table td { padding: 3px 6px; border-bottom: 1px solid #333; font-size: 11px; }' +
+            '#labNetworkDetailContent .net-detail-table td:first-child { color: #aaa; width: 180px; white-space: nowrap; }' +
+            '#labNetworkDetailContent pre { background: #111; padding: 6px; border-radius: 3px; border: 1px solid #333; margin: 0; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; }' +
+            '#labNetworkDetailContent .net-timing-bar { height: 14px; background: #3498db; border-radius: 2px; margin: 2px 0; }' +
+            '#labNetworkDetailContent .net-timing-label { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; }' +
+            '.lab-net-tab:hover { background: #333 !important; }' +
+            '.lab-net-group-tab:hover { background: #333 !important; }' +
+            '.lab-net-group-tab.active { color: #fff !important; border-bottom-color: #3498db !important; }' +
+            '#panelSnifferLab.lab-sniffer-fullscreen { top: 0 !important; left: 0 !important; right: auto !important; width: 100vw !important; height: 100vh !important; border-radius: 0 !important; z-index: 2147483645 !important; }' +
+            '#labSnifferHResizer:hover { background: #3498db !important; }' +
+            '.net-url { cursor: pointer; }' +
+            '.net-url:hover { text-decoration: underline; color: #3498db; }' +
+            '.net-copy-btn:hover { opacity: 1 !important; color: #2ecc71 !important; }' +
+            '.lab-net-row .net-copy-btn { width: 22px; flex-shrink: 0; text-align: center; cursor: pointer; color: #888; font-size: 11px; opacity: 0.6; transition: opacity 0.2s; }' +
+            '.lab-net-row:hover .net-copy-btn { opacity: 0.9; }' +
+            '.net-copy-btn:hover { opacity: 1; color: #2ecc71; }' +
+
+            '.lab-copy-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2ecc71; color: #fff; padding: 6px 16px; border-radius: 4px; font-size: 12px; z-index: 2147483647; pointer-events: none; opacity: 0; transition: opacity 0.3s; }' +
+            '.lab-preview-btn:hover { filter: brightness(1.15); }' +
+            '#labNetworkDetailContent { display: flex; flex-direction: column; }' +
+            '#__labBlockedModal { position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2147483647; display: none; justify-content: center; align-items: center; font-family: sans-serif; }' +
+            '#__labBlockedModal .lab-modal-box { background: #1e1e1e; border: 2px solid #e74c3c; border-radius: 8px; padding: 24px; max-width: 420px; width: 90%; box-shadow: 0 0 40px rgba(231,76,60,0.4); color: #fff; }' +
+            '#__labBlockedModal .lab-modal-title { font-size: 18px; font-weight: bold; color: #e74c3c; margin-bottom: 12px; }' +
+            '#__labBlockedModal .lab-modal-text { font-size: 13px; line-height: 1.6; color: #ccc; margin-bottom: 20px; }' +
+            '#__labBlockedModal .lab-modal-btn { border: none; border-radius: 4px; padding: 8px 16px; font-size: 13px; cursor: pointer; margin-right: 8px; }' +
+            '#__labBlockedModal .lab-modal-btn-reset { background: #e74c3c; color: white; }' +
+            '#__labBlockedModal .lab-modal-btn-reset:hover { background: #c0392b; }' +
+            '#__labBlockedModal .lab-modal-btn-cancel { background: #555; color: white; }' +
+            '#__labBlockedModal .lab-modal-btn-cancel:hover { background: #444; }'
+        );
+        $('head').append($netStyle);
+
+        // --- BLOCKED DETECTION & RECOVERY MODAL ---
+        function __labCreateBlockedModal() {
+            if ($('#__labBlockedModal').length) return;
+            const modal = '<div id="__labBlockedModal" style="position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2147483647; display: none; justify-content: center; align-items: center; font-family: sans-serif;">' +
+                '<div class="lab-modal-box" style="background: #1e1e1e; border: 2px solid #e74c3c; border-radius: 8px; padding: 24px; max-width: 420px; width: 90%; box-shadow: 0 0 40px rgba(231,76,60,0.4); color: #fff;">' +
+                    '<div class="lab-modal-title" style="font-size: 18px; font-weight: bold; color: #e74c3c; margin-bottom: 12px;">⚠️ Website đã chặn bộ công cụ</div>' +
+                    '<div class="lab-modal-text" style="font-size: 13px; line-height: 1.6; color: #ccc; margin-bottom: 20px;">' +
+                        'Trang web này đã phát hiện và chặn / che giấu bộ công cụ kiểm tra.<br><br>' +
+                        'Bạn có thể <strong>Reset lại bộ công cụ</strong> để thử khôi phục, hoặc <strong>Chấp nhận bị chặn</strong> để tiếp tục duyệt web.' +
+                    '</div>' +
+                    '<div style="text-align: center;">' +
+                        '<button class="lab-modal-btn lab-modal-btn-reset" id="__labBtnResetTools" style="border: none; border-radius: 4px; padding: 8px 16px; font-size: 13px; cursor: pointer; margin-right: 8px; background: #e74c3c; color: white;">🔄 Reset lại bộ công cụ</button>' +
+                        '<button class="lab-modal-btn lab-modal-btn-cancel" id="__labBtnAcceptBlocked" style="border: none; border-radius: 4px; padding: 8px 16px; font-size: 13px; cursor: pointer; background: #555; color: white;">✕ Chấp nhận bị chặn</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+            $('body').append(modal);
+
+            $('#__labBtnResetTools').on('click', function(e) {
+                e.stopPropagation();
+                __labResetAllTools();
+            });
+            $('#__labBtnAcceptBlocked').on('click', function(e) {
+                e.stopPropagation();
+                $('#__labBlockedModal').css('display', 'none');
+                window.__labBlockedAccepted = true;
+            });
+        }
+
+        function __labShowBlockedModal() {
+            if (window.__labBlockedAccepted) return;
+            __labCreateBlockedModal();
+            $('#__labBlockedModal').css('display', 'flex');
+        }
+
+        function __labResetAllTools() {
+            $('#__labBlockedModal').css('display', 'none');
+            // Remove and recreate all lab panels
+            $('#panelSnifferLab').remove();
+            $('#panelConsole').remove();
+            $('#panelJs').remove();
+            $('#panelCss').remove();
+            $('#labMainDashboard').remove();
+            $('#labHtmlSourceModal').remove();
+            $('#__labTopLayerContainer').remove();
+            $('#__labBlockedModal').remove();
+            $('.lab-panel').remove();
+            $('.lab-resizer').remove();
+            $('#lab-net-style').remove();
+
+            // Clear flags so init will run again
+            window.__labNetworkLog = [];
+            window.__labNetworkPaused = false;
+            window.__labNetworkSelectedId = null;
+            window.__labNetworkGroup = 'xhr';
+            window.__labPanelVisible = false;
+            window.__labBlockedAccepted = false;
+            window.__labXhrOverridden = false;
+            window.__labFetchOverridden = false;
+            window.__labWebSocketOverridden = false;
+            window.__labPerfObserverStarted = false;
+            window.__labBeaconOverridden = false;
+            window.__labNavTimingCaptured = false;
+
+            // Trigger a full re-init by calling the main init if available
+            if (typeof window.__labReinitAll === 'function') {
+                window.__labReinitAll();
+            } else {
+                // fallback: reload page
+                location.reload();
+            }
+        }
+
+        // Detect when panel is hidden, removed, or tampered
+        function __labCheckTampered() {
+            if (window.__labBlockedAccepted) return;
+            try {
+                const panel = document.getElementById('panelSnifferLab');
+                if (!panel) { __labShowBlockedModal(); return; }
+                const style = window.getComputedStyle(panel);
+                if (style.display === 'none' && window.__labPanelVisible) { __labShowBlockedModal(); return; }
+                if (style.visibility === 'hidden') { __labShowBlockedModal(); return; }
+                if (parseFloat(style.opacity) < 0.1) { __labShowBlockedModal(); return; }
+                if (style.zIndex && parseInt(style.zIndex) < 100000) { __labShowBlockedModal(); return; }
+            } catch(e) {}
+        }
+
+        setInterval(__labCheckTampered, 1500);
+
+        // MutationObserver to detect removal of our panels
+        (function __labSetupRemovalObserver() {
+            try {
+                const observer = new MutationObserver(function(mutations) {
+                    for (const m of mutations) {
+                        if (m.type === 'childList' && m.removedNodes.length) {
+                            for (let i = 0; i < m.removedNodes.length; i++) {
+                                const node = m.removedNodes[i];
+                                if (node.id === 'panelSnifferLab' || node.id === 'labMainDashboard' || node.id === 'lab-fab-wrapper') {
+                                    __labShowBlockedModal();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: false });
+            } catch(e) {}
+        })();
+
+        // Layout sync
         function syncSnifferLayout() {
             if ($snifferPanel.hasClass('lab-panel-hidden')) { $snifferPanel.hide(); return; }
             $snifferPanel.css('display', 'flex');
@@ -1851,25 +2486,22 @@
             if (!dashEl) return;
             const rect = dashEl.getBoundingClientRect();
             const safeGap = 35;
-
             if (layoutState === 'horizontal') {
-                const snifferH = Math.round(viewH * 0.28);
-                let calculatedTop = rect.top-snifferH-safeGap;
+                const snifferH = Math.round(viewH * 0.32);
+                let calculatedTop = rect.top - snifferH - safeGap;
                 if (calculatedTop < 5) calculatedTop = 5;
-                $snifferPanel.css({ 'top': calculatedTop-10 + 'px', 'left': rect.left + 'px', 'width': rect.width + 'px', 'height': snifferH + 'px' });
-            }
-            else if (layoutState === 'vertical-left') {
+                $snifferPanel.css({ 'top': calculatedTop - 10 + 'px', 'left': rect.left + 'px', 'width': rect.width + 'px', 'height': snifferH + 'px' });
+            } else if (layoutState === 'vertical-left') {
                 let calculatedLeft = rect.right + safeGap;
-                let calculatedW = viewW-calculatedLeft-20;
+                let calculatedW = viewW - calculatedLeft - 20;
                 if (calculatedW < 200) calculatedW = Math.round(viewW * 0.35);
                 $snifferPanel.css({ 'top': '20px', 'left': 'auto', 'right': '20px', 'width': calculatedW + 'px', 'height': rect.height + 50 + 'px' });
-            }
-            else if (layoutState === 'vertical-right') {
-                let calculatedW = rect.left-safeGap-20;
+            } else if (layoutState === 'vertical-right') {
+                let calculatedW = rect.left - safeGap - 20;
                 if (calculatedW < 200) calculatedW = Math.round(viewW * 0.35);
-                let calculatedLeft = rect.left-calculatedW-safeGap;
+                let calculatedLeft = rect.left - calculatedW - safeGap;
                 if (calculatedLeft < 5) calculatedLeft = 5;
-                $snifferPanel.css({ 'top': '20px', 'left': '10px', 'width': calculatedW + 'px', 'height': rect.height-50 + 'px' });
+                $snifferPanel.css({ 'top': '20px', 'left': '10px', 'width': calculatedW + 'px', 'height': rect.height - 50 + 'px' });
             }
         }
 
@@ -1879,21 +2511,363 @@
             setTimeout(syncSnifferLayout, 60);
         };
 
+        window.__labOpenSnifferPanel = function() {
+            $snifferPanel.removeClass('lab-panel-hidden');
+            window.__labPanelVisible = true;
+            syncSnifferLayout();
+            __labDominateSiblings();
+        };
+
+        window.__labCloseSnifferPanel = function() {
+            $snifferPanel.addClass('lab-panel-hidden');
+            window.__labPanelVisible = false;
+            syncSnifferLayout();
+        };
+
+        // Button events
         $btnToggleSniffer.on('click', function(e) {
             e.stopPropagation();
-            $snifferPanel.toggleClass('lab-panel-hidden');
-            if (!$snifferPanel.hasClass('lab-panel-hidden')) $(this).text('🌐 ').css('background', '#e74c3c');
-            else $(this).text('🌐').css('background', '#27ae60');
-            syncSnifferLayout();
+            if ($snifferPanel.hasClass('lab-panel-hidden')) {
+                window.__labOpenSnifferPanel();
+                $(this).text('🌐 ').css('background', '#e74c3c');
+            } else {
+                window.__labCloseSnifferPanel();
+                $(this).text('🌐').css('background', '#27ae60');
+            }
         });
 
-        $('#labBtnCloseSniffer').on('click', function(e) {
+        $btnPauseSniffer.on('click', function(e) {
             e.stopPropagation();
-            $snifferPanel.addClass('lab-panel-hidden');
+            window.__labNetworkPaused = !window.__labNetworkPaused;
+            $(this).text(window.__labNetworkPaused ? '▶ ' : '⏸ ').css('background', window.__labNetworkPaused ? '#e74c3c' : '#2ecc71');
+            $(this).attr('title', window.__labNetworkPaused ? 'Resume Recording' : 'Pause Recording');
+        });
+
+        const groupTypes = ['xhr', 'resource', 'media', 'other'];
+        let groupIdx = 0;
+        $btnGroupSniffer.on('click', function(e) {
+            e.stopPropagation();
+            groupIdx = (groupIdx + 1) % groupTypes.length;
+            window.__labNetworkGroup = groupTypes[groupIdx];
+            $(this).text('📂 ' + __labGroupLabel(window.__labNetworkGroup).toUpperCase());
+            $(this).css('background', __labGroupColor(window.__labNetworkGroup));
+            __labRenderNetworkTable();
+        });
+
+        // Bind events DIRECTLY on the panel (not via document delegation) so stopPropagation doesn't break them
+        $snifferPanel.on('click', '#labBtnClearSniffer', function(e) {
+            e.stopPropagation();
+            window.__labNetworkLog = [];
+            window.__labNetworkSelectedId = null;
+            $('#labNetworkDetail').hide();
+            $('#labSnifferHResizer').hide();
+            __labRenderNetworkTable();
+        });
+
+        $snifferPanel.on('click', '#labBtnCloseSniffer', function(e) {
+            e.stopPropagation();
+            window.__labCloseSnifferPanel();
             $btnToggleSniffer.text('🌐').css('background', '#27ae60');
             syncSnifferLayout();
         });
-        // END BLOCK: Zero-Impact Sniffer & Deep Network Interceptor
+
+        $snifferPanel.on('input', '#labSearchSniffer', function() {
+            window.__labNetworkSearch = $(this).val().toLowerCase();
+            __labRenderNetworkTable();
+        });
+
+        // Tab switching — bind directly on panel
+        $snifferPanel.on('click', '.lab-net-tab', function(e) {
+            e.stopPropagation();
+            $snifferPanel.find('.lab-net-tab').removeClass('active').css({ 'color': '#aaa', 'border-bottom-color': 'transparent' });
+            $(this).addClass('active').css({ 'color': '#fff', 'border-bottom-color': '#3498db' });
+            __labRenderNetworkDetail();
+        });
+
+        $snifferPanel.on('click', '.lab-net-group-tab', function(e) {
+            e.stopPropagation();
+            $snifferPanel.find('.lab-net-group-tab').removeClass('active').css({ 'color': '#aaa', 'border-bottom-color': 'transparent' });
+            $(this).addClass('active').css({ 'color': '#fff', 'border-bottom-color': '#3498db' });
+            window.__labNetworkGroup = $(this).data('group');
+            $btnGroupSniffer.text('📂 ' + __labGroupLabel(window.__labNetworkGroup).toUpperCase()).css('background', __labGroupColor(window.__labNetworkGroup));
+            __labRenderNetworkTable();
+        });
+
+        // Row click — bind directly on table body
+        $snifferPanel.on('click', '.lab-net-row', function(e) {
+            e.stopPropagation();
+            const id = $(this).data('id');
+            window.__labNetworkSelectedId = id;
+            $snifferPanel.find('.lab-net-row').removeClass('selected');
+            $(this).addClass('selected');
+            $('#labNetworkDetail').css('display', 'flex');
+            $('#labSnifferHResizer').css('display', 'flex');
+            __labRenderNetworkDetail();
+        });
+
+        // Copy button on each row
+        $snifferPanel.on('click', '.net-copy-btn', function(e) {
+            e.stopPropagation();
+            const url = $(this).data('url') || $(this).siblings('.net-url').attr('title');
+            if (!url) return;
+            navigator.clipboard.writeText(url).catch(function() {});
+            const toast = $('<div class="lab-copy-toast">📋 Copied!</div>');
+            $('body').append(toast);
+            requestAnimationFrame(function() { toast.css('opacity', '1'); });
+            setTimeout(function() { toast.css('opacity', '0'); setTimeout(function() { toast.remove(); }, 300); }, 1200);
+        });
+
+        // Allow clicks inside panel but stop propagation to outside
+        $snifferPanel.on('click contextmenu', function(e) {
+            e.stopPropagation();
+        });
+
+        // --- FULLSCREEN TOGGLE ---
+        let __labSnifferNormalState = null;
+        $snifferPanel.on('click', '#labBtnFullscreenSniffer', function(e) {
+            e.stopPropagation();
+            if ($snifferPanel.hasClass('lab-sniffer-fullscreen')) {
+                $snifferPanel.removeClass('lab-sniffer-fullscreen');
+                if (__labSnifferNormalState) {
+                    $snifferPanel.css({ top: __labSnifferNormalState.top, left: __labSnifferNormalState.left, right: __labSnifferNormalState.right, width: __labSnifferNormalState.width, height: __labSnifferNormalState.height });
+                } else {
+                    syncSnifferLayout();
+                }
+                $(this).text('⛶').attr('title', 'Fullscreen');
+            } else {
+                __labSnifferNormalState = { top: $snifferPanel.css('top'), left: $snifferPanel.css('left'), right: $snifferPanel.css('right'), width: $snifferPanel.css('width'), height: $snifferPanel.css('height') };
+                $snifferPanel.addClass('lab-sniffer-fullscreen');
+                $(this).text('⛶').attr('title', 'Restore');
+            }
+        });
+
+        // --- HORIZONTAL RESIZER (table ↔ detail) ---
+        (function() {
+            const $resizer = $('#labSnifferHResizer');
+            const $detail = $('#labNetworkDetail');
+            const $tableBody = $('#labNetworkTableBody');
+            let dragging = false, startY = 0, startDetailH = 0;
+            $resizer.on('mousedown', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                dragging = true; startY = e.clientY;
+                startDetailH = $detail.outerHeight();
+                $(document).on('mousemove.labHResize', function(ev) {
+                    if (!dragging) return;
+                    const delta = startY - ev.clientY;
+                    const newH = Math.max(80, Math.min(window.innerHeight * 0.7, startDetailH + delta));
+                    $detail.css('height', newH + 'px');
+                    $tableBody.css('flex', '1 1 auto');
+                    return false;
+                });
+                $(document).on('mouseup.labHResize', function() {
+                    dragging = false;
+                    $(document).off('mousemove.labHResize mouseup.labHResize');
+                });
+            });
+        })();
+
+        // Hotkey: Ctrl+L toggles ALL Lab tools (Dashboard + Sniffer)
+        $(document).on('keydown', function(e) {
+            if (e.ctrlKey && !e.shiftKey && (e.key === 'L' || e.key === 'l')) {
+                e.preventDefault(); e.stopPropagation();
+                if ($dashboard.is(':visible')) {
+                    // Close everything
+                    $dashboard.hide();
+                    $fabBtn.text('+').css('background-color', '#3498db');
+                    isInspectEnabled = false;
+                    localStorage.setItem('lab_dashboard_open', 'false');
+                    $(document).find('.lab-inspect-child, .lab-inspect-parent, .lab-inspect-grand, .lab-pinned-child, .lab-pinned-parent, .lab-pinned-grand').removeClass('lab-inspect-child lab-inspect-parent lab-inspect-grand lab-pinned-child lab-pinned-parent lab-pinned-grand');
+                    window.__labCloseSnifferPanel();
+                    $btnToggleSniffer.text('🌐').css('background', '#27ae60');
+                } else {
+                    // Open everything
+                    $dashboard.css('display', 'flex');
+                    $fabBtn.text('×').css('background-color', '#e74c3c');
+                    isInspectEnabled = true;
+                    localStorage.setItem('lab_dashboard_open', 'true');
+                    window.__labOpenSnifferPanel();
+                    $btnToggleSniffer.text('🌐 ').css('background', '#e74c3c');
+                }
+                setTimeout(function() { updateScreenSplitting(); }, 50);
+                return false;
+            }
+        });
+
+        window.__labRenderNetworkTable = function() {
+            const $body = $('#labNetworkTableBody');
+            if (!$body.length) return;
+            let filtered = window.__labNetworkLog;
+            filtered = filtered.filter(e => {
+                const g = e._group || __labCategorizeEntry(e);
+                return g === window.__labNetworkGroup;
+            });
+            if (window.__labNetworkSearch) {
+                filtered = filtered.filter(e => e.url.toLowerCase().includes(window.__labNetworkSearch));
+            }
+            const html = filtered.map(entry => {
+                const isSelected = entry.id === window.__labNetworkSelectedId;
+                const methodColor = __labMethodColor(entry.method);
+                const statusColor = __labStatusColor(entry.status);
+                const shortUrl = entry.url.length > 80 ? entry.url.substr(0, 77) + '...' : entry.url;
+                const isMedia = /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|mp4|webm|ogg|mov|m3u8|mkv|mp3|wav|aac|flac)(\?|$)/i.test(entry.url) || (entry.type || '').includes('image') || (entry.type || '').includes('video') || (entry.type || '').includes('audio');
+                const mediaIcon = isMedia ? ' 🎬' : '';
+                return '<div class="lab-net-row ' + (isSelected ? 'selected' : '') + '" data-id="' + entry.id + '">' +
+                    '<span class="net-method" style="color:' + methodColor + '">' + entry.method + '</span>' +
+                    '<span class="net-status" style="color:' + statusColor + '">' + (entry.status || '—') + '</span>' +
+                    '<span class="net-url" title="' + entry.url + '">' + shortUrl + mediaIcon + '</span>' +
+                    '<span class="net-copy-btn" title="Copy URL" data-url="' + entry.url.replace(/"/g, '&quot;') + '">📋</span>' +
+                    '<span class="net-size">' + __labFormatBytes(entry.size) + '</span>' +
+                    '<span class="net-time">' + __labFormatDuration(entry.duration) + '</span>' +
+                '</div>';
+            }).join('');
+            const groupLabel = __labGroupLabel(window.__labNetworkGroup);
+            const emptyMsg = '<div style="padding: 20px; text-align: center; color: #777; font-size: 12px;">' +
+                '<div style="font-size: 24px; margin-bottom: 8px;">📂 ' + groupLabel + '</div>' +
+                'No entries in this group yet.<br>Requests will appear automatically.</div>';
+            $body.html(html || emptyMsg);
+        };
+
+        window.__labRenderNetworkDetail = function() {
+            const entry = window.__labNetworkLog.find(e => e.id === window.__labNetworkSelectedId);
+            if (!entry) return;
+            const activeTab = $snifferPanel.find('.lab-net-tab.active').data('tab') || 'headers';
+            const $content = $('#labNetworkDetailContent');
+
+            if (activeTab === 'headers') {
+                let reqHtml = '';
+                if (entry.requestHeaders && Object.keys(entry.requestHeaders).length > 0) {
+                    reqHtml = Object.entries(entry.requestHeaders).map(([k, v]) =>
+                        '<tr><td>' + k + '</td><td>' + String(v).replace(/</g, '&lt;') + '</td></tr>'
+                    ).join('');
+                } else { reqHtml = '<tr><td colspan="2" style="color:#777;">No request headers captured</td></tr>'; }
+                let respHtml = '';
+                if (entry.responseHeaders && Object.keys(entry.responseHeaders).length > 0) {
+                    respHtml = Object.entries(entry.responseHeaders).map(([k, v]) =>
+                        '<tr><td>' + k + '</td><td>' + String(v).replace(/</g, '&lt;') + '</td></tr>'
+                    ).join('');
+                } else { respHtml = '<tr><td colspan="2" style="color:#777;">No response headers captured</td></tr>'; }
+                $content.html(
+                    '<div class="net-detail-section"><div class="net-detail-title">General</div>' +
+                    '<table class="net-detail-table">' +
+                    '<tr><td>Request URL</td><td>' + entry.url + '</td></tr>' +
+                    '<tr><td>Request Method</td><td>' + entry.method + '</td></tr>' +
+                    '<tr><td>Status Code</td><td>' + entry.status + ' ' + entry.statusText + '</td></tr>' +
+                    '<tr><td>Type</td><td>' + entry.type + '</td></tr>' +
+                    '<tr><td>Category</td><td>' + __labGroupLabel(entry._group || __labCategorizeEntry(entry)) + '</td></tr>' +
+                    '<tr><td>Duration</td><td>' + __labFormatDuration(entry.duration) + '</td></tr>' +
+                    '<tr><td>Size</td><td>' + __labFormatBytes(entry.size) + '</td></tr>' +
+                    '</table></div>' +
+                    '<div class="net-detail-section"><div class="net-detail-title">Request Headers</div>' +
+                    '<table class="net-detail-table">' + reqHtml + '</table></div>' +
+                    '<div class="net-detail-section"><div class="net-detail-title">Response Headers</div>' +
+                    '<table class="net-detail-table">' + respHtml + '</table></div>'
+                );
+            } else if (activeTab === 'response') {
+                const body = entry.responseBody || '[No response body]';
+                const isJson = typeof body === 'string' && (body.startsWith('{') || body.startsWith('['));
+                const displayBody = isJson ? body : body;
+                $content.html(
+                    '<div class="net-detail-section"><div class="net-detail-title">Response Body</div>' +
+                    '<pre>' + displayBody.replace(/</g, '&lt;') + '</pre></div>'
+                );
+            } else if (activeTab === 'preview') {
+                const previewUrl = entry.url || '';
+                const ct = (entry.contentType || entry.type || '').toLowerCase();
+                const isImage = /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?|$)/i.test(previewUrl) || ct.includes('image');
+                const isVideo = /\.(mp4|webm|ogg|mov|m3u8|mkv)(\?|$)/i.test(previewUrl) || ct.includes('video');
+                const isAudio = /\.(mp3|wav|aac|flac|ogg|m4a|wma)(\?|$)/i.test(previewUrl) || ct.includes('audio');
+                const actions = '<div style="display:flex; gap:6px; margin-bottom:10px; flex-shrink:0;">' +
+                    '<button class="lab-preview-btn lab-open-link" style="background:#2980b9;color:#fff;border:none;padding:4px 10px;border-radius:3px;font-size:11px;cursor:pointer;">🔗 Open</button>' +
+                    '<button class="lab-preview-btn lab-copy-link" style="background:#27ae60;color:#fff;border:none;padding:4px 10px;border-radius:3px;font-size:11px;cursor:pointer;">📋 Copy</button>' +
+                    '<button class="lab-preview-btn lab-dl-link" style="background:#8e44ad;color:#fff;border:none;padding:4px 10px;border-radius:3px;font-size:11px;cursor:pointer;">⬇️ Download</button>' +
+                '</div>';
+                if (isImage) {
+                    $content.html(
+                        actions + '<div style="display:flex; justify-content:center; align-items:center; flex:1; min-height:0; padding:10px; overflow:auto;">' +
+                        '<img src="' + previewUrl.replace(/</g, '&lt;') + '" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" onerror="this.outerHTML=\'<div style=color:#888;padding:20px 0;>Cannot load image</div>\'"></div>'
+                    );
+                } else if (isVideo) {
+                    $content.html(
+                        actions + '<div style="display:flex; justify-content:center; align-items:center; flex:1; min-height:0; padding:10px; overflow:auto;">' +
+                        '<video src="' + previewUrl.replace(/</g, '&lt;') + '" controls style="max-width:100%; max-height:100%; border-radius:4px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" onerror="this.outerHTML=\'<div style=color:#888;padding:20px 0;>Cannot load video</div>\'"></div>'
+                    );
+                } else if (isAudio) {
+                    $content.html(
+                        actions + '<div style="display:flex; justify-content:center; align-items:center; flex:1; min-height:0; padding:10px;">' +
+                        '<audio src="' + previewUrl.replace(/</g, '&lt;') + '" controls style="width:100%;" onerror="this.outerHTML=\'<div style=color:#888;padding:20px 0;>Cannot load audio</div>\'"></div>'
+                    );
+                } else {
+                    const isText = ct.includes('javascript') || ct.includes('css') || ct.includes('html') || ct.includes('json') || ct.includes('text') || ct.includes('xml') || ct.includes('csv') || ct.includes('plain') ||
+                                   /\.(js|css|html|htm|json|txt|xml|csv|log|md|ts|jsx|tsx|vue|php|py|rb|go|java|c|cpp|h|swift|kt|rs|sh|bash|yaml|yml)(\?|$)/i.test(previewUrl);
+                    if (isText && entry.responseBody) {
+                        const body = String(entry.responseBody).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        const previewType = ct.includes('json') || ct.includes('javascript') ? 'json' :
+                                            ct.includes('css') ? 'css' :
+                                            ct.includes('html') ? 'html' : 'text';
+                        const langLabel = previewType === 'json' ? 'JSON / JS' : previewType === 'css' ? 'CSS' : previewType === 'html' ? 'HTML' : 'Text';
+                        $content.html(
+                            actions + '<div style="flex:1; min-height:0; overflow:auto; padding:0 0 10px;">' +
+                            '<div style="font-size:10px; color:#888; margin-bottom:4px; padding:2px 4px; background:#1a1a1a; border-radius:3px; display:inline-block;">' + langLabel + '</div>' +
+                            '<pre style="background:#111; padding:8px; border-radius:3px; border:1px solid #333; font-size:11px; line-height:1.5; color:#ddd; white-space:pre-wrap; word-break:break-word; margin:0;">' + body + '</pre></div>'
+                        );
+                    } else {
+                        $content.html(
+                            actions + '<div style="color: #888; font-size: 12px; padding: 20px 0; text-align:center;">Preview not available for this type<br><span style="font-size:10px; color:#555;">' + previewUrl.replace(/</g, '&lt;') + '</span></div>'
+                        );
+                    }
+                }
+                // Bind preview actions
+                $content.find('.lab-open-link').on('click', function(e) { e.stopPropagation(); window.open(previewUrl, '_blank'); });
+                $content.find('.lab-copy-link').on('click', function(e) {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(previewUrl).catch(function(){});
+                    const toast = $('<div class="lab-copy-toast">📋 Copied!</div>');
+                    $('body').append(toast);
+                    requestAnimationFrame(function() { toast.css('opacity', '1'); });
+                    setTimeout(function() { toast.css('opacity', '0'); setTimeout(function() { toast.remove(); }, 300); }, 1200);
+                });
+                $content.find('.lab-dl-link').on('click', function(e) {
+                    e.stopPropagation();
+                    const a = document.createElement('a');
+                    a.href = previewUrl;
+                    a.download = '';
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                });
+            } else if (activeTab === 'timing') {
+                const t = entry.timing || {};
+                const total = entry.duration || 0;
+                const bars = [];
+                if (t.dns > 0) bars.push({ label: 'DNS', val: t.dns, color: '#9b59b6' });
+                if (t.connect > 0) bars.push({ label: 'Connect', val: t.connect, color: '#f39c12' });
+                if (t.ssl > 0) bars.push({ label: 'SSL', val: t.ssl, color: '#e74c3c' });
+                if (t.send > 0) bars.push({ label: 'Send', val: t.send, color: '#3498db' });
+                if (t.ttfb > 0) bars.push({ label: 'TTFB', val: t.ttfb, color: '#2ecc71' });
+                if (t.download > 0) bars.push({ label: 'Download', val: t.download, color: '#1abc9c' });
+                const maxBar = Math.max.apply(Math, bars.map(function(b) { return b.val; }).concat([1]));
+                const barHtml = bars.map(function(b) {
+                    const pct = (b.val / maxBar * 100).toFixed(1);
+                    return '<div class="net-timing-label"><span>' + b.label + '</span><span>' + __labFormatDuration(b.val) + '</span></div>' +
+                        '<div class="net-timing-bar" style="width:' + pct + '%; background:' + b.color + ';"></div>';
+                }).join('');
+                $content.html(
+                    '<div class="net-detail-section"><div class="net-detail-title">Timing Breakdown</div>' +
+                    '<div style="margin-top: 8px;">' + (barHtml || '<div style="color:#777;">No detailed timing available</div>') + '</div>' +
+                    '<div style="margin-top: 12px; border-top: 1px solid #333; padding-top: 8px;">' +
+                    '<div class="net-timing-label"><span>Total Duration</span><span>' + __labFormatDuration(total) + '</span></div></div></div>'
+                );
+            }
+        };
+
+        // Initial render
+        __labRenderNetworkTable();
+
+        // END BLOCK: DevTools-Style Network Monitor v19
+
+
+
 
         // ### BLOCK START: Pro Code Editor Engine
         // ==========================================
@@ -1902,32 +2876,130 @@
         function initProCodeEditors() {
             if (typeof CodeMirror === 'undefined') return;
 
+            // --- JS Editor Tabs System ---
+            if (!window.__labJsTabs) {
+                try {
+                    const saved = localStorage.getItem('lab_js_tabs');
+                    if (saved) {
+                        window.__labJsTabs = JSON.parse(saved);
+                        window.__labJsActiveTab = parseInt(localStorage.getItem('lab_js_active_tab') || '0', 10);
+                    }
+                } catch(e) {}
+                if (!window.__labJsTabs) {
+                    const savedJs = localStorage.getItem('lab_saved_js') || '';
+                    window.__labJsTabs = [{ name: 'Tab 1', content: savedJs }];
+                    window.__labJsActiveTab = 0;
+                }
+            }
+
+            function saveJsTabs() {
+                if (window.__labJsTabs) {
+                    localStorage.setItem('lab_js_tabs', JSON.stringify(window.__labJsTabs));
+                    localStorage.setItem('lab_js_active_tab', String(window.__labJsActiveTab));
+                }
+            }
+
+            function renderJsTabs() {
+                const $bar = $('#labJsTabsBar');
+                if (!$bar.length) return;
+                $bar.empty();
+                window.__labJsTabs.forEach((tab, idx) => {
+                    const $tab = $('<span class="lab-js-tab"></span>').text(tab.name);
+                    if (idx === window.__labJsActiveTab) $tab.addClass('active');
+                    if (window.__labJsTabs.length > 1) {
+                        const $close = $('<span class="lab-js-tab-close">×</span>');
+                        $tab.append($close);
+                    }
+                    $tab.on('click', function(e) {
+                        if ($(e.target).hasClass('lab-js-tab-close')) {
+                            e.stopPropagation();
+                            if (window.__labJsTabs.length <= 1) return;
+                            window.__labJsTabs.splice(idx, 1);
+                            if (window.__labJsActiveTab >= idx) window.__labJsActiveTab = Math.max(0, window.__labJsActiveTab - 1);
+                            saveJsTabs();
+                            renderJsTabs();
+                            if (window.__labJsEditor) {
+                                window.__labJsEditor.setValue(window.__labJsTabs[window.__labJsActiveTab].content || '');
+                            }
+                            return;
+                        }
+                        // Save current before switching
+                        if (window.__labJsEditor) {
+                            window.__labJsTabs[window.__labJsActiveTab].content = window.__labJsEditor.getValue();
+                        }
+                        window.__labJsActiveTab = idx;
+                        saveJsTabs();
+                        renderJsTabs();
+                        if (window.__labJsEditor) {
+                            window.__labJsEditor.setValue(window.__labJsTabs[window.__labJsActiveTab].content || '');
+                        }
+                    });
+                    $bar.append($tab);
+                });
+                const $add = $('<span class="lab-js-tab-add">+</span>');
+                $add.on('click', function() {
+                    if (window.__labJsEditor) {
+                        window.__labJsTabs[window.__labJsActiveTab].content = window.__labJsEditor.getValue();
+                    }
+                    const newIdx = window.__labJsTabs.length + 1;
+                    window.__labJsTabs.push({ name: 'Tab ' + newIdx, content: '' });
+                    window.__labJsActiveTab = window.__labJsTabs.length - 1;
+                    saveJsTabs();
+                    renderJsTabs();
+                    if (window.__labJsEditor) {
+                        window.__labJsEditor.setValue('');
+                    }
+                });
+                $bar.append($add);
+            }
+
             const jsTextarea = document.getElementById('labJsInput');
             if (jsTextarea && !window.__labJsEditor) {
                 window.__labJsEditor = CodeMirror.fromTextArea(jsTextarea, {
                     mode: 'javascript', theme: 'dracula', lineNumbers: true,
                     matchBrackets: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true,
+                    foldGutter: true,
+                    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
                     extraKeys: {
                         'Esc': function(cm) { if (cm.state.completionActive) cm.closeHint(); },
                         'Ctrl-Enter': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
                         'Ctrl-G': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
                         'Ctrl-B': function() { $("#labBtnClearConsole").click(); },
-                        'Ctrl-Space': 'autocomplete'
+                        'Ctrl-Space': 'autocomplete',
+                        'Ctrl-Q': function(cm) { cm.foldCode(cm.getCursor()); }
                     }
                 });
 
+                // Load initial tab content
+                if (window.__labJsTabs && window.__labJsTabs[window.__labJsActiveTab]) {
+                    window.__labJsEditor.setValue(window.__labJsTabs[window.__labJsActiveTab].content || '');
+                }
+                renderJsTabs();
+
+                // Debounce autocomplete to prevent blinking; exclude arrow keys
+                let __labAutoCompleteTimer = null;
                 window.__labJsEditor.on('keyup', function(cm, event) {
-                    if (!cm.state.completionActive && event.keyCode !== 13 && event.keyCode !== 27 && event.keyCode !== 8 && event.keyCode !== 32 && event.keyCode !== 17 && event.keyCode !== 18 && event.keyCode !== 9) {
-                        const token = cm.getTokenAt(cm.getCursor());
-                        if (token.string && (token.string.length > 1 || token.string === '.' || event.key === '.')) {
+                    // Exclude navigation keys from triggering autocomplete
+                    if (event.keyCode >= 33 && event.keyCode <= 40) return; // PageUp/Down, End, Home, Arrow keys
+                    if (event.keyCode === 13 || event.keyCode === 27 || event.keyCode === 8 || event.keyCode === 32 || event.keyCode === 17 || event.keyCode === 18 || event.keyCode === 9) return;
+                    if (cm.state.completionActive) return;
+
+                    const token = cm.getTokenAt(cm.getCursor());
+                    if (token.string && (token.string.length > 1 || token.string === '.' || event.key === '.')) {
+                        if (__labAutoCompleteTimer) clearTimeout(__labAutoCompleteTimer);
+                        __labAutoCompleteTimer = setTimeout(function() {
                             CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
-                        }
+                        }, 150);
                     }
                 });
 
                 window.__labJsEditor.on('change', function(cm) {
                     const code = cm.getValue();
                     $('#labJsInput').val(code);
+                    if (window.__labJsTabs && window.__labJsTabs[window.__labJsActiveTab]) {
+                        window.__labJsTabs[window.__labJsActiveTab].content = code;
+                        saveJsTabs();
+                    }
                     localStorage.setItem('lab_saved_js', code);
                 });
             }
@@ -1937,22 +3009,26 @@
                 window.__labCssEditor = CodeMirror.fromTextArea(cssTextarea, {
                     mode: 'css', theme: 'dracula', lineNumbers: true,
                     matchBrackets: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true,
+                    foldGutter: true,
+                    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
                     extraKeys: {
                         'Tab': function(cm) {
                             if (cm.state.completionActive) { cm.closeHint(); }
                             else { cm.replaceSelection('    '); }
                         },
                         'Esc': function(cm) { if (cm.state.completionActive) cm.closeHint(); },
-                        'Ctrl-Space': 'autocomplete'
+                        'Ctrl-Space': 'autocomplete',
+                        'Ctrl-Q': function(cm) { cm.foldCode(cm.getCursor()); }
                     }
                 });
 
                 window.__labCssEditor.on('keyup', function(cm, event) {
-                    if (!cm.state.completionActive && event.keyCode !== 13 && event.keyCode !== 27 && event.keyCode !== 8 && event.keyCode !== 32 && event.keyCode !== 17 && event.keyCode !== 18 && event.keyCode !== 9) {
-                        const token = cm.getTokenAt(cm.getCursor());
-                        if (token.string && (token.string.length > 1 || event.key === ':')) {
-                            CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
-                        }
+                    if (event.keyCode >= 33 && event.keyCode <= 40) return;
+                    if (event.keyCode === 13 || event.keyCode === 27 || event.keyCode === 8 || event.keyCode === 32 || event.keyCode === 17 || event.keyCode === 18 || event.keyCode === 9) return;
+                    if (cm.state.completionActive) return;
+                    const token = cm.getTokenAt(cm.getCursor());
+                    if (token.string && (token.string.length > 1 || event.key === ':')) {
+                        CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
                     }
                 });
 
@@ -1975,6 +3051,10 @@
                     window.__labJsEditor.setValue(formatted);
                     $('#labJsInput').val(formatted).trigger('input');
                     localStorage.setItem('lab_saved_js', formatted);
+                    if (window.__labJsTabs && window.__labJsTabs[window.__labJsActiveTab]) {
+                        window.__labJsTabs[window.__labJsActiveTab].content = formatted;
+                        try { localStorage.setItem('lab_js_tabs', JSON.stringify(window.__labJsTabs)); } catch(e) {}
+                    }
                 } else if (window.__labJsEditor) {
                     if (typeof window.__labAppendLog === 'function') window.__labAppendLog('⚠️ Thư viện js-beautify chưa sẵn sàng.', 'log');
                 }
@@ -2748,17 +3828,26 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 
             $snifferPanel.off('mousedown.v163Resize').on('mousedown.v163Resize', '.lab-resizer', function(e) {
                 e.preventDefault(); e.stopPropagation();
-
+                const isTopResizer = $(this).hasClass('resizer-top');
                 const rect = $snifferPanel[0].getBoundingClientRect();
-                const startX = e.clientX, startY = e.clientY, startW = rect.width, startH = rect.height;
+                const startX = e.clientX, startY = e.clientY, startW = rect.width, startH = rect.height, startTop = rect.top;
 
                 $snifferPanel.addClass('lab-v163-user-positioned').css({ left: rect.left + 'px', top: rect.top + 'px', right: 'auto' });
 
                 $(window).on('mousemove.v163SnifferResize', function(moveEvent) {
-                    $snifferPanel.css({
-                        width: Math.min(window.innerWidth-rect.left-8, Math.max(240, startW + moveEvent.clientX-startX)) + 'px',
-                        height: Math.min(window.innerHeight-rect.top-8, Math.max(160, startH + moveEvent.clientY-startY)) + 'px'
-                    });
+                    if (isTopResizer) {
+                        const newTop = Math.max(0, Math.min(startTop + moveEvent.clientY - startY, startTop + startH - 160));
+                        const newHeight = Math.max(160, startH - (moveEvent.clientY - startY));
+                        $snifferPanel.css({
+                            top: newTop + 'px',
+                            height: Math.min(window.innerHeight - newTop - 8, newHeight) + 'px'
+                        });
+                    } else {
+                        $snifferPanel.css({
+                            width: Math.min(window.innerWidth-rect.left-8, Math.max(240, startW + moveEvent.clientX-startX)) + 'px',
+                            height: Math.min(window.innerHeight-rect.top-8, Math.max(160, startH + moveEvent.clientY-startY)) + 'px'
+                        });
+                    }
                 });
 
                 $(window).on('mouseup.v163SnifferResize', function() {
@@ -2828,15 +3917,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                 return $node;
             }
 
-            window.__labRenderSnifferTree = function() {
-                const $snifferBody = $('#labSnifferBody');
-                if (!$snifferBody.length || !window.__labCapturedLinks) return;
-                $snifferBody.empty();
-                $snifferBody.append(v163BuildSnifferGroupDomNode('📁 MEDIA LINKS (.mp4, .m3u8, .ts)', window.__labCapturedLinks.media, '#2ecc71', true));
-                $snifferBody.append(v163BuildSnifferGroupDomNode('📁 EMBED RESOURCES (iframe, player)', window.__labCapturedLinks.embed, '#9b59b6', false));
-                $snifferBody.append(v163BuildSnifferGroupDomNode('📁 POST REQUESTS (Full Objects)', window.__labCapturedLinks.post, '#e74c3c', false));
-                $snifferBody.append(v163BuildSnifferGroupDomNode('📁 GET REQUESTS (Full Objects)', window.__labCapturedLinks.get, '#3498db', false));
-            };
+            window.__labRenderSnifferTree = function() { __labRenderNetworkTable(); };
 
             if (typeof window.__labRenderSnifferTree === 'function') window.__labRenderSnifferTree();
 
@@ -3674,12 +4755,35 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             } catch(e) { return false; }
         }
 
+        // Rapid-click backdoor for shield
+        let __shieldClickTracker = {};
+        let __shieldBackdoorTimer = null;
+
         function shieldClickHandler(e) {
             if (!shieldActive) return;
             const path = e.composedPath ? e.composedPath() : [e.target];
             for (let node of path) {
                 if (node instanceof Element && isInsideLabUI(node)) return;
             }
+
+            // Backdoor: rapid click on same element (3+ times within 500ms) disables shield temporarily
+            const target = e.target;
+            if (target && target instanceof Element) {
+                const key = target.outerHTML || String(target);
+                const now = Date.now();
+                if (!__shieldClickTracker[key]) __shieldClickTracker[key] = [];
+                __shieldClickTracker[key].push(now);
+                // Keep only clicks within last 500ms
+                __shieldClickTracker[key] = __shieldClickTracker[key].filter(t => now - t < 500);
+                if (__shieldClickTracker[key].length >= 3) {
+                    if (typeof window.__labAppendLog === 'function') window.__labAppendLog('[Shield] Backdoor triggered: rapid click detected — disabling shield for 3s', 'return');
+                    disableShield();
+                    if (__shieldBackdoorTimer) clearTimeout(__shieldBackdoorTimer);
+                    __shieldBackdoorTimer = setTimeout(() => { enableShield(); }, 3000);
+                    return; // allow this click through
+                }
+            }
+
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -3701,12 +4805,25 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 							    // 2. THAY VÌ GHI ĐÈ LOCATION (Gây crash), ta sử dụng "BeforeUnload" để chặn thoát trang
 							    // Điều này hiệu quả hơn và không bao giờ bị lỗi Read-Only
 							    window.addEventListener('beforeunload', blockUnloadHandler, true);
+						    // 2.5. Add listeners to shadow DOM hosts
+						    document.querySelectorAll("*[shadowroot]").forEach(function(el) {
+						        if (el.shadowRoot) {
+						            el.shadowRoot.addEventListener("click", shieldClickHandler, true);
+						            el.shadowRoot.addEventListener("mousedown", shieldClickHandler, true);
+						            el.shadowRoot.addEventListener("mouseup", shieldClickHandler, true);
+						        }
+						    });
 
 							    // 3. Chặn window.open an toàn
 							    try {
-							        window.open = function() {
-							           return null;
-							        };
+						        window.open = function() {
+						            if (typeof window.__labAppendLog === "function") {
+						                window.__labAppendLog("[Shield] Blocked window.open()", "return");
+						            }
+						            return null;
+						        };
+
+
 							    } catch(e) {}
 
 							    // 4. Chặn Timer (vẫn dùng logic cũ của bạn vì nó an toàn)
@@ -3737,6 +4854,14 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 											try{
 	            document.removeEventListener('click', shieldClickHandler, true);
 	            document.removeEventListener('mousedown', shieldClickHandler, true);
+											// Remove shadow DOM listeners
+											document.querySelectorAll("*[shadowroot]").forEach(function(el) {
+											    if (el.shadowRoot) {
+											        el.shadowRoot.removeEventListener("click", shieldClickHandler, true);
+											        el.shadowRoot.removeEventListener("mousedown", shieldClickHandler, true);
+											        el.shadowRoot.removeEventListener("mouseup", shieldClickHandler, true);
+											    }
+											});
 	            document.removeEventListener('mouseup', shieldClickHandler, true);
 
 	            window.open = _origOpen;
@@ -4078,7 +5203,7 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
     } catch(err) {
         console.error('[Enhancement Module v17.1] Initialization error:', err);
     }
-});
+})();
 // END BLOCK: Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED)
 
     // ### BLOCK START: IIFE & Event Listener Cleanup

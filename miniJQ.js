@@ -262,29 +262,37 @@ window._$ = function (htmlOrBlock) {
             return "";
         },
         text: function (separator) {
-            if (this.elements.length === 0) return "";
-            var elem = this.elements[0];
-            var start = elem.indexOf('>') + 1;
-            var end = elem.lastIndexOf('</');
-            if (start > 0 && end > start) {
-                var content = elem.substring(start, end);
-                var pureText = content.replace(/<\/?[^>]+(>|$)/g, "");
-                
-                if (typeof separator === 'string') {
-                    return pureText
-                        .split('\n')
-                        .map(function (item) {
-                            return item.trim();
-                        })
-                        .filter(function (item) {
-                            return item !== '';
-                        })
-                        .join(separator);
-                }
-                return pureText.trim();
-            }
-            return "";
-        },
+			    if (this.elements.length === 0) return "";
+			    var elem = this.elements[0];
+			    var start = elem.indexOf('>') + 1;
+			    var end = elem.lastIndexOf('</');
+			    if (start > 0 && end > start) {
+			        var content = elem.substring(start, end);
+			        
+			        // SỬA Ở ĐÂY: Thay "" bằng "\n" để biến các thẻ HTML thành dấu xuống dòng
+			        var pureText = content.replace(/<\/?[^>]+(>|$)/g, "\n");
+			        
+			        if (typeof separator === 'string') {
+			            return pureText
+			                .split('\n')
+			                .map(function (item) {
+			                    return item.trim();
+			                })
+			                .filter(function (item) {
+			                    return item !== '';
+			                })
+			                .join(separator); // Sẽ nối các phần tử bằng separator bạn truyền vào
+			        }
+			        
+			        // Khắc phục luôn cho trường hợp không truyền separator để chữ không bị dính
+			        return pureText
+			            .split('\n')
+			            .map(function (item) { return item.trim(); })
+			            .filter(function (item) { return item !== ''; })
+			            .join(' '); 
+			    }
+			    return "";
+			},
         next: function () {
             var results = [];
             if (!this.sourceHtml) return this;

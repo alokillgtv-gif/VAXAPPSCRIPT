@@ -257,7 +257,7 @@ function extractCleanData(data) {
     traverse(data);
     return result;
 }
-
+// https://motchille.cx/baseapi/episodes?movie_id=76981
 function parseMovieDetail(html, $url) {
     try {
         // 3. Gán vào biến dataVD
