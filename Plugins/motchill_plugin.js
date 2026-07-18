@@ -6,7 +6,7 @@ function getManifest() {
         "id": "motchill",
         "name": "Nguồn Phim Motchill",
         "description": "Mochill Trang Xem Phim.",
-        "version": "1.0.4",
+        "version": "1.0.5",
         "BASEURL": "https://motchille.cx",
         "iconUrl": "https://motchille.cx/motchill.png",
         "isEnabled": true,
@@ -285,75 +285,96 @@ function transformMovieData(data) {
 
 function parseMovieDetail(html, url) {
 	try {
-		log(url)
-		// === BƯỚC 1: ĐỒNG NHẤT ID PHIM BẰNG REGEX META (Y hệt tác giả) ===
-		var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(html) ||
-			/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(html);
-		var id = idMatch ? idMatch[1] : (url || "");
+		log(url);
 		
-		var slug = "";
-		if (id) {
-			var slugMatch = /\/phim\/([^/_.]+)/.exec(id);
-			slug = slugMatch ? slugMatch[1] : id;
-		}
-		if (!slug) {
-			var slugMatch2 = /\/phim\/([^/_.]+)/.exec(html);
-			slug = slugMatch2 ? slugMatch2[1] : "";
+		// BƯỚC KHỞI TẠO: Kiểm tra xem dữ liệu đổ vào có phải là JSON (Lượt gọi thứ 2) hay không
+		var isJsonPass = false;
+		var $json = null;
+		if (html && /^\s*\{/s.test(html)) {
+			try {
+				$json = JSON.parse(html); // ĐÃ SỬA: Sửa từ $data thành html để không bị crash
+				isJsonPass = true;
+			} catch (e) {
+				isJsonPass = false;
+			}
 		}
 		
-		// === BƯỚC 2: TRÍCH XUẤT THÔNG TIN PHIM ===
-		var lurl = "";
-		var limg = "";
+		// Khởi tạo sẵn các biến dữ liệu
+		var id = "";
 		var lname = "Đang cập nhật...";
+		var limg = "";
 		var ldes = "Không có mô tả.";
-		var ldirec = "";
-		var lactor = "";
-		var lduran = "";
-		var status = "";
 		var category = "";
 		var episode_current = "";
-		var rating = 0;
 		var quality = "";
 		var year = 2026;
-		var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
-		if (rmatch && rmatch[1]) lurl = rmatch[1];
-		
-		rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
-		if (rmatch && rmatch[1]) limg = rmatch[1];
-		
-		rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
-		if (rmatch && rmatch[1]) lname = rmatch[1];
-		
-		ldes = _$(html).find(".prose.prose-sm").text();
-		lactor = _$(html).find('img[alt*="Ảnh diễn viên"]').closest(".block").parent().parent().text(' - ');
-		category = _$(html).find('span:content("Thể loại:")').next().text(" - ").trim();;
-		year = _$(html).find('span:content("Năm sản xuất:")').text().trim().replace("Năm sản xuất:", "");
-		year = Number(year);
-		episode_current = _$(html).find('span:content("Tập")').text().trim();
-		var ratingText = _$(html).find('span:content("đánh giá")').text().trim();
-		// Dùng regex tìm số (có thể là số nguyên hoặc số thập phân)
-		var ratingMatch = ratingText.match(/(\d+(?:\.\d+)?)/);
-		// Nếu tìm thấy thì chuyển thành float, nếu không thì mặc định là 0
-		rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
-
-		quality = _$(html).find('span.bg-yellow-500').text().trim();
+		var rating = 0;
 		var servers = [];
-		var $json = "";
-		if (html.match(/^\s*\{.*\}\s*$/s)) {
-			$json = JSON.parse($data);
-			servers = transformMovieData($json)
-		}
-		
 		var extra = "";
+		var lactor = "";
+		var ldirec = "";
+		var lduran = "";
+		var status = "";
 		
-		var idVideo = html.match(/movie_id[^:]+:["']([0-9]+)["']/i);
-		if (idVideo && idVideo[1]) {
-			extra = "https://motchille.cx/baseapi/episodes?movie_id=" + idVideo[1];
+		if (!isJsonPass) {
+			// =============================================================================
+			// LƯỢT 1: HỆ THỐNG ĐỌC TRANG HTML CHI TIẾT
+			// =============================================================================
+			
+			// Trích xuất ID gốc của bộ phim
+			var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(html) ||
+				/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(html);
+			id = idMatch ? idMatch[1] : (url || "");
+			
+			// Cào các thông tin cơ bản trên giao diện HTML
+			var rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) limg = rmatch[1];
+			
+			rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
+			if (rmatch && rmatch[1]) lname = rmatch[1];
+			
+			ldes = _$(html).find(".prose.prose-sm").text();
+			lactor = _$(html).find('img[alt*="Ảnh diễn viên"]').closest(".block").parent().parent().text(' - ');
+			category = _$(html).find('span:content("Thể loại:")').next().text(" - ").trim();
+			
+			var yearText = _$(html).find('span:content("Năm sản xuất:")').text().trim().replace("Năm sản xuất:", "");
+			year = Number(yearText) || 2026;
+			
+			episode_current = _$(html).find('span:content("Tập")').text().trim();
+			
+			var ratingText = _$(html).find('span:content("đánh giá")').text().trim();
+			var ratingMatch = ratingText.match(/(\d+(?:\.\d+)?)/);
+			rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
+			
+			quality = _$(html).find('span.bg-yellow-500').text().trim();
+			
+			// TẠO LINK EXTRA: Đính kèm thêm tham số `origin_url` để lượt sau khôi phục lại đúng ID
+			var idVideo = html.match(/movie_id[^:]+:["']([0-9]+)["']/i);
+			if (idVideo && idVideo[1]) {
+				extra = "https://motchille.cx/baseapi/episodes?movie_id=" + idVideo[1] + "&origin_url=" + encodeURIComponent(id);
+			}
+			
+		} else {
+			// =============================================================================
+			// LƯỢT 2: HỆ THỐNG GỌI ĐẾN LINK EXTRA (NHẬN VỀ JSON TẬP PHIM)
+			// =============================================================================
+			
+			// ĐỒNG NHẤT ID: Khôi phục lại chính xác ID ban đầu từ URL để App hiểu và gộp tập phim
+			var originMatch = url.match(/[&?]origin_url=([^&]+)/);
+			id = originMatch ? decodeURIComponent(originMatch[1]) : url;
+			
+			// Xử lý mảng tập phim từ dữ liệu JSON đã được parse
+			if ($json) {
+				servers = transformMovieData($json);
+			}
+			
+			// CHẶN VÒNG LẶP: Đặt extra bằng rỗng để báo hiệu hệ thống DỪNG tải ngầm, kết thúc chu kỳ
+			extra = "";
 		}
-		// Tạo chuỗi mô tả ẩn JSON servers giống hệt tác giả
-		// === BƯỚC 5: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ID ===
+		
+		// === BƯỚC TỔNG HỢP: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ===
 		return JSON.stringify({
-			id: id, // BẮT BUỘC: ID phải là slug rút gọn của bộ phim để cả 2 lần fetch khớp nhau
+			id: id, 
 			title: lname,
 			posterUrl: limg,
 			backdropUrl: limg,
@@ -364,22 +385,23 @@ function parseMovieDetail(html, url) {
 			status: status,
 			category: category,
 			episode_current: episode_current,
-			servers: servers, // Lần 1 (trang chi tiết) sẽ là []. Lần 2 (khi chạy qua extra) sẽ có đầy đủ tập
+			servers: servers, 
 			duration: lduran || "",
 			casts: lactor || "",
 			director: ldirec || "",
-			extra: extra // Lần 2 (trang xem phim) extra sẽ rỗng để dừng chu kỳ tải ngầm
+			extra: extra 
 		});
 		
 	} catch (e) {
 		log(e);
 		return JSON.stringify({
-			id: slug || url || "error",
+			id: url || "error",
 			title: "error",
 			servers: []
 		});
 	}
 }
+
 
 
 //BASEURL = "https://phimnganhdc.com";
