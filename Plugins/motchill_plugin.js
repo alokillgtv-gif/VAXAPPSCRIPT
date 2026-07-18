@@ -6,7 +6,7 @@ function getManifest() {
         "id": "motchill",
         "name": "Nguồn Phim Motchill",
         "description": "Mochill Trang Xem Phim.",
-        "version": "1.0.2",
+        "version": "1.0.4",
         "BASEURL": "https://motchille.cx",
         "iconUrl": "https://motchille.cx/motchill.png",
         "isEnabled": true,
@@ -312,7 +312,7 @@ function parseMovieDetail(html, url) {
 		var status = "";
 		var category = "";
 		var episode_current = "";
-		var rating = "";
+		var rating = 0;
 		var quality = "";
 		var year = 2026;
 		var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
@@ -330,7 +330,12 @@ function parseMovieDetail(html, url) {
 		year = _$(html).find('span:content("Năm sản xuất:")').text().trim().replace("Năm sản xuất:", "");
 		year = Number(year);
 		episode_current = _$(html).find('span:content("Tập")').text().trim();
-		rating = _$(html).find('span:content("đánh giá")').text().trim().replace(/(\d+\.\d+)\s.+$/i, "$1");
+		var ratingText = _$(html).find('span:content("đánh giá")').text().trim();
+		// Dùng regex tìm số (có thể là số nguyên hoặc số thập phân)
+		var ratingMatch = ratingText.match(/(\d+(?:\.\d+)?)/);
+		// Nếu tìm thấy thì chuyển thành float, nếu không thì mặc định là 0
+		rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
+
 		quality = _$(html).find('span.bg-yellow-500').text().trim();
 		var servers = [];
 		var $json = "";
