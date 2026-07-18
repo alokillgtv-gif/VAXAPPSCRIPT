@@ -6,7 +6,7 @@ function getManifest() {
         "id": "motchill",
         "name": "Nguồn Phim Motchill",
         "description": "Mochill Trang Xem Phim.",
-        "version": "1.0",
+        "version": "1.0.1",
         "BASEURL": "https://motchille.cx",
         "iconUrl": "https://motchille.cx/motchill.png",
         "isEnabled": true,
@@ -285,6 +285,7 @@ function transformMovieData(data) {
 
 function parseMovieDetail(htmlContent, url) {
 	try {
+		log(url)
 		// === BƯỚC 1: ĐỒNG NHẤT ID PHIM BẰNG REGEX META (Y hệt tác giả) ===
 		var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(htmlContent) ||
 			/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(htmlContent);
@@ -364,7 +365,8 @@ function parseMovieDetail(htmlContent, url) {
 			extra: extra // Lần 2 (trang xem phim) extra sẽ rỗng để dừng chu kỳ tải ngầm
 		});
 		
-	} catch (e) {
+	} catch (e) 
+		log(e);
 		return JSON.stringify({
 			id: slug || url || "error",
 			title: "error",
