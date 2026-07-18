@@ -6,7 +6,7 @@ function getManifest() {
         "id": "cnporn",
         "name": "Porn Gái Trung",
         "description": "Nguồn XXX Hay",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://cnporn.org",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -259,31 +259,30 @@ JSON.parse(parseMovieDetail(html,$url))
 */
 
 function parseDetailResponse(html, url) {
-    try {
-        var customjs = textJS();
-        return JSON.stringify({
-            "url": url,
-            "headers": {
-                "Referer": BASEURL,
-                "Origin": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-                // Đánh lừa thuật toán Client Hints của tường lửa
-                "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                "Sec-Ch-Ua-Mobile": "?1",
-                "Sec-Ch-Ua-Platform": '"Android"',
-                
-                // Khai báo kiểu dữ liệu được chấp nhận giống như trình duyệt thật
-                "Accept": "*/*",
-                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-                "X-Requested-With": "com.android.chrome",
-                "Custom-Js": customjs.trim()
-            },
-            "subtitles": []
-        });
-        
-    } catch (e) {
-        return JSON.stringify({ "url": "", "headers": {} });
-    }
+	try {
+		var streamlink = "";
+		const matches = html.match(/https?[^\s"']+\.(?:m3u8|mp4)[^\s"']*/g);
+		// 1. Làm sạch dấu xuyệt ngược
+		if(matches){
+			const allLinks = matches ? matches.map(link => link.replace(/\\/g, '')) : [];
+			// 2. Dùng Set để lọc trùng
+			streamlink = [...new Set(allLinks)];
+		}
+		
+		return JSON.stringify({
+			"url": streamlink,
+			"isEmbed": false,
+			"mimeType": "application/x-mpegURL",
+			"headers": {
+				"Referer": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+			},
+			"subtitles": []
+		});
+		
+	} catch (e) {
+		return JSON.stringify({ "url": "", "headers": {} });
+	}
 }
 function textJS() {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
