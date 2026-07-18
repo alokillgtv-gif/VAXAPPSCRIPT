@@ -6,7 +6,7 @@ function getManifest() {
         "id": "yanhh3d",
         "name": "Yanhh3d",
         "description": "Trang xem phim Hoạt Hình siêu hay.",
-        "version": "1.1.4",
+        "version": "1.1.5",
         "BASEURL": "https://yanhh3d.ac",
         "iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
         "isEnabled": true,
@@ -365,6 +365,7 @@ function parseDetailResponse(html, url) {
 			}
 		});
 		selectedLink = pool.k4 || pool.hd || pool.anyM3u8 || pool.anyEmbed;
+		selectedLink = selectedLink.replace(/(https?:\/\/[^\/]+)\/[^]+?\/([^\/]+\.m3u8)$/, '$1/stream/m3u8/$2')
 		return JSON.stringify({
 			"url": selectedLink,
 			"isEmbed": false,
