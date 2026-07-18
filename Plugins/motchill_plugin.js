@@ -6,7 +6,7 @@ function getManifest() {
         "id": "motchill",
         "name": "Nguồn Phim Motchill",
         "description": "Mochill Trang Xem Phim.",
-        "version": "1.0.6",
+        "version": "1.0.7",
         "BASEURL": "https://motchille.cx",
         "iconUrl": "https://motchille.cx/motchill.png",
         "isEnabled": true,
@@ -283,12 +283,15 @@ function transformMovieData(data) {
 	return servers;
 }
 
+// BẮT BUỘC: Khai báo biến này ở ngoài cùng của file script để đồng nhất ID giữa 2 lượt gọi
+var cachedMovieDetailId = ""; 
+
 function parseMovieDetail(html, url) {
 	try {
 		log(url);
 		
-		// ĐÃ SỬA: Kiểm tra luồng bằng URL của API extra, chính xác 100% không sợ lệch định dạng HTML/JSON
-		var isApiCall = url && url.indexOf("baseapi/episodes") > -1;
+		// ĐÃ SỬA: Kiểm tra bằng nội dung chuỗi. Nếu là JSON thì chắc chắn là Lượt 2 (extra)
+		var isJsonCall = html && /^\s*[\{\[]/s.test(html);
 		
 		var id = "";
 		var lname = "Đang cập nhật...";
@@ -306,13 +309,16 @@ function parseMovieDetail(html, url) {
 		var lduran = "";
 		var status = "";
 		
-		if (!isApiCall) {
+		if (!isJsonCall) {
 			// =============================================================================
 			// LƯỢT 1: ĐỌC TRANG HTML CHI TIẾT
 			// =============================================================================
 			var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(html) ||
 				/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(html);
 			id = idMatch ? idMatch[1] : (url || "");
+			
+			// Lưu ID vào bộ nhớ tạm toàn cục để Lượt 2 lấy ra đối chiếu
+			cachedMovieDetailId = id;
 			
 			var rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
 			if (rmatch && rmatch[1]) limg = rmatch[1];
@@ -335,30 +341,30 @@ function parseMovieDetail(html, url) {
 			
 			quality = _$(html).find('span.bg-yellow-500').text().trim();
 			
-			// ĐÃ SỬA: Bắn hạ movie_id chấp mọi thể loại backslash bọc ngoài ký tự
+			// Quét tìm movie_id thực tế từ mã nguồn
 			var idVideo = null;
 			var htmlMatch = html.match(/movie_id[^\d]+(\d+)/i);
 			if (htmlMatch) {
 				idVideo = htmlMatch[1];
 			}
 			
-			// Nếu tìm thấy movie_id thực tế (ví dụ: 81164), kích hoạt luồng gọi ngầm lượt 2
 			if (idVideo) {
-				extra = "https://motchille.cx/baseapi/episodes?movie_id=" + idVideo + "&origin_url=" + encodeURIComponent(id);
+				extra = "https://motchille.cx/baseapi/episodes?movie_id=" + idVideo;
 			}
 			
 		} else {
 			// =============================================================================
-			// LƯỢT 2: HỆ THỐNG ĐÃ FETCH TRANG JSON (TỪ LINK EXTRA Ở TRÊN)
+			// LƯỢT 2: NHẬN KẾT QUẢ JSON TỪ LINK EXTRA (url lúc này bị undefined)
 			// =============================================================================
-			var originMatch = url.match(/[&?]origin_url=([^&]+)/);
-			id = originMatch ? decodeURIComponent(originMatch[1]) : url;
+			// Khôi phục lại chính xác ID gốc từ lượt 1 để App có thể gộp danh sách tập phim
+			id = cachedMovieDetailId || "";
 			
 			if (html) {
 				var $json = JSON.parse(html.trim());
 				servers = transformMovieData($json);
 			}
-			extra = ""; // Đặt rỗng để ngắt tiến trình fetch ngầm, kết thúc vòng đời
+			
+			extra = ""; // Đặt rỗng để cắt đuôi vòng lặp, ngắt tiến trình fetch ngầm
 		}
 		
 		return JSON.stringify({
@@ -383,7 +389,7 @@ function parseMovieDetail(html, url) {
 	} catch (e) {
 		log(e);
 		return JSON.stringify({
-			id: url || "error",
+			id: cachedMovieDetailId || url || "error",
 			title: "error",
 			servers: []
 		});
