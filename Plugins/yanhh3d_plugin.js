@@ -6,7 +6,7 @@ function getManifest() {
         "id": "yanhh3d",
         "name": "Yanhh3d",
         "description": "Trang xem phim Hoạt Hình siêu hay.",
-        "version": "1.1.3",
+        "version": "1.1.4",
         "BASEURL": "https://yanhh3d.ac",
         "iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
         "isEnabled": true,
@@ -354,40 +354,28 @@ function parseDetailResponse(html, url) {
 		let selectedLink = null;
 		const pool = { k4: null, hd: null, anyM3u8: null, anyEmbed: null };
 		allLink.forEach((item) => {
-			if (item.name.match(/4k/i) && item.link.endsWith('.m3u8')) {
+			if (item.name.match(/4k/i)) {
 				pool.k4 = item.link;
-			} else if (item.name.match(/1080/i) && item.link.endsWith('.m3u8')) {
+			} else if (item.name.match(/1080/i)) {
 				pool.hd = item.link;
 			} else if (item.link.endsWith('.m3u8')) {
 				pool.anyM3u8 = item.link;
-			} else if (item.link.includes('embed')) {
+			} else if (item.link.includes('abyss')) {
 				pool.anyEmbed = item.link;
 			}
 		});
 		selectedLink = pool.k4 || pool.hd || pool.anyM3u8 || pool.anyEmbed;
-		if(selectedLink.indexOf("embed") > -1){
-			return JSON.stringify({
-				"url": selectedLink,
-				"isEmbed": false,
-				"headers": {
-					"Referer": BASEURL,
-					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-				},
-				"subtitles": []
-			});
-		}
-		else{
-			return JSON.stringify({
-				"url": selectedLink,
-				"isEmbed": false,
-				"mimeType": "application/x-mpegURL",
-				"headers": {
-					"Referer": BASEURL,
-					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-				},
-				"subtitles": []
-			});
-		}
+		return JSON.stringify({
+			"url": selectedLink,
+			"isEmbed": false,
+			"mimeType": "application/x-mpegURL",
+			"headers": {
+				"Referer": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+			},
+			"subtitles": []
+		});
+		
 	} catch (e) {
 		return JSON.stringify({ "url": "", "headers": {} });
 	}
