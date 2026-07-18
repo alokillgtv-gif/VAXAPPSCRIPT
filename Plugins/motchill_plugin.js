@@ -6,7 +6,7 @@ function getManifest() {
         "id": "motchill",
         "name": "Nguồn Phim Motchill",
         "description": "Mochill Trang Xem Phim.",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "BASEURL": "https://motchille.cx",
         "iconUrl": "https://motchille.cx/motchill.png",
         "isEnabled": true,
@@ -283,12 +283,12 @@ function transformMovieData(data) {
 	return servers;
 }
 
-function parseMovieDetail(htmlContent, url) {
+function parseMovieDetail(html, url) {
 	try {
 		log(url)
 		// === BƯỚC 1: ĐỒNG NHẤT ID PHIM BẰNG REGEX META (Y hệt tác giả) ===
-		var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(htmlContent) ||
-			/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(htmlContent);
+		var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(html) ||
+			/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(html);
 		var id = idMatch ? idMatch[1] : (url || "");
 		
 		var slug = "";
@@ -297,7 +297,7 @@ function parseMovieDetail(htmlContent, url) {
 			slug = slugMatch ? slugMatch[1] : id;
 		}
 		if (!slug) {
-			var slugMatch2 = /\/phim\/([^/_.]+)/.exec(htmlContent);
+			var slugMatch2 = /\/phim\/([^/_.]+)/.exec(html);
 			slug = slugMatch2 ? slugMatch2[1] : "";
 		}
 		
@@ -315,13 +315,13 @@ function parseMovieDetail(htmlContent, url) {
 		var rating = "";
 		var quality = "";
 		
-		var rmatch = htmlContent.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
+		var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
 		if (rmatch && rmatch[1]) lurl = rmatch[1];
 		
-		rmatch = htmlContent.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+		rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
 		if (rmatch && rmatch[1]) limg = rmatch[1];
 		
-		rmatch = htmlContent.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
+		rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
 		if (rmatch && rmatch[1]) lname = rmatch[1];
 		
 		ldes = _$(html).find(".prose.prose-sm").text();
@@ -365,7 +365,7 @@ function parseMovieDetail(htmlContent, url) {
 			extra: extra // Lần 2 (trang xem phim) extra sẽ rỗng để dừng chu kỳ tải ngầm
 		});
 		
-	} catch (e) 
+	} catch (e) {
 		log(e);
 		return JSON.stringify({
 			id: slug || url || "error",
