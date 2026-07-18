@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo3",          
         "name": "Test EMBED TO Exoplayer",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -142,7 +142,7 @@ function parseDetailResponse(html,url) {
 					"url": videoUrl,
 					"isEmbed": true,
 					//"embedRegex": $reg,
-					"embedRegex": "(https?://[^\\s'\"]+\\.(?:m3u8|m3u9|mp4)[^'\"]*)"
+					"embedRegex": "(https?://[^\\s'\"]+\\.(?:m3u8|m3u9|mp4)[^'\"]*)",
 					"headers": {
 						"Referer": refUrl,
 						"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
