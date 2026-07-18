@@ -314,7 +314,7 @@ function parseMovieDetail(html, url) {
 		var episode_current = "";
 		var rating = "";
 		var quality = "";
-		
+		var year = 2026;
 		var rmatch = html.match(/meta\s+property="og:url"\s+content="([^"]+)"/i);
 		if (rmatch && rmatch[1]) lurl = rmatch[1];
 		
@@ -333,6 +333,7 @@ function parseMovieDetail(html, url) {
 		rating = _$(html).find('span:content("đánh giá")').text().trim().replace(/(\d+\.\d+)\s.+$/i, "$1");
 		quality = _$(html).find('span.bg-yellow-500').text().trim();
 		var servers = [];
+		var $json = "";
 		if (html.match(/^\s*\{.*\}\s*$/s)) {
 			$json = JSON.parse($data);
 			servers = transformMovieData($json)
