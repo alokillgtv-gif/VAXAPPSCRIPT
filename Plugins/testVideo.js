@@ -102,31 +102,33 @@ function parseSearchResponse(html) {
 }
 
 function parseMovieDetail(html) {
-    try {
-        var id = BaseURL;
-        // Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
-
-        var title = "Chưa rõ tên phim";
-        var year = "2026";
-        var des = "\r\n\r\n" + html;
-        var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
-        var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
-        
-        return JSON.stringify({
-            "id": id,
-            "title": title,
-            "posterUrl": img,
-            "backdropUrl": img,
-            "description": des,
-            "year": year,
-            "rating": 10,
-            "quality": "HD",
-            "servers": [{ "name": "Server Vietsub", "episodes": episodes }]
-        });
-
-    } catch (e) {
-        return JSON.stringify({ "id": "error", "title": "Lỗi tải dữ liệu", "servers": [] });
-    }
+	try {
+		var id = BaseURL;
+		// Khai báo trước streamUrl chống lỗi Strict Mode khi eval thực thi
+		var streamUrl = "";
+		var rmatch = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
+		if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+		var title = "Chưa rõ tên phim";
+		var year = "2026";
+		var des = streamUrl + "\r\n\r\n" + html;
+		var img = "https://img-cdn.phimhayok.net/filmhayok/1782912263995/20260701/ChatGPT-Image-19_29_49-1-thg-7-2026_a20d108246f140ad8be82acb9bca2606.png";
+		var episodes = [{ id: id, name: "Xem Ngay", slug: "full" }];
+		
+		return JSON.stringify({
+			"id": id,
+			"title": title,
+			"posterUrl": img,
+			"backdropUrl": img,
+			"description": des,
+			"year": year,
+			"rating": 10,
+			"quality": "HD",
+			"servers": [{ "name": "Server Vietsub", "episodes": episodes }]
+		});
+		
+	} catch (e) {
+		return JSON.stringify({ "id": "error", "title": "Lỗi tải dữ liệu", "servers": [] });
+	}
 }
 
 function parseDetailResponse(html, url) {
@@ -136,9 +138,8 @@ function parseDetailResponse(html, url) {
 		BaseJSON = Array.isArray(parsed) ? parsed[0] : parsed;
 		var videoUrl = BaseJSON.link || "";
 		var refUrl = BaseJSON.ref || "";
-		var agent = BaseJSON.codeb ||
-			"Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
-		//var customjs = BaseJSON.codec || "";
+		var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+		var customjs = BaseJSON.codec || "";
 		return JSON.stringify({
 			"url": videoUrl,
 			"headers": {
@@ -160,10 +161,7 @@ function parseDetailResponse(html, url) {
 		});
 		
 	} catch (e) {
-		return JSON.stringify({
-			"url": "",
-			"headers": {}
-		});
+		return JSON.stringify({ "url": "", "headers": {} });
 	}
 }
 
