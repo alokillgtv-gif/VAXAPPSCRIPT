@@ -1,4 +1,4 @@
-// "version": "1.9"  
+// "version": "2.0"  
 window.BASEURL = window.location.origin;
 window.log = function(msg) {
     if (typeof nativeLog !== 'undefined') {
@@ -15,6 +15,7 @@ window._$ = function (htmlOrBlock) {
     var instance = {
         sourceHtml: typeof htmlOrBlock === 'string' ? htmlOrBlock : '',
         elements: Array.isArray(htmlOrBlock) ? htmlOrBlock : (htmlOrBlock ? [htmlOrBlock] : []),
+        length: 0, // Khởi tạo thuộc tính length mặc định
         find: function (selector) {
             if (selector.indexOf(',') !== -1) {
                 var results = [];
@@ -95,7 +96,6 @@ window._$ = function (htmlOrBlock) {
                         continue;
                     }
                     
-                    // SỬA TẬN GỐC: Tìm đúng dấu đóng '>' của thẻ mở hiện tại (Bỏ qua thuộc tính chứa dấu > nếu có)
                     var endOpenTag = -1;
                     var insideQuote = false;
                     var quoteChar = '';
@@ -118,7 +118,6 @@ window._$ = function (htmlOrBlock) {
                     if (endOpenTag === -1) break;
                     var fullOpenTag = currentHtml.substring(pos, endOpenTag + 1);
                     
-                    // Lấy tên thẻ chuẩn (xử lý cả khoảng trắng/xuống dòng sau tên thẻ)
                     var tagMatch = fullOpenTag.match(/^<([a-zA-Z0-9_-]+)/);
                     var currentTagName = tagMatch ? tagMatch[1].toLowerCase() : "";
                     
@@ -127,7 +126,6 @@ window._$ = function (htmlOrBlock) {
                         isMatched = false;
                     }
                     
-                    // Trích xuất thuộc tính (Dùng thuộc tính toàn cục modifier 's' để khớp cả dấu xuống dòng)
                     var getClassAttr = fullOpenTag.match(/class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
                     var classMatchStr = getClassAttr ? (getClassAttr[1] || getClassAttr[2] || getClassAttr[3] || "") : "";
                     
@@ -205,14 +203,23 @@ window._$ = function (htmlOrBlock) {
                                 } else {
                                     depth--;
                                     scanPos = nextClose + closeStr.length;
-                                    if (depth === 0) endTagPos = nextClose + closeStr.length;
+                                    if (depth === 0) endTagPos = nClose = nextClose + closeStr.length;
                                 }
                             }
                         }
                         var foundBlock = currentHtml.substring(startTagPos, endTagPos);
                         if (contentFilter) {
                             var pureText = foundBlock.replace(/<[^>]+>/g, "").trim();
-                            if (pureText.indexOf(contentFilter) === -1) {
+                            // TÍNH NĂNG MỚI: Tách chuỗi theo dấu | để tìm kiếm tương đối đa từ khóa
+                            var keywords = contentFilter.split('|');
+                            var isContentMatched = false;
+                            for (var k = 0; k < keywords.length; k++) {
+                                if (pureText.indexOf(keywords[k].trim()) !== -1) {
+                                    isContentMatched = true;
+                                    break;
+                                }
+                            }
+                            if (!isContentMatched) {
                                 pos = endTagPos;
                                 continue;
                             }
@@ -253,6 +260,7 @@ window._$ = function (htmlOrBlock) {
             if (index < 0) index = this.elements.length + index;
             var matchedElement = this.elements[index];
             this.elements = matchedElement ? [matchedElement] : [];
+            this.length = this.elements.length; // Cập nhật lại chiều dài
             return this;
         },
         attr: function (attrName) {
@@ -270,37 +278,28 @@ window._$ = function (htmlOrBlock) {
             return "";
         },
         text: function (separator) {
-			    if (this.elements.length === 0) return "";
-			    var elem = this.elements[0];
-			    var start = elem.indexOf('>') + 1;
-			    var end = elem.lastIndexOf('</');
-			    if (start > 0 && end > start) {
-			        var content = elem.substring(start, end);
-			        
-			        // SỬA Ở ĐÂY: Thay "" bằng "\n" để biến các thẻ HTML thành dấu xuống dòng
-			        var pureText = content.replace(/<\/?[^>]+(>|$)/g, "\n");
-			        
-			        if (typeof separator === 'string') {
-			            return pureText
-			                .split('\n')
-			                .map(function (item) {
-			                    return item.trim();
-			                })
-			                .filter(function (item) {
-			                    return item !== '';
-			                })
-			                .join(separator); // Sẽ nối các phần tử bằng separator bạn truyền vào
-			        }
-			        
-			        // Khắc phục luôn cho trường hợp không truyền separator để chữ không bị dính
-			        return pureText
-			            .split('\n')
-			            .map(function (item) { return item.trim(); })
-			            .filter(function (item) { return item !== ''; })
-			            .join(' '); 
-			    }
-			    return "";
-			},
+            if (this.elements.length === 0) return "";
+            var elem = this.elements[0];
+            var start = elem.indexOf('>') + 1;
+            var end = elem.lastIndexOf('</');
+            if (start > 0 && end > start) {
+                var content = elem.substring(start, end);
+                var pureText = content.replace(/<\/?[^>]+(>|$)/g, "\n");
+                if (typeof separator === 'string') {
+                    return pureText
+                        .split('\n')
+                        .map(function (item) { return item.trim(); })
+                        .filter(function (item) { return item !== ''; })
+                        .join(separator);
+                }
+                return pureText
+                    .split('\n')
+                    .map(function (item) { return item.trim(); })
+                    .filter(function (item) { return item !== ''; })
+                    .join(' '); 
+            }
+            return "";
+        },
         next: function () {
             var results = [];
             if (!this.sourceHtml) return this;
@@ -345,6 +344,7 @@ window._$ = function (htmlOrBlock) {
             var nextInstance = _$(results);
             nextInstance.sourceHtml = this.sourceHtml;
             this.elements = results;
+            this.length = results.length; // Cập nhật lại chiều dài
             return this;
         },
         parent: function () {
@@ -398,6 +398,7 @@ window._$ = function (htmlOrBlock) {
             var parentInstance = _$(results);
             parentInstance.sourceHtml = this.sourceHtml;
             this.elements = results;
+            this.length = results.length; // Cập nhật lại chiều dài
             return this;
         },
         closest: function (selector) {
@@ -442,5 +443,8 @@ window._$ = function (htmlOrBlock) {
             return closestInstance;
         }
     };
+    
+    // Gán giá trị length thực tế ngay khi khởi tạo instance ban đầu
+    instance.length = instance.elements.length;
     return instance;
 };

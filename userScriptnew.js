@@ -3265,6 +3265,11 @@
 												cm.replaceSelection('    ');
 											}
 										},
+										'Ctrl-G': function() {
+											$("#labBtnClearConsole").click();
+											$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
+											executeJsEngine();
+										},
 										'Ctrl-Enter': function() {
 											$("#labBtnClearConsole").click();
 											$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
