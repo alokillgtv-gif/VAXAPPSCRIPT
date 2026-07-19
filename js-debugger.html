@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JS Code Debugger & Beautifier</title>
+<title>JS & CSS Code Tool</title>
 
 <!-- CodeMirror -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.min.js"></script>
 
@@ -18,6 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/8.11.3/acorn.min.js"></script>
 <!-- JS Beautify -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-css.min.js"></script>
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -162,7 +164,7 @@
     padding: 5px 2px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 12px;
     transition: all 0.2s;
     display: flex;
     align-items: center;
@@ -375,7 +377,7 @@
 
 <div class="app">
   <div class="topbar">
-    <h1>🚀 JS Code Debugger <span id="searchCount"></span></h1>
+    <h1>🚀 Code Debugger Tool <span id="searchCount"></span></h1>
     <div class="toggles">
       <button onclick="toggleCol('colCode')" title="Ẩn / hiện cột code">👈 Code</button>
       <button onclick="toggleCol('colTools')" title="Ẩn / hiện cột công cụ">Công cụ 👉</button>
@@ -390,15 +392,16 @@
     <div class="col col-tools" id="colTools">
       <div class="tools-sticky">
         <div class="tool-buttons">
-          <button onclick="checkCode()" title="Kiểm tra lỗi cú pháp & cảnh báo">🔍</button>
-          <button onclick="beautifyCode()" title="Làm đẹp & canh chỉnh code">✨</button>
+          <button onclick="checkCode()" title="Kiểm tra lỗi cú pháp JS">🔍</button>
+          <button onclick="beautifyCode()" title="Làm đẹp JS">✨ JS</button>
+          <button onclick="beautifyCSSCode()" title="Làm đẹp CSS">✨ CSS</button>
           <button onclick="toggleFindReplace()" title="Tìm & Thay thế">🔎</button>
           <button onclick="copyCode()" title="Copy toàn bộ code">📋</button>
-          <button onclick="pasteCode()" title="Paste vào editor">📌</button>
           
-          <button onclick="removeScripts()" title="Xóa toàn bộ thẻ <script>">🚫 JS</button>
+          <button onclick="pasteCode()" title="Paste vào editor">📌</button>
+          <button onclick="removeScripts()" title="Xóa toàn bộ thẻ <script>">🚫 Scr</button>
           <button onclick="minifyJS()" title="Rút gọn JS thành 1 dòng">📉 JS</button>
-          <button onclick="minifyCSS()" title="Rút gọn CSS thành 1 dòng">📉 CSS</button>
+          <button onclick="minifyCSS()" title="Rút gọn CSS theo từng dòng selector">📉 CSS</button>
           <button onclick="downloadCode()" title="Tải file đang code về máy">💾 Tải</button>
           <button onclick="clearCode()" title="Xóa toàn bộ">🗑</button>
         </div>
@@ -408,6 +411,7 @@
           <input type="text" id="frReplace" placeholder="Nhập chuỗi thay thế...">
           <label><input type="checkbox" id="frRegex"> Regex</label>
           <label><input type="checkbox" id="frCase" checked> Phân biệt hoa/thường</label>
+          <label style="color: #ffb86c;"><input type="checkbox" id="beautifyRemoveComments"> Xóa comment khi làm đẹp</label>
           <div class="fr-buttons">
             <button onclick="findNext()">⬇ Tìm tiếp</button>
             <button onclick="findPrev()">⬆ Tìm trước</button>
@@ -420,7 +424,7 @@
       </div>
 
       <div class="error-panel" id="errorPanel">
-        <div class="error-header">🐛 Lỗi & Cảnh báo</div>
+        <div class="error-header">🐛 Lỗi & Cảnh báo (Chỉ hỗ trợ lint JS)</div>
         <div id="errorList"></div>
       </div>
     </div>
@@ -434,7 +438,7 @@
      KHỞI TẠO EDITOR & PHỤC HỒI DỮ LIỆU
      ============================ */
   var editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
-    mode: 'javascript',
+    mode: 'javascript', // Sẽ tự động chuyển đổi sang CSS nếu nhập code css
     theme: 'dracula',
     lineNumbers: true,
     lineWrapping: true,
@@ -444,12 +448,22 @@
     scrollbarStyle: 'overlay'
   });
 
-  // Tự động khôi phục dữ liệu từ localStorage cũ nếu có
   var savedCode = localStorage.getItem('js_debugger_code');
   if (savedCode !== null) {
     editor.setValue(savedCode);
+    detectAndSetMode(savedCode);
   } else {
     editor.setValue(``);
+  }
+
+  // Tự động nhận diện ngôn ngữ để hiển thị màu cú pháp chuẩn hơn
+  function detectAndSetMode(text) {
+    var trimmed = text.trim();
+    if (trimmed.includes('{') && (trimmed.includes('.') || trimmed.includes('#') || trimmed.includes('body') || trimmed.includes('html')) && !trimmed.includes('function') && !trimmed.includes('const ') && !trimmed.includes('var ')) {
+      editor.setOption('mode', 'css');
+    } else {
+      editor.setOption('mode', 'javascript');
+    }
   }
 
   /* ============================
@@ -511,7 +525,7 @@
   }
 
   /* ============================
-     KIỂM TRA LỖI (LINT)
+     KIỂM TRA LỖI (LINT JS)
      ============================ */
   function checkCode() {
     clearEditorErrors();
@@ -568,7 +582,7 @@
     }
 
     if (errors.length === 0) {
-      list.innerHTML = '<div class="no-error">✅ Không phát hiện lỗi nào!</div>';
+      list.innerHTML = '<div class="no-error">✅ Không phát hiện lỗi cú pháp nào!</div>';
     } else {
       var groups = {};
       errors.forEach(function(err) {
@@ -619,15 +633,40 @@
   }
 
   /* ============================
-     LÀM ĐẸP CODE & TOOLS
+     LÀM ĐẸP CODE & XỬ LÝ COMMENT
      ============================ */
   function beautifyCode() {
     var code = editor.getValue();
+    var shouldRemoveComments = document.getElementById('beautifyRemoveComments').checked;
+    
+    if (shouldRemoveComments) {
+      code = code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^(?:\s*\/\/[^\n]*\n)+|(\s*\/\/[^\n]*)/g, '');
+    }
+
     if (typeof js_beautify !== 'undefined') {
       editor.setValue(js_beautify(code, { indent_size: 4, indent_char: ' ', max_preserve_newlines: 2, preserve_newlines: true }));
-      showToast('✨ Code đã được làm đẹp!', 2000);
+      editor.setOption('mode', 'javascript');
+      showToast(shouldRemoveComments ? '✨ Đã xóa comment & Làm đẹp JS!' : '✨ Code JS đã được làm đẹp!', 2000);
     } else {
       showToast('❌ Không tải được thư viện js-beautify.', 3000);
+    }
+    updateStats();
+  }
+
+  function beautifyCSSCode() {
+    var code = editor.getValue();
+    var shouldRemoveComments = document.getElementById('beautifyRemoveComments').checked;
+
+    if (shouldRemoveComments) {
+      code = code.replace(/\/\*[\s\S]*?\*\//g, '');
+    }
+
+    if (typeof css_beautify !== 'undefined') {
+      editor.setValue(css_beautify(code, { indent_size: 4, indent_char: ' ', max_preserve_newlines: 2, preserve_newlines: true }));
+      editor.setOption('mode', 'css');
+      showToast(shouldRemoveComments ? '✨ Đã xóa comment & Làm đẹp CSS!' : '✨ Code CSS đã được làm đẹp!', 2000);
+    } else {
+      showToast('❌ Không tải được thư viện css-beautify.', 3000);
     }
     updateStats();
   }
@@ -649,23 +688,51 @@
     if(!code.trim()) return;
     var minified = code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '').replace(/\s+/g, ' ').trim();
     editor.setValue(minified);
-    showToast('📉 Thắt gọn JS hoàn tất!', 2000);
+    editor.setOption('mode', 'javascript');
+    showToast('📉 Rút gọn JS hoàn tất!', 2000);
     updateStats();
   }
 
+  // TÍNH NĂNG MỚI: Rút gọn CSS theo từng selector trên 1 hàng riêng biệt
   function minifyCSS() {
     var code = editor.getValue();
     if(!code.trim()) return;
-    var minified = code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').replace(/\s*{\s*/g, '{').replace(/\s*}\s*/g, '}').trim();
-    editor.setValue(minified);
-    showToast('📉 Thắt gọn CSS hoàn tất!', 2000);
+
+    // Bước 1: Xóa toàn bộ comment CSS
+    code = code.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    // Bước 2: Chuẩn hóa khoảng trắng toàn bộ text thành 1 chuỗi dài phẳng trước
+    code = code.replace(/\s+/g, ' ').trim();
+
+    // Bước 3: Đẩy các cặp ngoặc rỗng hoặc thuộc tính xuống dòng theo từng selector khối cấu trúc riêng biệt
+    // Tìm các vị trí dấu đóng ngoặc nhọn '}' để ngắt dòng
+    code = code.replace(/\s*\{\s*/g, ' { ').replace(/\s*;\s*/g, '; ').replace(/\s*\}\s*/g, ' }\n');
+
+    // Bước 4: Làm sạch các khoảng trắng thừa đầu dòng và khoảng trắng trước dấu chấm phẩy cuối
+    var lines = code.split('\n');
+    var resultLines = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (line) {
+        // Tinh chỉnh khoảng trắng bên trong dấu ngoặc nhọn cho chuẩn dạng mong muốn
+        line = line.replace(/\{\s*/, '{ ').replace(/\s*;\s*\}/, '; }');
+        resultLines.push(line);
+      }
+    }
+
+    editor.setValue(resultLines.join('\n'));
+    editor.setOption('mode', 'css');
+    showToast('📉 Định dạng dòng CSS thu gọn hoàn tất!', 2000);
     updateStats();
   }
 
   function downloadCode() {
     var code = editor.getValue();
     if (!code.trim()) { showToast('Không có nội dung!', 2000); return; }
-    var fileName = code.toLowerCase().includes('<html') ? 'output.html' : 'output.js';
+    var currentMode = editor.getOption('mode');
+    var fileName = 'output.' + (currentMode === 'css' ? 'css' : 'js');
+    if (code.toLowerCase().includes('<html')) fileName = 'output.html';
+    
     var blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -861,7 +928,12 @@
 
   function pasteCode() {
     navigator.clipboard.readText().then(function(text) {
-      if (text) { editor.replaceSelection(text); showToast('📌 Đã paste!', 2000); updateStats(); }
+      if (text) { 
+        editor.setValue(text); 
+        detectAndSetMode(text);
+        showToast('📌 Đã dán dữ liệu mới!', 2000); 
+        updateStats(); 
+      }
     }).catch(function() { showToast('Dùng Ctrl+V để paste', 2000); });
   }
 
@@ -870,10 +942,7 @@
       editor.setValue(''); clearEditorErrors(); clearSearchMarks();
       document.getElementById('errorList').innerHTML = '';
       document.getElementById('searchCount').textContent = '';
-      
-      // Xóa dữ liệu lưu trữ tại localStorage khi bấm nút reset
       localStorage.removeItem('js_debugger_code');
-      
       updateStats(); 
       showToast('🗑 Đã xóa toàn bộ dữ liệu & bộ nhớ tạm', 2000);
     }
@@ -884,10 +953,10 @@
     setTimeout(function() { editor.refresh(); }, 360);
   }
 
-  // Lắng nghe sự kiện thay đổi để cập nhật Stats và Tự động lưu LocalStorage
   editor.on('change', function() { 
+    var code = editor.getValue();
     updateStats(); 
-    localStorage.setItem('js_debugger_code', editor.getValue());
+    localStorage.setItem('js_debugger_code', code);
   });
   
   updateStats();

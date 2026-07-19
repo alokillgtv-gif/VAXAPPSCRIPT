@@ -1,16 +1,16 @@
 // https://www.xasiat.com
 
 // https://bilutv.asia
-BASEURL = "https://www.xasiat.com";
+BASEURL = "https://gamomephim.com";
 
 function getManifest() {
     return JSON.stringify({
-        "id": "xasiat",
-        "name": "XXX Châu Á",
-        "description": "XXX Hay",
-        "version": "1.3.5",
-        "BASEURL": "https://www.xasiat.com",
-        "iconUrl": "https://static.xascdn.li/contents/fgegaiwnykjf/theme/logo.png",
+        "id": "gamomephim",
+        "name": "Gà Mờ Mê Phim",
+        "description": "Phim Ngắn Hay",
+        "version": "1.0",
+        "BASEURL": "https://gamomephim.com",
+        "iconUrl": "https://cdn.gamomephim.com/site/logo-1784305321242.png",
         "isEnabled": true,
         "type": "MOVIE",
         "playerType": "exoplayer"
@@ -28,7 +28,7 @@ function log(msg) {
 // https://yanhh3d.ac/moi-cap-nhat?page=2
 function getHomeSections() {
     var listurl = `
-[{"link":"/latest-updates/","name":"Hàng Mới"}]
+[{"link":"/phim-moi","name":"Hàng Mới"}]
 `;
     var menulist = buildMenu(listurl,true);
     return JSON.stringify(menulist);
@@ -111,7 +111,7 @@ function getUrlList(slug, filtersJson) {
 			resultUrl += path;
 		}
 		if (page > 1) {
-			resultUrl += page + "/";
+			resultUrl += "?page=" + page;
 		}
 		
 		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
@@ -128,17 +128,17 @@ function getUrlList(slug, filtersJson) {
 }
 
 function getUrlSearch(keyword, filtersJson) {
-	return BASEURL + "/search/" + encodeURIComponent(keyword) + "/";
+	return BASEURL + "/tim-kiem/" + encodeURIComponent(keyword);
 }
 
-// /latest-updates/6/
-// https://pimpbunny.com/categories/4k/
-// https://www.xasiat.com/search/blacked/?from_videos=7&from_albums=7
-//var BASEURL = "https://motchille.cx";
+// https://gamomephim.com/tim-kiem/s%C6%A1n-h%E1%BA%A3i
+// https://gamomephim.com/the-loai/hien-dai?page=4
+// https://gamomephim.com/phim-moi?page=5
+//var BASEURL = "https://gamomephim.com";
 //var filtersJson = '{page:11,category:[{"slug":"/movies?sort=year_desc&limit=24&category=18-plus","name":"Thiếu niên"}]}'; 
 //var filtersJson = '{page:22}';
 //getUrlSearch("naruto", filtersJson)
-//console.log(getUrlList("/latest-updates/", filtersJson));
+//console.log(getUrlList("/phim-moi", filtersJson));
 
 function getUrlDetail(slug) {
     if (!slug) return "";
@@ -164,17 +164,17 @@ function getUrlYears() {
 function parseListResponse(html, $url) {
 	try {
 		var items = [];
-		_$(html).find(".item").find("a").each(function() {
+		_$(html).find(".grid").find(".relative").find("a").each(function() {
 			var year = "";
 			var lang = "";
 			var current = "";
-			var href = this.attr("href");
+			var href = this.attr("href").replace("/phim","");
 			if (href.indexOf("http") == -1) {
 				href = BASEURL + href;
 			}
-			var quality = this.find('span[class*="is-"]').text();
-			var title = this.find("img").attr("alt");
-			var src = this.find("img").attr("data-original");
+			var quality = "";
+			var title = this.attr("title");
+			var src = this.find("img").attr("src");
 			if (src.indexOf("http") == -1) {
 				src = BASEURL + src;
 			}
@@ -231,67 +231,71 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseScript(rawScript) {
-	const result = {
-		success: false,
-		data: {},
-		embedHtml: ''
-	};
-	
-	// Kiểm tra đầu vào cơ bản
-	if (!rawScript || typeof rawScript !== 'string') {
-		return result;
-	}
-	
-	try {
-		// 1. Trích xuất hàm getEmbed nếu bạn cần dùng code iframe của họ
-		const embedMatch = rawScript.match(/return\s+('(?:[^'\\]|\\.)*')/);
-		if (embedMatch) {
-			// Loại bỏ dấu nháy ở đầu/cuối chuỗi iframe được tìm thấy
-			result.embedHtml = embedMatch[1].slice(1, -1);
-		}
-		
-		// 2. Tìm phần nội dung bên trong dấu ngoặc nhọn của biến object (var xxxx = { ... })
-		const objectContentMatch = rawScript.match(/var\s+\w+\s*=\s*\{([\s\S]*?)\};/);
-		
-		if (objectContentMatch) {
-			const objectBody = objectContentMatch[1];
-			
-			// 3. Regex quét các cặp key: 'value' hoặc key: value (phòng khi họ bỏ dấu nháy cho số)
-			// Group 1: Key, Group 2: Value dạng chuỗi có nháy, Group 3: Value không nháy (số/boolean)
-			const pairRegex = /(\w+)\s*:\s*(?:'((?:[^'\\]|\\.)*)'|([^,\s}]+))/g;
-			let match;
-			
-			while ((match = pairRegex.exec(objectBody)) !== null) {
-				const key = match[1];
-				let value = match[2] !== undefined ? match[2] : match[3];
-				
-				// Nếu là chuỗi, xử lý các ký tự bị escape (ví dụ \' đổi lại thành ')
-				if (match[2] !== undefined) {
-					value = value.replace(/\\'/g, "'").replace(/\\"/g, '"');
-				} else {
-					// Nếu là số hoặc boolean thuần (không nằm trong nháy) thì ép kiểu tương ứng
-					if (value === 'true') value = true;
-					else if (value === 'false') value = false;
-					else if (!isNaN(value)) value = Number(value);
-				}
-				
-				result.data[key] = value;
-			}
-			
-			// Đánh dấu thành công nếu lấy được dữ liệu
-			if (Object.keys(result.data).length > 0) {
-				result.success = true;
-			}
-		}
-	} catch (error) {
-		// Ghi nhận lỗi nội bộ ra console để debug nhưng KHÔNG làm sập script của bạn
-		console.error("SafeParser Error:", error);
-	}
-	
-	return result;
-}
+function parseNextPayload(raw) {
+    try {
+        // Tách lấy mảng tham số truyền vào push() bằng regex
+        const match = raw.match(/self\.__next_f\.push\((.*)\)/);
+        if (!match) return null;
 
+        // Parse phần mảng chứa ID và Payload string
+        const pushArgs = JSON.parse(match[1]); // pushArgs sẽ là [1, "1b:[...]\n"]
+        const rawString = pushArgs[1];
+
+        // Loại bỏ tiền tố nhận diện của RSC (ví dụ "1b:") và ký tự xuống dòng "\n" ở cuối
+        const cleanJsonStr = rawString.replace(/^\w+:/, '').replace(/\n$/, '');
+
+        // Parse chuỗi đã làm sạch thành Array/Object JS
+        return JSON.parse(cleanJsonStr);
+    } catch (e) {
+        //console.error("Lỗi khi parse payload:", e);
+        return null;
+    }
+}
+function extractCleanData(data) {
+    let result = {
+        video: null,
+        episodes: [],
+        related: [],
+        collection: []
+    };
+
+    // Hàm đệ quy để duyệt mọi ngóc ngách của mảng/object
+    function traverse(node) {
+        if (!node) return;
+
+        // Nếu là Object, kiểm tra xem có chứa các key cần tìm không
+        if (typeof node === 'object' && !Array.isArray(node)) {
+            if (node.video && typeof node.video === 'object') {
+                result.video = node.video;
+            }
+            if (Array.isArray(node.episodes)) {
+                result.episodes = node.episodes;
+            }
+            if (Array.isArray(node.related)) {
+                result.related = node.related;
+            }
+            if (Array.isArray(node.collection)) {
+                result.collection = node.collection;
+            }
+
+            // Tiếp tục duyệt các thuộc tính bên trong Object này
+            for (let key in node) {
+                if (node.hasOwnProperty(key)) {
+                    traverse(node[key]);
+                }
+            }
+        } 
+        // Nếu là Mảng, duyệt qua từng phần tử của mảng
+        else if (Array.isArray(node)) {
+            for (let i = 0; i < node.length; i++) {
+                traverse(node[i]);
+            }
+        }
+    }
+
+    traverse(data);
+    return result;
+}
 function parseMovieDetail(html, url) {
     cachedMovieDetailId = "";
 	try {
@@ -311,64 +315,30 @@ function parseMovieDetail(html, url) {
 		var ldirec = "";
 		var lduran = "";
 		var status = "";
-		var script = _$(html).find("script:content('video_categories')").html();
-		var $dataVD = parseScript(script);
-        if($dataVD.success == false){
-            	return JSON.stringify({
-                    id: cachedMovieDetailId || url || "error",
-                    title: "Đây là video riêng tư",
-                    description: "Video riêng tư nên bi cấm xem đó bạn ơi. Kiếm video khác nhé.",
-                    posterUrl: "",
-										backdropUrl: "",
-                    servers: []
-                });
+		var script = _$(html).find("script:content('m3u8Url')").text();
+        if (!script) {
+            script = _$(html).find("script:content('audioType')").text();
         }
-		var idMatch = /<link\s+rel="canonical"\s+href="([^"]+)"/i.exec(html) ||
-			/<meta\s+property="og:url"\s+content="([^"]+)"/i.exec(html);
-		id = idMatch ? idMatch[1] : (url || "");
-		
-		// Lưu ID vào bộ nhớ tạm toàn cục để Lượt 2 lấy ra đối chiếu
-		cachedMovieDetailId = id;
-		lname = $dataVD.data.video_title;
-		limg = $dataVD.data.preview_url;
-		ldes = $dataVD.data.video_tags;
-		category = $dataVD.data.video_categories;
-		lactor = $dataVD.data.video_models;
-		var episodes = [];
-		var servers = [];
-		if ($dataVD.data.video_alt_url3) {
-			var link = $dataVD.data.video_alt_url3;
-			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "#.m3u8",
-				name: "Độ Phân Giải " + $dataVD.data.video_alt_url3_text,
-				slug: "hd3"
-			})
-		}
-		if ($dataVD.data.video_alt_url2) {
-			var link = $dataVD.data.video_alt_url2;
-			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "#.m3u8",
-				name: "Độ Phân Giải " + $dataVD.data.video_alt_url2_text,
-				slug: "hd2"
-			})
-		}
-		if ($dataVD.data.video_alt_url) {
-			var link = $dataVD.data.video_alt_url;
-			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "#.m3u8",
-				name: "Độ Phân Giải Cao",
-				slug: "hd3"
-			})
-		}
-		if ($dataVD.data.video_url) {
-			var link = $dataVD.data.video_url;
-			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "#.m3u8",
-				name: "Độ Phân Giải Tháp",
-				slug: "hd4"
-			})
-		}
-		servers.push({ name: "Server", episodes: episodes })
+        var rawVD = parseNextPayload(script);
+        var dataVD = extractCleanData(rawVD);
+        var video = dataVD.video;
+        id = url;
+		lname = video.title;
+		limg = video.thumbnailUrl;
+		ldes = video.description;
+		year = video.releaseYear;
+		lactor = video.cast;
+		lduran = video.durationString;
+		status = video.status;
+var listepi = dataVD.episodes;
+var items = [];
+for(var $j = 0;$j < listepi.length;$j++){
+    var name = listepi[$j].audioType.replace(/VIETSUB/i,"Việt Sub").replace(/THUYET_MINH/i,"Thuyết Minh");;
+    var link = listepi[$j].m3u8Url
+    items.push({name:name,id:link,slug:"type1"})
+}
+servers.push({name:"Server",episodes:items});
+
 		log(JSON.stringify(servers))
 		return JSON.stringify({
 			id: id,
@@ -469,7 +439,7 @@ function parseYearsResponse(html) { return "[]"; }
 
 function getLISTmenu() {
     return `
-    
+   [{"link":"/phim-moi","name":"Phim Mới"},{"link":"/the-loai/co-trang","name":"Cổ Trang"},{"link":"/the-loai/dan-quoc","name":"Dân Quốc"},{"link":"/the-loai/hien-dai","name":"Hiện Đại"}]
     `
 }
 

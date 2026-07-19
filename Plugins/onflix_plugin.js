@@ -383,6 +383,9 @@ function parseMovieDetail(html, $url) {
         });
     }
 }
+
+
+
 function parseDetailResponse(html, url) {
 	try {
 		var $stream = "";
