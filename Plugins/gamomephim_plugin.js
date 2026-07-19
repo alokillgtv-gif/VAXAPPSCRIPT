@@ -8,7 +8,7 @@ function getManifest() {
         "id": "gamomephim",
         "name": "Gà Mờ Mê Phim",
         "description": "Phim Ngắn Hay",
-        "version": "1.0",
+        "version": "1.1",
         "BASEURL": "https://gamomephim.com",
         "iconUrl": "https://cdn.gamomephim.com/site/logo-1784305321242.png",
         "isEnabled": true,
