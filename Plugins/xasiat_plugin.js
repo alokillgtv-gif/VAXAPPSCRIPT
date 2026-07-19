@@ -8,7 +8,7 @@ function getManifest() {
         "id": "xasiat",
         "name": "XXX Châu Á",
         "description": "XXX Hay",
-        "version": "1.3",
+        "version": "1.3.1",
         "BASEURL": "https://www.xasiat.com",
         "iconUrl": "https://static.xascdn.li/contents/fgegaiwnykjf/theme/logo.png",
         "isEnabled": true,
@@ -28,9 +28,9 @@ function log(msg) {
 // https://yanhh3d.ac/moi-cap-nhat?page=2
 function getHomeSections() {
     var listurl = `
-/latest-updates/@@Hàng Mới@@true
+[[{"link":"/latest-updates/","name":"Hàng Mới"}]
 `;
-    var menulist = buildMenu(listurl);
+    var menulist = buildMenu(listurl,true);
     return JSON.stringify(menulist);
 }
 
