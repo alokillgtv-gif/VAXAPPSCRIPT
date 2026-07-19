@@ -8,7 +8,7 @@ function getManifest() {
         "id": "xasiat",
         "name": "XXX Châu Á",
         "description": "XXX Hay",
-        "version": "1.0",
+        "version": "1.1",
         "BASEURL": "https://www.xasiat.com",
         "iconUrl": "https://static.xascdn.li/contents/fgegaiwnykjf/theme/logo.png",
         "isEnabled": true,
@@ -28,7 +28,7 @@ function log(msg) {
 // https://yanhh3d.ac/moi-cap-nhat?page=2
 function getHomeSections() {
     var listurl = `
-/categories/jav-4k/@@Hàng 4K Siêu Nét@@true
+/latest-updates/@@Hàng Mới@@true
 `;
     var menulist = buildMenu(listurl);
     return JSON.stringify(menulist);
@@ -359,7 +359,7 @@ function parseMovieDetail(html, url) {
 			})
 		}
 		servers.push({ name: "Server", episodes: episodes })
-		
+		log(JSON.stringify(servers))
 		return JSON.stringify({
 			id: id,
 			title: lname,
@@ -457,7 +457,7 @@ function parseYearsResponse(html) { return "[]"; }
 // https://k8s.onflixcdn.com/api/movies?sort=year_desc&limit=24&category=chien-tranh
 function getLISTmenu() {
     return 
-`
+`/categories/jav-4k/
 /categories/gravure-idols/@@Gravure Idols
 /categories/amateur3/@@Amateur
 /categories/southeast-asia/@@Southeast Asia
