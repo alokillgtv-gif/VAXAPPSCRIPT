@@ -559,7 +559,7 @@
                         <div class="lab-panel-header">
                             <span class="lab-panel-title">DOM</span>
                             <input type="text" id="labMiniTreeSearch" placeholder="🔍 Tìm trong cây..." style="background:#111; border:1px solid #333; color:#fff; padding:2px 6px; font-size:10px; margin-left:10px; border-radius:3px; outline:none; width:120px;">
-	                            
+
                             <div class="lab-panel-actions">
                                 <button class="lab-mini-btn lab-btn-max" data-target="#panelTreeDom">🔲 </button>
                                 <button class="lab-mini-btn lab-btn-toggle" data-target="#panelTreeDom">Ẩn</button>
@@ -1227,7 +1227,7 @@
             e.stopPropagation();
             const $toggle = $(this);
             const $children = $toggle.siblings('.tree-children');
-            
+
             if ($toggle.text().includes('▼')) {
                 $children.hide();
                 $toggle.html('► ');
@@ -1239,21 +1239,21 @@
         });
 
         // 2. [TÍCH HỢP] Xử lý click đóng/mở ĐỒNG LOẠT vào nút có sẵn của bạn (#labBtnCollapseAllTree)
-        
-				
-				
+
+
+
         $(document).off('click.labDOMInspector', '#labBtnCollapseAllTree').on('click.labDOMInspector', '#labBtnCollapseAllTree', function(e) {
             e.stopPropagation();
             const $btn = $(this);
             const isCollapsed = $btn.data('collapsed') || false;
-            
+
             if (!isCollapsed) {
                 // TIẾN HÀNH THU GỌN THÔNG MINH (Giữ khung xương, ẩn text node và thu gọn thẻ lá)
                 $treeDomBody.find('.tree-node').each(function() {
                     const $node = $(this);
                     const $toggle = $node.children('.tree-toggle');
                     const $children = $node.children('.tree-children');
-                    
+
                     if ($toggle.length > 0) { // Định dạng thẻ HTML Element
                         const hasChildElements = $children.find('.tree-toggle').length > 0;
                         if (!hasChildElements) {
@@ -1765,7 +1765,7 @@
 
         // [NEW] Collapse/Expand All for Tree DOM
         $('#labBtnCollapseAllTree').remove();
-        
+
         function copyToClipboard(text) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).catch(err => { console.error("Lỗi sao chép nhanh: ", err); });
@@ -3804,61 +3804,62 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 
             // HÀM ĐƯỢC NÂNG CẤP: Thêm tham số customSelector để cố định vùng tìm kiếm dữ liệu
             function v163ExtractLinksFromElement(rootElement, extractType = 'default', customSelector = '') {
-                if (!rootElement || rootElement.nodeType !== 1) return '';
-                const links = [];
-                const $root = $(rootElement);
+					    // Nếu lỗi hoặc không hợp lệ, trả về mảng rỗng [] thay vì chuỗi rỗng
+					    if (!rootElement || rootElement.nodeType !== 1) return []; 
+					    
+					    const links = [];
+					    const $root = $(rootElement);
+					
+					    const targetSelector = customSelector.trim() || 'a[href]';
+					
+					    $root.find(targetSelector).each(function() {
+					        if ($(this).is('a[href]')) {
+					            links.push(this);
+					        } else {
+					            $(this).find('a[href]').each(function() {
+					                if (!links.includes(this)) links.push(this);
+					            });
+					        }
+					    });
+					
+					    if ($root.is(targetSelector) && $root.is('a[href]')) {
+					        if (!links.includes(rootElement)) links.push(rootElement);
+					    }
+					
+					    return links.map(a => {
+					        const href = a.href || $(a).attr('href') || '';
+					        let name = '';
+					        const $a = $(a);
+					
+					        const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
+					
+					        if (extractType === 'default') {
+					            name = $a.text();
+					        } else if (attrTypes.includes(extractType)) {
+					            name = $a.attr(extractType) || $a.find(`[${extractType}]`).first().attr(extractType) || '';
+					        } else {
+					            const $targetTag = $a.find(extractType);
+					            name = $targetTag.length ? $targetTag.text() : $a.text();
+					        }
+					
+					        name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
+					
+					        // Nếu tên quá ngắn hoặc không có link thì trả về null để lọc bỏ sau
+					        if (name.length < 4 || !href) {
+					            return null;
+					        }
+					
+					        // Xóa domain, chỉ giữ lại đường dẫn tương đối (slug)
+					        const cleanLink = href.replace(/^https?:\/\/[^\/]+/i, "");
+					
+					        // Trả về object chứa link và name gọn gàng
+					        return JSON.stringify({
+					            link: cleanLink,
+					            name: name
+					        });
+					    }).filter(item => item !== null); // Lọc bỏ các phần tử lỗi/bị null ở trên
+					}
 
-                // Xác định bộ chọn tìm kiếm: Ưu tiên bộ chọn tùy biến, nếu không có thì lấy mọi thẻ a[href]
-                const targetSelector = customSelector.trim() || 'a[href]';
-
-                // Tìm kiếm các phần tử nằm bên trong phạm vi nút gốc khớp với bộ chọn
-                $root.find(targetSelector).each(function() {
-                    if ($(this).is('a[href]')) {
-                        links.push(this);
-                    } else {
-                        // Nếu người dùng chỉ nhập nhóm cha (ví dụ: .list hoặc #id), đào sâu tìm các thẻ a[href] bên trong nó
-                        $(this).find('a[href]').each(function() {
-                            if (!links.includes(this)) links.push(this);
-                        });
-                    }
-                });
-
-                // Kiểm tra trường hợp đặc biệt nếu chính bản thân nút gốc khớp với bộ chọn thiết lập
-                if ($root.is(targetSelector) && $root.is('a[href]')) {
-                    if (!links.includes(rootElement)) links.push(rootElement);
-                }
-
-                return links.map(a => {
-                    const href = a.href || $(a).attr('href') || '';
-                    let name = '';
-                    const $a = $(a);
-
-                    // Danh sách các loại dùng thuộc tính (attribute)
-                    const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
-
-                    if (extractType === 'default') {
-                        // Mặc định ban đầu: Lấy text trực tiếp của thẻ <a>
-                        name = $a.text();
-                    } else if (attrTypes.includes(extractType)) {
-                        // Nếu chọn title, alt, data-... thì lấy attribute của thẻ <a> hoặc của ảnh bên trong nó
-                        name = $a.attr(extractType) || $a.find(`[${extractType}]`).first().attr(extractType) || '';
-                    } else {
-                        // Nếu chọn tag như h1, h2, h3, span, p, b, i...
-                        // Tìm thẻ đó nằm BÊN TRONG thẻ <a> trước, nếu không có thì fallback về text của <a>
-                        const $targetTag = $a.find(extractType);
-                        name = $targetTag.length ? $targetTag.text() : $a.text();
-                    }
-
-                    // Xử lý khoảng trắng và xuống dòng như cũ
-                    name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
-
-                    if (name.length < 4) {
-                        return "";
-                    }
-                    var stringurl = href + '@@' + name;
-                    return stringurl.replace(/^https?:\/\/[^\/]+/i, "")
-                }).filter(Boolean).join('\n');
-            }
 
             $btnQuickExtract.on('click', function(e) {
                 e.preventDefault();
@@ -4134,6 +4135,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             window.__labRenderSnifferTree = function() { __labRenderNetworkTable(); };
 
             if (typeof window.__labRenderSnifferTree === 'function') window.__labRenderSnifferTree();
+
+
 
             setTimeout(() => {
                 if (window.__labJsEditor) window.__labJsEditor.refresh();
