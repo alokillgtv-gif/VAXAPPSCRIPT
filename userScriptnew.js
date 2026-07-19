@@ -1,3 +1,142 @@
+// ============================================================
+// === DANH MỤC CHỨC NĂNG (INDEX) ===
+// ============================================================
+
+// ### UserScript Header & Metadata - 1 - 26 - Khối metadata Tampermonkey với các thông tin @name, @version, @require, và quyền truy cập.
+
+// ### IIFE Wrapper & Entry Point - 27 - 5323 - Khối IIFE (Immediately Invoked Function Expression) bao bọc toàn bộ logic, kiểm tra iframe và khởi chạy sau window load.
+
+// ### CSS Injection (High-Contrast Engine & CodeMirror) - 174 - 475 - Định nghĩa và chèn CSS tùy chỉnh vào trang, bao gồm giao diện dashboard, CodeMirror theme Dracula, scrollbar, và các hiệu ứng highlight DOM.
+
+// ### HTML Dashboard Structure - 476 - 627 - Xây dựng cấu trúc HTML bằng jQuery cho bốn panel chính: DOM Tree, Console, CSS Inspector, và JS Editor.
+// ### escapeHtml - 624 - 624 - Hàm cốt lõi trong module HTML Dashboard Structure.
+
+// ### Events & LocalStorage State Manager - 628 - 665 - Quản lý trạng thái dashboard qua LocalStorage: tự động lưu và khôi phục vị trí, chế độ hiển thị, panel ẩn/hiện.
+
+// ### Console Override & Logging - 666 - 686 - Ghi đè console.log/error/warn để bắt và hiển thị log nội bộ trong panel Console của dashboard.
+
+// ### Object Tree Renderer - 687 - 740 - Hiển thị cấu trúc object JavaScript dạng cây phân cấp, hỗ trợ mở rộng/thu gọn từng node.
+
+// ### PostMessage Sandbox Communication - 741 - 765 - Thiết lập kênh giao tiếp postMessage giữa môi trường chính và sandbox iframe an toàn.
+
+// ### Sandbox Environment Initialization - 766 - 912 - Tạo iframe sandbox cô lập, inject code kiểm tra DOM và cây thức thể bên trong sandbox.
+// ### escapeH - 784 - 784 - Hàm cốt lõi trong module Sandbox Environment Initialization.
+// ### buildTreeString - 786 - 786 - Hàm cốt lõi trong module Sandbox Environment Initialization.
+
+// ### JavaScript Dynamic Execution Engine - 913 - 1112 - Cung cấp engine thực thi JavaScript động với đầy đủ try-catch, hiển thị kết quả trả về hoặc lỗi.
+// ### executeJsEngine - 962 - 962 - Hàm cốt lõi trong module JavaScript Dynamic Execution Engine.
+
+// ### DOM Inspector (Main Environment) - 1113 - 1205 - Công cụ soi DOM trong môi trường chính: xây dựng cây DOM, xử lý click phải, chọn thành phần.
+// ### buildDomTreeMain - 1117 - 1117 - Hàm cốt lõi trong module DOM Inspector (Main Environment).
+// ### loadElementToTreeMain - 1154 - 1154 - Hàm cốt lõi trong module DOM Inspector (Main Environment).
+
+// ### Quick Hide Element (Right Click) - 1206 - 1262 - Ẩn nhanh phần tử DOM bằng click chuột phải với tổ hợp phím Ctrl+Alt.
+// ### requestDomInspect - 1251 - 1251 - Hàm cốt lõi trong module Quick Hide Element (Right Click).
+
+// ### Family Tree Navigation (10 Levels) - 1263 - 1331 - Hiển thị cây phả hệ DOM lên đến 10 cấp độ với điều hướng parent/child/sibling.
+
+// ### UI & Resize Panel Manager - 1332 - 1441 - Quản lý kích thước và vị trí panel: resize splitter, mở rộng/thu nhớ, tắt/bật panel.
+// ### updateScreenSplitting - 1336 - 1336 - Hàm cốt lõi trong module UI & Resize Panel Manager.
+
+// ### Draggable FAB Button - 1442 - 1507 - Nút FAB (Floating Action Button) kéo thả tự do, hỗ trợ chuyển đổi chế độ.
+
+// ### FAB Right-Click Scroll Handler - 1508 - 1579 - Xử lý cuộn trang bằng click chuột phải trên FAB, kết hợp với phím tắt.
+
+// ### Panel Drag & Drop (Free Move) - 1580 - 1629 - Hệ thống kéo thả panel tự do (free move) trên màn hình.
+
+// ### Smart CSS Grouping & Quick-Option Popover - 1630 - 1887 - Nhóm CSS thông minh và hiển thị tùy chọn nhanh qua popover.
+// ### copyToClipboard - 1671 - 1671 - Hàm cốt lõi trong module Smart CSS Grouping & Quick-Option Popover.
+// ### showQuickCssMenu - 1729 - 1729 - Hàm cốt lõi trong module Smart CSS Grouping & Quick-Option Popover.
+// ### injectSmartCssRule - 1761 - 1761 - Hàm cốt lõi trong module Smart CSS Grouping & Quick-Option Popover.
+
+// ### DevTools-Style Network Monitor v19 - 1888 - 2989 - Theo dõi mạng theo phong cách DevTools, hiển thị request/response.
+// ### __labCategorizeEntry - 2004 - 2004 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labAddNetworkEntry - 2018 - 2018 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labFormatBytes - 2034 - 2034 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labFormatDuration - 2041 - 2041 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labStatusColor - 2047 - 2047 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labMethodColor - 2055 - 2055 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labGroupColor - 2060 - 2060 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labGroupLabel - 2064 - 2064 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labDominateSiblings - 2408 - 2408 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labCreateBlockedModal - 2493 - 2493 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labShowBlockedModal - 2521 - 2521 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labResetAllTools - 2527 - 2527 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### __labCheckTampered - 2566 - 2566 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+// ### syncSnifferLayout - 3909 - 3909 - Hàm cốt lõi trong module DevTools-Style Network Monitor v19.
+
+// ### Pro Code Editor Engine - 2990 - 3190 - Engine code editor chuyên nghiệp với syntax highlighting và autocomplete.
+// ### initProCodeEditors - 2994 - 2994 - Hàm cốt lõi trong module Pro Code Editor Engine.
+// ### saveJsTabs - 3013 - 3013 - Hàm cốt lõi trong module Pro Code Editor Engine.
+// ### renderJsTabs - 3020 - 3020 - Hàm cốt lõi trong module Pro Code Editor Engine.
+
+// ### Mini Tree DOM Search - 3191 - 3235 - Tìm kiếm mini tree trong DOM, hỗ trợ điều hướng nhanh.
+
+// ### Sync Tree Hover to Web Element - 3236 - 3255 - Đồng bộ hover trên cây DOM với phần tử web tương ứng.
+
+// ### Right-Click Zoom & Copy - 3256 - 3296 - Phóng to và sao chép nội dung bằng click chuột phải.
+// ### fallbackCopyEngine - 3278 - 3278 - Hàm cốt lõi trong module Right-Click Zoom & Copy.
+
+// ### Pro Max Engine V16.1 (Smart Panel Switch) - 3297 - 3467 - Engine chuyển đổi panel thông minh tự động điều chỉnh layout.
+// ### restoreV16States - 3336 - 3336 - Hàm cốt lõi trong module Pro Max Engine V16.1 (Smart Panel Switch).
+// ### closeSubPanel - 3402 - 3402 - Hàm cốt lõi trong module Pro Max Engine V16.1 (Smart Panel Switch).
+
+// ### Safe Patch V16.3 (UI/Drag/CM Isolation) - 3468 - 4044 - Patch an toàn cô lập UI, draggable và CodeMirror để tránh xung đột.
+// ### v163SaveConsoleHistory - 3563 - 3563 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163SaveTreeHistory - 3570 - 3570 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163RestoreHistory - 3583 - 3583 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163UpdateFloatingConsole - 3642 - 3642 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163SetCurrentTreeElement - 3687 - 3687 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163ExtractLinksFromElement - 3707 - 3707 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### processExtraction - 3803 - 3803 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163SetActiveLayerByDepth - 3863 - 3863 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163SaveSnifferPosition - 3887 - 3887 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163RestoreSnifferPosition - 3893 - 3893 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### syncSnifferLayout - 3909 - 3909 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163EscapeText - 3975 - 3975 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163FormatMaybeJson - 3976 - 3976 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163BuildDetails - 3982 - 3982 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+// ### v163BuildSnifferGroupDomNode - 3986 - 3986 - Hàm cốt lõi trong module Safe Patch V16.3 (UI/Drag/CM Isolation).
+
+// ### Full-Screen HTML Source Viewer  3496 - 4045 - 4791 - Module Full-Screen HTML Source Viewer  3496.
+// ### escapeHTML - 4257 - 4257 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### createTreeDOM - 4262 - 4262 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### executeFetchSource - 4367 - 4367 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### executeFallbackCopyOrDownload - 4539 - 4539 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### showToastSuccess - 4572 - 4572 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### closeModal - 4609 - 4609 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### clearSearch - 4618 - 4618 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### performSearch - 4631 - 4631 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### jumpToMatch - 4690 - 4690 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### toggleSidebar - 4748 - 4748 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### copyToClipboardWithToast - 4760 - 4760 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+// ### fallbackCopy - 4762 - 4762 - Hàm cốt lõi trong module Full-Screen HTML Source Viewer  3496.
+
+// ### Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED) - 4792 - 5317 - Tăng cường bảo vệ chống hijack và trích xuất CSS.
+// ### __labEscHtml - 4824 - 4824 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### getLabElementBySelector - 4828 - 4828 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### selectorFromElement - 4832 - 4832 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### isInsideLabUI - 4861 - 4861 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### shieldClickHandler - 4872 - 4872 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### enableShield - 4892 - 4892 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### blockUnloadHandler - 4951 - 4951 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### disableShield - 4960 - 4960 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### toggleShield - 4996 - 4996 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### createShieldBtn - 5002 - 5002 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### updateShieldBtn - 5021 - 5021 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### createExtractMenu - 5039 - 5039 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### getInlineStyleCss - 5127 - 5127 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### getStylesheetCssForSelector - 5133 - 5133 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### getComputedCss - 5157 - 5157 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### dedupBlocks - 5172 - 5172 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### renderExtractList - 5181 - 5181 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### addBlock - 5091 - 5091 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### openExtractMenu - 5210 - 5210 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### addTooltipStyle - 5273 - 5273 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+// ### initModule - 5291 - 5291 - Hàm cốt lõi trong module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED).
+
+// ### IIFE & Event Listener Cleanup - 5318 - 5324 - Dọn dẹp event listeners và kết thúc IIFE.
+
 // ### BLOCK START: UserScript Header & IIFE Start
 // ==UserScript==
 // @name         Web Interactive Lab & Inspector Dashboard PRO v16.5 (Stable Patch)
@@ -32,7 +171,7 @@
         if (window.self !== window.top) return;
 // END BLOCK: UserScript Header & IIFE Start
 
-        // ### BLOCK START: CSS Injection (High-Contrast Engine & CodeMirror)
+/* === Begin Module CSS Injection (High-Contrast Engine & CodeMirror): 174 === */
         // ==========================================
         // 1. KHỞI TẠO VÀ NHÚNG CSS (HIGH-CONTRAST ENGINE STYLES & CODEMIRROR)
         // ==========================================
@@ -108,7 +247,7 @@
             .lab-mini-btn.btn-success { background: #27ae60; }
             .lab-mini-btn.btn-success:hover { background: #2ecc71; }
             .lab-mini-btn.active-max { background: #e67e22 !important; }
-.lab-btn-wrap.active { background: #e67e22 !important; }
+						.lab-btn-wrap.active { background: #e67e22 !important; }
 
             .lab-panel-body { flex: 1; overflow: auto; padding: 4px; position: relative; display: flex; flex-direction: column; background: #1e1e1e; min-height: 0; }
 
@@ -329,13 +468,66 @@
  border: none!important;
 }
 
+.lab-sub-select, .lab-select-size {
+    /* 1. ÉP HIỂN THỊ TUYỆT ĐỐI (Chống tàng hình do Extension hoặc Trình duyệt) */
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: inline-block !important;
+    filter: none !important;
+    color-scheme: dark !important; /* Buộc Firefox hiểu đây là giao diện tối */
+
+    /* 2. KHÓA CỨNG KÍCH THƯỚC (Chống bị co rúm về 0px trên màn hình hẹp) */
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    width: 85px !important;
+    min-width: 85px !important;
+    height: 22px !important;       /* Định hình chiều cao cố định */
+    box-sizing: border-box !important;
+
+    /* 3. ĐÈ GIAO DIỆN GỐC CỦA HỆ ĐIỀU HÀNH */
+    appearance: none !important;
+    -moz-appearance: none !important;
+    -webkit-appearance: none !important;
+
+    /* 4. MÀU SẮC & THẨM MỸ */
+    background-color: #151515 !important;
+    color: #50fa7b !important;
+    border: 1px solid #3498db !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    padding: 1px 18px 1px 6px !important; /* Tăng padding phải để nhường chỗ cho mũi tên */
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    outline: none !important;
+    margin-right: 4px !important;
+
+    /* 5. TỰ VẼ MŨI TÊN DROPDOWN MỚI */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2350fa7b'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 2px center !important;
+    background-size: 12px !important;
+}
+
+/* Sửa lỗi mất màu chữ bên trong danh sách tùy chọn của Firefox */
+.lab-sub-select option, .lab-select-size option {
+    background-color: #151515 !important;
+    color: #50fa7b !important;
+}
+
+/* Sửa lỗi mất màu chữ bên trong danh sách tùy chọn của Firefox */
+.lab-sub-select option, .lab-select-size option {
+    background-color: #151515 !important;
+    color: #50fa7b !important;
+}
+
+
+
         `;
         document.head.appendChild(styleElement);
 
         const originalBodyStyle = { width: $('html').css('width'), overflowX: $('html').css('overflow-x') };
-        // END BLOCK: CSS Injection (High-Contrast Engine & CodeMirror)
-
-        // ### BLOCK START: HTML Dashboard Structure
+/* === End Module CSS Injection (High-Contrast Engine & CodeMirror): 475 === */
+/* === Begin Module HTML Dashboard Structure: 476 === */
         // ==========================================
         // 2. KHỞI TẠO CẤU TRÚC HTML DASHBOARD
         // ==========================================
@@ -367,6 +559,7 @@
                         <div class="lab-panel-header">
                             <span class="lab-panel-title">DOM</span>
                             <input type="text" id="labMiniTreeSearch" placeholder="🔍 Tìm trong cây..." style="background:#111; border:1px solid #333; color:#fff; padding:2px 6px; font-size:10px; margin-left:10px; border-radius:3px; outline:none; width:120px;">
+	                            
                             <div class="lab-panel-actions">
                                 <button class="lab-mini-btn lab-btn-max" data-target="#panelTreeDom">🔲 </button>
                                 <button class="lab-mini-btn lab-btn-toggle" data-target="#panelTreeDom">Ẩn</button>
@@ -384,7 +577,9 @@
                                 <button class="lab-geo-btn" id="geoBtnLayer8" style="background:#c0392b; margin-bottom:2px;">Lớp 8</button>
                                 <button class="lab-geo-btn" id="geoBtnLayer9" style="background:#16a085; margin-bottom:2px;">Lớp 9</button>
                                 <button class="lab-geo-btn" id="geoBtnLayer10" style="background:#8e44ad; margin-bottom:2px;">Lớp 10</button>
+                                <!--
                                 <button class="lab-geo-btn" id="geoBtnReverseDown" style="background:#00cec9; color:#000; margin-bottom:2px; margin-left:4px; border: 1px solid #fff;" title="Đảo chiều: Đi xuống lớp con liền kề">⬇️ </button>
+                                -->
                             </div>
                             <div id="labTreeDomBody" style="background:#151515; color:#abb2bf; padding:6px; flex:1; overflow:auto; border-radius:4px; font-size:11px;">
                                 <span style="color:#666; font-style:italic;"></span>
@@ -486,9 +681,8 @@
         function escapeHtml(str) {
             return str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
         }
-        // END BLOCK: HTML Dashboard Structure
-
-        // ### BLOCK START: Events & LocalStorage State Manager
+/* === End Module HTML Dashboard Structure: 627 === */
+/* === Begin Module Events & LocalStorage State Manager: 628 === */
         // ==========================================
         // 3. SỰ KIỆN VÀ LOCALSTORAGE TRẠNG THÁI
         // ==========================================
@@ -525,9 +719,8 @@
                 }
             }
         });
-        // END BLOCK: Events & LocalStorage State Manager
-
-        // ### BLOCK START: Console Override & Logging
+/* === End Module Events & LocalStorage State Manager: 665 === */
+/* === Begin Module Console Override & Logging: 666 === */
         // ==========================================
         // 4. BẮT GHI ĐÈ BỘ CONSOLE
         // ==========================================
@@ -547,9 +740,8 @@
             _oldErr.apply(console, args);
             window.__labAppendLog(args.join(' '), 'error');
         };
-        // END BLOCK: Console Override & Logging
-
-        // ### BLOCK START: Object Tree Renderer
+/* === End Module Console Override & Logging: 686 === */
+/* === Begin Module Object Tree Renderer: 687 === */
         // ==========================================
         // 5. TRÌNH TẠO CÂY ĐỐI TƯỢNG (OBJECT TREE RENDERER)
         // ==========================================
@@ -602,9 +794,8 @@
             });
             return $container;
         };
-        // END BLOCK: Object Tree Renderer
-
-        // ### BLOCK START: PostMessage Sandbox Communication
+/* === End Module Object Tree Renderer: 740 === */
+/* === Begin Module PostMessage Sandbox Communication: 741 === */
         // ==========================================
         // 6. KÊNH GIAO TIẾP VỚI SANDBOX BẰNG POSTMESSAGE
         // ==========================================
@@ -628,9 +819,8 @@
                 }
             }
         });
-        // END BLOCK: PostMessage Sandbox Communication
-
-        // ### BLOCK START: Sandbox Environment Initialization
+/* === End Module PostMessage Sandbox Communication: 765 === */
+/* === Begin Module Sandbox Environment Initialization: 766 === */
         // ==========================================
         // 7. KHỞI TẠO MÔI TRƯỜNG SANDBOX CÔ LẬP
         // ==========================================
@@ -776,9 +966,8 @@
             }
             updateScreenSplitting();
         });
-        // END BLOCK: Sandbox Environment Initialization
-
-        // ### BLOCK START: JavaScript Dynamic Execution Engine
+/* === End Module Sandbox Environment Initialization: 912 === */
+/* === Begin Module JavaScript Dynamic Execution Engine: 913 === */
         // ==========================================
 // 8. BỘ MÁY THỰC THI JAVASCRIPT ĐỘNG (FIXED & UPGRADED)
 // ==========================================
@@ -850,7 +1039,7 @@
 
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/17123665b85173cc8846cb5857e0cefad64ba6be/miniJQ.js';
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/e72279a2ac6f115a0c8fb18a82334cefe54cf932/miniJQ.js';
 
                     const response = await fetch(helperUrl);
                     if (!response.ok) {
@@ -977,20 +1166,20 @@
                 executeJsEngine();
             }
         });
-        // END BLOCK: JavaScript Dynamic Execution Engine
-
-        // ### BLOCK START: DOM Inspector (Main Environment)
+/* === End Module JavaScript Dynamic Execution Engine: 1112 === */
+/* === Begin Module DOM Inspector (Main Environment): 1113 === */
         // ==========================================
         // 9. TRÌNH QUAN SÁT DOM (INSPECTOR Ở MAIN ENVIRONMENT)
         // ==========================================
+
         function buildDomTreeMain(node) {
             if (node.nodeType === 3) {
                 const text = node.nodeValue.trim();
                 return text ? $('<div>').addClass('tree-node').html(`<span class="html-text">${escapeHtml(text)}</span>`) : null;
             }
             if (node.nodeType === 1) {
-                // [UPDATE] Fix lỗi hắt highlight viền cho panel Sniffer  quick-extract-modal #labHtmlSourceModal
-                if ($(node).closest('#labHtmlSourceModal').length || $(node).closest('#quick-extract-modal').length || $(node).closest('#labMainDashboard').length || $(node).hasClass('lab-fab-wrapper') || $(node).is('#labSandboxIframe') || $(node).is('#labCssQuickMenu') || $(node).hasClass('CodeMirror-hints') || $(node).closest('#panelSnifferLab').length) return null;
+                // [UPDATE] Fix lỗi hắt highlight viền cho panel Sniffer quick-extract-modal #labHtmlSourceModal
+                if ($(node).closest('#labHtmlSourceModal').length || $(node).closest('#quick-extract-modal').length || $(node).closest('#labMainDashboard').length || $(node).hasClass('lab-fab-wrapper') || $(node).is('#labSandboxIframe') || $(node).closest('#labCssQuickMenu').length || $(node).hasClass('CodeMirror-hints') || $(node).closest('#panelSnifferLab').length) return null;
 
                 const tagName = node.tagName.toLowerCase();
                 let attrStr = '';
@@ -1002,10 +1191,10 @@
                     }
                 }
 
-                // 🌟 ĐÃ SỬA TẠI ĐÂY: Lưu trữ tham chiếu node thật vào biến data jQuery
+                // Lưu trữ tham chiếu node thật vào biến data jQuery
                 let $container = $('<div>').addClass('tree-node').data('real-node', node);
 
-                let $toggle = $('<span>').addClass('tree-toggle').html('▼ ');
+                let $toggle = $('<span>').addClass('tree-toggle').html('▼ ').css('cursor', 'pointer');
                 let $children = $('<div>').addClass('tree-children');
 
                 node.childNodes.forEach(child => {
@@ -1020,16 +1209,82 @@
             }
             return null;
         }
+
         function loadElementToTreeMain(element) {
             if (!element) return;
+
+            // Xóa trắng cây cũ để nạp cây mới
             $treeDomBody.find('.tree-node, div').remove();
             let $tree = buildDomTreeMain(element);
             if ($tree) $treeDomBody.append($tree);
+
+            // [TÍCH HỢP] Reset trạng thái nút của bạn về trạng thái mặc định (chưa thu gọn) mỗi khi soi phần tử mới
+            $('#labBtnCollapseAllTree').html('⤓ ').data('collapsed', false);
         }
+
+        // 1. Xử lý click đóng/mở riêng lẻ cho từng dấu mũi tên đầu dòng (▼ / ►)
+        $(document).off('click.labDOMInspector', '.tree-toggle').on('click.labDOMInspector', '.tree-toggle', function(e) {
+            e.stopPropagation();
+            const $toggle = $(this);
+            const $children = $toggle.siblings('.tree-children');
+            
+            if ($toggle.text().includes('▼')) {
+                $children.hide();
+                $toggle.html('► ');
+            } else {
+                $children.show();
+                $children.children('.tree-node').show(); // Hiện lại toàn bộ các con trực tiếp bao gồm cả text node
+                $toggle.html('▼ ');
+            }
+        });
+
+        // 2. [TÍCH HỢP] Xử lý click đóng/mở ĐỒNG LOẠT vào nút có sẵn của bạn (#labBtnCollapseAllTree)
+        
+				
+				
+        $(document).off('click.labDOMInspector', '#labBtnCollapseAllTree').on('click.labDOMInspector', '#labBtnCollapseAllTree', function(e) {
+            e.stopPropagation();
+            const $btn = $(this);
+            const isCollapsed = $btn.data('collapsed') || false;
+            
+            if (!isCollapsed) {
+                // TIẾN HÀNH THU GỌN THÔNG MINH (Giữ khung xương, ẩn text node và thu gọn thẻ lá)
+                $treeDomBody.find('.tree-node').each(function() {
+                    const $node = $(this);
+                    const $toggle = $node.children('.tree-toggle');
+                    const $children = $node.children('.tree-children');
+                    
+                    if ($toggle.length > 0) { // Định dạng thẻ HTML Element
+                        const hasChildElements = $children.find('.tree-toggle').length > 0;
+                        if (!hasChildElements) {
+                            // Là thẻ cuối cùng (thẻ lá) -> Thu gọn hẳn thành 1 dòng
+                            $children.hide();
+                            $toggle.html('► ');
+                        } else {
+                            // Là thẻ chứa cấu trúc -> Giữ hiển thị bộ khung
+                            $children.show();
+                            $toggle.html('▼ ');
+                        }
+                    } else if ($node.find('.html-text').length > 0) {
+                        // Ẩn bớt các chuỗi text thuần để cây DOM nhìn gọn gàng
+                        $node.hide();
+                    }
+                });
+                // Đổi icon thành mũi tên hướng lên (biểu thị click tiếp theo sẽ mở rộng ra)
+                $btn.html('⤒ ').data('collapsed', true);
+            } else {
+                // TIẾN HÀNH MỞ RỘNG TOÀN BỘ TRỞ LẠI NHƯ BAN ĐẦU
+                $treeDomBody.find('.tree-node').show();
+                $treeDomBody.find('.tree-children').show();
+                $treeDomBody.find('.tree-toggle').html('▼ ');
+                // Trả lại icon ban đầu của bạn
+                $btn.html('⤓ ').data('collapsed', false);
+            }
+        });
 
         $(document).on('mouseover', function(e) {
             if (!isInspectEnabled || isSandboxModeActive) return;
-            // [UPDATE] Bỏ qua Sniffer  quick-extract-modal
+            // [UPDATE] Bỏ qua Sniffer quick-extract-modal
             if ($(e.target).closest('#quick-extract-modal').length || $(e.target).closest('#labMainDashboard').length || $(e.target).hasClass('lab-fab-wrapper') || $(e.target).is('#labSandboxIframe') || $(e.target).closest('#labCssQuickMenu').length || $(e.target).hasClass('CodeMirror-hints') || $(e.target).closest('#panelSnifferLab').length) return;
 
             $(document).find('.lab-inspect-child, .lab-inspect-parent, .lab-inspect-grand').removeClass('lab-inspect-child lab-inspect-parent lab-inspect-grand');
@@ -1065,15 +1320,17 @@
                 $parent.addClass('lab-pinned-parent');
                 let $grand = $parent.parent();
                 savedGrand = ($grand && $grand.length) ? $grand[0] : null;
-                if ($grand.length && !$grand.is('html, body')) $grand.addClass('lab-pinned-grand');
+                if ($grand.length && !$grand.is('html, body')) $grand.addClass('lab-inspect-grand');
             }
             $familyTreeBar.css('display', 'flex');
             loadElementToTreeMain(savedTarget);
            $('#panelJs .lab-sub-select').val('#panelTreeDom').trigger('change')
         };
-        // END BLOCK: DOM Inspector (Main Environment)
+/* === End Module DOM Inspector (Main Environment): 1205 === */
 
-        // ### BLOCK START: Quick Hide Element (Right Click)
+
+
+/* === Begin Module Quick Hide Element (Right Click): 1206 === */
         // --- MODULE: QUICK HIDE ELEMENT (RIGHT CLICK) ---
         $('body').append('<div id="lab-quick-hide-menu" style="display:none; position:fixed; background:#e74c3c; color:#fff; padding:6px 12px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer; z-index:2147483647; box-shadow:0 4px 10px rgba(0,0,0,0.5);">🚫 Ẩn phần tử này</div>');
 
@@ -1129,9 +1386,8 @@
                 else if(mode === 'grand' && savedGrand) { loadElementToTreeMain(savedGrand); }
             }
         }
-        // END BLOCK: Quick Hide Element (Right Click)
-
-        // ### BLOCK START: Family Tree Navigation (10 Levels)
+/* === End Module Quick Hide Element (Right Click): 1262 === */
+/* === Begin Module Family Tree Navigation (10 Levels): 1263 === */
         // ==========================================
         // ĐIỀU HƯỚNG PHẢ HỆ 10 CẤP + NÚT ĐẢO CHIỀU (XUỐNG)
         // ==========================================
@@ -1199,9 +1455,8 @@
                 $treeDomBody.empty().append(buildDomTreeMain(targetNode));
             }
         });
-        // END BLOCK: Family Tree Navigation (10 Levels)
-
-        // ### BLOCK START: UI & Resize Panel Manager
+/* === End Module Family Tree Navigation (10 Levels): 1331 === */
+/* === Begin Module UI & Resize Panel Manager: 1332 === */
         // ==========================================
         // 10. QUẢN LÝ GIAO DIỆN VÀ RESIZE PANEL
         // ==========================================
@@ -1310,9 +1565,8 @@
             if (window.__labCssEditor) window.__labCssEditor.refresh();
             if (typeof window.__labV163UpdateFloatingConsole === 'function') setTimeout(window.__labV163UpdateFloatingConsole, 50); // [UPDATE]
         });
-        // END BLOCK: UI & Resize Panel Manager
-
-        // ### BLOCK START: Draggable FAB Button
+/* === End Module UI & Resize Panel Manager: 1441 === */
+/* === Begin Module Draggable FAB Button: 1442 === */
         // --- MODULE: DRAGGABLE FAB ---
         let isFabDragging = false;
         const $fabWrapper = $('.lab-fab-wrapper');
@@ -1377,9 +1631,8 @@
             }
             setTimeout(() => { updateScreenSplitting(); }, 50); // [UPDATE] Đợi DOM render để js đo được height chính xác
         });
-        // END BLOCK: Draggable FAB Button
-
-        // ### BLOCK START: FAB Right-Click Scroll Handler
+/* === End Module Draggable FAB Button: 1507 === */
+/* === Begin Module FAB Right-Click Scroll Handler: 1508 === */
         // [NEW] Chức năng Right-Click trên nút FAB để scroll trang Web
         let fabRightClickTimer = null;
         let fabRightClickCount = 0;
@@ -1450,9 +1703,8 @@
 
             $(document).on('mouseup.lab-resize', function() { $(document).off('mousemove.lab-resize mouseup.lab-resize'); });
         });
-        // END BLOCK: FAB Right-Click Scroll Handler
-
-        // ### BLOCK START: Panel Drag & Drop (Free Move)
+/* === End Module FAB Right-Click Scroll Handler: 1579 === */
+/* === Begin Module Panel Drag & Drop (Free Move): 1580 === */
         // [NEW] Cho phép 4 ô panel còn lại Kéo Thả tùy ý khi Mousedown vào Header
         $('.lab-panel-header').on('mousedown.labPanelDragFree', function(e) {
             const $panel = $(this).closest('.lab-panel');
@@ -1501,9 +1753,8 @@
             if (window.__labCssEditor) window.__labCssEditor.refresh();
             setTimeout(syncSnifferLayout, 60);
         });
-        // END BLOCK: Panel Drag & Drop (Free Move)
-
-        // ### BLOCK START: Smart CSS Grouping & Quick-Option Popover
+/* === End Module Panel Drag & Drop (Free Move): 1629 === */
+/* === Begin Module Smart CSS Grouping & Quick-Option Popover: 1630 === */
         // ==========================================
         // 11. EXTENSION ULTRA V4.2: SMART CSS GROUPING & QUICK-OPTION POPOVER
         // ==========================================
@@ -1514,36 +1765,7 @@
 
         // [NEW] Collapse/Expand All for Tree DOM
         $('#labBtnCollapseAllTree').remove();
-        const $btnCollapseAllTree = $('<button class="lab-mini-btn" id="labBtnCollapseAllTree" style="margin-right: 4px;" title="Thu gọn/Mở rộng tất cả">⤓ </button>');
-        $treeDomHeaderActions.prepend($btnCollapseAllTree);
-        let _labTreeAllCollapsed = false;
-        $btnCollapseAllTree.on('click', function(e) {
-            e.stopPropagation();
-            _labTreeAllCollapsed = !_labTreeAllCollapsed;
-            const $toggles = $('#labTreeDomBody').find('.lab-dom-toggle.has-children');
-            console.log('[Lab] CollapseAll toggles found:', $toggles.length);
-            $toggles.each(function() {
-                const $toggle = $(this);
-                const $node = $toggle.closest('.lab-dom-node');
-                const $childrenContainer = $node.children('.lab-dom-children');
-                const $blockClose = $node.children('.lab-dom-block-close');
-                if (!$childrenContainer.length) return;
-                if (_labTreeAllCollapsed) {
-                    $childrenContainer.hide();
-                    if ($blockClose.length) $blockClose.hide();
-                    $toggle.closest('.lab-dom-header').find('.lab-dom-summary').show();
-                    $toggle.closest('.lab-dom-header').find('.lab-dom-tag-close').hide();
-                    $toggle.text('▸');
-                } else {
-                    $childrenContainer.show();
-                    if ($blockClose.length) $blockClose.show();
-                    $toggle.closest('.lab-dom-header').find('.lab-dom-summary').hide();
-                    $toggle.closest('.lab-dom-header').find('.lab-dom-tag-close').show();
-                    $toggle.text('▾');
-                }
-            });
-        });
-
+        
         function copyToClipboard(text) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).catch(err => { console.error("Lỗi sao chép nhanh: ", err); });
@@ -1760,10 +1982,8 @@
                 $children.toggleClass('hidden');
             });
         });
-        // END BLOCK: Smart CSS Grouping & Quick-Option Popover
-
-
-        // ### BLOCK START: DevTools-Style Network Monitor v19
+/* === End Module Smart CSS Grouping & Quick-Option Popover: 1887 === */
+/* === Begin Module DevTools-Style Network Monitor v19: 1888 === */
         // ==========================================
         // 12. EXTENSION PRO++ V19: DEVTOOLS-STYLE NETWORK MONITOR
         // ==========================================
@@ -2864,12 +3084,8 @@
         // Initial render
         __labRenderNetworkTable();
 
-        // END BLOCK: DevTools-Style Network Monitor v19
-
-
-
-
-        // ### BLOCK START: Pro Code Editor Engine
+/* === End Module DevTools-Style Network Monitor v19: 2989 === */
+/* === Begin Module Pro Code Editor Engine: 2990 === */
         // ==========================================
         // 13. EXTENSION ULTRA V15: PRO CODE EDITOR ENGINE
         // ==========================================
@@ -3069,9 +3285,8 @@
         }
 
         initProCodeEditors();
-        // END BLOCK: Pro Code Editor Engine
-
-        // ### BLOCK START: Mini Tree DOM Search
+/* === End Module Pro Code Editor Engine: 3190 === */
+/* === Begin Module Mini Tree DOM Search: 3191 === */
         // --- MODULE: MINI TREE DOM SEARCH ---
 let miniSearchMatches = [];
 let miniSearchIndex = -1;
@@ -3115,9 +3330,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
         }, 5000);
     }
 });
-        // END BLOCK: Mini Tree DOM Search
-
-        // ### BLOCK START: Sync Tree Hover to Web Element
+/* === End Module Mini Tree DOM Search: 3235 === */
+/* === Begin Module Sync Tree Hover to Web Element: 3236 === */
         // --- MODULE: SYNC TREE HOVER TO WEB ELEMENT ---
         $('#labTreeDomBody').on('mouseenter', '.tree-node', function(e) {
             e.stopPropagation();
@@ -3136,9 +3350,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 
         // GỌI HÀM KHỞI TẠO EDITOR
         initProCodeEditors();
-        // END BLOCK: Sync Tree Hover to Web Element
-
-        // ### BLOCK START: Right-Click Zoom & Copy
+/* === End Module Sync Tree Hover to Web Element: 3255 === */
+/* === Begin Module Right-Click Zoom & Copy: 3256 === */
         // ==========================================
         // 14. NÂNG CẤP TOÀN DIỆN V15: CHUỘT PHẢI PHÓNG TO + SAO CHÉP
         // ==========================================
@@ -3178,9 +3391,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             document.execCommand("copy");
             $temp.remove();
         }
-        // END BLOCK: Right-Click Zoom & Copy
-
-        // ### BLOCK START: Pro Max Engine V16.1 (Smart Panel Switch)
+/* === End Module Right-Click Zoom & Copy: 3296 === */
+/* === Begin Module Pro Max Engine V16.1 (Smart Panel Switch): 3297 === */
         // =========================================================================
         // ★ 15. EXTENSION ULTRA V16.1: PRO MAX ENGINE
         // =========================================================================
@@ -3350,9 +3562,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 
             $('#labBtnToggleOrientation, #labBtnResetLayout').on('click.v16clean', closeSubPanel);
         })();
-        // END BLOCK: Pro Max Engine V16.1 (Smart Panel Switch)
-
-        // ### BLOCK START: Safe Patch V16.3 (UI/Drag/CM Isolation)
+/* === End Module Pro Max Engine V16.1 (Smart Panel Switch): 3467 === */
+/* === Begin Module Safe Patch V16.3 (UI/Drag/CM Isolation): 3468 === */
         // =========================================================================
         // ★ PATCH V16.3 SAFE UPGRADE: SỬA LỖI UI/KÉO THẢ/CÁCH LY CODEMIRROR
         // =========================================================================
@@ -3570,7 +3781,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             $('#labBtnQuickExtractLinks').remove();
             const $btnQuickExtract = $('<button class="lab-mini-btn btn-success" id="labBtnQuickExtractLinks" style="margin-right:4px;" title="Trích xuất toàn bộ Link bên trong Node này">🔗</button>');
             $('#panelTreeDom .lab-panel-actions').prepend($btnQuickExtract);
-
+						const $btndownhtmml = $('<button class="lab-mini-btn" id="labBtnCollapseAllTree" style="margin-right: 4px;" title="Thu gọn/Mở rộng tất cả">⤓ </button>');
+						$('#panelTreeDom .lab-panel-actions').prepend($btndownhtmml);
             function v163SetCurrentTreeElement(element) {
                 if (!element || element.nodeType !== 1) return;
                 v163CurrentTreeElement = element;
@@ -3928,11 +4140,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
                 if (window.__labCssEditor) window.__labCssEditor.refresh();
             }, 500);
         })();
-        // END BLOCK: Safe Patch V16.3 (UI/Drag/CM Isolation)
-
-// ### BLOCK START: Full-Screen HTML Source Viewer  3496
-// [UPDATE SOURCE]
-// ### BLOCK START: Full-Screen HTML Source Viewer  3496
+/* === End Module Safe Patch V16.3 (UI/Drag/CM Isolation): 4044 === */
+/* === Begin Module Full-Screen HTML Source Viewer  3496: 4045 === */
 // [UPDATE SOURCE WITH CLEAN COPY & MULTI-URL FETCH]
         const htmlSourceStyle = document.createElement('style');
         htmlSourceStyle.id = 'lab-html-source-viewer-styles';
@@ -4678,10 +4887,8 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
         })();
 
 //[UPDATE 2.0] END Full-screen HTML Source Viewer Feature
-// END BLOCK: Full-Screen HTML Source Viewer 2948
-
-
-// ### BLOCK START: Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED)
+/* === End Module Full-Screen HTML Source Viewer  3496: 4791 === */
+/* === Begin Module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED): 4792 === */
 // ==========================================
 // 14. MODULE: ANTI-HIJACK SHIELD & CSS EXTRACTOR (FIXED)
 // ==========================================
@@ -5206,12 +5413,12 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
         console.error('[Enhancement Module v17.1] Initialization error:', err);
     }
 })();
-// END BLOCK: Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED)
-
-    // ### BLOCK START: IIFE & Event Listener Cleanup
+/* === End Module Enhancement Module v17.1 — Anti-Hijack Shield & CSS Extractor (FIXED): 5317 === */
+/* === Begin Module IIFE & Event Listener Cleanup: 5318 === */
     }, 10);
 
 });
 
 })();
-    // END BLOCK: IIFE & Event Listener Cleanup
+/* === End Module IIFE & Event Listener Cleanup: 5324 === */
+

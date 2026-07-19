@@ -151,7 +151,7 @@
   }
   .tool-buttons {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Tăng thành 5 cột cho cân đối 10 nút */
+    grid-template-columns: repeat(5, 1fr);
     gap: 5px;
     margin-bottom: 8px;
   }
@@ -162,7 +162,7 @@
     padding: 5px 2px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 13px; /* Thu nhỏ size một chút để vừa chữ */
+    font-size: 13px;
     transition: all 0.2s;
     display: flex;
     align-items: center;
@@ -383,23 +383,19 @@
   </div>
 
   <div class="main">
-    <!-- Cột Code (8 phần) -->
     <div class="col col-code" id="colCode">
       <textarea id="codeEditor"></textarea>
     </div>
 
-    <!-- Cột Công cụ (2 phần) -->
     <div class="col col-tools" id="colTools">
       <div class="tools-sticky">
         <div class="tool-buttons">
-          <!-- Hàng 1 -->
           <button onclick="checkCode()" title="Kiểm tra lỗi cú pháp & cảnh báo">🔍</button>
           <button onclick="beautifyCode()" title="Làm đẹp & canh chỉnh code">✨</button>
           <button onclick="toggleFindReplace()" title="Tìm & Thay thế">🔎</button>
           <button onclick="copyCode()" title="Copy toàn bộ code">📋</button>
           <button onclick="pasteCode()" title="Paste vào editor">📌</button>
           
-          <!-- Hàng 2 (Các tính năng mới) -->
           <button onclick="removeScripts()" title="Xóa toàn bộ thẻ <script>">🚫 JS</button>
           <button onclick="minifyJS()" title="Rút gọn JS thành 1 dòng">📉 JS</button>
           <button onclick="minifyCSS()" title="Rút gọn CSS thành 1 dòng">📉 CSS</button>
@@ -435,7 +431,7 @@
 
 <script>
   /* ============================
-     KHỞI TẠO EDITOR
+     KHỞI TẠO EDITOR & PHỤC HỒI DỮ LIỆU
      ============================ */
   var editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
     mode: 'javascript',
@@ -448,15 +444,22 @@
     scrollbarStyle: 'overlay'
   });
 
-  // Code mẫu để demo
-  editor.setValue(``);
+  // Tự động khôi phục dữ liệu từ localStorage cũ nếu có
+  var savedCode = localStorage.getItem('js_debugger_code');
+  if (savedCode !== null) {
+    editor.setValue(savedCode);
+  } else {
+    editor.setValue(``);
+  }
 
   /* ============================
      BIẾN & UTILITIES
      ============================ */
   var activeMarks = [];
   var searchMarks = [];
-  var lastCursorPos = null;
+  var lastFrQuery = '';
+  var lastFrRegex = false;
+  var lastFrCase = false;
 
   function showToast(msg, duration) {
     duration = duration || 2000;
@@ -517,9 +520,7 @@
     var list = document.getElementById('errorList');
     list.innerHTML = '';
     var errors = [];
-    var lines = code.split('\n');
 
-    // 1. Syntax Check
     try {
       if (typeof acorn !== 'undefined') {
         acorn.parse(code, { ecmaVersion: 'latest', locations: true, sourceType: 'module' });
@@ -536,12 +537,12 @@
         type: 'Syntax Error',
         severity: 'error',
         msg: (e.message || 'Lỗi cú pháp').split('\n')[0],
-        fix: 'Kiểm tra cú pháp tại dòng ' + (line + 1) + ', cột ' + col + '. Có thể thiếu dấu đóng ngoặc, dấu chấm phẩy hoặc từ khóa sai.'
+        fix: 'Kiểm tra cú pháp tại dòng ' + (line + 1) + ', cột ' + col + '.'
       });
     }
 
-    // 2. Lint cơ bản
     if (errors.length === 0) {
+      var lines = code.split('\n');
       for (var i = 0; i < lines.length; i++) {
         var raw = lines[i];
         var trimmed = raw.trim();
@@ -549,51 +550,30 @@
 
         var matchEq = raw.match(/([^=!])==([^=])/);
         if (matchEq) {
-          errors.push({ line: i, col: matchEq.index + 1, type: 'Warning', severity: 'warn',
-            msg: 'Sử dụng == thay vì ===',
-            fix: 'Thay == bằng === để so sánh nghiêm ngặt kiểu dữ liệu.' });
+          errors.push({ line: i, col: matchEq.index + 1, type: 'Warning', severity: 'warn', msg: 'Sử dụng == thay vì ===', fix: 'Thay == bằng === để so sánh nghiêm ngặt.' });
         }
-
         var matchVar = raw.match(/\bvar\b/);
         if (matchVar) {
-          errors.push({ line: i, col: matchVar.index, type: 'Best Practice', severity: 'warn',
-            msg: 'Sử dụng var thay vì let/const',
-            fix: 'Thay var bằng let hoặc const để tránh rò rỉ phạm vi.' });
+          errors.push({ line: i, col: matchVar.index, type: 'Best Practice', severity: 'warn', msg: 'Sử dụng var thay vì let/const', fix: 'Thay var bằng let hoặc const.' });
         }
-
         var matchLog = raw.match(/console\.log\s*\(/);
         if (matchLog) {
-          errors.push({ line: i, col: matchLog.index, type: 'Cleanup', severity: 'info',
-            msg: 'console.log() còn sót lại trong code',
-            fix: 'Xóa console.log() trước khi đưa lên production.' });
+          errors.push({ line: i, col: matchLog.index, type: 'Cleanup', severity: 'info', msg: 'console.log() còn sót lại', fix: 'Xóa console.log() trước khi production.' });
         }
-
         var matchEval = raw.match(/\beval\s*\(/);
         if (matchEval) {
-          errors.push({ line: i, col: matchEval.index, type: 'Security', severity: 'error',
-            msg: 'Sử dụng eval() rất nguy hiểm',
-            fix: 'Tránh eval(). Nếu cần parse JSON dùng JSON.parse().' });
-        }
-
-        var matchDbg = raw.match(/\bdebugger\b/);
-        if (matchDbg) {
-          errors.push({ line: i, col: matchDbg.index, type: 'Cleanup', severity: 'warn',
-            msg: 'Còn từ khóa debugger',
-            fix: 'Xóa debugger trước khi build/release.' });
+          errors.push({ line: i, col: matchEval.index, type: 'Security', severity: 'error', msg: 'Sử dụng eval() rất nguy hiểm', fix: 'Tránh sử dụng eval().' });
         }
       }
     }
 
-    // Render: Gom nhóm
     if (errors.length === 0) {
-      list.innerHTML = '<div class="no-error">✅ Không phát hiện lỗi nào!<br>Code của bạn sạch và an toàn.</div>';
+      list.innerHTML = '<div class="no-error">✅ Không phát hiện lỗi nào!</div>';
     } else {
       var groups = {};
       errors.forEach(function(err) {
         var key = err.msg;
-        if (!groups[key]) {
-          groups[key] = { type: err.type, severity: err.severity, msg: err.msg, fix: err.fix, items: [] };
-        }
+        if (!groups[key]) groups[key] = { type: err.type, severity: err.severity, msg: err.msg, fix: err.fix, items: [] };
         groups[key].items.push(err);
       });
 
@@ -613,7 +593,7 @@
         g.items.forEach(function(item) {
           var lineDiv = document.createElement('div');
           lineDiv.className = 'error-group-item';
-          lineDiv.innerHTML = '<span>Dòng ' + (item.line + 1) + (item.col ? ', cột ' + item.col : '') + '</span><span class="fix-hint">💡 ' + escapeHtml(g.fix) + '</span>';
+          lineDiv.innerHTML = '<span>Dòng ' + (item.line + 1) + '</span><span class="fix-hint">💡 ' + escapeHtml(g.fix) + '</span>';
           lineDiv.onclick = function(e) { e.stopPropagation(); highlightLine(item.line, item.col); };
           itemsDiv.appendChild(lineDiv);
         });
@@ -630,158 +610,74 @@
     }
 
     updateStats();
-    if (errors.length > 0) {
-      showToast('🔍 Phát hiện ' + errors.length + ' vấn đề trong code', 3000);
-    } else {
-      showToast('✅ Code sạch! Không có lỗi.', 2500);
-    }
+    showToast(errors.length > 0 ? '🔍 Phát hiện ' + errors.length + ' vấn đề' : '✅ Code sạch!', 2500);
   }
 
   function toggleGroup(header) {
-    var items = header.nextElementSibling;
-    items.classList.toggle('active');
+    header.nextElementSibling.classList.toggle('active');
     header.classList.toggle('expanded');
   }
 
   /* ============================
-     LÀM ĐẸP CODE
+     LÀM ĐẸP CODE & TOOLS
      ============================ */
   function beautifyCode() {
     var code = editor.getValue();
     if (typeof js_beautify !== 'undefined') {
-      var beautiful = js_beautify(code, {
-        indent_size: 4,
-        indent_char: ' ',
-        max_preserve_newlines: 2,
-        preserve_newlines: true,
-        keep_array_indentation: false,
-        break_chained_methods: false,
-        wrap_line_length: 100,
-        space_in_empty_paren: false,
-        jslint_happy: true
-      });
-      editor.setValue(beautiful);
-      showToast('✨ Code đã được làm đẹp và canh chỉnh!', 2000);
+      editor.setValue(js_beautify(code, { indent_size: 4, indent_char: ' ', max_preserve_newlines: 2, preserve_newlines: true }));
+      showToast('✨ Code đã được làm đẹp!', 2000);
     } else {
-      showToast('❌ Không tải được thư viện làm đẹp. Kiểm tra kết nối mạng.', 3000);
+      showToast('❌ Không tải được thư viện js-beautify.', 3000);
     }
     updateStats();
   }
 
-  /* ============================
-     TÍNH NĂNG MỚI: XÓA JS, MINIFY, TẢI FILE
-     ============================ */
-
-  // 1. Xoá toàn bộ thẻ script chuẩn xác với Regex multiline
   function removeScripts() {
     var code = editor.getValue();
-    // [\\s\\S]*? sẽ quét sạch mọi thứ bao gồm cả xuống dòng bên trong thẻ script
     var newCode = code.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
     if (code === newCode) {
       showToast('Không tìm thấy thẻ <script> nào!', 2000);
     } else {
       editor.setValue(newCode);
       showToast('🚫 Đã xóa sạch toàn bộ thẻ <script>', 2000);
-      updateStats();
-      addHostToStatic();
     }
+    updateStats();
   }
-  
-  function addHostToStatic() {
-  // 1. Lấy nội dung từ editor
-	  var code = editor.getValue();
-	  
-	  // 2. Lấy giá trị host từ input và loại bỏ khoảng trắng thừa
-	  var host = document.getElementById('frFind').value.trim();
-	  
-	  if (!host) {
-	    showToast('⚠️ Vui lòng nhập domain vào ô tìm kiếm!', 2000);
-	    return;
-	  }
-	
-	  // 3. Chuẩn hóa host (Đảm bảo có http/https và không có dấu / ở cuối)
-	  if (!/^https?:\/\//i.test(host)) {
-	    host = 'https://' + host; // Mặc định thêm https nếu user chỉ gõ "domain.com"
-	  }
-	  host = host.replace(/\/+$/, ''); // Xóa dấu "/" ở cuối nếu user lỡ nhập "domain.com/"
-	
-	  // 4. Regex quét các đường dẫn bắt đầu bằng /static/ nằm trong dấu nháy
-	  var regex = /(["'])\/(?!\/)([^"'\s]+)\1/g;
 
-	
-	  // 5. Thay thế và kiểm tra xem có thay đổi gì không
-	  var newCode = code.replace(regex, `$1${host}/static/$2$1`);
-	
-	  if (code === newCode) {
-	    showToast('Không tìm thấy đường dẫn /static/ nào phù hợp!', 2000);
-	  } else {
-	    editor.setValue(newCode);
-	    showToast('✅ Đã thêm host vào toàn bộ đường dẫn /static/', 2000);
-	    updateStats();
-	  }
-	}
-
-
-  // 2. Rút gọn JS thành 1 dòng (Minify JS cơ bản)
   function minifyJS() {
     var code = editor.getValue();
     if(!code.trim()) return;
-    var minified = code
-      .replace(/\/\*[\s\S]*?\*\//g, '') // Xóa block comments
-      .replace(/\/\/[^\n]*/g, '')      // Xóa line comments
-      .replace(/\s+/g, ' ')            // Gom nhiều khoảng trắng thành 1
-      .replace(/\{\s+/g, '{').replace(/\s+\}/g, '}') // Dọn khoảng trắng quanh {}
-      .replace(/;\s+/g, ';').replace(/,\s+/g, ',')   // Dọn khoảng trắng quanh ;,
-      .trim();
+    var minified = code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '').replace(/\s+/g, ' ').trim();
     editor.setValue(minified);
-    showToast('📉 Code JS đã được rút gọn thành 1 dòng!', 2000);
+    showToast('📉 Thắt gọn JS hoàn tất!', 2000);
     updateStats();
   }
 
-  // 3. Rút gọn CSS thành 1 dòng (Minify CSS cơ bản)
   function minifyCSS() {
     var code = editor.getValue();
     if(!code.trim()) return;
-    var minified = code
-      .replace(/\/\*[\s\S]*?\*\//g, '') // Xóa css comments
-      .replace(/\s+/g, ' ')            // Gom khoảng trắng
-      .replace(/\s*{\s*/g, '{').replace(/\s*}\s*/g, '}') // Xóa khoảng trắng quanh {}
-      .replace(/\s*:\s*/g, ':').replace(/\s*;\s*/g, ';') // Xóa khoảng trắng quanh :;
-      .trim();
+    var minified = code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').replace(/\s*{\s*/g, '{').replace(/\s*}\s*/g, '}').trim();
     editor.setValue(minified);
-    showToast('📉 Code CSS đã được rút gọn thành 1 dòng!', 2000);
+    showToast('📉 Thắt gọn CSS hoàn tất!', 2000);
     updateStats();
   }
 
-  // 4. Tải file đang chỉnh sửa về máy
   function downloadCode() {
     var code = editor.getValue();
-    if (!code.trim()) { showToast('Không có nội dung để tải!', 2000); return; }
-    
-    // Tự động phán đoán tên file dựa vào code bên trong
-    var isHtml = code.toLowerCase().indexOf('<html') !== -1 || code.toLowerCase().indexOf('<div') !== -1;
-    var fileName = isHtml ? 'output.html' : 'output.js';
-
+    if (!code.trim()) { showToast('Không có nội dung!', 2000); return; }
+    var fileName = code.toLowerCase().includes('<html') ? 'output.html' : 'output.js';
     var blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('💾 Đã lưu thành công file ' + fileName, 2000);
+    showToast('💾 Đã tải file thành công!', 2000);
   }
 
-
   /* ============================
-     FIND & REPLACE + HIGHLIGHT
+     TÌM KIẾM VÀ THAY THẾ (FIND & REPLACE)
      ============================ */
-  var lastFrQuery = '';
-  var lastFrRegex = false;
-  var lastFrCase = false;
-
   function toggleFindReplace() {
     document.getElementById('findReplacePanel').classList.toggle('active');
   }
@@ -791,81 +687,82 @@
     var isRegex = document.getElementById('frRegex').checked;
     var caseFold = !document.getElementById('frCase').checked;
     if (!text) return null;
+    
     if (isRegex) {
-      try { return new RegExp(text, caseFold ? 'gi' : 'g'); } catch(e) { return null; }
+      try {
+        return new RegExp(text, caseFold ? 'gi' : 'g');
+      } catch(e) {
+        return null;
+      }
+    } else {
+      var unescapedText = text.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
+      return { query: unescapedText, caseFold: caseFold };
     }
-    return { query: text, caseFold: caseFold };
+  }
+
+  function processReplaceString(rep, matchedText, regex) {
+    var processed = rep
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '\r')
+      .replace(/\\t/g, '\t')
+      .replace(/\\s/g, ' ');
+    
+    if (regex instanceof RegExp) {
+      return matchedText.replace(regex, processed);
+    }
+    return processed;
   }
 
   function updateSearchCount() {
     var q = buildQuery();
     var count = 0;
     if (q) {
-      var cursor;
-      if (q instanceof RegExp) {
-        cursor = editor.getSearchCursor(q, null, { caseFold: false });
-      } else {
-        cursor = editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
-      }
+      var cursor = (q instanceof RegExp) 
+        ? editor.getSearchCursor(q, null, { caseFold: false }) 
+        : editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
       while (cursor.findNext()) count++;
     }
-    var el = document.getElementById('searchCount');
-    if (count > 0) {
-      el.textContent = '🔍 ' + count + ' kết quả';
-    } else {
-      el.textContent = '';
-    }
+    document.getElementById('searchCount').textContent = count > 0 ? '🔍 ' + count + ' kết quả' : '';
   }
 
   function updateSearchHighlights() {
     clearSearchMarks();
     var q = buildQuery();
     if (!q) { updateSearchCount(); return; }
-    var cursor;
-    if (q instanceof RegExp) {
-      cursor = editor.getSearchCursor(q, null, { caseFold: false });
-    } else {
-      cursor = editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
-    }
+    var cursor = (q instanceof RegExp) 
+      ? editor.getSearchCursor(q, null, { caseFold: false }) 
+      : editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
     while (cursor.findNext()) {
       searchMarks.push(editor.markText(cursor.from(), cursor.to(), { className: 'search-highlight' }));
     }
     updateSearchCount();
   }
 
-  // HÀM MỚI: Bộ nhớ đệm - Chỉ render lại highlight khi từ khoá thay đổi (chống lag tuyệt đối khi bấm Enter liên tục)
   function smartHighlight() {
     var text = document.getElementById('frFind').value;
     var isRegex = document.getElementById('frRegex').checked;
     var isCase = document.getElementById('frCase').checked;
-    
     if (text !== lastFrQuery || isRegex !== lastFrRegex || isCase !== lastFrCase) {
       updateSearchHighlights();
-      lastFrQuery = text;
-      lastFrRegex = isRegex;
-      lastFrCase = isCase;
+      lastFrQuery = text; lastFrRegex = isRegex; lastFrCase = isCase;
     }
   }
 
   function findNext() {
-    smartHighlight(); // <--- Chỉ đánh dấu màu khi bấm Tìm kiếm hoặc Enter
+    smartHighlight();
     var q = buildQuery();
     if (!q) { showToast('Nhập chuỗi cần tìm', 2000); return; }
-    var cursor;
-    if (q instanceof RegExp) {
-      cursor = editor.getSearchCursor(q, editor.getCursor(), { caseFold: false });
-    } else {
-      cursor = editor.getSearchCursor(q.query, editor.getCursor(), { caseFold: q.caseFold });
-    }
+    var cursor = (q instanceof RegExp) 
+      ? editor.getSearchCursor(q, editor.getCursor(), { caseFold: false }) 
+      : editor.getSearchCursor(q.query, editor.getCursor(), { caseFold: q.caseFold });
+      
     if (cursor.findNext()) {
       editor.setSelection(cursor.from(), cursor.to());
       editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 80);
     } else {
-      if (q instanceof RegExp) {
-        cursor = editor.getSearchCursor(q, null, { caseFold: false });
-      } else {
-        cursor = editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
-      }
+      cursor = (q instanceof RegExp) 
+        ? editor.getSearchCursor(q, null, { caseFold: false }) 
+        : editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
       if (cursor.findNext()) {
         editor.setSelection(cursor.from(), cursor.to());
         editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 80);
@@ -876,27 +773,22 @@
   }
 
   function findPrev() {
-    smartHighlight(); // <--- Chỉ đánh dấu màu khi bấm Tìm kiếm hoặc Enter
+    smartHighlight();
     var q = buildQuery();
     if (!q) { showToast('Nhập chuỗi cần tìm', 2000); return; }
-    var start = editor.getCursor('start');
-    var cursor;
-    if (q instanceof RegExp) {
-      cursor = editor.getSearchCursor(q, start, { caseFold: false });
-    } else {
-      cursor = editor.getSearchCursor(q.query, start, { caseFold: q.caseFold });
-    }
+    var cursor = (q instanceof RegExp) 
+      ? editor.getSearchCursor(q, editor.getCursor('start'), { caseFold: false }) 
+      : editor.getSearchCursor(q.query, editor.getCursor('start'), { caseFold: q.caseFold });
+      
     if (cursor.findPrevious()) {
       editor.setSelection(cursor.from(), cursor.to());
       editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 80);
     } else {
       var lastLine = editor.lastLine();
       var lastCh = editor.getLine(lastLine).length;
-      if (q instanceof RegExp) {
-        cursor = editor.getSearchCursor(q, { line: lastLine, ch: lastCh }, { caseFold: false });
-      } else {
-        cursor = editor.getSearchCursor(q.query, { line: lastLine, ch: lastCh }, { caseFold: q.caseFold });
-      }
+      cursor = (q instanceof RegExp) 
+        ? editor.getSearchCursor(q, { line: lastLine, ch: lastCh }, { caseFold: false }) 
+        : editor.getSearchCursor(q.query, { line: lastLine, ch: lastCh }, { caseFold: q.caseFold });
       if (cursor.findPrevious()) {
         editor.setSelection(cursor.from(), cursor.to());
         editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 80);
@@ -911,17 +803,17 @@
     var q = buildQuery();
     var rep = document.getElementById('frReplace').value;
     if (!q) { showToast('Nhập chuỗi cần tìm', 2000); return; }
-    var from = editor.getCursor('start');
-    var cursor;
-    if (q instanceof RegExp) {
-      cursor = editor.getSearchCursor(q, from, { caseFold: false });
-    } else {
-      cursor = editor.getSearchCursor(q.query, from, { caseFold: q.caseFold });
-    }
+    
+    var cursor = (q instanceof RegExp) 
+      ? editor.getSearchCursor(q, editor.getCursor('start'), { caseFold: false }) 
+      : editor.getSearchCursor(q.query, editor.getCursor('start'), { caseFold: q.caseFold });
+      
     if (cursor.findNext()) {
-      cursor.replace(rep);
+      var matchedText = editor.getRange(cursor.from(), cursor.to());
+      var finalReplace = processReplaceString(rep, matchedText, q);
+      cursor.replace(finalReplace);
       showToast('🔁 Đã thay 1 chỗ', 1800);
-      updateSearchHighlights(); // Bắt buộc render lại sau khi thay đổi để tránh lệch màu
+      updateSearchHighlights();
     } else {
       showToast('Không tìm thấy để thay', 2000);
     }
@@ -932,99 +824,73 @@
     var q = buildQuery();
     var rep = document.getElementById('frReplace').value;
     if (!q) { showToast('Nhập chuỗi cần tìm', 2000); return; }
+    
     var count = 0;
-    var cursor;
-    if (q instanceof RegExp) {
-      cursor = editor.getSearchCursor(q, null, { caseFold: false });
-    } else {
-      cursor = editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
-    }
+    var cursor = (q instanceof RegExp) 
+      ? editor.getSearchCursor(q, null, { caseFold: false }) 
+      : editor.getSearchCursor(q.query, null, { caseFold: q.caseFold });
+      
     editor.operation(function() {
       while (cursor.findNext()) {
-        cursor.replace(rep);
+        var matchedText = editor.getRange(cursor.from(), cursor.to());
+        var finalReplace = processReplaceString(rep, matchedText, q);
+        cursor.replace(finalReplace);
         count++;
       }
     });
     showToast('🔂 Đã thay ' + count + ' chỗ', 2000);
-    updateSearchHighlights(); // Bắt buộc render lại
+    updateSearchHighlights();
     updateStats();
   }
 
-  // Bắt sự kiện phím Enter
   document.getElementById('frFind').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); findNext(); }
   });
   
-  // ❌ ĐÃ XÓA SỰ KIỆN 'input' TẠI ĐÂY - CHẤM DỨT TÌNH TRẠNG LAG
-
-  // Xóa bộ nhớ đệm và vẽ lại màu ngay lập tức nếu tick vào ô Regex / Phân biệt hoa thường
-  function forceRehighlight() {
-    lastFrQuery = ''; 
-    smartHighlight();
-  }
+  function forceRehighlight() { lastFrQuery = ''; smartHighlight(); }
   document.getElementById('frRegex').addEventListener('change', forceRehighlight);
   document.getElementById('frCase').addEventListener('change', forceRehighlight);
 
-
-
   /* ============================
-     COPY / PASTE / CLEAR
+     COPY / PASTE / HỆ THỐNG
      ============================ */
   function copyCode() {
     var code = editor.getValue();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(code).then(function() { showToast('📋 Đã copy toàn bộ code!', 2000); });
-    } else {
-      var ta = document.createElement('textarea');
-      ta.value = code;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('📋 Đã copy toàn bộ code!', 2000);
-    }
+    navigator.clipboard.writeText(code).then(function() { showToast('📋 Đã copy toàn bộ code!', 2000); });
   }
 
   function pasteCode() {
-    if (navigator.clipboard) {
-      navigator.clipboard.readText().then(function(text) {
-        if (text) {
-          editor.replaceSelection(text);
-          showToast('📌 Đã paste vào vị trí con trỏ!', 2000);
-          updateStats();
-        }
-      }).catch(function() {
-        showToast('Trình duyệt chặn paste. Dùng Ctrl+V', 3000);
-      });
-    } else {
-      showToast('Dùng Ctrl+V để paste', 2000);
-    }
+    navigator.clipboard.readText().then(function(text) {
+      if (text) { editor.replaceSelection(text); showToast('📌 Đã paste!', 2000); updateStats(); }
+    }).catch(function() { showToast('Dùng Ctrl+V để paste', 2000); });
   }
 
   function clearCode() {
     if (confirm('Bạn có chắc muốn xóa toàn bộ code?')) {
-      editor.setValue('');
-      clearEditorErrors();
-      clearSearchMarks();
+      editor.setValue(''); clearEditorErrors(); clearSearchMarks();
       document.getElementById('errorList').innerHTML = '';
       document.getElementById('searchCount').textContent = '';
-      updateStats();
-      showToast('🗑 Đã xóa toàn bộ', 2000);
+      
+      // Xóa dữ liệu lưu trữ tại localStorage khi bấm nút reset
+      localStorage.removeItem('js_debugger_code');
+      
+      updateStats(); 
+      showToast('🗑 Đã xóa toàn bộ dữ liệu & bộ nhớ tạm', 2000);
     }
   }
 
-  /* ============================
-     ẨN / HIỆN CỘT
-     ============================ */
   function toggleCol(id) {
-    var col = document.getElementById(id);
-    col.classList.toggle('collapsed');
+    document.getElementById(id).classList.toggle('collapsed');
     setTimeout(function() { editor.refresh(); }, 360);
   }
 
-  editor.on('change', function() { updateStats(); });
+  // Lắng nghe sự kiện thay đổi để cập nhật Stats và Tự động lưu LocalStorage
+  editor.on('change', function() { 
+    updateStats(); 
+    localStorage.setItem('js_debugger_code', editor.getValue());
+  });
+  
   updateStats();
 </script>
-
 </body>
 </html>

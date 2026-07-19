@@ -1,447 +1,51 @@
-  <div class="lab-fab-wrapper">
-    <button class="lab-fab-main" id="labFabBtn" title="Chuột trái: Đóng/Mở | Click Phải x1: Xuống đáy | Click Phải x2: Lên đỉnh" style="background-color: rgb(231, 76, 60);">×</button>
-  </div>
-  <div class="lab-dashboard-container mode-horizontal lab-fullscreen-mode" id="labMainDashboard" style="display: flex;">
-    <div class="lab-restore-bar" id="labRestoreBar">
-      <div class="lab-restore-group">
-        <button class="lab-mini-btn btn-success" id="labBtnToggleOrientation" title="Đổi chiều dọc/ngang">🔄</button>
-        <button class="lab-mini-btn" id="labBtnLeftRight" style="display:none;" title="Chuyển trái/phải">➡️ </button>
-        <button class="lab-mini-btn" id="labBtnMaximizeDashboard" title="Phóng to Dashboard">⚙️ </button>
-        <button class="lab-mini-btn" id="labBtnResetLayout" title="Khôi phục kích thước gốc" style="background:#f39c12;">🔄</button>
-        <button class="lab-mini-btn" id="labBtnAntiHijack" style="margin-right: 4px; background: rgb(39, 174, 96); color: rgb(255, 255, 255); font-weight: normal; border: 1px solid rgb(30, 132, 73);" title="Anti-Hijack Shield đang TẮT — Click để bật">🛡️ SHIELD OFF</button>
-      </div>
-      <div class="lab-restore-group sanbox-group">
-        <button class="lab-mini-btn" id="labBtnToggleSniffer" style="background: #27ae60; color: white; margin-right: 4px;" title="Bật/Tắt Sniffer">🌐 </button>
-        <span style="color:#e67e22; font-weight:bold;"></span>
-        <button class="lab-mini-btn" id="labBtnSourceSandbox" style="background:#8e44ad;" title="Bật/Tắt Sandbox">📦</button>
-      </div>
-      <div class="lab-restore-group" id="labRestoreGroupButtons">
-        <button class="lab-mini-btn btn-danger" id="labBtnClearSavedHistory" title="Dọn dẹp lịch sử Console và Tree DOM (Reset)">🧹 </button>
-        <span></span>
-        <button class="lab-mini-btn btn-success lab-btn-restore" data-target="#panelTreeDom" style="display:none;">Tree Dom</button>
-        <button class="lab-mini-btn btn-success lab-btn-restore" data-target="#panelCss" style="display:none;">CSS Live</button>
-        <button class="lab-mini-btn btn-success lab-btn-restore" data-target="#panelJs" style="display:none;">JS jQuery</button>
-        <button class="lab-mini-btn btn-success lab-btn-restore" data-target="#panelConsole" style="display:none;">Console</button>
-        <button class="lab-mini-btn" id="labBtnViewSource" title="Xem Cây DOM Gốc" style="margin-right:4px;">📄 Source Tree</button>
-      </div>
-    </div>
-    <div class="lab-layout-engine has-maximized has-sub-panel" id="labLayoutEngine">
-      <div class="lab-panel" id="panelTreeDom">
-        <div class="lab-panel-header">
-          <span class="lab-panel-title">[ TREE DOM LAB ]</span>
-          <input type="text" id="labMiniTreeSearch" placeholder="🔍 Tìm trong cây..." style="background:#111; border:1px solid #333; color:#fff; padding:2px 6px; font-size:10px; margin-left:10px; border-radius:3px; outline:none; width:120px;">
-          <div class="lab-panel-actions">
-            <button class="lab-mini-btn btn-success" id="labBtnQuickExtractLinks" style="margin-right:4px;" title="Trích xuất toàn bộ Link bên trong Node này">🔗</button>
-            <select class="lab-sub-select" title="Chế độ xem phụ bên phải (rộng 3/7)">
-              <option value="none">📌 Menu</option>
-              <option value="#panelTreeDom">👀 Tree DOM</option>
-              <option value="#panelCss">👀 CSS Live</option>
-              <option value="#panelJs">👀 JS jQuery</option>
-              <option value="#panelConsole">👀 Console</option>
-            </select>
-            <button class="lab-mini-btn btn-danger" id="labBtnClearTreeDom" style="margin-right: 4px;" title="Xóa cây DOM">🗑️ </button>
-            <button class="lab-mini-btn btn-success" id="labBtnExtractMeta" style="margin-right: 4px;" title="Trích xuất Meta/Link">📋 </button>
-            <button class="lab-mini-btn lab-btn-max" data-target="#panelTreeDom">🔲 </button>
-            <button class="lab-mini-btn lab-btn-toggle" data-target="#panelTreeDom">Ẩn</button>
-          </div>
-        </div>
-        <div class="lab-panel-body">
-          <div class="lab-family-tree-bar" id="labFamilyTreeBar" style="display: none; flex-wrap: wrap; align-items: center;">
-            <button class="lab-geo-btn" id="geoBtnTarget" style="background:#e74c3c; margin-bottom:2px;">Lớp 1</button>
-            <button class="lab-geo-btn" id="geoBtnParent" style="background:#2ecc71; margin-bottom:2px;">Lớp 2</button>
-            <button class="lab-geo-btn" id="geoBtnGrand" style="background:#3498db; margin-bottom:2px;">Lớp 3</button>
-            <button class="lab-geo-btn" id="geoBtnGreatGrand" style="background:#9b59b6; margin-bottom:2px;">Lớp 4</button>
-            <button class="lab-geo-btn" id="geoBtnGreatGreatGrand" style="background:#f1c40f; color:#000; margin-bottom:2px;">Lớp 5</button>
-            <button class="lab-geo-btn" id="geoBtnAncestors" style="background:#e67e22; margin-bottom:2px;">Lớp 6</button>
-            <button class="lab-geo-btn" id="geoBtnLayer7" style="background:#d35400; margin-bottom:2px;">Lớp 7</button>
-            <button class="lab-geo-btn" id="geoBtnLayer8" style="background:#c0392b; margin-bottom:2px;">Lớp 8</button>
-            <button class="lab-geo-btn" id="geoBtnLayer9" style="background:#16a085; margin-bottom:2px;">Lớp 9</button>
-            <button class="lab-geo-btn" id="geoBtnLayer10" style="background:#8e44ad; margin-bottom:2px;">Lớp 10</button>
-            <button class="lab-geo-btn" id="geoBtnReverseDown" style="background:#00cec9; color:#000; margin-bottom:2px; margin-left:4px; border: 1px solid #fff;" title="Đảo chiều: Đi xuống lớp con liền kề">⬇️ </button>
-          </div>
-          <div id="labTreeDomBody" style="background:#151515; color:#abb2bf; padding:6px; flex:1; overflow:auto; border-radius:4px; font-size:11px;"></div>
-        </div>
-        <div class="lab-resizer resizer-x"></div>
-        <div class="lab-resizer resizer-y"></div>
-      </div>
-      <div class="lab-panel" id="panelCss">
-        <div class="lab-panel-header">
-          <span class="lab-panel-title">MÃ CSS INTERACTIVE (LIVE)</span>
-          <div class="lab-panel-actions">
-            <select class="lab-sub-select" title="Chế độ xem phụ bên phải (rộng 3/7)">
-              <option value="none">📌 Menu</option>
-              <option value="#panelTreeDom">👀 Tree DOM</option>
-              <option value="#panelCss">👀 CSS Live</option>
-              <option value="#panelJs">👀 JS jQuery</option>
-              <option value="#panelConsole">👀 Console</option>
-            </select>
-            <select class="lab-select-size lab-font-size" title="Tăng size font">
-              <option value="13">13px</option>
-              <option value="15">15px</option>
-              <option value="16">16px</option>
-              <option value="17">17px</option>
-              <option value="18">18px</option>
-              <option value="19">19px</option>
-              <option value="20">20px</option>
-            </select>
-            <button class="lab-mini-btn lab-btn-wrap active" data-target="css" title="Bật/Tắt Wrap">↩️</button>
-            <button class="lab-mini-btn lab-btn-max" data-target="#panelCss">🔲 </button>
-            <button class="lab-mini-btn btn-danger" id="labBtnClearCss">Xóa</button>
-            <button class="lab-mini-btn lab-btn-toggle" data-target="#panelCss">Ẩn</button>
-          </div>
-        </div>
-        <div class="lab-panel-body">
-          <div class="lab-editor-container">
-            <textarea id="labCssInput" placeholder="/* Viết CSS tại đây... */" style="display: none;"></textarea>
-            <div class="CodeMirror cm-s-dracula CodeMirror-wrap" translate="no">
-              <div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 4px; left: 26px;">
-                <textarea style="position: absolute; bottom: -1em; padding: 0px; width: 1px; height: 1em; min-height: 1em; outline: none;" wrap="off" autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0"></textarea>
-              </div>
-              <div class="CodeMirror-vscrollbar" tabindex="-1" cm-not-content="true" style="width: 18px; visibility: hidden; bottom: 0px; display: block;">
-                <div style="min-width: 1px; height: 78px;"></div>
-              </div>
-              <div class="CodeMirror-hscrollbar" tabindex="-1" cm-not-content="true" style="height: 18px; right: 0px; left: 22px; visibility: hidden;">
-                <div style="height: 100%; min-height: 1px; width: 0px;"></div>
-              </div>
-              <div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div>
-              <div class="CodeMirror-gutter-filler" cm-not-content="true"></div>
-              <div class="CodeMirror-scroll" tabindex="-1" draggable="true">
-                <div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 50px; min-height: 67px; padding-right: 0px; padding-bottom: 0px;">
-                  <div style="position: relative; top: 0px;">
-                    <div class="CodeMirror-lines" role="presentation">
-                      <div style="position: relative; outline: none;" role="presentation">
-                        <div class="CodeMirror-measure">
-                          <pre class="CodeMirror-line-like">
-														<span>xxxxxxxxxx</span>
-													</pre>
-                        </div>
-                        <div class="CodeMirror-measure"></div>
-                        <div style="position: relative; z-index: 1;"></div>
-                        <div class="CodeMirror-cursors">
-                          <div class="CodeMirror-cursor" style="left: 4px; top: 0px; height: 19.5px;">&nbsp;</div>
-                        </div>
-                        <div class="CodeMirror-code" role="presentation">
-                          <div style="position: relative;">
-                            <div class="CodeMirror-gutter-wrapper" style="left: -22px;" aria-hidden="true">
-                              <div class="CodeMirror-linenumber CodeMirror-gutter-elt" style="left: 0px; width: 13px;">1</div>
-                            </div>
-                            <pre class=" CodeMirror-line " role="presentation">
-															<span role="presentation">
-																<span class="cm-tag">body</span> { 
-																<span class="cm-property">background</span>: 
-																<span class="cm-keyword">black</span>; 
-																<span class="cm-property">overflow</span>: 
-																<span class="cm-atom">hidden</span>;
-																<span class="cm-property">width</span>:
-																<span class="cm-number">100%</span>;
-																<span class="cm-property">height</span>:
-																<span class="cm-number">100%</span> }
-															</span>
-														</pre>
-                          </div>
-                          <div style="position: relative;">
-                            <div class="CodeMirror-gutter-wrapper" style="left: -22px;" aria-hidden="true">
-                              <div class="CodeMirror-linenumber CodeMirror-gutter-elt" style="left: 0px; width: 13px;">2</div>
-                            </div>
-                            <pre class="CodeMirror-line " role="presentation">
-															<span role="presentation"> &nbsp; &nbsp; &nbsp; &nbsp;
-																<span class="cm-builtin">#tw-player</span>{
-																<span class="cm-property">width</span>:
-																<span class="cm-number">100%</span>;
-																<span class="cm-property">height</span>:
-																<span class="cm-number">100%</span>;
-																<span class="cm-property">position</span>:
-																<span class="cm-atom">fixed</span>;
-																<span class="cm-property">top</span>:
-																<span class="cm-number">0</span>;
-																<span class="cm-property">left</span>:
-																<span class="cm-number">0</span>}
-															</span>
-														</pre>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="position: absolute; height: 50px; width: 1px; border-bottom: 0px solid transparent; top: 67px;"></div>
-                <div class="CodeMirror-gutters" style="height: 117px; left: 0px;">
-                  <div class="CodeMirror-gutter CodeMirror-linenumbers" style="width: 21px;"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="lab-resizer resizer-x"></div>
-        <div class="lab-resizer resizer-y"></div>
-      </div>
-      <div class="lab-panel lab-panel-maximized" id="panelJs">
-        <div class="lab-panel-header">
-          <span class="lab-panel-title">MÃ JS JQUERY (PRO EDITOR)</span>
-          <div class="lab-panel-actions">
-            <select class="lab-sub-select" title="Chế độ xem phụ bên phải (rộng 3/7)">
-              <option value="none">📌 Menu</option>
-              <option value="#panelTreeDom">👀 Tree DOM</option>
-              <option value="#panelCss">👀 CSS Live</option>
-              <option value="#panelJs">👀 JS jQuery</option>
-              <option value="#panelConsole">👀 Console</option>
-            </select>
-            <select class="lab-select-size lab-font-size" title="Tăng size font">
-              <option value="13">13px</option>
-              <option value="15">15px</option>
-              <option value="16">16px</option>
-              <option value="17">17px</option>
-              <option value="18">18px</option>
-              <option value="19">19px</option>
-              <option value="20">20px</option>
-            </select>
-            <button class="lab-mini-btn lab-btn-wrap active" data-target="js" title="Bật/Tắt Wrap">↩️</button>
-            <button class="lab-mini-btn btn-success" id="labBtnRunJs" style="margin-right:4px;">▶ </button>
-            <button class="lab-mini-btn lab-btn-max active-max" data-target="#panelJs">🔳</button>
-            <button class="lab-mini-btn btn-danger" id="labBtnClearJs">Xóa</button>
-            <button class="lab-mini-btn lab-btn-toggle" data-target="#panelJs">Ẩn</button>
-          </div>
-        </div>
-        <div class="lab-panel-body">
-          <div class="lab-editor-container">
-            <textarea id="labJsInput" placeholder="// Viết code jQuery/JS... Ấn Ctrl + Enter để thực thi" style="display: none;"></textarea>
-            <div class="CodeMirror cm-s-dracula CodeMirror-wrap CodeMirror-focused" translate="no">
-              <div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 4px; left: 150.8px;">
-                <textarea style="position: absolute; bottom: -1em; padding: 0px; width: 1px; height: 1em; min-height: 1em; outline: none;" wrap="off" autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" aria-autocomplete="list"></textarea>
-              </div>
-              <div class="CodeMirror-vscrollbar" tabindex="-1" cm-not-content="true" style="bottom: 0px; width: 18px; visibility: hidden;">
-                <div style="min-width: 1px; height: 0px;"></div>
-              </div>
-              <div class="CodeMirror-hscrollbar" tabindex="-1" cm-not-content="true" style="height: 18px; right: 0px; left: 22px; visibility: hidden;">
-                <div style="height: 100%; min-height: 1px; width: 0px;"></div>
-              </div>
-              <div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div>
-              <div class="CodeMirror-gutter-filler" cm-not-content="true"></div>
-              <div class="CodeMirror-scroll" tabindex="-1" draggable="true">
-                <div class="CodeMirror-sizer" style="margin-left: 22px; margin-bottom: 0px; border-right-width: 50px; min-height: 28px; padding-right: 0px; padding-bottom: 0px;">
-                  <div style="position: relative; top: 0px;">
-                    <div class="CodeMirror-lines" role="presentation">
-                      <div style="position: relative; outline: none;" role="presentation">
-                        <div class="CodeMirror-measure">
-                          <pre class="CodeMirror-line-like">
-														<span>xxxxxxxxxx</span>
-													</pre>
-                          <div class="CodeMirror-linenumber CodeMirror-gutter-elt">
-                            <div>1</div>
-                          </div>
-                        </div>
-                        <div class="CodeMirror-measure"></div>
-                        <div style="position: relative; z-index: 1;"></div>
-                        <div class="CodeMirror-cursors" style="">
-                          <div class="CodeMirror-cursor" style="left: 128.8px; top: 0px; height: 19.5px;">&nbsp;</div>
-                        </div>
-                        <div class="CodeMirror-code" role="presentation">
-                          <div style="position: relative;">
-                            <div class="CodeMirror-gutter-wrapper" style="left: -22px;" aria-hidden="true">
-                              <div class="CodeMirror-linenumber CodeMirror-gutter-elt" style="left: 0px; width: 13px;">1</div>
-                            </div>
-                            <pre class=" CodeMirror-line " role="presentation">
-															<span role="presentation">
-																<span class="cm-variable">$</span>(
-																<span class="cm-string">"body"</span>).
-																<span class="cm-property">html</span>()
-															</span>
-														</pre>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="position: absolute; height: 50px; width: 1px; border-bottom: 0px solid transparent; top: 28px;"></div>
-                <div class="CodeMirror-gutters" style="height: 78px; left: 0px;">
-                  <div class="CodeMirror-gutter CodeMirror-linenumbers" style="width: 21px;"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="lab-resizer resizer-x"></div>
-        <div class="lab-resizer resizer-y"></div>
-      </div>
-      <div class="lab-panel lab-sub-panel-active" id="panelConsole">
-        <div class="lab-panel-header">
-          <span style="color:#f1c40f; font-weight:bold;">CONSOLE LOG</span>
-          <div class="lab-panel-actions">
-            <select class="lab-sub-select" title="Chế độ xem phụ bên phải (rộng 3/7)">
-              <option value="none">📌 Menu</option>
-              <option value="#panelTreeDom">👀 Tree DOM</option>
-              <option value="#panelCss">👀 CSS Live</option>
-              <option value="#panelJs">👀 JS jQuery</option>
-              <option value="#panelConsole">👀 Console</option>
-            </select>
-            <button class="lab-mini-btn btn-success" id="labBtnCopyConsole" style="background: rgb(9, 132, 227); margin-right: 4px;" title="Sao chép toàn bộ Log">📋</button>
-            <button class="lab-mini-btn lab-btn-max" data-target="#panelConsole">🔲 </button>
-            <button class="lab-mini-btn btn-danger" id="labBtnClearConsole">Xóa</button>
-            <button class="lab-mini-btn lab-btn-toggle" data-target="#panelConsole">Ẩn</button>
-          </div>
-        </div>
-        <div class="lab-panel-body">
-          <div class="lab-console-output" id="labConsoleLogBody"></div>
-        </div>
-        <div class="lab-resizer resizer-x"></div>
-        <div class="lab-resizer resizer-y"></div>
-      </div>
-    </div>
-  </div>
-  <iframe id="labSandboxIframe" sandbox="allow-scripts"></iframe>
-  <div id="lab-quick-hide-menu" style="display:none; position:fixed; background:#e74c3c; color:#fff; padding:6px 12px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer; z-index:2147483647; box-shadow:0 4px 10px rgba(0,0,0,0.5);">🚫 Ẩn phần tử này</div>
-  <div id="labCssQuickMenu" style="
-                position: fixed; display: none; z-index: 2147483647; background: #1e1e1e; border: 1px solid #3498db; border-radius: 6px;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.85); min-width: 240px; font-family: 'Segoe UI', sans-serif; font-size: 12px; overflow: hidden;
-                user-select: none; pointer-events: auto;
-            ">
-    <div style="background: #252525; padding: 6px 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-      <span style="color: #f1c40f; font-weight: bold;">⚡ QUICK CSS LAB</span>
-      <span id="labQuickMenuTarget" style="color: #50fa7b; font-family: monospace; font-weight: bold; background: #111; padding: 2px 6px; border-radius: 3px;"></span>
-    </div>
-    <div id="labQuickMenuList" style="max-height: 260px; overflow-y: auto; padding: 4px 0;">
-      <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-        <span>👁️ Ẩn phần tử</span>
-        <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">display: none !important;</code>
-      </div>
-      <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-        <span>👁️ Hiện phần tử</span>
-        <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">display: block !important;</code>
-      </div>
-      <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-        <span>⬛ Nền đen</span>
-        <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">background: black !important;</code>
-      </div>
-      <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-        <span>🔤 Chữ đen</span>
-        <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">color: black !important;</code>
-      </div>
-      <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-        <span>👻 Trong suốt</span>
-        <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">opacity: 0 !important;</code>
-      </div>
-      <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-        <span>🔍 Ẩn chữ (Size 0)</span>
-        <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">font-size: 0 !important;</code>
-      </div>
-      <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-        <span>🔤 Chữ 16px</span>
-        <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">font-size: 16px !important;</code>
-      </div>
-      <div class="lab-quick-item" style="padding: 6px 12px; color: #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.15s;">
-        <span>🔤 Chữ 22px</span>
-        <code style="color: #8be9fd; font-size: 11px; background: #111; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace;">font-size: 22px !important;</code>
-      </div>
-    </div>
-  </div>
-  <div id="panelSnifferLab" class="lab-panel lab-panel-hidden" style="
-                display: none; flex-direction: column; background: #1e1e1e !important; border: 2px solid #34495e !important; color: #fff !important;
-                box-sizing: border-box !important; position: fixed !important; z-index: 2147483647 !important; box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
-                border-radius: 4px; pointer-events: auto !important;
-            ">
-    <div class="lab-panel-header" style="display: flex; justify-content: flex-end; align-items: center; background: #2c3e50; padding: 6px 10px; font-weight: bold; font-size: 12px; user-select: none;">
-      <span>🌐</span>
-      <div class="lab-panel-actions" style="display: flex; align-items: center;">
-        <select class="lab-sub-select" title="Chế độ xem phụ bên phải (rộng 3/7)">
-          <option value="none">📌 Menu</option>
-          <option value="#panelTreeDom">👀 Tree DOM</option>
-          <option value="#panelCss">👀 CSS Live</option>
-          <option value="#panelJs">👀 JS jQuery</option>
-          <option value="#panelConsole">👀 Console</option>
-        </select>
-        <button class="lab-mini-btn btn-danger" id="labBtnClearSniffer" style="margin-right: 4px;">🗑️ </button>
-        <button class="lab-mini-btn" id="labBtnCloseSniffer" style="background:#e74c3c; color:white;">×</button>
-      </div>
-    </div>
-    <div id="labSnifferBody" style="flex: 1; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.6;">
-      <div class="tree-node">
-        <span class="tree-toggle" style="cursor:pointer; user-select:none; margin-right:4px;">▼ </span>
-        <span style="color:#2ecc71; font-weight:bold;">📁 MEDIA LINKS (.mp4, .m3u8, .ts) (0)</span>
-        <div class="tree-children" style="margin-left:18px;">
-          <div style="color:#777; font-style:italic; margin-left:14px;">(Trống)</div>
-        </div>
-      </div>
-      <div class="tree-node">
-        <span class="tree-toggle collapsed" style="cursor:pointer; user-select:none; margin-right:4px;">▶ </span>
-        <span style="color:#9b59b6; font-weight:bold;">📁 EMBED RESOURCES (iframe, player) (0)</span>
-        <div class="tree-children hidden" style="margin-left: 18px; display: none;">
-          <div style="color:#777; font-style:italic; margin-left:14px;">(Trống)</div>
-        </div>
-      </div>
-      <div class="tree-node">
-        <span class="tree-toggle collapsed" style="cursor:pointer; user-select:none; margin-right:4px;">▶ </span>
-        <span style="color:#e74c3c; font-weight:bold;">📁 POST REQUESTS (Full Objects) (0)</span>
-        <div class="tree-children hidden" style="margin-left: 18px; display: none;">
-          <div style="color:#777; font-style:italic; margin-left:14px;">(Trống)</div>
-        </div>
-      </div>
-      <div class="tree-node">
-        <span class="tree-toggle collapsed" style="cursor:pointer; user-select:none; margin-right:4px;">▶ </span>
-        <span style="color:#3498db; font-weight:bold;">📁 GET REQUESTS (Full Objects) (1)</span>
-        <div class="tree-children hidden" style="margin-left: 18px; display: none;">
-          <div class="lab-sniffer-item" style="white-space:normal; margin-bottom:6px; padding:6px; background:rgba(255,255,255,0.03); border-left:2px solid #7f8c8d; cursor:pointer;">
-            <div style="display:flex; gap:6px; align-items:flex-start;">
-              <span style="color:#7f8c8d;">-</span>
-              </details>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="lab-resizer resizer-x"></div>
-    <div class="lab-resizer resizer-y"></div>
-  </div>
-  <div id="labHtmlSourceModal">
-    <div class="lab-html-modal-header">
-      <span class="lab-html-modal-title">🌳 Cây Cấu Trúc DOM Gốc</span>
-      <!-- CẢI TIẾN: Bộ nạp URL để fetch tiếp các trang cùng Domain -->
-      <div style="display: flex !important; align-items: center !important; gap: 4px !important;">
-        <input type="text" id="labHtmlUrlInput" placeholder="Đường dẫn trang mới (e.g. /categories)...">
-        <button class="lab-html-search-btn" id="labHtmlUrlFetchBtn" style="background: #2980b9 !important;" title="Fetch trang mới cùng Domain">⚡ Fetch URL</button>
-      </div>
-      <div class="lab-html-search-wrap">
-        <input type="text" class="lab-html-search-input" id="labHtmlSearchInput" placeholder="Nhập từ khóa cần lọc (thẻ, class, id, text)...">
-        <button class="lab-html-search-btn" id="labHtmlSearchPrev">▲ Trước</button>
-        <button class="lab-html-search-btn" id="labHtmlSearchNext">▼ Sau</button>
-        <span class="lab-html-search-count" id="labHtmlSearchCount">0/0</span>
-      </div>
-      <!-- CẢI TIẾN: Nút sao chép mã nguồn đã làm sạch hoàn toàn Script ẩn -->
-      <button class="lab-html-search-btn" id="labHtmlCopySourceBtn" style="background: #8e44ad !important;" title="Sao chép Source Sạch (Không chứa script)">📋 Sao chép</button>
-      <button class="lab-html-search-btn" id="labHtmlToggleSidebar" title="Bật/Tắt Kết quả">📋</button>
-      <button class="lab-html-search-btn btn-danger" id="labHtmlCloseModal" title="Đóng">✕</button>
-    </div>
-    <div class="lab-html-modal-body">
-      <div class="lab-html-editor-wrap" id="labHtmlEditorWrap">
-        <div id="labHtmlTreeContainer"></div>
-      </div>
-      <div class="lab-html-sidebar" id="labHtmlSidebar">
-        <div class="lab-html-sidebar-header">
-          <span>Danh sách kết quả</span>
-          
-          <span id="labHtmlTotalMatches">0 kết quả</span>
-        </div>
-        <div class="lab-html-sidebar-header">
-          <span>$("#labHtmlEditorWrap #labHtmlTreeContainer .lab-dom-pure-text").html()</span>
-        </div>
-        <div class="lab-html-sidebar-list" id="labHtmlSidebarList"></div>
-      </div>
-    </div>
-  </div>
-  <div id="labCssExtractMenu" style="
-                    position: fixed; display: none; z-index: 2147483647; background: #1e1e1e; border: 1px solid #9b59b6; border-radius: 6px;
-                    box-shadow: 0 8px 24px rgba(0,0,0,0.85); min-width: 320px; max-width: 420px; font-family: 'Segoe UI', sans-serif; font-size: 12px; overflow: hidden;
-                    user-select: none; pointer-events: auto;
-                ">
-    <div style="background: #252525; padding: 6px 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-      <span style="color: #f1c40f; font-weight: bold;">🎨 CSS EXTRACTOR</span>
-      <span id="labCssExtractTarget" style="color: #50fa7b; font-family: monospace; font-weight: bold; background: #111; padding: 2px 6px; border-radius: 3px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
-    </div>
-    <div id="labCssExtractList" style="max-height: 320px; overflow-y: auto; padding: 4px 0;"></div>
-    <div style="background: #111; padding: 6px 10px; border-top: 1px solid #333; display: flex; gap: 4px; flex-wrap: wrap;">
-      <button id="labBtnExtractInline" class="lab-mini-btn" style="font-size:11px; flex:1;">📌 Inline</button>
-      <button id="labBtnExtractSheets" class="lab-mini-btn" style="font-size:11px; flex:1;">📄 Sheets</button>
-      <button id="labBtnExtractComputed" class="lab-mini-btn" style="font-size:11px; flex:1;">🖥️ Computed</button>
-      <button id="labBtnInjectToEditor" class="lab-mini-btn btn-success" style="font-size:11px; flex:1; min-width:80px;">➡️ Editor</button>
-    </div>
-  </div>
+.lab-sub-select, .lab-select-size {
+/* 1. ÉP HIỂN THỊ TUYỆT ĐỐI (Chống tàng hình do Extension hoặc Trình duyệt) */
+visibility: visible !important;
+opacity: 1 !important;
+display: inline-block !important;
+filter: none !important;
+color-scheme: dark !important; /* Buộc Firefox hiểu đây là giao diện tối */
+
+/* 2. KHÓA CỨNG KÍCH THƯỚC (Chống bị co rúm về 0px trên màn hình hẹp) */
+flex-shrink: 0 !important;
+flex-grow: 0 !important;
+width: 85px !important;
+min-width: 85px !important;
+height: 22px !important; /* Định hình chiều cao cố định */
+box-sizing: border-box !important;
+
+/* 3. ĐÈ GIAO DIỆN GỐC CỦA HỆ ĐIỀU HÀNH */
+appearance: none !important;
+-moz-appearance: none !important;
+-webkit-appearance: none !important;
+
+/* 4. MÀU SẮC & THẨM MỸ */
+background-color: #151515 !important;
+color: #50fa7b !important;
+border: 1px solid #3498db !important;
+font-size: 11px !important;
+font-weight: bold !important;
+padding: 1px 18px 1px 6px !important; /* Tăng padding phải để nhường chỗ cho mũi tên */
+border-radius: 3px !important;
+cursor: pointer !important;
+outline: none !important;
+margin-right: 4px !important;
+
+/* 5. TỰ VẼ MŨI TÊN DROPDOWN MỚI */
+background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2350fa7b'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") !important;
+background-repeat: no-repeat !important;
+background-position: right 2px center !important;
+background-size: 12px !important;
+}
+
+/* Sửa lỗi mất màu chữ bên trong danh sách tùy chọn của Firefox */
+.lab-sub-select option, .lab-select-size option {
+background-color: #151515 !important;
+color: #50fa7b !important;
+}
+
+/* Sửa lỗi mất màu chữ bên trong danh sách tùy chọn của Firefox */
+.lab-sub-select option, .lab-select-size option {
+background-color: #151515 !important;
+color: #50fa7b !important;
+}
