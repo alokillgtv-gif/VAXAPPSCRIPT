@@ -335,7 +335,11 @@ var items = [];
 for(var $j = 0;$j < listepi.length;$j++){
     var name = listepi[$j].audioType.replace(/VIETSUB/i,"Việt Sub").replace(/THUYET_MINH/i,"Thuyết Minh");;
     var link = listepi[$j].m3u8Url
-    items.push({name:name,id:link,slug:"type1"})
+    items.push({
+    	name:name,
+    	id:link,
+    	slug:"type1"
+    })
 }
 servers.push({name:"Server",episodes:items});
 
