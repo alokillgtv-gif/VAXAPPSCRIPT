@@ -96,12 +96,12 @@
             .lab-panel { display: flex; flex-direction: column; background: #1e1e1e; border: 1px solid #252525; border-radius: 4px; overflow: hidden; position: relative; }
             .lab-panel.lab-panel-hidden { display: none !important; }
             .lab-panel.lab-panel-maximized { display: flex !important; width: 100%; height: 100% !important; } /* [UPDATE] Bỏ width 100% !important để JS linh hoạt tính toán margin */
-            .lab-panel-header { background: #252525; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; color: #aaa; font-size: 11px; font-weight: bold; border-bottom: 1px solid #151515; flex-shrink: 0; user-select: none; cursor: default; } /* [UPDATE] Thêm cursor cho header */
+            .lab-panel-header { background: #252525; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; color: #aaa; font-size: 11px; font-weight: bold; border-bottom: 1px solid #151515; flex-shrink: 0; user-select: none; cursor: default; position: relative; } /* [UPDATE] Thêm cursor cho header */
             .lab-panel-title { color: #3498db; }
-            .lab-panel-actions { display: flex; gap: 4px; align-items: center; }
+            .lab-panel-actions { display: flex; gap: 4px; align-items: center; pointer-events: auto; z-index: 10; }
 
             /* Nút chức năng thu nhỏ */
-            .lab-mini-btn { background: #34495e; color: #fff; border: none; padding: 2px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+            .lab-mini-btn { background: #34495e; color: #fff; border: none; padding: 2px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; pointer-events: auto; }
             .lab-mini-btn:hover { background: #4e6a85; }
             .lab-mini-btn.btn-danger { background: #c0392b; }
             .lab-mini-btn.btn-danger:hover { background: #e74c3c; }
@@ -850,7 +850,7 @@
 
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/2637a36bdc7275ab067e24565df84bbe2908ef40/miniJQ.js';
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/17123665b85173cc8846cb5857e0cefad64ba6be/miniJQ.js';
 
                     const response = await fetch(helperUrl);
                     if (!response.ok) {
@@ -1047,7 +1047,7 @@
         const processClickEventMain = function(e) {
             if (!isInspectEnabled || isSandboxModeActive) return;
             // [UPDATE] Bỏ qua Sniffer
-            if ($(e.target).closest('#labHtmlSourceModal').length || $(e.target).closest('#labMainDashboard').length || $(e.target).hasClass('lab-fab-wrapper') || $(e.target).is('#labSandboxIframe') || $(e.target).closest('#labCssQuickMenu').length || $(e.target).hasClass('CodeMirror-hints') || $(e.target).closest('#panelSnifferLab').length) return;
+            if ($(e.target).closest('#labHtmlSourceModal').length || $(e.target).closest('#labMainDashboard').length || $(e.target).hasClass('lab-fab-wrapper') || $(e.target).is('#labSandboxIframe') || $(e.target).closest('#labCssQuickMenu').length || $(e.target).hasClass('CodeMirror-hints') || $(e.target).closest('#panelSnifferLab').length || $(e.target).closest('#labTreeDomBody').length) return;
             e.preventDefault();
             e.stopPropagation();
 
@@ -2960,6 +2960,7 @@
                     matchBrackets: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true,
                     foldGutter: true,
                     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+                    hintOptions: { hint: CodeMirror.hint.javascript },
                     extraKeys: {
                         'Esc': function(cm) { if (cm.state.completionActive) cm.closeHint(); },
                         'Ctrl-Enter': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
@@ -2988,7 +2989,7 @@
                     if (token.string && (token.string.length > 1 || token.string === '.' || event.key === '.')) {
                         if (__labAutoCompleteTimer) clearTimeout(__labAutoCompleteTimer);
                         __labAutoCompleteTimer = setTimeout(function() {
-                            CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
+                            CodeMirror.commands.autocomplete(cm, null, { completeSingle: false, customKeys: { 'Enter': false } });
                         }, 150);
                     }
                 });
@@ -3011,6 +3012,7 @@
                     matchBrackets: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true,
                     foldGutter: true,
                     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+                    hintOptions: { hint: CodeMirror.hint.css },
                     extraKeys: {
                         'Tab': function(cm) {
                             if (cm.state.completionActive) { cm.closeHint(); }
@@ -3028,7 +3030,7 @@
                     if (cm.state.completionActive) return;
                     const token = cm.getTokenAt(cm.getCursor());
                     if (token.string && (token.string.length > 1 || event.key === ':')) {
-                        CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
+                        CodeMirror.commands.autocomplete(cm, null, { completeSingle: false, customKeys: { 'Enter': false } });
                     }
                 });
 

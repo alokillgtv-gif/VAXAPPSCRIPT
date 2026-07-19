@@ -1,5 +1,13 @@
 // "version": "1.9"  
 window.BASEURL = window.location.origin;
+window.log = function(msg) {
+    if (typeof nativeLog !== 'undefined') {
+        nativeLog("[motchille] " + msg);
+    } else if (typeof console !== 'undefined' && console.log) {
+        console.log("[motchille] " + msg);
+    }
+}
+
 window._$ = function (htmlOrBlock) {
     if (htmlOrBlock && typeof htmlOrBlock === 'object' && htmlOrBlock.elements) {
         return htmlOrBlock;
