@@ -8,7 +8,7 @@ function getManifest() {
         "id": "xasiat",
         "name": "XXX Châu Á",
         "description": "XXX Hay",
-        "version": "1.3.4",
+        "version": "1.3.5",
         "BASEURL": "https://www.xasiat.com",
         "iconUrl": "https://static.xascdn.li/contents/fgegaiwnykjf/theme/logo.png",
         "isEnabled": true,
@@ -369,7 +369,7 @@ function parseMovieDetail(html, url) {
 			})
 		}
 		servers.push({ name: "Server", episodes: episodes })
-
+		log(JSON.stringify(servers))
 		return JSON.stringify({
 			id: id,
 			title: lname,

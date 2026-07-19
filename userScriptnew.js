@@ -3805,13 +3805,13 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
             // HÀM ĐƯỢC NÂNG CẤP: Thêm tham số customSelector để cố định vùng tìm kiếm dữ liệu
             function v163ExtractLinksFromElement(rootElement, extractType = 'default', customSelector = '') {
 					    // Nếu lỗi hoặc không hợp lệ, trả về mảng rỗng [] thay vì chuỗi rỗng
-					    if (!rootElement || rootElement.nodeType !== 1) return []; 
-					    
+					    if (!rootElement || rootElement.nodeType !== 1) return [];
+
 					    const links = [];
 					    const $root = $(rootElement);
-					
+
 					    const targetSelector = customSelector.trim() || 'a[href]';
-					
+
 					    $root.find(targetSelector).each(function() {
 					        if ($(this).is('a[href]')) {
 					            links.push(this);
@@ -3821,18 +3821,18 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 					            });
 					        }
 					    });
-					
+
 					    if ($root.is(targetSelector) && $root.is('a[href]')) {
 					        if (!links.includes(rootElement)) links.push(rootElement);
 					    }
-					
+
 					    return links.map(a => {
 					        const href = a.href || $(a).attr('href') || '';
 					        let name = '';
 					        const $a = $(a);
-					
+
 					        const attrTypes = ['title', 'alt', 'data-title', 'data-alt', 'src', 'name'];
-					
+
 					        if (extractType === 'default') {
 					            name = $a.text();
 					        } else if (attrTypes.includes(extractType)) {
@@ -3841,17 +3841,17 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
 					            const $targetTag = $a.find(extractType);
 					            name = $targetTag.length ? $targetTag.text() : $a.text();
 					        }
-					
+
 					        name = name.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim();
-					
+
 					        // Nếu tên quá ngắn hoặc không có link thì trả về null để lọc bỏ sau
 					        if (name.length < 4 || !href) {
 					            return null;
 					        }
-					
+
 					        // Xóa domain, chỉ giữ lại đường dẫn tương đối (slug)
 					        const cleanLink = href.replace(/^https?:\/\/[^\/]+/i, "");
-					
+
 					        // Trả về object chứa link và name gọn gàng
 					        return JSON.stringify({
 					            link: cleanLink,
