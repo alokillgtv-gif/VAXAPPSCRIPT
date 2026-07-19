@@ -8,7 +8,7 @@ function getManifest() {
         "id": "xasiat",
         "name": "XXX Châu Á",
         "description": "XXX Hay",
-        "version": "1.1",
+        "version": "1.2",
         "BASEURL": "https://www.xasiat.com",
         "iconUrl": "https://static.xascdn.li/contents/fgegaiwnykjf/theme/logo.png",
         "isEnabled": true,
@@ -455,9 +455,11 @@ function parseCategoriesResponse(apiResponseJson) {
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
 // https://k8s.onflixcdn.com/api/movies?sort=year_desc&limit=24&category=chien-tranh
+
 function getLISTmenu() {
     return 
-`/categories/jav-4k/
+`
+/categories/jav-4k/@@Hàng 4K
 /categories/gravure-idols/@@Gravure Idols
 /categories/amateur3/@@Amateur
 /categories/southeast-asia/@@Southeast Asia
