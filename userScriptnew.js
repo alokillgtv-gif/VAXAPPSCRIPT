@@ -257,9 +257,53 @@
             /* CodeMirror Override Styles cho khớp với giao diện Lab */
             .CodeMirror { flex: 1; width: 100% !important; height: 100% !important; font-family: 'Consolas', 'Consolas', monospace !important; font-size: 13px !important; line-height: 1.5 !important; background: #1a1a1a !important; }
             .CodeMirror-gutters { background: #151515 !important; border-right: 1px solid #333 !important; }
-            .CodeMirror-hints { z-index: 2147483647 !important; font-family: 'Consolas', monospace !important; font-size: 12px !important; background: #252525 !important; border: 1px solid #3498db !important; box-shadow: 0 8px 20px rgba(0,0,0,0.8) !important; }
-            .CodeMirror-hint { color: #f8f8f2 !important; padding: 4px 8px !important; }
-            .CodeMirror-hint-active { background: #3498db !important; color: #fff !important; }
+            /* [FIX v17.2] Bảo vệ hiển thị CodeMirror Hints khỏi bị che khuất */
+.CodeMirror-hints {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 2147483647 !important;
+    position: absolute !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 2px !important;
+    border-radius: 3px !important;
+    font-family: 'Consolas', monospace !important;
+    font-size: 12px !important;
+    background: #252525 !important;
+    border: 1px solid #3498db !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.8) !important;
+    max-height: 240px !important;
+    overflow-y: auto !important;
+}
+
+.CodeMirror-hint {
+    display: block !important;
+    padding: 4px 8px !important;
+    color: #f8f8f2 !important;
+    cursor: pointer !important;
+}
+
+.CodeMirror-hint:hover,
+.CodeMirror-hint.CodeMirror-hint-active {
+    background: #3498db !important;
+    color: #fff !important;
+}
+
+/* [FIX] Chặn các CSS rule khác can thiệp vào hints */
+#labMainDashboard .CodeMirror-hints,
+#labMainDashboard .CodeMirror-hints *,
+#labMainDashboard .CodeMirror-hint {
+    filter: none !important;
+    text-decoration: none !important;
+}
+
+/* [FIX] Đảm bảo Shadow DOM không che khuất hints */
+.CodeMirror-hints:not(.CodeMirror-hints.hidden) {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+}
             .CodeMirror-cursor { border-left: 2px solid #50fa7b !important; }
             .CodeMirror-foldgutter { width: 14px !important; }
             .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { cursor: pointer !important; color: #888 !important; font-size: 12px !important; text-align: center !important; line-height: 1.5 !important; }
@@ -3089,6 +3133,7 @@
         // ==========================================
         // 13. EXTENSION ULTRA V15: PRO CODE EDITOR ENGINE
         // ==========================================
+        
         function initProCodeEditors() {
             if (typeof CodeMirror === 'undefined') return;
 
@@ -3107,6 +3152,19 @@
                     window.__labJsActiveTab = 0;
                 }
             }
+
+					// [FIX v17.2] Bảo vệ CodeMirror Hints khỏi bị che khuất
+					(function protectCodeMirrorHints() {
+						setInterval(function() {
+							const hints = document.querySelectorAll('.CodeMirror-hints');
+							hints.forEach(hint => {
+								hint.style.setProperty('display', 'block', 'important');
+								hint.style.setProperty('visibility', 'visible', 'important');
+								hint.style.setProperty('opacity', '1', 'important');
+								hint.style.setProperty('z-index', '2147483647', 'important');
+							});
+						}, 100);
+					})();
 
             function saveJsTabs() {
                 if (window.__labJsTabs) {
@@ -3178,13 +3236,43 @@
                     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
                     hintOptions: { hint: CodeMirror.hint.javascript },
                     extraKeys: {
-                        'Esc': function(cm) { if (cm.state.completionActive) cm.closeHint(); },
-                        'Ctrl-Enter': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
-                        'Ctrl-G': function() { $("#labBtnClearConsole").click();$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');executeJsEngine(); },
-                        'Ctrl-B': function() { $("#labBtnClearConsole").click(); },
-                        'Ctrl-Space': 'autocomplete',
-                        'Ctrl-Q': function(cm) { cm.foldCode(cm.getCursor()); }
-                    }
+										'Up': function(cm) {
+											if (cm.state.completionActive) {
+												cm.state.completionActive.move(-1);
+											} else {
+												cm.execCommand('goLineUp');
+											}
+										},
+										'Down': function(cm) {
+											if (cm.state.completionActive) {
+												cm.state.completionActive.move(1);
+											} else {
+												cm.execCommand('goLineDown');
+											}
+										},
+										'Enter': function(cm) {
+											if (cm.state.completionActive) {
+												cm.state.completionActive.pick();
+											} else {
+												cm.execCommand('newlineAndIndent');
+											}
+										},
+										'Esc': function(cm) { if (cm.state.completionActive) cm.closeHint(); },
+										'Tab': function(cm) {
+											if (cm.state.completionActive) {
+												cm.state.completionActive.pick();
+											} else {
+												cm.replaceSelection('    ');
+											}
+										},
+										'Ctrl-Enter': function() {
+											$("#labBtnClearConsole").click();
+											$('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
+											executeJsEngine();
+										},
+										'Ctrl-Space': 'autocomplete',
+										'Ctrl-Q': function(cm) { cm.foldCode(cm.getCursor()); }
+									}
                 });
 
                 // Load initial tab content
@@ -3283,6 +3371,115 @@
                 }
             });
         }
+
+// [FIX v17.11] jQuery-based Arrow Key Handler cho Hints
+$(document).on('keydown.labHintsNav', function(e) {
+	// Chỉ xử lý khi hints hiển thị
+	const $hints = $('.CodeMirror-hints');
+	if ($hints.length === 0 || $hints.is(':hidden')) return;
+	
+	const $active = $hints.find('.CodeMirror-hint-active');
+	let $target = null;
+	
+	// Arrow Up
+	if (e.key === 'ArrowUp' && e.keyCode === 38) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		$target = $active.prev('.CodeMirror-hint');
+		if ($target.length) {
+			$active.removeClass('CodeMirror-hint-active');
+			$target.addClass('CodeMirror-hint-active');
+			$target[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+		return false;
+	}
+	
+	// Arrow Down
+	if (e.key === 'ArrowDown' && e.keyCode === 40) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		$target = $active.next('.CodeMirror-hint');
+		if ($target.length) {
+			$active.removeClass('CodeMirror-hint-active');
+			$target.addClass('CodeMirror-hint-active');
+			$target[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+		return false;
+	}
+	
+	// [NEW] Ctrl+D - Chọn dòng tiếp theo của hints (Down)
+	if (e.ctrlKey && (e.key === 'f' || e.key === 'F' || e.keyCode === 70)) {
+	e.preventDefault();
+	e.stopPropagation();
+	
+	const $allHints = $hints.find('.CodeMirror-hint');
+	$target = $active.next('.CodeMirror-hint');
+	
+	if ($target.length) {
+		// Có hint tiếp theo
+		$active.removeClass('CodeMirror-hint-active');
+		$target.addClass('CodeMirror-hint-active');
+		$target[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		//console.log('⬇️ Ctrl+F: Move down to:', $target.text());
+	} else {
+		// Tới cuối rồi, loop lại đầu
+		$active.removeClass('CodeMirror-hint-active');
+		$allHints.first().addClass('CodeMirror-hint-active');
+		$allHints[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		//console.log('🔄 Ctrl+F: Loop back to first:', $allHints.first().text());
+	}
+	return false;
+}
+	
+	// [NEW] Ctrl+U - Chọn dòng trước của hints (Up) - tùy chọn
+	if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		$target = $active.prev('.CodeMirror-hint');
+		if ($target.length) {
+			$active.removeClass('CodeMirror-hint-active');
+			$target.addClass('CodeMirror-hint-active');
+			$target[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			//console.log('⬆️ Ctrl+U: Move up to:', $target.text());
+		}
+		return false;
+	}
+	
+	// Enter - Chọn hint
+	if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+		if ($active.length) {
+			e.preventDefault();
+			e.stopPropagation();
+			
+			// Trigger click trên hint item
+			$active.trigger('click');
+			return false;
+		}
+	}	
+	
+	// Enter - Chọn hint
+	if (e.key === 'Enter' && e.keyCode === 13) {
+		if ($active.length) {
+			e.preventDefault();
+			e.stopPropagation();
+			// Trigger click trên hint item
+			$active.trigger('click');
+			return false;
+		}
+	}
+	
+	// Escape - Đóng hints
+	if (e.key === 'Escape' && e.keyCode === 27) {
+		if ($hints.length) {
+			e.preventDefault();
+			$hints.remove();
+			return false;
+		}
+	}
+});
 
         initProCodeEditors();
 /* === End Module Pro Code Editor Engine: 3190 === */
@@ -5121,7 +5318,6 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
         }
 
         function updateShieldBtn() {
-        				window.__labAppendLog('Update Button', 'return');
             if (!$shieldBtn || !$shieldBtn.length) return;
             if (shieldActive) {
                 $shieldBtn.css({ background: '#e74c3c', color: '#fff', fontWeight: 'bold', border: '1px solid #c0392b' }).text('🛡️ SHIELD ON').attr('title', 'Anti-Hijack Shield đang BẬT — Click để tắt');
@@ -5421,7 +5617,6 @@ $('#labMiniTreeSearch').on('keydown', function(e) {
     }, 10);
 
 });
-
 })();
 /* === End Module IIFE & Event Listener Cleanup: 5324 === */
 

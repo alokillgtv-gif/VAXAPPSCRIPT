@@ -5,7 +5,7 @@ function getManifest() {
         "id": "4kporn",
         "name": "Phim XXX 4K",
         "description": "XXX siêu nét.",
-        "version": "1.5",
+        "version": "1.5.1",
         "BASEURL": "https://www.freepornvideos.xxx",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -135,14 +135,14 @@ function parseListResponse(html, $url) {
 			// https://img.freepornvideos.xxx/93816000/93816189/medium@2x/1.jpg
 			var src = this.find(".thumb_img").attr("src");
 			var srcload = this.find(".thumb_img").attr("data-src");
-			if(!src.match(/http/) | src.match(/data:image/)){
+			if (!src.match(/http/) | src.match(/data:image/)) {
 				src = srcload;
 			}
 			if (src.indexOf("http") == -1) {
 				src = BASEURL + src;
 			}
 			
-			if (href && href.indexOf("http") > -1) {
+			if (href && href.indexOf("http") > -1 && href.indexOf(BASEURL) > -1) {
 				var cleanThumb = src.replace(/&amp;/g, '&');
 				items.push({
 					"id": href,
