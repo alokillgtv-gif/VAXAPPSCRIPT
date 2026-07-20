@@ -1,13 +1,14 @@
-var BASEURL = "https://gamomephim.com"; 
+var BASEURL = "https://www.1porn.tv"; 
 function getManifest() {
     return JSON.stringify({
-        "id": "gamomephim",
-        "name": "Gà Mờ Mê Phim",
-        "description": "Phim Ngắn Hay",
-        "version": "1.1",
-        "BASEURL": "https://gamomephim.com",
-        "iconUrl": "https://cdn.gamomephim.com/site/logo-1784305321242.png",
+        "id": "1porn",
+        "name": "1Porn",
+        "description": "XXX 4K",
+        "version": "1.0",
+        "BASEURL": "https://www.1porn.tv",
+        "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
+        "isAdult": true,
         "type": "MOVIE",
         "playerType": "exoplayer"
     });
@@ -227,84 +228,76 @@ function extractCleanData(data) {
 }
 
 function parseMovieDetail(html, url) {
-    try {
-        log(url);
-        var id = url;
-        var lname = "Đang cập nhật...";
-        var limg = "";
-        var ldes = "Không có mô tả.";
-        var category = "";
-        var episode_current = "";
-        var quality = "";
-        var year = 2026;
-        var rating = 0;
-        var servers = [];
-        var extra = "";
-        var lactor = "";
-        var ldirec = "";
-        var lduran = "";
-        var status = "";
-        
-        var script = _$(html).find("script:content('m3u8Url')").text();
-        if (!script) {
-            script = _$(html).find("script:content('audioType')").text();
-        }
-        
-        var rawVD = parseNextPayload(script);
-        var dataVD = extractCleanData(rawVD);
-        var video = dataVD.video;
-        
-        if (video) {
-            lname = video.title || lname;
-            limg = video.thumbnailUrl || limg;
-            ldes = video.description || ldes;
-            year = video.releaseYear || year;
-            lactor = video.cast || lactor;
-            lduran = video.durationString || lduran;
-            status = video.status || status;
-        }
-        
-        var listepi = dataVD.episodes || [];
-        var items = [];
-        for (var $j = 0; $j < listepi.length; $j++) {
-            var name = listepi[$j].audioType ? listepi[$j].audioType.replace(/VIETSUB/i, "Việt Sub").replace(/THUYET_MINH/i, "Thuyết Minh") : "Tập " + ($j + 1);
-            var link = listepi[$j].m3u8Url || "";
-            items.push({
-                "name": name,
-                "id": link + "#.m3u8",
-                "slug": "type1"
-            });
-        }
-        
-        servers.push({ "name": "Server Gà Mờ", "episodes": items });
-        
-        return JSON.stringify({
-            id: id,
-            title: lname,
-            posterUrl: limg,
-            backdropUrl: limg,
-            description: ldes,
-            quality: quality,
-            year: year,
-            rating: rating,
-            status: status,
-            category: category,
-            episode_current: episode_current,
-            servers: servers,
-            duration: lduran || "",
-            casts: lactor || "",
-            director: ldirec || "",
-            extra: extra
-        });
-    } catch (e) {
-        log(e);
-        return JSON.stringify({
-            id: url || "error",
-            title: "Lỗi tải thông tin chi tiết",
-            servers: []
-        });
-    }
+	try {
+		log(url);
+		var id = url;
+		var lname = "Đang cập nhật...";
+		var limg = "";
+		var ldes = "Không có mô tả.";
+		var category = "";
+		var episode_current = "";
+		var quality = "";
+		var year = 2026;
+		var rating = 0;
+		var servers = [];
+		var extra = "";
+		var lactor = "";
+		var ldirec = "";
+		var lduran = "";
+		var status = "";
+		lname = _$(html).find("h1").text();
+		limg = _$(html).find('meta[property="og:image"]').attr("content");
+		ldes = _$(html).find('meta[property="og:description"]').attr("content")
+		category = _$(html).find("span:content('Thể loại:|Categories:')").parent().find("a").textAll(" - ");
+		lactor = _$(html).find("span:content('Pornstars:|Diễn viên:')").parent().find("a").textAll(" - ");
+		lduran = _$(html).find('meta[property="video:release_date"]').attr("content");
+		lduran = (Math.floor((parseInt(lduran) / 60))) + " phút";
+		var $items = [];
+		_$(html).find("source").each(function() {
+			var link = this.attr("src") + "#.m3u8";
+			var name = this.attr("label");
+			var item = {
+				id: link,
+				name: "HQ: " + name,
+				slug: name
+			}
+			$items.push(item);
+		})
+		servers.push({
+			name: "Server",
+			episodes: $items
+		})
+		
+		return JSON.stringify({
+			id: id,
+			title: lname,
+			posterUrl: limg,
+			backdropUrl: limg,
+			description: ldes,
+			quality: quality,
+			year: year,
+			rating: rating,
+			status: status,
+			category: category,
+			episode_current: episode_current,
+			servers: servers,
+			duration: lduran || "",
+			casts: lactor || "",
+			director: ldirec || "",
+			extra: extra
+		});
+	} catch (e) {
+		log(e);
+		return JSON.stringify({
+			id: url || "error",
+			title: "Lỗi tải thông tin chi tiết",
+			servers: []
+		});
+	}
 }
+//var html = outerHTML;
+//var url = window.location.href;
+//JSON.parse(parseMovieDetail(html, url))
 
 function parseDetailResponse(html, url) {
     try {

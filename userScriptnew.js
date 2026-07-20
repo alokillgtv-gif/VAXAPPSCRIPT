@@ -888,7 +888,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
 
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/94de03f3a033c5f79edbdcb3fdd668b8b8cd1b6d/miniJQ.js';
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/fb3b7d7159122ae1540002d1c6fd9e5173f9661f/miniJQ.js';
 
                     const response = await fetch(helperUrl);
                     if (!response.ok) {
