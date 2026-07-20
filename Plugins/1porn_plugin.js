@@ -4,7 +4,7 @@ function getManifest() {
         "id": "1porn",
         "name": "1Porn",
         "description": "XXX 4K",
-        "version": "1.2.2",
+        "version": "1.2.3",
         "BASEURL": "https://www.1porn.tv",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -47,65 +47,65 @@ function getFilterConfig() {
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
-    try {
-        if (slug && slug.indexOf("http") > -1) {
-            if (slug.indexOf("search") > -1) {
-                if (filtersJson) {
-                    var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-                    try {
-                        var filters = JSON.parse(fixedJson);
-                        var page = parseInt(filters.page) || 1;
-                        if (page > 1) {
-                            return slug + "?from_videos=" + page + "&from_albums=" + page;
-                        } else {
-                            return slug;
-                        }
-                    } catch (jsonErr) {
-                        return slug;
-                    }
-                }
-            }
-            return slug;
-        }
-        
-        var page = 1;
-        var path = slug || "";
-        
-        if (filtersJson) {
-            var fixedJson2 = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-            try {
-                var filters = JSON.parse(fixedJson2);
-                page = parseInt(filters.page) || 1;
-                if (filters.category) {
-                    if (Array.isArray(filters.category) && filters.category.length > 0) {
-                        path = filters.category[0].slug;
-                    } else if (typeof filters.category === 'string') {
-                        path = filters.category;
-                    }
-                }
-            } catch (jsonErr) {}
-        }
-        
-        var resultUrl = BASEURL;
-        if (path) {
-            resultUrl += path;
-        }
-        if (page > 1) {
-            resultUrl += "?page=" + page;
-        }
-        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
-    } catch (e) {
-        console.log(e);
-        if (slug && slug.indexOf("http") > -1) {
-            return slug;
-        }
-        var fallback = BASEURL + (slug ? "/" + slug : "");
-        return fallback.replace(/([^:]\/)\/+/g, "$1");
-    }
+	try {
+		if (slug && slug.indexOf("http") > -1) {
+			if (slug.indexOf("search") > -1) {
+				if (filtersJson) {
+					var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+					try {
+						var filters = JSON.parse(fixedJson);
+						var page = parseInt(filters.page) || 1;
+						if (page > 1) {
+							return slug + page + "/";
+						} else {
+							return slug;
+						}
+					} catch (jsonErr) {
+						return slug;
+					}
+				}
+			}
+			return slug;
+		}
+		
+		var page = 1;
+		var path = slug || "";
+		
+		if (filtersJson) {
+			var fixedJson2 = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+			try {
+				var filters = JSON.parse(fixedJson2);
+				page = parseInt(filters.page) || 1;
+				if (filters.category) {
+					if (Array.isArray(filters.category) && filters.category.length > 0) {
+						path = filters.category[0].slug;
+					} else if (typeof filters.category === 'string') {
+						path = filters.category;
+					}
+				}
+			} catch (jsonErr) {}
+		}
+		
+		var resultUrl = BASEURL;
+		if (path) {
+			resultUrl += path;
+		}
+		if (page > 1) {
+			resultUrl += page + "/";
+		}
+		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+	} catch (e) {
+		console.log(e);
+		if (slug && slug.indexOf("http") > -1) {
+			return slug;
+		}
+		var fallback = BASEURL + (slug ? "/" + slug : "");
+		return fallback.replace(/([^:]\/)\/+/g, "$1");
+	}
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/tim-kiem/" + encodeURIComponent(keyword);
+	return BASEURL + "/vi/search/" + encodeURIComponent(keyword) + "/relevance/";
 }
 
 function getUrlDetail(slug) {
