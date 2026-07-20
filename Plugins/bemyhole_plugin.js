@@ -5,10 +5,11 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.7.1",
+        "version": "1.7.2",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
+        "isAdult": true,
         "type": "VIDEO",
         "playerType": "exoplayer"
     });

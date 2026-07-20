@@ -5,10 +5,11 @@ function getManifest() {
         "id": "4kporn",
         "name": "Phim XXX 4K",
         "description": "XXX siêu nét.",
-        "version": "1.5.1",
+        "version": "1.5.2",
         "BASEURL": "https://www.freepornvideos.xxx",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
+        "isAdult": true,
         "type": "VIDEO",
         "playerType": "exoplayer"
     });
