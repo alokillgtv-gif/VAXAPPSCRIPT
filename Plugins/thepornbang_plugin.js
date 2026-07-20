@@ -4,7 +4,7 @@ function getManifest() {
         "id": "thepornbang",
         "name": "Thepornbang 4K XXX",
         "description": "XXX 4K",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "BASEURL": "https://www.thepornbang.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -307,10 +307,11 @@ function parseMovieDetail(html, url) {
 		lactor = $dataVD.data.video_models;
 		var episodes = [];
 		var servers = [];
+		var $rnd = $dataVD.data.rnd;
 		if ($dataVD.data.video_alt_url3) {
 			var link = $dataVD.data.video_alt_url3;
 			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "#.m3u8",
+				id: link.replace(/[\s\S]*?http/i, "http") + "&rnd=" + $rnd + "#.m3u8",
 				name: "HQ: " + $dataVD.data.video_alt_url3_text,
 				slug: "hd3"
 			})
@@ -318,7 +319,7 @@ function parseMovieDetail(html, url) {
 		if ($dataVD.data.video_alt_url2) {
 			var link = $dataVD.data.video_alt_url2;
 			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "#.m3u8",
+				id: link.replace(/[\s\S]*?http/i, "http") + "&rnd=" + $rnd + "#.m3u8",
 				name: "HQ: " + $dataVD.data.video_alt_url2_text,
 				slug: "hd2"
 			})
@@ -326,7 +327,7 @@ function parseMovieDetail(html, url) {
 		if ($dataVD.data.video_alt_url) {
 			var link = $dataVD.data.video_alt_url;
 			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "#.m3u8",
+				id: link.replace(/[\s\S]*?http/i, "http") + "&rnd=" + $rnd + "#.m3u8",
 				name: "HQ: " + $dataVD.data.video_alt_url_text,
 				slug: "hd3"
 			})
@@ -334,7 +335,7 @@ function parseMovieDetail(html, url) {
 		if ($dataVD.data.video_url) {
 			var link = $dataVD.data.video_url;
 			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "#.m3u8",
+				id: link.replace(/[\s\S]*?http/i, "http") + "&rnd=" + $rnd + "#.m3u8",
 				name: "HQ: " + $dataVD.data.video_url_text,
 				slug: "hd4"
 			})
@@ -372,6 +373,7 @@ function parseMovieDetail(html, url) {
 		});
 	}
 }
+
 //$url = window.location.href;
 //BASEURL = window.location.host;
 //var html = sourceHTML;
