@@ -54,92 +54,77 @@ function getFilterConfig() {
 // URL GENERATION
 // =============================================================================
 
+
 function getUrlList(slug, filtersJson) {
-	try {
-		// 1. Kiểm tra nếu slug là link tuyệt đối (chứa http)
-		if (slug && slug.indexOf("http") > -1) {
-			if (slug.indexOf("search") > -1) {
-				if (filtersJson) {
-					// Sửa lỗi JSON thiếu dấu ngoặc kép trước khi parse (đưa lên đây dùng chung)
-					let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-					
-					try {
-						var filters = JSON.parse(fixedJson);
-						var page = parseInt(filters.page) || 1;
-						
-						if (page > 1) {
-							return slug + "?from_videos=" + page + "&from_albums=" + page;
-							
-						} else {
-							return slug;
-						}
-					}
-					catch (jsonErr) {
-						// Nếu parse JSON vẫn lỗi, trả về slug gốc an toàn luôn
-						return slug;
-					}
-				}
-			}
-			return slug;
-		}
-		
-		var page = 1;
-		var path = slug || "";
-		
-		// 2. Xử lý an toàn filtersJson cho các trường hợp link tương đối (không chứa http)
-		if (filtersJson) {
-			let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-			
-			try {
-				let filters = JSON.parse(fixedJson);
-				page = parseInt(filters.page) || 1;
-				
-				if (filters.category) {
-					if (Array.isArray(filters.category) && filters.category.length > 0) {
-						path = filters.category[0].slug;
-					} else if (typeof filters.category === 'string') {
-						path = filters.category;
-					}
-				}
-			} catch (jsonErr) {
-				// Coi như bỏ qua nếu lỗi JSON
-			}
-		}
-		
-		// 3. Nối chuỗi URL kết quả cho link tương đối
-		let resultUrl = BASEURL;
-		if (path) {
-			resultUrl += path;
-		}
-		if (page > 1) {
-			resultUrl += page + "/";
-		}
-		
-		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
-		
-	} catch (e) {
-		// SỬA LỖI TẠI ĐÂY: Nếu slug đã có http thì trả về chính nó, không cộng thêm BASEURL nữa
-		console.log(e)
-		if (slug && slug.indexOf("http") > -1) {
-			return slug;
-		}
-		let fallback = BASEURL + (slug ? "/" + slug : "");
-		return fallback.replace(/([^:]\/)\/+/g, "$1");
-	}
+    try {
+        if (slug && slug.indexOf("http") > -1) {
+            if (slug.indexOf("search") > -1) {
+                if (filtersJson) {
+                    var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+                    try {
+                        var filters = JSON.parse(fixedJson);
+                        var page = parseInt(filters.page) || 1;
+                        if (page > 1) {
+                            return slug + page + "/";
+                        } else {
+                            return slug;
+                        }
+                    } catch (jsonErr) {
+                        return slug;
+                    }
+                }
+            }
+            return slug;
+        }
+        
+        var page = 1;
+        var path = slug || "";
+        
+        if (filtersJson) {
+            var fixedJson2 = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson2);
+                page = parseInt(filters.page) || 1;
+                if (filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {}
+        }
+        
+        var resultUrl = BASEURL;
+        if (path) {
+            resultUrl += path;
+        }
+        if (page > 1) {
+            resultUrl += page + "/";
+        }
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+    } catch (e) {
+        console.log(e);
+        if (slug && slug.indexOf("http") > -1) {
+            return slug;
+        }
+        var fallback = BASEURL + (slug ? "/" + slug : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-	return BASEURL + "/search/" + encodeURIComponent(keyword) + "/";
+    return BASEURL + "/vi/search/" + encodeURIComponent(keyword) + "/relevance/";
 }
 
-// /latest-updates/6/
-// https://pimpbunny.com/categories/4k/
-// https://www.xasiat.com/search/blacked/?from_videos=7&from_albums=7
+// https://www.1porn.tv/vi/categories/4k/5/
+// https://www.1porn.tv/vi/search/blacked/relevance/3/
+
 //var BASEURL = "https://motchille.cx";
 //var filtersJson = '{page:11,category:[{"slug":"/movies?sort=year_desc&limit=24&category=18-plus","name":"Thiếu niên"}]}'; 
 //var filtersJson = '{page:22}';
 //getUrlSearch("naruto", filtersJson)
-//console.log(getUrlList("/latest-updates/", filtersJson));
+//console.log(getUrlList("https://www.1porn.tv/vi/search/blacked/relevance/", filtersJson));
 
 function getUrlDetail(slug) {
     if (!slug) return "";

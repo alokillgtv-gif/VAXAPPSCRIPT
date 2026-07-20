@@ -1,4 +1,4 @@
-// "version": "2.0"  
+// "version": "2.1"  
 window.BASEURL = window.location.origin;
 window.log = function(msg) {
     if (typeof nativeLog !== 'undefined') {
@@ -299,6 +299,34 @@ window._$ = function (htmlOrBlock) {
                     .join(' '); 
             }
             return "";
+        },
+        // --- CHỨC NĂNG MỚI ĐƯỢC THÊM VÀO ĐÂY ---
+        textAll: function (separator) {
+            if (this.elements.length === 0) return "";
+            var sep = typeof separator === 'string' ? separator : " ";
+            var allTexts = [];
+            
+            for (var i = 0; i < this.elements.length; i++) {
+                var elem = this.elements[i];
+                var start = elem.indexOf('>') + 1;
+                var end = elem.lastIndexOf('</');
+                if (start > 0 && end > start) {
+                    var content = elem.substring(start, end);
+                    // Loại bỏ tất cả các thẻ HTML lồng nhau bên trong khối này
+                    var pureText = content.replace(/<\/?[^>]+(>|$)/g, "\n");
+                    var cleanText = pureText
+                        .split('\n')
+                        .map(function (item) { return item.trim(); })
+                        .filter(function (item) { return item !== ''; })
+                        .join(' '); // Gộp các dòng text nhỏ nội bộ bằng dấu cách trước
+                        
+                    if (cleanText !== '') {
+                        allTexts.push(cleanText);
+                    }
+                }
+            }
+            // Nối toàn bộ văn bản của các thẻ khác nhau bằng dấu phân tách tùy chỉnh
+            return allTexts.join(sep);
         },
         next: function () {
             var results = [];

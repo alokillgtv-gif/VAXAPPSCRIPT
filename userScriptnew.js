@@ -4394,7 +4394,9 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                     }).filter(item => item !== null);
 
                     // THAY ĐỔI Ở ĐÂY: Chuyển toàn bộ mảng thành một chuỗi JSON duy nhất trước khi return
-                    return JSON.stringify(rawDataArray);
+                    // Thay vì chỉ return JSON.stringify(rawDataArray);
+										return JSON.stringify(JSON.stringify(rawDataArray));
+
                 }
 
                 $btnQuickExtract.on('click', function(e) {
