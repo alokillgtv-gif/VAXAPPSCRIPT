@@ -4,7 +4,7 @@ function getManifest() {
         "id": "thepornbang",
         "name": "Thepornbang 4K XXX",
         "description": "XXX 4K",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "BASEURL": "https://www.thepornbang.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
