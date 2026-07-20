@@ -4,7 +4,7 @@ function getManifest() {
         "id": "thepornbang",
         "name": "Thepornbang 4K XXX",
         "description": "XXX 4K",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "BASEURL": "https://www.thepornbang.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -301,7 +301,7 @@ function parseMovieDetail(html, url) {
 		// Lưu ID vào bộ nhớ tạm toàn cục để Lượt 2 lấy ra đối chiếu
 		cachedMovieDetailId = id;
 		lname = $dataVD.data.video_title;
-		limg = $dataVD.data.preview_url;
+		limg = _$(html).find('meta[property="og:image"]').attr("content");
 		ldes = $dataVD.data.video_tags;
 		category = $dataVD.data.video_categories;
 		lactor = $dataVD.data.video_models;
