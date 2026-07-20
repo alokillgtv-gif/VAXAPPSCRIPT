@@ -8,7 +8,7 @@ function getManifest() {
         "id": "xasiat",
         "name": "XXX Châu Á",
         "description": "XXX Hay",
-        "version": "1.3.6",
+        "version": "1.3.7",
         "BASEURL": "https://www.xasiat.com",
         "iconUrl": "https://static.xascdn.li/contents/fgegaiwnykjf/theme/logo.png",
         "isEnabled": true,
