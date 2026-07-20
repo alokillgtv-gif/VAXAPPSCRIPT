@@ -6,7 +6,7 @@ function getManifest() {
     return JSON.stringify({
         "id": "nguoncnew",
         "name": "Phim NguonC Xoá Quảng Cáo",
-        "version": "1.27",
+        "version": "1.28",
         "baseUrl": "https://phim.nguonc.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/nguonC.png",
         "isEnabled": true,
@@ -1123,7 +1123,6 @@ if (document.readyState === 'loading') {
     //document.addEventListener('DOMContentLoaded', initCustomVideoFix);
     setTimeout(checkResume, 5000);
 } else {
-    initCustomVideoFix();
     setTimeout(checkResume, 5000);
 }
 
