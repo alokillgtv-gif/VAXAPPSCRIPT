@@ -4,7 +4,7 @@ function getManifest() {
         "id": "1porn",
         "name": "1Porn",
         "description": "XXX 4K",
-        "version": "1.2",
+        "version": "1.2.1",
         "BASEURL": "https://www.1porn.tv",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -141,7 +141,7 @@ function parseListResponse(html, $url) {
 			if (src.indexOf("http") == -1) {
 				src = BASEURL + src;
 			}
-			
+			log(title + "[" + src + "]");
 			if (href && href.indexOf("http") > -1) {
 				var cleanThumb = src.replace(/&amp;/g, '&');
 				
@@ -157,7 +157,7 @@ function parseListResponse(html, $url) {
 			}
 		});
 		
-		log(JSON.stringify(items));
+		
 		
 		return JSON.stringify({
 			"items": items,
