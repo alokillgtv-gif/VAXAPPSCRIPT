@@ -4,7 +4,7 @@ function getManifest() {
         "id": "thepornbang",
         "name": "Thepornbang 4K XXX",
         "description": "XXX 4K",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "BASEURL": "https://www.thepornbang.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -146,12 +146,13 @@ function parseListResponse(html, $url) {
 			}
 			var quality = this.find('span.hd-icon').text();
 			var title = this.attr("title");
-			var src = this.find("img").attr("src");
+			var src = this.find('img[itemprop="thumbnail"]').attr("src");
 			if (src.indexOf("http") == -1) {
 				src = BASEURL + src;
 			}
 			if (src.indexOf("data:image") > -1) {
-				src = this.find("img").attr("data-original");
+				src = this.find('img[itemprop="thumbnail"]').attr("data-original");
+				src = BASEURL + src;
 			}
 			if (href && href.indexOf("http") > -1) {
 				var cleanThumb = src.replace(/&amp;/g, '&');
