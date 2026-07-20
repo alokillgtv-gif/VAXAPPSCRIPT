@@ -1,5 +1,4 @@
 BASEURL = "https://xsexsub.site";
-// https://www.xxxfiles.com/favicon-32x32.png
 function getManifest() {
     return JSON.stringify({
         "id": "xsexsub",
