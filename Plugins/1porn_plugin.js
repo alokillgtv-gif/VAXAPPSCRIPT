@@ -4,7 +4,7 @@ function getManifest() {
         "id": "1porn",
         "name": "1Porn",
         "description": "XXX 4K",
-        "version": "1.0",
+        "version": "1.1",
         "BASEURL": "https://www.1porn.tv",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
@@ -132,6 +132,9 @@ function parseListResponse(html, $url) {
 			if (href.indexOf("http") == -1) {
 				href = BASEURL + href;
 			}
+			if (!href.match(/videos/) && href.indexOf(BASEURL) < 0) {
+				href = "";
+			}
 			var quality = this.find('span[class*="is-"]').text();
 			var title = this.find("img").attr("alt");
 			var src = this.find("img").attr("src");
@@ -153,7 +156,7 @@ function parseListResponse(html, $url) {
 				});
 			}
 		});
-		
+		log(JSON.stringify(items));
 		return JSON.stringify({
 			"items": items,
 			"pagination": {
