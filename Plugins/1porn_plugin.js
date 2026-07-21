@@ -7,6 +7,7 @@ function getManifest() {
         "version": "1.2.5",
         "BASEURL": "https://www.1porn.tv",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
+      "info":"Nguồn phim chất lượng 4K nên load hơi lâu, bạn chịu khó đợi tí nha.",
         "isEnabled": true,
         "isAdult": true,
         "type": "MOVIE",

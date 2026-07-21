@@ -10,6 +10,7 @@ function getManifest() {
         "BASEURL": "https://pimpbunny.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
+      "info":"Nguồn phim chất lượng 4K nên load hơi lâu, bạn chịu khó đợi tí nha.",
         "isAdult": true,
         "type": "MOVIE",
         "playerType": "exoplayer"

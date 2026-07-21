@@ -8,6 +8,7 @@ function getManifest() {
         "version": "1.3.2",             
         "baseUrl": "https://www.18porn.sex",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg", 
+      "info":"Nguồn phim chất lượng 4K nên load hơi lâu, bạn chịu khó đợi tí nha.",
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
