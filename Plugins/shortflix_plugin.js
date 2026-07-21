@@ -23,7 +23,7 @@ function log(msg) {
 }
 
 function getHomeSections() {
-    var listurl = '[{\"link\":\"last_episode_at\",\"name\":\"Phim Mới\"}]';
+    var listurl = '[{\"link\":\"sortBy=last_episode_at\",\"name\":\"Phim Mới\"}]';
     var menulist = buildMenu(listurl, true);
     return JSON.stringify(menulist);
 }
@@ -166,7 +166,7 @@ function parseListResponse(html, $url) {
         return JSON.stringify({
             "items": items,
             "pagination": {
-                "currentPage": nextpage,
+                "currentPage": "",
                 "totalPages": 999
             }
         });
