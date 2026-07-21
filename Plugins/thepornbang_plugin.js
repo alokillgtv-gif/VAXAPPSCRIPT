@@ -309,33 +309,33 @@ function parseMovieDetail(html, url) {
 		var servers = [];
 		var $rnd = $dataVD.data.rnd;
 		if ($dataVD.data.video_alt_url3) {
-			var link = $dataVD.data.video_alt_url3;
+			var link = $dataVD.data.video_alt_url3.replace(/[\s\S]*?http/i, "http");
 			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "&rnd=" + $rnd + "#.m3u8",
+				id: attachRndToUrl(link) + "#.m3u8",
 				name: "HQ: " + $dataVD.data.video_alt_url3_text,
 				slug: "hd3"
 			})
 		}
 		if ($dataVD.data.video_alt_url2) {
-			var link = $dataVD.data.video_alt_url2;
+			var link = $dataVD.data.video_alt_url2.replace(/[\s\S]*?http/i, "http");
 			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "&rnd=" + $rnd + "#.m3u8",
+				id: attachRndToUrl(link) + "#.m3u8",
 				name: "HQ: " + $dataVD.data.video_alt_url2_text,
 				slug: "hd2"
 			})
 		}
 		if ($dataVD.data.video_alt_url) {
-			var link = $dataVD.data.video_alt_url;
+			var link = $dataVD.data.video_alt_url.replace(/[\s\S]*?http/i, "http");
 			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "&rnd=" + $rnd + "#.m3u8",
+				id: attachRndToUrl(link) + "#.m3u8",
 				name: "HQ: " + $dataVD.data.video_alt_url_text,
 				slug: "hd3"
 			})
 		}
 		if ($dataVD.data.video_url) {
-			var link = $dataVD.data.video_url;
+			var link = $dataVD.data.video_url.replace(/[\s\S]*?http/i, "http");
 			episodes.push({
-				id: link.replace(/[\s\S]*?http/i, "http") + "&rnd=" + $rnd + "#.m3u8",
+				id: attachRndToUrl(link) + "#.m3u8",
 				name: "HQ: " + $dataVD.data.video_url_text,
 				slug: "hd4"
 			})
@@ -394,6 +394,18 @@ function parseDetailResponse(html, url) {
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
+}
+
+function attachRndToUrl(url) {
+    if (!url) return '';
+    
+    // Lấy timestamp miligiây hiện tại (13 chữ số)
+    const rnd = Date.now(); 
+    
+    // Kiểm tra xem URL đã có tham số chưa
+    const separator = url.includes('?') ? '&' : '?';
+    
+    return `${url}${separator}rnd=${rnd}`;
 }
 
 function sortEpisodesByName(data) {
