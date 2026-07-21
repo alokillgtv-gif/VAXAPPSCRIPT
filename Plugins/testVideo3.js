@@ -10,7 +10,7 @@ function getManifest() {
         "id": "testvideo3",          
         "name": "Test EMBED TO Exoplayer",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.5.1",             
+        "version": "1.5.2",             
         "baseUrl": BaseURL,
         "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -145,100 +145,7 @@ function parseDetailResponse(html,url) {
 					headers: {
 						"User-Agent": agent,
 						"Referer": "https://example.com/",
-						"Custom-Js": `
-				           (function() {
-									    if (window._vaapp_hooked) return;
-									    window._vaapp_hooked = true;
-									
-									    function report(url) {
-									        try {
-									            if (!url) return;
-									            url = String(url);
-									
-									            if (
-									                url.indexOf('http') === 0 &&
-									                url.indexOf('blob:') !== 0 &&
-									                (
-									                    url.indexOf('.m3u8') !== -1 
-									                    url.indexOf('.m3u9') !== -1 
-									                    url.indexOf('.mp4') !== -1 
-									                    url.indexOf('.ts') !== -1 
-									                    url.indexOf('get_video') !== -1
-									                )
-									            ) {
-									                SnifferBridge.onVideoDetected(url);
-									            }
-									        } catch (e) {}
-									    }
-									
-									    function scan() {
-									        try {
-									            var v = document.querySelector('video');
-									            if (v) {
-									                report(v.src);
-									                var s = document.querySelector('video source');
-									                if (s) report(s.src);
-									            }
-									
-									            var scripts = document.getElementsByTagName('script');
-									            for (var i = 0; i < scripts.length; i++) {
-									                if (scripts[i].src) report(scripts[i].src);
-									            }
-									        } catch (e) {}
-									    }
-									
-									    try {
-									        var ofetch = window.fetch;
-									        if (ofetch) {
-									            window.fetch = function() {
-									                try {
-									                    var input = arguments[0];
-									                    var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
-									                    report(url);
-									                } catch (e) {}
-									                return ofetch.apply(this, arguments);
-									            };
-									        }
-									    } catch (e) {}
-									
-									    try {
-									        var oopen = XMLHttpRequest.prototype.open;
-									        XMLHttpRequest.prototype.open = function(method, url) {
-									            try { report(url); } catch (e) {}
-									            return oopen.apply(this, arguments);
-									        };
-									    } catch (e) {}
-									
-									    try {
-									        var desc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
-									        if (desc && desc.set) {
-									            Object.defineProperty(HTMLMediaElement.prototype, 'src', {
-									                get: desc.get,
-									                set: function(value) {
-									                    try { report(value); } catch (e) {}
-									                    return desc.set.call(this, value);
-									                }
-									            });
-									        }
-									    } catch (e) {}
-									
-									    window._vaapp_interval = setInterval(function() {
-									        try {
-									            document.querySelectorAll(
-									                '.play-wrapper, .plyr__control--overlaid, div#videooverlay, .jw-icon-playback, .jw-display-icon-container, video, button[class*="play"], div[class*="play"], button[aria-label*="play"], div[aria-label*="play"]'
-									            ).forEach(function(el) {
-									                try {
-									                    if (el.offsetParent !== null  el.offsetWidth > 0  el.offsetHeight > 0) {
-									                        el.click();
-									                    }
-									                } catch (e) {}
-									            });
-									        } catch (e) {}
-									
-									        scan();
-									    }, 500);
-									})();
-				        `
+						"Custom-Js": customjs
 					},
 					subtitles: []
 				});
@@ -322,6 +229,99 @@ style.innerHTML = customcss;
 /* Build Video End */
 
 function injectScriptAfterLoad(scriptUrl) {
+(function() {
+									    if (window._vaapp_hooked) return;
+									    window._vaapp_hooked = true;
+									
+									    function report(url) {
+									        try {
+									            if (!url) return;
+									            url = String(url);
+									
+									            if (
+									                url.indexOf('http') === 0 &&
+									                url.indexOf('blob:') !== 0 &&
+									                (
+									                    url.indexOf('.m3u8') !== -1 
+									                    url.indexOf('.m3u9') !== -1 
+									                    url.indexOf('.mp4') !== -1 
+									                    url.indexOf('.ts') !== -1 
+									                    url.indexOf('get_video') !== -1
+									                )
+									            ) {
+									            	showToast('Đã gửi url '+url+'!',5000
+									                SnifferBridge.onVideoDetected(url);
+									            }
+									        } catch (e) {}
+									    }
+									
+									    function scan() {
+									        try {
+									            var v = document.querySelector('video');
+									            if (v) {
+									                report(v.src);
+									                var s = document.querySelector('video source');
+									                if (s) report(s.src);
+									            }
+									
+									            var scripts = document.getElementsByTagName('script');
+									            for (var i = 0; i < scripts.length; i++) {
+									                if (scripts[i].src) report(scripts[i].src);
+									            }
+									        } catch (e) {}
+									    }
+									
+									    try {
+									        var ofetch = window.fetch;
+									        if (ofetch) {
+									            window.fetch = function() {
+									                try {
+									                    var input = arguments[0];
+									                    var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+									                    report(url);
+									                } catch (e) {}
+									                return ofetch.apply(this, arguments);
+									            };
+									        }
+									    } catch (e) {}
+									
+									    try {
+									        var oopen = XMLHttpRequest.prototype.open;
+									        XMLHttpRequest.prototype.open = function(method, url) {
+									            try { report(url); } catch (e) {}
+									            return oopen.apply(this, arguments);
+									        };
+									    } catch (e) {}
+									
+									    try {
+									        var desc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
+									        if (desc && desc.set) {
+									            Object.defineProperty(HTMLMediaElement.prototype, 'src', {
+									                get: desc.get,
+									                set: function(value) {
+									                    try { report(value); } catch (e) {}
+									                    return desc.set.call(this, value);
+									                }
+									            });
+									        }
+									    } catch (e) {}
+									
+									    window._vaapp_interval = setInterval(function() {
+									        try {
+									            document.querySelectorAll(
+									                '.play-wrapper, .plyr__control--overlaid, div#videooverlay, .jw-icon-playback, .jw-display-icon-container, video, button[class*="play"], div[class*="play"], button[aria-label*="play"], div[aria-label*="play"]'
+									            ).forEach(function(el) {
+									                try {
+									                    if (el.offsetParent !== null  el.offsetWidth > 0  el.offsetHeight > 0) {
+									                        el.click();
+									                    }
+									                } catch (e) {}
+									            });
+									        } catch (e) {}
+									
+									        scan();
+									    }, 500);
+									})();
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
         
