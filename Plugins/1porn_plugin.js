@@ -4,7 +4,7 @@ function getManifest() {
         "id": "1porn",
         "name": "1Porn",
         "description": "XXX 4K",
-        "version": "1.2.5",
+        "version": "1.2.6",
         "BASEURL": "https://www.1porn.tv",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
       "info":"Nguồn phim chất lượng 4K nên load hơi lâu, bạn chịu khó đợi tí nha.",

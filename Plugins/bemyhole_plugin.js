@@ -5,7 +5,7 @@ function getManifest() {
         "id": "bemyhole",
         "name": "Bemyhole XXX",
         "description": "XXX Độc Lạ.",
-        "version": "1.7.2",
+        "version": "1.7.3",
         "BASEURL": "https://www.bemyhole.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
       "info":"Nguồn phim chất lượng 4K nên load hơi lâu, bạn chịu khó đợi tí nha.",

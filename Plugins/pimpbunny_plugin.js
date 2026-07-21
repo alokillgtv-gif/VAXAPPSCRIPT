@@ -6,7 +6,7 @@ function getManifest() {
         "id": "pimpbunny",
         "name": "Pimpbunny",
         "description": "XXX hay",
-        "version": "1.1",
+        "version": "1.1.1",
         "BASEURL": "https://pimpbunny.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "isEnabled": true,
