@@ -5,7 +5,7 @@ function getManifest() {
         "id": "shortflix",
         "name": "Phim Ngắn Hay",
         "description": "Phim Ngắn lồng tiếng vietsub hay",
-        "version": "1.0.9",
+        "version": "1.1.0",
         "baseUrl": "https://www.shortflix.net",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/shortflix.png",
         "isEnabled": true,
@@ -287,6 +287,9 @@ function parseMovieDetail(html, url) {
 		
 		
 		var script = _$(html).find("script:content('.m3u8')").html();
+		if (!script) {
+			script = _$(html).find("script:content('episodes')").html();
+		}
 		var $dataVD = parseScript(script);
 		var servers = [];
 		var $listepi = $dataVD.data.episodes;
@@ -339,7 +342,7 @@ var html = sourceHTML;
 var url = window.location.href;
 JSON.parse(parseMovieDetail(sourceHTML, url))
 */
-//_$(html).find(".order-6:content('Giới thiệu')").text()
+
 
 function parseDetailResponse(html, url) {
 	try {
