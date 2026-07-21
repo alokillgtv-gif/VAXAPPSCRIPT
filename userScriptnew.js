@@ -5086,7 +5086,10 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
     }
 
     // HÀM TỔNG HỢP NÂNG CẤP: Fetch mã nguồn hỗ trợ qua Google Script Proxy hoặc Direct
-    function executeFetchSource(targetUrl) {
+    // fetch Google script
+    // window._$ = function (htmlOrBlock)
+    
+    window.executeFetchSource = function(targetUrl,$check) {
         $treeContainer.html('<div style="color:#aaa; padding:10px;">⌛ Đang phân tích và dựng bản đồ DOM Tree nguồn...</div>');
 
         let finalRequestUrl = targetUrl;
@@ -5105,7 +5108,11 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
             .then(response => response.text())
             .then(html => {
                 // Đổ dữ liệu thô thu được vào biến toàn cục sourceHTML
+
                 window.sourceHTML = html;
+                if ($check == true) {
+                	return false;
+                }
 
                 parsedHtmlDocument = new DOMParser().parseFromString(html, 'text/html');
                 $treeContainer.empty();
@@ -6106,10 +6113,12 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                     // Start init when DOM ready
                     if (document.readyState === 'complete' || document.readyState === 'interactive') {
                         setTimeout(initModule, 100);
+                        executeFetchSource(window.location.href,true);
                     } else {
                         document.addEventListener('DOMContentLoaded', function() {
                             setTimeout(initModule, 100);
                         });
+                     
                     }
 
                     // Restore previous shield state if any (but default is OFF)
