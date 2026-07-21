@@ -1,4 +1,4 @@
-// "version": "2.1"  
+// "version": "2.2"  
 window.BASEURL = window.location.origin;
 window.log = function(msg) {
     if (typeof nativeLog !== 'undefined') {
@@ -15,7 +15,7 @@ window._$ = function (htmlOrBlock) {
     var instance = {
         sourceHtml: typeof htmlOrBlock === 'string' ? htmlOrBlock : '',
         elements: Array.isArray(htmlOrBlock) ? htmlOrBlock : (htmlOrBlock ? [htmlOrBlock] : []),
-        length: 0, // Khởi tạo thuộc tính length mặc định
+        length: 0,
         find: function (selector) {
             if (selector.indexOf(',') !== -1) {
                 var results = [];
@@ -117,7 +117,6 @@ window._$ = function (htmlOrBlock) {
                     
                     if (endOpenTag === -1) break;
                     var fullOpenTag = currentHtml.substring(pos, endOpenTag + 1);
-                    
                     var tagMatch = fullOpenTag.match(/^<([a-zA-Z0-9_-]+)/);
                     var currentTagName = tagMatch ? tagMatch[1].toLowerCase() : "";
                     
@@ -181,36 +180,38 @@ window._$ = function (htmlOrBlock) {
                             }
                         }
                     }
+                    
                     if (isMatched) {
                         var startTagPos = pos;
                         var endTagPos = endOpenTag + 1;
                         var selfClosingTags = ['img', 'source', 'input', 'br', 'hr', 'link', 'meta'];
+                        
                         if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {
-                            var depth = 1;
-                            var scanPos = endOpenTag + 1;
-                            var openStr = '<' + currentTagName;
-                            var closeStr = '</' + currentTagName + '>';
-                            while (depth > 0 && scanPos < currentHtml.length) {
-                                var nextOpen = currentHtml.indexOf(openStr, scanPos);
-                                var nextClose = currentHtml.indexOf(closeStr, scanPos);
-                                if (nextClose === -1) {
-                                    scanPos = currentHtml.length;
-                                    break;
-                                }
-                                if (nextOpen !== -1 && nextOpen < nextClose) {
-                                    depth++;
-                                    scanPos = nextOpen + openStr.length;
-                                } else {
-                                    depth--;
-                                    scanPos = nextClose + closeStr.length;
-                                    if (depth === 0) endTagPos = nClose = nextClose + closeStr.length;
-                                }
+                            var closeRegex = new RegExp('</' + currentTagName + '\\s*>', 'i');
+                            var subHtml = currentHtml.substring(endOpenTag + 1);
+                            var matchClose = subHtml.match(closeRegex);
+                            
+                            if (matchClose) {
+                                endTagPos = endOpenTag + 1 + matchClose.index + matchClose[0].length;
+                            } else {
+                                // Nếu không tìm thấy thẻ đóng (HTML bị thiếu/cắt ngang), lấy đến hết chuỗi
+                                endTagPos = currentHtml.length;
                             }
                         }
+                        
                         var foundBlock = currentHtml.substring(startTagPos, endTagPos);
+                        
                         if (contentFilter) {
-                            var pureText = foundBlock.replace(/<[^>]+>/g, "").trim();
-                            // TÍNH NĂNG MỚI: Tách chuỗi theo dấu | để tìm kiếm tương đối đa từ khóa
+                            var pureText = "";
+                            // Với thẻ script/style, lấy trực tiếp nội dung thô bên trong không dùng regex xóa thẻ HTML
+                            if (currentTagName === "script" || currentTagName === "style") {
+                                var innerStart = foundBlock.indexOf('>') + 1;
+                                var innerEnd = foundBlock.search(/<\/(?:script|style)/i);
+                                pureText = innerEnd !== -1 ? foundBlock.substring(innerStart, innerEnd) : foundBlock.substring(innerStart);
+                            } else {
+                                pureText = foundBlock.replace(/<[^>]+>/g, "").trim();
+                            }
+                            
                             var keywords = contentFilter.split('|');
                             var isContentMatched = false;
                             for (var k = 0; k < keywords.length; k++) {
@@ -224,6 +225,7 @@ window._$ = function (htmlOrBlock) {
                                 continue;
                             }
                         }
+                        
                         if (notSelector) {
                             var isNotClass = notSelector.indexOf('.') === 0;
                             var isNotId = notSelector.indexOf('#') === 0;
@@ -260,7 +262,7 @@ window._$ = function (htmlOrBlock) {
             if (index < 0) index = this.elements.length + index;
             var matchedElement = this.elements[index];
             this.elements = matchedElement ? [matchedElement] : [];
-            this.length = this.elements.length; // Cập nhật lại chiều dài
+            this.length = this.elements.length;
             return this;
         },
         attr: function (attrName) {
@@ -273,9 +275,12 @@ window._$ = function (htmlOrBlock) {
             if (this.elements.length === 0) return "";
             var elem = this.elements[0];
             var start = elem.indexOf('>') + 1;
-            var end = elem.lastIndexOf('</');
-            if (start > 0 && end > start) return elem.substring(start, end);
-            return "";
+            var matchClose = elem.match(/<\/([a-zA-Z0-9_-]+)\s*>\s*$/i);
+            if (matchClose) {
+                var end = elem.lastIndexOf(matchClose[0]);
+                if (start > 0 && end >= start) return elem.substring(start, end);
+            }
+            return start > 0 ? elem.substring(start) : "";
         },
         text: function (separator) {
             if (this.elements.length === 0) return "";
@@ -300,7 +305,6 @@ window._$ = function (htmlOrBlock) {
             }
             return "";
         },
-        // --- CHỨC NĂNG MỚI ĐƯỢC THÊM VÀO ĐÂY ---
         textAll: function (separator) {
             if (this.elements.length === 0) return "";
             var sep = typeof separator === 'string' ? separator : " ";
@@ -312,20 +316,18 @@ window._$ = function (htmlOrBlock) {
                 var end = elem.lastIndexOf('</');
                 if (start > 0 && end > start) {
                     var content = elem.substring(start, end);
-                    // Loại bỏ tất cả các thẻ HTML lồng nhau bên trong khối này
                     var pureText = content.replace(/<\/?[^>]+(>|$)/g, "\n");
                     var cleanText = pureText
                         .split('\n')
                         .map(function (item) { return item.trim(); })
                         .filter(function (item) { return item !== ''; })
-                        .join(' '); // Gộp các dòng text nhỏ nội bộ bằng dấu cách trước
+                        .join(' ');
                         
                     if (cleanText !== '') {
                         allTexts.push(cleanText);
                     }
                 }
             }
-            // Nối toàn bộ văn bản của các thẻ khác nhau bằng dấu phân tách tùy chỉnh
             return allTexts.join(sep);
         },
         next: function () {
@@ -348,22 +350,13 @@ window._$ = function (htmlOrBlock) {
                     var endTagPos = endOpenTag + 1;
                     var selfClosingTags = ['img', 'source', 'input', 'br', 'hr', 'link', 'meta'];
                     if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {
-                        var depth = 1;
-                        var sPos = endOpenTag + 1;
-                        var openStr = '<' + currentTagName;
-                        var closeStr = '</' + currentTagName + '>';
-                        while (depth > 0 && sPos < this.sourceHtml.length) {
-                            var nOpen = this.sourceHtml.indexOf(openStr, sPos);
-                            var nClose = this.sourceHtml.indexOf(closeStr, sPos);
-                            if (nClose === -1) break;
-                            if (nOpen !== -1 && nOpen < nClose) {
-                                depth++;
-                                sPos = nOpen + openStr.length;
-                            } else {
-                                depth--;
-                                sPos = nClose + closeStr.length;
-                                if (depth === 0) endTagPos = nClose + closeStr.length;
-                            }
+                        var closeRegex = new RegExp('</' + currentTagName + '\\s*>', 'i');
+                        var subHtml = this.sourceHtml.substring(endOpenTag + 1);
+                        var matchClose = subHtml.match(closeRegex);
+                        if (matchClose) {
+                            endTagPos = endOpenTag + 1 + matchClose.index + matchClose[0].length;
+                        } else {
+                            endTagPos = this.sourceHtml.length;
                         }
                     }
                     results.push(this.sourceHtml.substring(startTagPos, endTagPos));
@@ -372,7 +365,7 @@ window._$ = function (htmlOrBlock) {
             var nextInstance = _$(results);
             nextInstance.sourceHtml = this.sourceHtml;
             this.elements = results;
-            this.length = results.length; // Cập nhật lại chiều dài
+            this.length = results.length;
             return this;
         },
         parent: function () {
@@ -395,22 +388,13 @@ window._$ = function (htmlOrBlock) {
                             var endTagPos = endOpenTag + 1;
                             var selfClosingTags = ['img', 'source', 'input', 'br', 'hr', 'link', 'meta'];
                             if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {
-                                var depth = 1;
-                                var sPos = endOpenTag + 1;
-                                var openStr = '<' + currentTagName;
-                                var closeStr = '</' + currentTagName + '>';
-                                while (depth > 0 && sPos < this.sourceHtml.length) {
-                                    var nOpen = this.sourceHtml.indexOf(openStr, sPos);
-                                    var nClose = this.sourceHtml.indexOf(closeStr, sPos);
-                                    if (nClose === -1) break;
-                                    if (nOpen !== -1 && nOpen < nClose) {
-                                        depth++;
-                                        sPos = nOpen + openStr.length;
-                                    } else {
-                                        depth--;
-                                        sPos = nClose + closeStr.length;
-                                        if (depth === 0) endTagPos = nClose + closeStr.length;
-                                    }
+                                var closeRegex = new RegExp('</' + currentTagName + '\\s*>', 'i');
+                                var subHtml = this.sourceHtml.substring(endOpenTag + 1);
+                                var matchClose = subHtml.match(closeRegex);
+                                if (matchClose) {
+                                    endTagPos = endOpenTag + 1 + matchClose.index + matchClose[0].length;
+                                } else {
+                                    endTagPos = this.sourceHtml.length;
                                 }
                             }
                             if (endTagPos >= idx + elem.length) {
@@ -426,7 +410,7 @@ window._$ = function (htmlOrBlock) {
             var parentInstance = _$(results);
             parentInstance.sourceHtml = this.sourceHtml;
             this.elements = results;
-            this.length = results.length; // Cập nhật lại chiều dài
+            this.length = results.length;
             return this;
         },
         closest: function (selector) {
@@ -472,7 +456,6 @@ window._$ = function (htmlOrBlock) {
         }
     };
     
-    // Gán giá trị length thực tế ngay khi khởi tạo instance ban đầu
     instance.length = instance.elements.length;
     return instance;
 };
