@@ -5,7 +5,7 @@ function getManifest() {
         "id": "shortflix",
         "name": "Phim Ngắn Hay",
         "description": "Phim Ngắn lồng tiếng vietsub hay",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "baseUrl": "https://www.shortflix.net",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/shortflix.png",
         "isEnabled": true,
@@ -346,21 +346,38 @@ JSON.parse(parseMovieDetail(sourceHTML, url))
 
 function parseDetailResponse(html, url) {
 	try {
-		var tapcurrent = 1;
 		var tap = url.match(/tap=(\d+)/i);
-		if (tap && tap[1]) {
-			tapcurrent = Number(tap[1]) - 1;
-		}
+		var tapVal = tap && tap[1] !== undefined ? tap[1] : "1";
 		
 		var script = _$(html).find("script:content('.m3u8')").html();
 		var $subtitle = "";
 		var $dataVD = parseScript(script);
-		var $episodes = $dataVD.data.episodes;
+		var $episodes = $dataVD.data.episodes || [];
+		
+		// 1. Ưu tiên tìm index dựa trên tên/số tập trong mảng episodes
+		var tapcurrent = $episodes.findIndex(function(ep) {
+			return ep.name == tapVal || ep.slug == tapVal || ep.episode == tapVal;
+		});
+
+		// 2. Nếu không tìm thấy theo tên/số, tính toán index dự phòng
+		if (tapcurrent === -1) {
+			var tapNum = Number(tapVal);
+			// Nếu tap = 0 thì giữ nguyên index 0; nếu tap > 0 thì trừ 1
+			tapcurrent = tapNum > 0 ? tapNum - 1 : 0;
+		}
+
+		// 3. Đảm bảo index luôn nằm trong phạm vi mảng hợp lệ
+		if (tapcurrent < 0) tapcurrent = 0;
+		if (tapcurrent >= $episodes.length) tapcurrent = $episodes.length - 1;
+
 		var $epicurrent = $episodes[tapcurrent];
+		if (!$epicurrent) throw new Error("Episode not found");
+
 		var $video = $epicurrent.versions[0];
 		var $linkstream = $video.videoUrl;
 		var $hardsub = $video.hardSub;
-		if ($hardsub == false) {
+		
+		if ($hardsub === false && $video.subtitles && $video.subtitles.length > 0) {
 			$subtitle = $video.subtitles[0].fileUrl;
 		}
 		
@@ -384,6 +401,7 @@ function parseDetailResponse(html, url) {
 		});
 	}
 }
+
 /*
 var html = sourceHTML;
 var url = window.location.href + "?tap=22";
