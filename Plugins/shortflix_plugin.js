@@ -5,7 +5,7 @@ function getManifest() {
         "id": "shortflix",
         "name": "Phim Ngắn Hay",
         "description": "Phim Ngắn lồng tiếng vietsub hay",
-        "version": "1.0",
+        "version": "1.0.1",
         "baseUrl": "https://www.shortflix.net",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/shortflix.png",
         "isEnabled": true,
