@@ -5,7 +5,7 @@ function getManifest() {
         "id": "shortflix",
         "name": "Phim Ngắn Hay",
         "description": "Phim Ngắn lồng tiếng vietsub hay",
-        "version": "1.0.8",
+        "version": "1.0.9",
         "baseUrl": "https://www.shortflix.net",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/shortflix.png",
         "isEnabled": true,
@@ -185,6 +185,235 @@ function parseListResponse(html, $url) {
     }
 }
 
+
+
+function parseSearchResponse(html, url) {
+    return parseListResponse(html, url);
+}
+
+function parseScript(rawScript) {
+	const result = {
+		success: false,
+		data: {},
+		embedHtml: ''
+	};
+	
+	if (!rawScript || typeof rawScript !== 'string') {
+		return result;
+	}
+	
+	try {
+		// 1. Giải mã các ký tự escape nháy đôi (\" -> ") và xóa xuống dòng thừa gây đứt chuỗi
+		let cleaned = rawScript.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+		cleaned = cleaned.replace(/[\r\n]+/g, ' ');
+		
+		// 2. Tìm vị trí bắt đầu của đối tượng "video": {
+		const videoKey = '"video":{';
+		const videoIndex = cleaned.indexOf(videoKey);
+		
+		if (videoIndex !== -1) {
+			const startIndex = videoIndex + videoKey.length - 1; // Vị trí dấu '{' mở đầu đối tượng video
+			let braceCount = 0;
+			let endIndex = -1;
+			
+			// 3. Thuật toán đếm ngoặc nhọn để xác định chính xác điểm kết thúc của Object video
+			for (let i = startIndex; i < cleaned.length; i++) {
+				if (cleaned[i] === '{') {
+					braceCount++;
+				} else if (cleaned[i] === '}') {
+					braceCount--;
+					if (braceCount === 0) {
+						endIndex = i + 1; // Vị trí dấu '}' đóng đối tượng video
+						break;
+					}
+				}
+			}
+			
+			if (endIndex !== -1) {
+				const videoJsonStr = cleaned.substring(startIndex, endIndex);
+				// Parse duy nhất JSON Object của video (bỏ qua toàn bộ rác Next.js RSC xung quanh)
+				result.data = JSON.parse(videoJsonStr);
+				result.success = true;
+				return result;
+			}
+		}
+		
+		// Fallback dự phòng bằng Regex nếu tìm vị trí chuỗi thất bại
+		const regexMatch = cleaned.match(/"video"\s*:\s*(\{[\s\S]*?\})\s*,\s*"tags"/);
+		if (regexMatch && regexMatch[1]) {
+			result.data = JSON.parse(regexMatch[1]);
+			result.success = true;
+		}
+		
+	} catch (error) {
+		console.error("SafeParser Error:", error);
+	}
+	
+	return result;
+}
+
+function parseMovieDetail(html, url) {
+	try {
+		//log(url);
+		var id = url;
+		var lname = "Đang cập nhật...";
+		var limg = "";
+		var ldes = "Không có mô tả.";
+		var category = "";
+		var episode_current = "";
+		var quality = "";
+		var year = 2026;
+		var rating = 0;
+		var servers = [];
+		var extra = "";
+		var lactor = "";
+		var ldirec = "";
+		var lduran = "";
+		var status = "";
+		
+		lname = _$(html).find("h1").text();
+		limg = _$(html).find('meta[property="og:image"]').attr("content");
+		ldes = _$(html).find(".order-6:content('Giới thiệu')").text();
+		category = _$(html).find(".text-sm:content('Thể loại:')").parent().text(" - ").replace("Thể loại - : - ", "");
+		episode_current = _$(html).find("span:content('Tập mới nhất:')").parent().text().trim().replace("Tập mới nhất:", "");
+		quality = "HD";
+		year = _$(html).find("span:content('Thời gian xuất bản:')").parent().text().trim().replace("Thời gian xuất bản:", "");
+		year = Number(year);
+		lactor = _$(html).find("span:content('Diễn viên:')").parent().text().trim().replace("Diễn viên:", "");
+		ldirec = _$(html).find("span:content('Đạo diễn:')").parent().text().trim().replace("Đạo diễn:", "");
+		lduran = _$(html).find("span:content('Thời lượng:')").parent().text().trim().replace("Thời lượng:", "");
+		status = _$(html).find("span:content('Trạng thái:')").parent().text().trim().replace("Trạng thái:", "");
+		rating = _$(html).find("span:content('Điểm IMDB:')").parent().text().trim().replace("Điểm IMDB:", "");
+		
+		
+		var script = _$(html).find("script:content('.m3u8')").html();
+		var $dataVD = parseScript(script);
+		var servers = [];
+		var $listepi = $dataVD.data.episodes;
+		var $items = [];
+		for (var $j = 0; $j < $listepi.length; $j++) {
+			var $epinumber = $listepi[$j].episodeNumber;
+			var $nameepi = "Tập " + $epinumber;
+			var $item = {
+				id: url + "?tap=" + $epinumber,
+				name: $nameepi,
+				slug: "tap-" + $epinumber
+			}
+			$items.push($item)
+		}
+		servers.push({
+			name: "Server",
+			episodes: $items
+		})
+		
+		
+		return JSON.stringify({
+			id: id,
+			title: lname,
+			posterUrl: limg,
+			backdropUrl: limg,
+			description: ldes,
+			quality: quality,
+			year: year,
+			rating: rating,
+			status: status,
+			category: category,
+			episode_current: episode_current,
+			servers: servers,
+			duration: lduran || "",
+			casts: lactor || "",
+			director: ldirec || "",
+			extra: extra
+		});
+	} catch (e) {
+		log(e);
+		return JSON.stringify({
+			id: url || "error",
+			title: "Lỗi tải thông tin chi tiết",
+			servers: []
+		});
+	}
+}
+/*
+var html = sourceHTML;
+var url = window.location.href;
+JSON.parse(parseMovieDetail(sourceHTML, url))
+*/
+//_$(html).find(".order-6:content('Giới thiệu')").text()
+
+function parseDetailResponse(html, url) {
+	try {
+		var tapcurrent = 1;
+		var tap = url.match(/tap=(\d+)/i);
+		if (tap && tap[1]) {
+			tapcurrent = Number(tap[1]) - 1;
+		}
+		
+		var script = _$(html).find("script:content('.m3u8')").html();
+		var $subtitle = "";
+		var $dataVD = parseScript(script);
+		var $episodes = $dataVD.data.episodes;
+		var $epicurrent = $episodes[tapcurrent];
+		var $video = $epicurrent.versions[0];
+		var $linkstream = $video.videoUrl;
+		var $hardsub = $video.hardSub;
+		if ($hardsub == false) {
+			$subtitle = $video.subtitles[0].fileUrl;
+		}
+		
+		return JSON.stringify({
+			"url": $linkstream,
+			"isEmbed": false,
+			"mimeType": "application/x-mpegURL",
+			"headers": {
+				"Referer": BASEURL,
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+			},
+			"subtitles": [{
+				"lang": "vi",
+				"url": $subtitle
+			}]
+		});
+	} catch (e) {
+		return JSON.stringify({
+			"url": "",
+			"headers": {}
+		});
+	}
+}
+/*
+var html = sourceHTML;
+var url = window.location.href + "?tap=22";
+JSON.parse(parseDetailResponse(html, url))
+*/
+
+function sortEpisodesByName(data) {
+    data.forEach(function(server) {
+        if (server.episodes && Array.isArray(server.episodes)) {
+            server.episodes.sort(function(a, b) {
+                var matchA = a.name.match(/Tập\s*(\d+)/i);
+                var matchB = b.name.match(/Tập\s*(\d+)/i);
+                var numA = matchA ? parseInt(matchA[1], 10) : 0;
+                var numB = matchB ? parseInt(matchB[1], 10) : 0;
+                return numA - numB;
+            });
+        }
+    });
+    return data;
+}
+
+function parseCategoriesResponse(apiResponseJson) {
+    var listurl = getLISTmenu();
+    var menulist = buildMenu(listurl);
+    return JSON.stringify(menulist);
+}
+
+function parseCountriesResponse(html) { return "[]"; }
+function parseYearsResponse(html) { return "[]"; }
+
+// /vi/latest-updates/
+// {\"link\":\"/vi/latest-updates/\",\"name\":\"4K\"}
+
 function getPage(number) {
     var $data = [
         "eyJpZCI6IjE1NDExMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4NDIyMzI2ODU5Nn0",
@@ -283,128 +512,6 @@ function getPage(number) {
     }
     return "";
 }
-
-
-
-function parseSearchResponse(html, url) {
-    return parseListResponse(html, url);
-}
-
-function parseMovieDetail(html, url) {
-	try {
-		log(url);
-		var id = url;
-		var lname = "Đang cập nhật...";
-		var limg = "";
-		var ldes = "Không có mô tả.";
-		var category = "";
-		var episode_current = "";
-		var quality = "";
-		var year = 2026;
-		var rating = 0;
-		var servers = [];
-		var extra = "";
-		var lactor = "";
-		var ldirec = "";
-		var lduran = "";
-		var status = "";
-		lname = _$(html).find("h1").text();
-		limg = _$(html).find('meta[property="og:image"]').attr("content");
-		ldes = _$(html).find('meta[property="og:description"]').attr("content")
-		category = _$(html).find("span:content('Thể loại:|Categories:')").parent().find("a").textAll(" - ");
-		lactor = _$(html).find("span:content('Pornstars:|Diễn viên:')").parent().find("a").textAll(" - ");
-		lduran = _$(html).find('meta[property="video:release_date"]').attr("content");
-		lduran = (Math.floor((parseInt(lduran) / 60))) + " phút";
-		var $items = [];
-		_$(html).find("source").each(function() {
-			var link = this.attr("src") + "#.m3u8";
-			var name = this.attr("label");
-			var item = {
-				id: link,
-				name: "HQ: " + name,
-				slug: name
-			}
-			$items.push(item);
-		})
-		servers.push({
-			name: "Server",
-			episodes: $items
-		})
-		
-		return JSON.stringify({
-			id: id,
-			title: lname,
-			posterUrl: limg,
-			backdropUrl: limg,
-			description: ldes,
-			quality: quality,
-			year: year,
-			rating: rating,
-			status: status,
-			category: category,
-			episode_current: episode_current,
-			servers: servers,
-			duration: lduran || "",
-			casts: lactor || "",
-			director: ldirec || "",
-			extra: extra
-		});
-	} catch (e) {
-		log(e);
-		return JSON.stringify({
-			id: url || "error",
-			title: "Lỗi tải thông tin chi tiết",
-			servers: []
-		});
-	}
-}
-//var html = outerHTML;
-//var url = window.location.href;
-//JSON.parse(parseMovieDetail(html, url))
-
-function parseDetailResponse(html, url) {
-    try {
-        return JSON.stringify({
-            "url": "",
-            "isEmbed": false,
-            "mimeType": "application/x-mpegURL",
-            "headers": {
-                "Referer": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            },
-            "subtitles": []
-        });
-    } catch (e) {
-        return JSON.stringify({ "url": "", "headers": {} });
-    }
-}
-
-function sortEpisodesByName(data) {
-    data.forEach(function(server) {
-        if (server.episodes && Array.isArray(server.episodes)) {
-            server.episodes.sort(function(a, b) {
-                var matchA = a.name.match(/Tập\s*(\d+)/i);
-                var matchB = b.name.match(/Tập\s*(\d+)/i);
-                var numA = matchA ? parseInt(matchA[1], 10) : 0;
-                var numB = matchB ? parseInt(matchB[1], 10) : 0;
-                return numA - numB;
-            });
-        }
-    });
-    return data;
-}
-
-function parseCategoriesResponse(apiResponseJson) {
-    var listurl = getLISTmenu();
-    var menulist = buildMenu(listurl);
-    return JSON.stringify(menulist);
-}
-
-function parseCountriesResponse(html) { return "[]"; }
-function parseYearsResponse(html) { return "[]"; }
-
-// /vi/latest-updates/
-// {\"link\":\"/vi/latest-updates/\",\"name\":\"4K\"}
 
 function getLISTmenu() {
     return `[{\"link\":\"&genre=tong-tai\",\"name\":\"Tổng tài\"},{\"link\":\"&genre=co-dai\",\"name\":\"Cổ đại\"},{\"link\":\"&genre=tam-ly\",\"name\":\"Tâm lý\"},{\"link\":\"&genre=ngon-tinh\",\"name\":\"Ngôn tình\"},{\"link\":\"&genre=hai-huoc\",\"name\":\"Hài hước\"},{\"link\":\"&genre=nu-cuong\",\"name\":\"Nữ cường\"},{\"link\":\"&genre=huyen-huyen\",\"name\":\"Huyền huyễn\"},{\"link\":\"&genre=toi-pham\",\"name\":\"Tội phạm\"},{\"link\":\"&genre=xuyen-khong\",\"name\":\"Xuyên không\"},{\"link\":\"&genre=thanh-xuan\",\"name\":\"Thanh xuân\"},{\"link\":\"&genre=hanh-dong\",\"name\":\"Hành động\"},{\"link\":\"&genre=kinh-di\",\"name\":\"Kinh dị\"},{\"link\":\"&genre=gia-dinh\",\"name\":\"Gia Đình\"},{\"link\":\"&genre=bi-an\",\"name\":\"Bí ẩn\"},{\"link\":\"&genre=dan-quoc\",\"name\":\"Dân quốc\"},{\"link\":\"&genre=trong-sinh\",\"name\":\"Trọng sinh\"},{\"link\":\"&genre=cuoi-truoc-yeu-sau\",\"name\":\"Cưới trước yêu sau\"},{\"link\":\"&genre=khoa-hoc-vien-tuong\",\"name\":\"Khoa học viễn tưởng\"},{\"link\":\"&genre=hanh-dong-ly-ky\",\"name\":\"Hành động ly kỳ\"},{\"link\":\"&genre=hien-dai\",\"name\":\"Hiện đại\"},{\"link\":\"&genre=bao-thu\",\"name\":\"Báo thù\"},{\"link\":\"&genre=the-thao\",\"name\":\"Thể thao\"},{\"link\":\"&genre=em-be\",\"name\":\"Em bé\"},{\"link\":\"&genre=nguoc-luyen\",\"name\":\"Ngược luyến\"},{\"link\":\"&genre=sung-ngot\",\"name\":\"Sủng ngọt\"},{\"link\":\"&genre=hieu-lam\",\"name\":\"Hiểu lầm\"},{\"link\":\"&genre=khac\",\"name\":\"Khác\"},{\"link\":\"&genre=hao-mon\",\"name\":\"Hào môn\"},{\"link\":\"&genre=tim-nguoi-than\",\"name\":\"Tìm người thân\"},{\"link\":\"&genre=quan-phiet\",\"name\":\"Quân phiệt\"},{\"link\":\"&genre=vuon-len-tu-so-khong\",\"name\":\"Vươn lên từ số không\"},{\"link\":\"&genre=tai-hop\",\"name\":\"Tái hợp\"},{\"link\":\"&genre=su-tro-lai\",\"name\":\"Sự trở lại\"},{\"link\":\"&genre=tam-ly-tinh-cam\",\"name\":\"Tâm lý tình cảm\"},{\"link\":\"&genre=truong-thanh\",\"name\":\"Trưởng thành\"}]`;
