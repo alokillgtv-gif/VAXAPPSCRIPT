@@ -5,7 +5,7 @@ function getManifest() {
         "id": "shortflix",
         "name": "Phim Ngắn Hay",
         "description": "Phim Ngắn lồng tiếng vietsub hay",
-        "version": "1.0.7",
+        "version": "1.0.8",
         "baseUrl": "https://www.shortflix.net",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/shortflix.png",
         "isEnabled": true,
@@ -46,79 +46,65 @@ function getFilterConfig() {
 // URL GENERATION
 // =============================================================================
 
+// =============================================================================
+// URL GENERATORS
+// =============================================================================
+
 function getUrlList(slug, filtersJson) {
-	try {
-		log("getUrlList-lug:" + slug + "\r\n" + filtersJson)
-		if (slug && slug.indexOf("http") > -1) {
-			if (slug.indexOf("&q=") > -1) {
-				if (filtersJson) {
-					var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-					try {
-						var filters = JSON.parse(fixedJson);
-						var page = parseInt(filters.page) || 1;
-						if (page > 0) {
-							
-							return slug + "&cursor=" + getPage(page - 1);
-						} else {
-							return slug;
-						}
-					} catch (jsonErr) {
-						return slug;
-					}
-				}
-			}
-			return slug;
-		}
-		
-		var page = 1;
-		var path = slug || "";
-		
-		if (filtersJson) {
-			var fixedJson2 = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-			try {
-				var filters = JSON.parse(fixedJson2);
-				page = parseInt(filters.page) || 1;
-				if (filters.category) {
-					if (Array.isArray(filters.category) && filters.category.length > 0) {
-						path = filters.category[0].slug;
-					} else if (typeof filters.category === 'string') {
-						path = filters.category;
-					}
-				}
-			} catch (jsonErr) {}
-		}
-		
-		var resultUrl = BASEAPI;
-		if (path) {
-			resultUrl += path;
-		}
-		if (page > 0) {
-			resultUrl += "&cursor=" + getPage(page - 1);
-		}
-		log("getUrlList: " + resultUrl)
-		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
-	} catch (e) {
-		console.log(e);
-		if (slug && slug.indexOf("http") > -1) {
-			return slug;
-		}
-		var fallback = BASEURL + (slug ? "/" + slug : "");
-		return fallback.replace(/([^:]\/)\/+/g, "$1");
-	}
+    try {
+        log("getUrlList-slug: " + slug + " | filters: " + filtersJson);
+        
+        var page = 1;
+        var path = slug || "";
+
+        // Parse filtersJson để lấy số trang
+        if (filtersJson) {
+            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+                
+                if (filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {}
+        }
+
+        // Tạo URL cơ sở
+        var resultUrl = "";
+        if (path && path.indexOf("http") === 0) {
+            resultUrl = path;
+        } else {
+            resultUrl = BASEAPI + (path ? path : "");
+        }
+
+        // Xử lý cursor phân trang:
+        // Trang 1: Dùng URL gốc (không gắn cursor)
+        // Trang 2+: Lấy cursor với index = page - 2
+        if (page > 1) {
+            var cursor = getPage(page - 2); // page 2 -> getPage(0), page 3 -> getPage(1)
+            if (cursor) {
+                var separator = resultUrl.indexOf("?") > -1 ? "&" : "?";
+                resultUrl += separator + "cursor=" + encodeURIComponent(cursor);
+            }
+        }
+
+        log("getUrlList Output: " + resultUrl);
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        return slug || BASEAPI;
+    }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-	return BASEAPI + "&q=" + encodeURIComponent(keyword);
+    return BASEAPI + "&q=" + encodeURIComponent(keyword);
 }
-
-// https://www.shortflix.net/api/search?limit=100&language=vi_VN&lang=vi_VN&sortBy=last_episode_at&cursor=eyJpZCI6IjE0NjAxMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4Mjk3MzM4OTM4NX0
-// https://www.shortflix.net/api/search?q=n%C3%A0ng&cursor=eyJpZCI6IjEyNjk5NCIsInRpbWVzdGFtcCI6MCwicmFuayI6MjAsIm9yZGVyVmFsdWUiOjE3ODEwMTM0NDE1NDV9&limit=24&language=vi_VN&lang=vi_VN
-//var BASEAPI = "https://www.shortflix.net/api/search?limit=100&language=vi_VN&lang=vi_VN";
-//var filtersJson = '{page:11,category:[{"slug":"/movies?sort=year_desc&limit=24&category=18-plus","name":"Thiếu niên"}]}'; 
-//var filtersJson = '{page:"eyJpZCI6IjE0NDc3OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MjcxMzU0NTk5N30"}';
-//getUrlSearch("naruto", filtersJson)
-//console.log(getUrlList("https://www.shortflix.net/api/search?limit=100&language=vi_VN&lang=vi_VN&q=ti%E1%BB%83u%20th%C6%B0", filtersJson));
-
 
 function getUrlDetail(slug) {
     if (!slug) return "";
@@ -133,40 +119,47 @@ function getUrlYears() { return ""; }
 // =============================================================================
 // PARSERS
 // =============================================================================
+
 function parseListResponse(html, $url) {
-	log("listurl Get:" + $url);
+    log("listurl Get:" + $url);
     try {
         var items = [];
         var $data = JSON.parse(html);
-        for (var $j = 0; $j < $data.items.length; $j++) {
-            // https://www.shortflix.net/vi/videos/
-            var $item = $data.items[$j];
-            var year = "";
-            var lang = "";
-            var current = $item.status.replace("PUBLISHED", "Hoàn Thành")
-            var href = this.slug;
-            href = BASEURL + "/vi/videos/" + href;
-            var quality = "HD";
-            var title = $item.title;
-            var src = $item.thumbnailUrl;
-            if (href && href.indexOf("http") > -1) {
-                var cleanThumb = src.replace(/&amp;/g, '&');
+        
+        if ($data && $data.items) {
+            for (var $j = 0; $j < $data.items.length; $j++) {
+                var $item = $data.items[$j];
+                var year = "";
+                var lang = "";
+                var current = $item.status ? $item.status.replace("PUBLISHED", "Hoàn Thành") : "";
+                
+                // ĐÃ SỬA: Lấy slug/id trực tiếp từ $item
+                var itemSlug = $item.slug || $item.id || "";
+                var href = BASEURL + "/vi/videos/" + itemSlug;
+                
+                var quality = "HD";
+                var title = $item.title || "";
+                var src = $item.thumbnailUrl || "";
 
-                items.push({
-                    "id": href,
-                    "title": title.trim(),
-                    "posterUrl": cleanThumb,
-                    "backdropUrl": cleanThumb,
-                    "quality": quality,
-                    "lang": lang,
-                    "episode_current": current
-                });
+                if (href) {
+                    var cleanThumb = src.replace(/&amp;/g, '&');
+
+                    items.push({
+                        "id": href,
+                        "title": title.trim(),
+                        "posterUrl": cleanThumb,
+                        "backdropUrl": cleanThumb,
+                        "quality": quality,
+                        "lang": lang,
+                        "episode_current": current
+                    });
+                }
             }
-
-
         }
+
         var nextpage = $data.nextCursor;
-				log("nextCuspr:" + nextpage);
+        log("nextCursor:" + nextpage);
+
         return JSON.stringify({
             "items": items,
             "pagination": {
@@ -191,12 +184,106 @@ function parseListResponse(html, $url) {
         });
     }
 }
-/*
-var html = sourceHTML;
-//JSON.parse(html)
-var $url = "https://www.shortflix.net/api/search?sortBy=last_episode_at&limit=100&language=vi_VN&lang=vi_VN&cursor=eyJpZCI6IjE0NjAxMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4Mjk3MzM4OTM4NX0";
-JSON.parse(parseListResponse(html, $url))
-*/
+
+function getPage(number) {
+    var $data = [
+        "eyJpZCI6IjE1NDExMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4NDIyMzI2ODU5Nn0",
+        "eyJpZCI6IjE1MTgxNyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4Mzg0MjcyMTU3OX0",
+        "eyJpZCI6IjE0ODIwMCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MzQyNjc0ODI5Nn0",
+        "eyJpZCI6IjE0NjAxMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4Mjk3MzM4OTM4NX0",
+        "eyJpZCI6IjE0NDc3OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MjcxMzU0NTk5N30",
+        "eyJpZCI6IjEzOTg0MCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTc3MjM4NTEyMH0",
+        "eyJpZCI6IjEzNzQ3MyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTUwNDUzNjM3M30",
+        "eyJpZCI6IjEyOTkzMyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTIxNTA0NTUzNX0",
+        "eyJpZCI6IjEyOTI1OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTIxMjQwNDMyMn0",
+        "eyJpZCI6IjEyODcwOCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTIxMDExMDg4N30",
+        "eyJpZCI6IjEyODM0MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE1OTY5MjcwNn0",
+        "eyJpZCI6IjEyNzk0MiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE1NzU3NjM5MH0",
+        "eyJpZCI6IjEyOTk3NiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE1MzA4NDQyMH0",
+        "eyJpZCI6IjEyOTgzMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE1MTQyMjI5OH0",
+        "eyJpZCI6IjEyOTcwMiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0OTgxODIyOX0",
+        "eyJpZCI6IjEyNzU2NiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0Nzk0MTExMn0",
+        "eyJpZCI6IjEyNzE4OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0NTk4NzY0Mn0",
+        "eyJpZCI6IjEyNjc4OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0Mzg5NjA4MH0",
+        "eyJpZCI6IjEyNjQyMyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0MTkwODYxNX0",
+        "eyJpZCI6IjEyNjA0MyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEzOTQ3MDQ0OX0",
+        "eyJpZCI6IjEyNTY2OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEzNzU0ODE5Mn0",
+        "eyJpZCI6IjEyNTI1OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEzNTUxNTgyNX0",
+        "eyJpZCI6IjEyMDQ2NiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEwNzYxNDA3NX0",
+        "eyJpZCI6IjEyODk2NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEwMzgxMjI3OX0",
+        "eyJpZCI6IjEyODg0NCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEwMTY2MDAyNH0",
+        "eyJpZCI6IjEyODcwNiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5OTM5NTE3MX0",
+        "eyJpZCI6IjEyODU3MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5NzIyNDA2Mn0",
+        "eyJpZCI6IjEyODQ0MCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5NDk2Mzc0M30",
+        "eyJpZCI6IjEyODMwMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5Mjg1NDA1NX0",
+        "eyJpZCI6IjEyODE1NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5MDY1NzU4MH0",
+        "eyJpZCI6IjEyODAyMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA4ODMzNjU2MX0",
+        "eyJpZCI6IjEyNzkwNSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA4NjIzMzQyOX0",
+        "eyJpZCI6IjEyNzc3NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA4NDA5ODU2MH0",
+        "eyJpZCI6IjEyNzY1MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA4MTY1MDk4MH0",
+        "eyJpZCI6IjEyNzUxMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3OTE5NTczM30",
+        "eyJpZCI6IjEyMDQ1OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3NzExMDIwN30",
+        "eyJpZCI6IjEyNzIzNiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3NTAwNTI3OH0",
+        "eyJpZCI6IjEyNzEwNyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3Mjg3MzIxM30",
+        "eyJpZCI6IjEyNjk2OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3MDk2NDY0NX0",
+        "eyJpZCI6IjEyNjgzMyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA2ODg4OTgwNn0",
+        "eyJpZCI6IjEyNjY5OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA2Njg4NDU4NH0",
+        "eyJpZCI6IjEyNjU1NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA2NDcyOTE2M30",
+        "eyJpZCI6IjEyNjQyMiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA2MjYzMjA2OH0",
+        "eyJpZCI6IjEyNjE2MiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1ODU3OTAyMX0",
+        "eyJpZCI6IjEyNjAyOCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1NjUwMzUwM30",
+        "eyJpZCI6IjEyNTg3OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1NDQ2NDI0MX0",
+        "eyJpZCI6IjEyNTc0MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1MjM2NDE4Nn0",
+        "eyJpZCI6IjEyNTYxMCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1MDE3MjA2Mn0",
+        "eyJpZCI6IjEyNTM0MyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA0NjU3NTkxNH0",
+        "eyJpZCI6IjEyNTIwNSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA0NDg4NDc4MH0",
+        "eyJpZCI6IjEyNTA2MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA0MjkwMzQ4OH0",
+        "eyJpZCI6IjEyMjg2OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDk5OTI0OTg3MX0",
+        "eyJpZCI6IjEyMDM5OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDk2OTI1MDY4OX0",
+        "eyJpZCI6IjExNzk3NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDkwNjM0MDc5NH0",
+        "eyJpZCI6IjExNTkxNyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDUzNDc3NjY4M30",
+        "eyJpZCI6IjExMzU5OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDQ4MzcyNzY3MH0",
+        "eyJpZCI6IjExMTIwMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDM5NDE3NDYwOH0",
+        "eyJpZCI6IjEwNzMzNCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc3OTcxMzA3Nzg0MX0",
+        "eyJpZCI6Ijk1MjIzIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc5MjcxOTcxNjY1fQ",
+        "eyJpZCI6Ijk2NjM4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc5MjI5MzMxNzU4fQ",
+        "eyJpZCI6IjEwMTg1NyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc3OTE4MDA1MDY5OX0",
+        "eyJpZCI6IjEwMTc2NCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc3OTE3Nzc5NTI1Nn0",
+        "eyJpZCI6Ijk2NTczIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc5MDY2MTc3NDkwfQ",
+        "eyJpZCI6Ijk0ODg3IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc4MjExNjQ5MjQ3fQ",
+        "eyJpZCI6Ijg1NzA4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc3NTE3Mjg1MDcwfQ",
+        "eyJpZCI6IjgyNTQ3IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc3MTk0MTA3Mjg3fQ",
+        "eyJpZCI6IjY1NzY4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc2MDc5MzgzMDQzfQ",
+        "eyJpZCI6IjYxODIzIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1Nzg1NDIxNzAzfQ",
+        "eyJpZCI6IjYxMjUyIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NzU1MDUxODMzfQ",
+        "eyJpZCI6IjU4MzE2IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NzM1Nzk2MjUxfQ",
+        "eyJpZCI6IjYwNjI2IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NzEyMjI4MDE1fQ",
+        "eyJpZCI6IjQ4MzMyIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NzQ4MTUwMjYyfQ",
+        "eyJpZCI6IjQ3NzM1IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjU2Mzc4Njc2fQ",
+        "eyJpZCI6IjQ3NjI2IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjU1MTEzNzcyfQ",
+        "eyJpZCI6IjQ3NTI3IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjUzOTQ3MTgyfQ",
+        "eyJpZCI6IjQ3NDI5IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjUyOTE1NjUyfQ",
+        "eyJpZCI6IjQ3MjEwIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjUwOTQyMDcwfQ",
+        "eyJpZCI6IjMxOTMxIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NDI0NzM1MjMwfQ",
+        "eyJpZCI6IjMzNTgwIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NDE4ODA2NjY4fQ",
+        "eyJpZCI6IjMzNDk2IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NDE2OTI0OTc5fQ",
+        "eyJpZCI6IjMzMzk0IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NDE0OTM0NDI3fQ",
+        "eyJpZCI6IjM0NjUwIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0MjA1NjIxMjE1fQ",
+        "eyJpZCI6IjMwODUyIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzczNDY5Nzk4NTQ2fQ",
+        "eyJpZCI6IjI5Mzg4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzcyNTE2NzI2NDQ3fQ",
+        "eyJpZCI6IjI2ODE0IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzcxODI1NjEyMTA2fQ",
+        "eyJpZCI6IjI3OTEiLCJ0aW1lc3RhbXAiOjAsIm9yZGVyVmFsdWUiOjE3Njk0ODU0NTg4ODh9",
+        "eyJpZCI6IjI2OTYiLCJ0aW1lc3RhbXAiOjAsIm9yZGVyVmFsdWUiOjE3Njk0ODQ4MzM5MDd9",
+        "eyJpZCI6IjI1OTIiLCJ0aW1lc3RhbXAiOjAsIm9yZGVyVmFsdWUiOjE3Njk0ODQxNzI3NTV9",
+        "eyJpZCI6IjI0ODciLCJ0aW1lc3RhbXAiOjAsIm9yZGVyVmFsdWUiOjE3Njk0ODM1NDA2MTR9"
+    ];
+
+    if (number >= 0 && number < $data.length) {
+        return $data[number];
+    }
+    return "";
+}
+
 
 
 function parseSearchResponse(html, url) {
@@ -322,8 +409,7 @@ function parseYearsResponse(html) { return "[]"; }
 function getLISTmenu() {
     return `[{\"link\":\"&genre=tong-tai\",\"name\":\"Tổng tài\"},{\"link\":\"&genre=co-dai\",\"name\":\"Cổ đại\"},{\"link\":\"&genre=tam-ly\",\"name\":\"Tâm lý\"},{\"link\":\"&genre=ngon-tinh\",\"name\":\"Ngôn tình\"},{\"link\":\"&genre=hai-huoc\",\"name\":\"Hài hước\"},{\"link\":\"&genre=nu-cuong\",\"name\":\"Nữ cường\"},{\"link\":\"&genre=huyen-huyen\",\"name\":\"Huyền huyễn\"},{\"link\":\"&genre=toi-pham\",\"name\":\"Tội phạm\"},{\"link\":\"&genre=xuyen-khong\",\"name\":\"Xuyên không\"},{\"link\":\"&genre=thanh-xuan\",\"name\":\"Thanh xuân\"},{\"link\":\"&genre=hanh-dong\",\"name\":\"Hành động\"},{\"link\":\"&genre=kinh-di\",\"name\":\"Kinh dị\"},{\"link\":\"&genre=gia-dinh\",\"name\":\"Gia Đình\"},{\"link\":\"&genre=bi-an\",\"name\":\"Bí ẩn\"},{\"link\":\"&genre=dan-quoc\",\"name\":\"Dân quốc\"},{\"link\":\"&genre=trong-sinh\",\"name\":\"Trọng sinh\"},{\"link\":\"&genre=cuoi-truoc-yeu-sau\",\"name\":\"Cưới trước yêu sau\"},{\"link\":\"&genre=khoa-hoc-vien-tuong\",\"name\":\"Khoa học viễn tưởng\"},{\"link\":\"&genre=hanh-dong-ly-ky\",\"name\":\"Hành động ly kỳ\"},{\"link\":\"&genre=hien-dai\",\"name\":\"Hiện đại\"},{\"link\":\"&genre=bao-thu\",\"name\":\"Báo thù\"},{\"link\":\"&genre=the-thao\",\"name\":\"Thể thao\"},{\"link\":\"&genre=em-be\",\"name\":\"Em bé\"},{\"link\":\"&genre=nguoc-luyen\",\"name\":\"Ngược luyến\"},{\"link\":\"&genre=sung-ngot\",\"name\":\"Sủng ngọt\"},{\"link\":\"&genre=hieu-lam\",\"name\":\"Hiểu lầm\"},{\"link\":\"&genre=khac\",\"name\":\"Khác\"},{\"link\":\"&genre=hao-mon\",\"name\":\"Hào môn\"},{\"link\":\"&genre=tim-nguoi-than\",\"name\":\"Tìm người thân\"},{\"link\":\"&genre=quan-phiet\",\"name\":\"Quân phiệt\"},{\"link\":\"&genre=vuon-len-tu-so-khong\",\"name\":\"Vươn lên từ số không\"},{\"link\":\"&genre=tai-hop\",\"name\":\"Tái hợp\"},{\"link\":\"&genre=su-tro-lai\",\"name\":\"Sự trở lại\"},{\"link\":\"&genre=tam-ly-tinh-cam\",\"name\":\"Tâm lý tình cảm\"},{\"link\":\"&genre=truong-thanh\",\"name\":\"Trưởng thành\"}]`;
 }
-function getPage(number) {var $data = [ "eyJpZCI6IjE1NDExMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4NDIyMzI2ODU5Nn0", "eyJpZCI6IjE1MTgxNyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4Mzg0MjcyMTU3OX0", "eyJpZCI6IjE0ODIwMCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MzQyNjc0ODI5Nn0", "eyJpZCI6IjE0NjAxMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4Mjk3MzM4OTM4NX0", "eyJpZCI6IjE0NDc3OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MjcxMzU0NTk5N30", "eyJpZCI6IjEzOTg0MCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTc3MjM4NTEyMH0", "eyJpZCI6IjEzNzQ3MyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTUwNDUzNjM3M30", "eyJpZCI6IjEyOTkzMyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTIxNTA0NTUzNX0", "eyJpZCI6IjEyOTI1OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTIxMjQwNDMyMn0", "eyJpZCI6IjEyODcwOCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTIxMDExMDg4N30", "eyJpZCI6IjEyODM0MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE1OTY5MjcwNn0", "eyJpZCI6IjEyNzk0MiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE1NzU3NjM5MH0", "eyJpZCI6IjEyOTk3NiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE1MzA4NDQyMH0", "eyJpZCI6IjEyOTgzMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE1MTQyMjI5OH0", "eyJpZCI6IjEyOTcwMiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0OTgxODIyOX0", "eyJpZCI6IjEyNzU2NiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0Nzk0MTExMn0", "eyJpZCI6IjEyNzE4OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0NTk4NzY0Mn0", "eyJpZCI6IjEyNjc4OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0Mzg5NjA4MH0", "eyJpZCI6IjEyNjQyMyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTE0MTkwODYxNX0", "eyJpZCI6IjEyNjA0MyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEzOTQ3MDQ0OX0", "eyJpZCI6IjEyNTY2OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEzNzU0ODE5Mn0", "eyJpZCI6IjEyNTI1OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEzNTUxNTgyNX0", "eyJpZCI6IjEyMDQ2NiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEwNzYxNDA3NX0", "eyJpZCI6IjEyODk2NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEwMzgxMjI3OX0", "eyJpZCI6IjEyODg0NCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTEwMTY2MDAyNH0", "eyJpZCI6IjEyODcwNiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5OTM5NTE3MX0", "eyJpZCI6IjEyODU3MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5NzIyNDA2Mn0", "eyJpZCI6IjEyODQ0MCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5NDk2Mzc0M30", "eyJpZCI6IjEyODMwMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5Mjg1NDA1NX0", "eyJpZCI6IjEyODE1NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA5MDY1NzU4MH0", "eyJpZCI6IjEyODAyMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA4ODMzNjU2MX0", "eyJpZCI6IjEyNzkwNSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA4NjIzMzQyOX0", "eyJpZCI6IjEyNzc3NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA4NDA5ODU2MH0", "eyJpZCI6IjEyNzY1MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA4MTY1MDk4MH0", "eyJpZCI6IjEyNzUxMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3OTE5NTczM30", "eyJpZCI6IjEyMDQ1OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3NzExMDIwN30", "eyJpZCI6IjEyNzIzNiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3NTAwNTI3OH0", "eyJpZCI6IjEyNzEwNyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3Mjg3MzIxM30", "eyJpZCI6IjEyNjk2OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA3MDk2NDY0NX0", "eyJpZCI6IjEyNjgzMyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA2ODg4OTgwNn0", "eyJpZCI6IjEyNjY5OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA2Njg4NDU4NH0", "eyJpZCI6IjEyNjU1NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA2NDcyOTE2M30", "eyJpZCI6IjEyNjQyMiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA2MjYzMjA2OH0", "eyJpZCI6IjEyNjkxIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NjA0OTU0MzA", "eyJpZCI6IjEyNjE2MiIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1ODU3OTAyMX0", "eyJpZCI6IjEyNjAyOCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1NjUwMzUwM30", "eyJpZCI6IjEyNTg3OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1NDQ2NDI0MX0", "eyJpZCI6IjEyNTc0MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1MjM2NDE4Nn0", "eyJpZCI6IjEyNTYxMCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA1MDE3MjA2Mn0", "eyJpZCI6IjEyNTc0IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NDgzODc4NzE", "eyJpZCI6IjEyNTM0MyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA0NjU3NTkxNH0", "eyJpZCI6IjEyNTIwNSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA0NDg4NDc4MH0", "eyJpZCI6IjEyNTA2MSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MTA0MjkwMzQ4OH0", "eyJpZCI6IjEyMjg2OSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDk5OTI0OTg3MX0", "eyJpZCI6IjEyMDM5OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDk2OTI1MDY4OX0", "eyJpZCI6IjExNzk3NSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDkwNjM0MDc5NH0", "eyJpZCI6IjExNTkxNyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDUzNDc3NjY4M30", "eyJpZCI6IjExMzU5OCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDQ4MzcyNzY3MH0", "eyJpZCI6IjExMTIwMSIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc4MDM5NDE3NDYwOH0", "eyJpZCI6IjEwNzMzNCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc3OTcxMzA3Nzg0MX0", "eyJpZCI6Ijk1MjIzIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc5MjcxOTcxNjY1fQ", "eyJpZCI6Ijk2NjM4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc5MjI5MzMxNzU4fQ", "eyJpZCI6IjEwMTg1NyIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc3OTE4MDA1MDY5OX0", "eyJpZCI6IjEwMTc2NCIsInRpbWVzdGFtcCI6MCwib3JkZXJWYWx1ZSI6MTc3OTE3Nzc5NTI1Nn0", "eyJpZCI6Ijk2NTczIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc5MDY2MTc3NDkwfQ", "eyJpZCI6Ijk0ODg3IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc4MjExNjQ5MjQ3fQ", "eyJpZCI6Ijg1NzA4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc3NTE3Mjg1MDcwfQ", "eyJpZCI6IjgyNTQ3IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc3MTk0MTA3Mjg3fQ", "eyJpZCI6Ijc4MDg4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc2M3A2MjM5OTA2fQ", "eyJpZCI6IjY1NzY4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc2MDc5MzgzMDQzfQ", "eyJpZCI6IjYxODIzIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1Nzg1NDIxNzAzfQ", "eyJpZCI6IjYxMjUyIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NzU1MDUxODMzfQ", "eyJpZCI6IjU4MzE2IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NzM1Nzk2MjUxfQ", "eyJpZCI6IjYwNjI2IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NzEyMjI4MDE1fQ", "eyJpZCI6IjU2ODY4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc1NDQ4NjM2NTYyfQ", "eyJpZCI6IjQ4MzMyIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NzQ4MTUwMjYyfQ", "eyJpZCI6IjQ3NzM1IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjU2Mzc4Njc2fQ", "eyJpZCI6IjQ3NjI2IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjU1MTEzNzcyfQ", "eyJpZCI6IjQ3NTI3IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjUzOTQ3MTgyfQ", "eyJpZCI6IjQ3NDI5IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjUyOTE1NjUyfQ", "eyJpZCI6IjQ3MzIzIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjUxNzgyNDQ6fQ", "eyJpZCI6IjQ3MjEwIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NjUwOTQyMDcwfQ", "eyJpZCI6IjMxOTMxIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NDI0NzM1MjMwfQ", "eyJpZCI6IjMzNTgwIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NDE4ODA2NjY4fQ", "eyJpZCI6IjMzNDk2IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NDE2OTI0OTc5fQ", "eyJpZCI6IjMzMzk0IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0NDE0OTM0NDI3fQ", "eyJpZCI6IjM0NjUwIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzc0MjA1NjIxMjE1fQ", "eyJpZCI6IjMwODUyIiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzczNDY5Nzk4NTQ2fQ", "eyJpZCI6IjI5Mzg4IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzcyNTE2NzI2NDQ3fQ", "eyJpZCI6IjI2ODE0IiwidGltZXN0YW1wIjowLCJvcmRlclZhbHVlIjoxNzcxODI1NjEyMTA2fQ", "eyJpZCI6IjI3OTEiLCJ0aW1lc3RhbXAiOjAsIm9yZGVyVmFsdWUiOjE3Njk0ODU0NTg4ODh9", "eyJpZCI6IjI2OTYiLCJ0aW1lc3RhbXAiOjAsIm9yZGVyVmFsdWUiOjE3Njk0ODQ4MzM5MDd9", "eyJpZCI6IjI1OTIiLCJ0aW1lc3RhbXAiOjAsIm9yZGVyVmFsdWUiOjE3Njk0ODQxNzI3NTV9", "eyJpZCI6IjI0ODciLCJ0aW1lc3RhbXAiOjAsIm9yZGVyVmFsdWUiOjE3Njk0ODM1NDA2MTR9" ] 
-return $data[number]; }
+
 function buildMenu(menuStr, type) { 
     var menuArray = JSON.parse(menuStr); 
     let menulist = []; 
