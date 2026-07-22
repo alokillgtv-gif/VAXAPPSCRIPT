@@ -12,7 +12,7 @@ function getManifest() {
         "type": "VIDEO",
         "playerType": "embed"
     });
-}
+}  
 
 // https://xsexsub.site/sex-vietsub-moi/page/4/
 function getHomeSections() {
