@@ -5,7 +5,7 @@ function getManifest() {
         "id": "nartodrama",
         "name": "Phim Ngắn Narto",
         "description": "Phim Ngắn lồng tiếng vietsub hay",
-        "version": "1.1.4",
+        "version": "1.1.5",
         "info": "Nguồn phim ngắn siêu hay, một vài bộ phim nên xem theo chiều dọc. App có hỗ trợ nhé. Hãy nhấn thử lại nếu không tải được video.",
         "baseUrl": "https://edge.narto-drama.com",
         "iconUrl": "https://narto-drama.com/narto-drama-logo-compressed.png",
@@ -318,43 +318,69 @@ JSON.parse(parseMovieDetail(outerHTML,$url));
 */
 
 function parseDetailResponse(html, url) {
-    log("parseStream: " + url)
     try {
         var $objmv = JSON.parse(html);
-        var $stream = $objmv.direct_play_url || "";
+        var rawStream = $objmv.direct_play_url || $objmv.play_url || "";
         var $subtitle = $objmv.direct_subtitle_url || "";
+        
+        if (!rawStream) {
+            throw new Error("Không tìm thấy link stream");
+        }
+
+        var lowerStream = rawStream.toLowerCase();
         var mimeType = "application/x-mpegURL";
-        $stream = $stream + "#.m3u8";
-        // 1. Phân loại MP4 vs M3U8
-      // 
-        if ($stream.indexOf("m3u8") < 0 && $stream.indexOf("narto-drama.com") < 0 || $stream.indexOf(".mp4")) {
+        var finalStreamUrl = rawStream;
+
+        // 1. PHÂN LOẠI CHÍNH XÁC
+        if (lowerStream.includes(".mp4")) {
+            // Trường hợp 1: File MP4 (như trong Log của bạn)
             mimeType = "video/mp4";
-            // Đối với MP4 direct link, KHÔNG thêm `#.m3u8` nếu truyền đúng mimeType là video/mp4
-        }
-        log("link Stream: " + $stream);
-        // 2. Sửa logic Subtitle: Chỉ nối domain nếu thiếu http/https
-        if ($subtitle && $subtitle.indexOf("http") === -1) {
-            if (!$subtitle.startsWith("/")) {
-                $subtitle = "/" + $subtitle;
+            
+            // Thêm #.m3u8 cho ExoPlayer nếu chưa có
+            if (!finalStreamUrl.endsWith("#.m3u8")) {
+                finalStreamUrl += "#.m3u8";
             }
-            $subtitle = "https://edge.narto-drama.com" + $subtitle;
+        } 
+        else if (lowerStream.includes(".m3u8")) {
+            // Trường hợp 2: Stream HLS chuẩn
+            mimeType = "application/x-mpegURL";
+        } 
+        else {
+            // Trường hợp 3: Link ẩn đuôi (không có .mp4 hay .m3u8 trong URL)
+            mimeType = "application/x-mpegURL";
+            if (!finalStreamUrl.endsWith("#.m3u8")) {
+                finalStreamUrl += "#.m3u8";
+            }
         }
 
-        log("sutitle: " + $subtitle);
+        // 2. XỬ LÝ SUBTITLE
+        var listsub = [];
+        if ($subtitle) {
+            if (!$subtitle.startsWith("http://") && !$subtitle.startsWith("https://")) {
+                if (!$subtitle.startsWith("/")) {
+                    $subtitle = "/" + $subtitle;
+                }
+                $subtitle = "https://edge.narto-drama.com" + $subtitle;
+            }
 
-        return JSON.stringify({
-            "url": $stream,
-            "isEmbed": false, // Chuyển về false để ưu tiên ExoPlayer native
-            "mimeType": mimeType, // Dùng biến mimeType đã xử lý
-            "headers": {
-                "Referer": BASEURL,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            },
-            "subtitles": [{
-                "lang": "vi",
+            listsub.push({
+                "lang": "Subtitle",
                 "url": $subtitle,
                 "mimeType": "text/vtt"
-            }]
+            });
+        }
+
+        log("Final Stream: " + finalStreamUrl + " | Mime: " + mimeType);
+
+        return JSON.stringify({
+            "url": finalStreamUrl,
+            "isEmbed": false,
+            "mimeType": mimeType,
+            "headers": {
+                "Referer": typeof BASEURL !== 'undefined' ? BASEURL : "https://edge.narto-drama.com/",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            },
+            "subtitles": listsub
         });
     } catch (e) {
         log("stream error: " + e);
@@ -364,6 +390,8 @@ function parseDetailResponse(html, url) {
         });
     }
 }
+
+
 
 
 function sortEpisodesByName(data) {
