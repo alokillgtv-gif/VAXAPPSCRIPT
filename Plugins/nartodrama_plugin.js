@@ -250,13 +250,20 @@ function parseMovieDetail(html, url) {
         if (episodes[1] && episodes) {
             $objepi = JSON.parse(episodes[1]);
         }
-        var urlmatch = id.match(/(?<=\/watch\/)[^/]+/i);
+        var urlmatch = "";
+        if (id.indexOf("/detail/watch/") > -1) {
+            urlmatch = id.match(/(?<=\/watch\/)[^/]+/i);
+            urlmatch[0] = "watch/" + urlmatch[0].replace(/\/(\d+)$/g, "")
+        } else {
+            urlmatch = id.match(/(?<=\/detail\/)[^?]+/i);
+            urlmatch[0] = urlmatch[0].replace(/\/(\d+)$/g, "")
+        }
         var slug = urlmatch[0];
         for (var $j = 0; $j < $objepi.length; $j++) {
             var $movie = $objepi[$j];
             var $number = $movie.number;
-            var link = "https://edge.narto-drama.com/e/rs/detail/watch/" + slug + "/" + $number + "/refresh-source?lang=vi-VN&force=1"
-            
+            var link = "https://edge.narto-drama.com/e/rs/detail/" + slug + "/" + $number + "/refresh-source?lang=vi-VN&force=1"
+
             var item = {
                 id: link,
                 name: "Tập " + $number,
@@ -268,7 +275,7 @@ function parseMovieDetail(html, url) {
             name: "Server",
             episodes: items
         });
-      
+
         // Tạo chuỗi mô tả ẩn JSON servers giống hệt tác giả
         // === BƯỚC 5: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ID ===
         return JSON.stringify({
