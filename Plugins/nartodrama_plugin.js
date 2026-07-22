@@ -6,7 +6,7 @@ function getManifest() {
         "name": "Phim Ngắn Narto",
         "description": "Phim Ngắn lồng tiếgn vietsub hay",
         "version": "1.1.2",
-        "info": "Nguồn phim ngắn siêu hay, một vài bộ phim nên xem theo chiều dọc. App có hỗ trợ nhé.",
+        "info": "Nguồn phim ngắn siêu hay, một vài bộ phim nên xem theo chiều dọc. App có hỗ trợ nhé. Hãy nhấn thử lại nếu không tải được video.",
         "baseUrl": "https://edge.narto-drama.com",
         "iconUrl": "https://narto-drama.com/narto-drama-logo-compressed.png",
         "isEnabled": true,
@@ -318,19 +318,20 @@ JSON.parse(parseMovieDetail(outerHTML,$url));
 */
 
 function parseDetailResponse(html, url) {
+    log("parseStream: " + url)
     try {
         var $objmv = JSON.parse(html);
         var $stream = $objmv.direct_play_url || "";
         var $subtitle = $objmv.direct_subtitle_url || "";
         var mimeType = "application/x-mpegURL";
-
+        $stream = $stream + "#.m3u8";
         // 1. Phân loại MP4 vs M3U8
-        if ($stream.indexOf("m3u8") < 0) {
+      // 
+        if ($stream.indexOf("m3u8") < 0 && $stream.indexOf("narto-drama.com") < 0) {
             mimeType = "video/mp4";
-            $stream = $stream + "#.m3u8";
             // Đối với MP4 direct link, KHÔNG thêm `#.m3u8` nếu truyền đúng mimeType là video/mp4
         }
-
+        log("link Stream: " + $stream);
         // 2. Sửa logic Subtitle: Chỉ nối domain nếu thiếu http/https
         if ($subtitle && $subtitle.indexOf("http") === -1) {
             if (!$subtitle.startsWith("/")) {
