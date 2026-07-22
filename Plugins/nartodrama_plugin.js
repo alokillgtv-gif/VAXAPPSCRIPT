@@ -5,7 +5,7 @@ function getManifest() {
         "id": "nartodrama",
         "name": "Phim Ngắn Narto",
         "description": "Phim Ngắn lồng tiếgn vietsub hay",
-        "version": "1.1.2",
+        "version": "1.1.3",
         "info": "Nguồn phim ngắn siêu hay, một vài bộ phim nên xem theo chiều dọc. App có hỗ trợ nhé. Hãy nhấn thử lại nếu không tải được video.",
         "baseUrl": "https://edge.narto-drama.com",
         "iconUrl": "https://narto-drama.com/narto-drama-logo-compressed.png",
