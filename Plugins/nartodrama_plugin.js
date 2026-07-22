@@ -4,8 +4,8 @@ function getManifest() {
     return JSON.stringify({
         "id": "nartodrama",
         "name": "Phim Ngắn Narto",
-        "description": "Phim Ngắn lồng tiếgn vietsub hay",
-        "version": "1.1.3",
+        "description": "Phim Ngắn lồng tiếng vietsub hay",
+        "version": "1.1.4",
         "info": "Nguồn phim ngắn siêu hay, một vài bộ phim nên xem theo chiều dọc. App có hỗ trợ nhé. Hãy nhấn thử lại nếu không tải được video.",
         "baseUrl": "https://edge.narto-drama.com",
         "iconUrl": "https://narto-drama.com/narto-drama-logo-compressed.png",
@@ -327,7 +327,7 @@ function parseDetailResponse(html, url) {
         $stream = $stream + "#.m3u8";
         // 1. Phân loại MP4 vs M3U8
       // 
-        if ($stream.indexOf("m3u8") < 0 && $stream.indexOf("narto-drama.com") < 0) {
+        if ($stream.indexOf("m3u8") < 0 && $stream.indexOf("narto-drama.com") < 0 || $stream.indexOf(".mp4")) {
             mimeType = "video/mp4";
             // Đối với MP4 direct link, KHÔNG thêm `#.m3u8` nếu truyền đúng mimeType là video/mp4
         }
@@ -337,7 +337,7 @@ function parseDetailResponse(html, url) {
             if (!$subtitle.startsWith("/")) {
                 $subtitle = "/" + $subtitle;
             }
-            $subtitle = "https://edge.narto-drama.com" + $subtitle + "#.vtt";
+            $subtitle = "https://edge.narto-drama.com" + $subtitle;
         }
 
         log("sutitle: " + $subtitle);
@@ -352,7 +352,8 @@ function parseDetailResponse(html, url) {
             },
             "subtitles": [{
                 "lang": "vi",
-                "url": $subtitle
+                "url": $subtitle,
+                "mimeType": "text/vtt"
             }]
         });
     } catch (e) {
