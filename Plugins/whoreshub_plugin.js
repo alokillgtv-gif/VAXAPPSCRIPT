@@ -5,7 +5,7 @@ function getManifest() {
         "id": "whoreshub",
         "name": "XXX Whoreshub 4K",
         "description": "XXX 4K",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "info": "Phim chất lượng cao, nên đôi khi tải hởi chậm. Bạn chờ tí nhé.",
         "baseUrl": "https://www.whoreshub.com",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
@@ -319,7 +319,12 @@ function parseMovieDetail(html, url) {
 
         rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
         if (rmatch && rmatch[1]) limg = rmatch[1];
-
+      
+            if (limg.indexOf("//") === 0) {
+                limg = "https:" + limg;
+            } else if (limg.indexOf("http") === -1) {
+                limg = BASEURL + limg;
+            }
         rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
         if (rmatch && rmatch[1]) lname = rmatch[1];
 
