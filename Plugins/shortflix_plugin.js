@@ -11,7 +11,7 @@ var URL_TO_PATH_MAP = {};
 function getManifest() {
     return JSON.stringify({
         "id": "shortflix",
-        "name": "Phim Ngắn Hay",
+        "name": "Phim Ngắn Shortflix",
         "description": "Phim Ngắn lồng tiếng vietsub hay",
         "version": "1.2.2",
         "info": "Phim ngắn nên chia thành nhiều tập. Có thể dùng cách vuốt để qua tập và nên xem bằng chiều dọc.",

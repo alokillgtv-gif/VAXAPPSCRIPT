@@ -144,34 +144,31 @@ function getUrlYears() {
 function parseListResponse(html, $url) {
     try {
         var items = [];
-
-        _$(html).find(".flw-item").each(function () {
-            
-            var year = "";
-            var lang = "";
-            var current = this.find(".tick-rate").text();
-            var href = this.find("a").attr("href");
-            var quality = this.find(".tick-dub").text();
-            var title = this.find("a").attr("title");
+        _$(html).find("article[class*='card']").each(function() {
+            var href = this.attr("data-watch-url");
+            if (href.indexOf("http") == -1) {
+                href = BASEURL + href;
+            }
+            var title = this.attr("data-movie-title");
             var src = this.find("img").attr("src");
             if (src.indexOf("http") == -1) {
                 src = BASEURL + src;
             }
-
-            if (href && href.indexOf("http") > -1) {
+            var episode_current = this.find(".episode-badge").text();
+            if (href && href.indexOf("http") > -1 && href.indexOf("watch/") > -1 ) {
                 var cleanThumb = src.replace(/&amp;/g, '&');
-
                 items.push({
                     "id": href,
                     "title": title.trim(),
                     "posterUrl": cleanThumb,
                     "backdropUrl": cleanThumb,
-                    "quality":quality,
-                    "episode_current":current
+                    "quality": "",
+                    "lang": "",
+                    "episode_current": episode_current
                 });
             }
         });
-
+        
         return JSON.stringify({
             "items": items,
             "pagination": {
@@ -179,11 +176,11 @@ function parseListResponse(html, $url) {
                 "totalPages": 999
             }
         });
-
     } catch (e) {
+        log(e);
         return JSON.stringify({
             "items": [{
-                "id": $url,
+                "id": $url || "error_url",
                 "title": "Lỗi: " + e,
                 "posterUrl": "",
                 "backdropUrl": ""
@@ -195,12 +192,15 @@ function parseListResponse(html, $url) {
         });
     }
 }
-//var BASEURL = "https://onflix.lat";
+
+/*
+var BASEURL = "https://narto-drama.com";
 //var BASEAPI = "https://k8s.onflixcdn.com/api";
-//var htmlsource = $("#labHtmlEditorWrap #labHtmlTreeContainer .lab-dom-pure-text").html();
-//JSON.parse(parseListResponse(outerHTML, BASEURL));
+var htmlsource = $("#labHtmlEditorWrap #labHtmlTreeContainer .lab-dom-pure-text").html();
+JSON.parse(parseListResponse(sourceHTML, BASEURL));
 //var html = outerHTML;
 
+*/
 
 function parseSearchResponse(html) {
     return parseListResponse(html);
@@ -246,64 +246,34 @@ function parseMovieDetail(htmlContent, url) {
 
         rmatch = htmlContent.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
         if (rmatch && rmatch[1]) ldes = rmatch[1];
-
-
-        rmatch = htmlContent.match(/meta\s+property="video:duration"\s+content="([^"]+)"/i);
-        if (rmatch && rmatch[1]) lduran = rmatch[1];
-
-        status = _$(htmlContent).find("span:content('Trạng thái:')").next().text();
-        year = _$(htmlContent).find("span:content('Năm:')").next().text();
-        category = _$(htmlContent).find("span:content('Thể loại:')").parent().text(", ").replace('Thể loại:, ', '');
-        episode_current = _$(htmlContent).find("span:content('Tập mới nhất:')").next().text();
-        var servers = [];
-        $parent = _$(htmlContent).find('.detail-infor-content');
-        $child = $parent.find("li");
-        $child.find("a").each(function() {
-            var nameServer = this.text();
-            var idserver = this.attr("href");
-            var items = [];
-            $parent.find(idserver).find("a").each(function() {
-                var name = this.find("div").text();
-                var item = {
-                    id: this.attr("href"),
-                    name: name,
-                    slug: "tap-" + name.replace(/\s/, "-")
-                }
-                items.push(item)
-            })
-            servers.push({
-                name: nameServer,
-                episodes: items
-            })
-        });
-
-        function getEpisodeNumber(name) {
-            // Tìm số đầu tiên trong chuỗi (kể cả số trong chuỗi dạng "1-5" hoặc "163 TL")
-            const match = name.match(/\d+/);
-            return match ? parseInt(match[0], 10) : 0;
-        }
-
-        // Duyệt qua từng server (Thuyết Minh, Vietsub...) để sort mảng episodes bên trong
-        servers.forEach(server => {
-            if (server.episodes && Array.isArray(server.episodes)) {
-                server.episodes.sort((a, b) => {
-                    return getEpisodeNumber(a.name) - getEpisodeNumber(b.name);
-                });
-            }
-        });
-
-
+        var year = 2026;
         var extra = "";
-
-        var isPlayPage = /\/tap-/.test(id)
-
-        if (!isPlayPage) {
-            // Đang ở trang chi tiết -> Lấy link nút "Xem phim" để gán vào extra
-            var playBtnMatch = _$(htmlContent).find(".film-buttons").find("a").attr("href");
-            if (playBtnMatch) {
-                extra = playBtnMatch;
-            }
+        category = _$(html).find(".movie-tag-pill").textAll(" - ");
+        episode_current = _$(html).find(".movie-sub").text();;
+        var rawScript = _$(html).find('script:content("episodeItemsRaw = [{")').html();
+        var $objepi = "";
+        var servers = [];
+        var episodes = rawScript.match(/(?:const|let|var)\s+episodeItemsRaw\s*=\s*(\[[\s\S]*?\])(?:;|\n|$)/i)
+        if (episodes[1] && episodes) {
+            $objepi = JSON.parse(episodes[1]);
         }
+        var items = [];
+        for (var $j = 0; $j < $objepi.length; $j++) {
+            var $movie = $objepi[$j];
+            var $number = $movie.number;
+            var $link = $movie.direct_play_url;
+            var item = {
+                id: $link,
+                name: "Tập " + $number,
+                slug: "Tap-" + $number
+            }
+            items.push(item)
+        }
+        servers.push({
+            name: "Server",
+            episodes: items
+        })
+
         // Tạo chuỗi mô tả ẩn JSON servers giống hệt tác giả
         // === BƯỚC 5: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ID ===
         return JSON.stringify({
@@ -326,6 +296,7 @@ function parseMovieDetail(htmlContent, url) {
         });
 
     } catch (e) {
+        log(e)
         return JSON.stringify({
             id: slug || url || "error",
             title: "error",
@@ -334,38 +305,18 @@ function parseMovieDetail(htmlContent, url) {
     }
 }
 
-
-//BASEURL = "https://phimnganhdc.com";
-//var html = outerHTML;
-//var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
-//JSON.parse(parseMovieDetail(outerHTML,$url));
+/*
+BASEURL = "https://phimnganhdc.com";
+var html = sourceHTML;
+var $url = "https://phimnganhdc.com/hot-babe-remy-cheats-with-bbc/";
+JSON.parse(parseMovieDetail(outerHTML, $url));
+*/
 
 
 function parseDetailResponse(html, url) {
 	try {
-		var allLink = [];
-		_$(html).find('div[class*="list-severs"]').find("a").each(function() {
-			var name = this.text();
-			var link = this.attr("data-src");
-			allLink.push({ link: link, name: name })
-		});
-		let selectedLink = null;
-		const pool = { k4: null, hd: null, anyM3u8: null, anyEmbed: null };
-		allLink.forEach((item) => {
-			if (item.name.match(/4k/i) && item.link.endsWith('.m3u8')) {
-				pool.k4 = item.link;
-			} else if (item.name.match(/1080/i) && item.link.endsWith('.m3u8')) {
-				pool.hd = item.link;
-			} else if (item.link.endsWith('.m3u8')) {
-				pool.anyM3u8 = item.link;
-			} else if (item.link.includes('abyss')) {
-				pool.anyEmbed = item.link;
-			}
-		});
-		selectedLink =  pool.hd || pool.k4 ||pool.anyM3u8 || pool.anyEmbed;
-		var streamlink = selectedLink.replace(/(https?:\/\/[^\/]+)\/[^]+?\/([^\/]+\.m3u8)$/, '$1/stream/m3u8/$2')
 		return JSON.stringify({
-			"url": streamlink,
+			"url": "",
 			"isEmbed": false,
 			"mimeType": "application/x-mpegURL",
 			"headers": {

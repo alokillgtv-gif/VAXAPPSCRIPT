@@ -888,7 +888,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
 
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/fb3b7d7159122ae1540002d1c6fd9e5173f9661f/miniJQ.js';
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/2ed43c93c2e9b694a3f7b3e73d6dfba60f56cfbd/miniJQ.js';
 
                     const response = await fetch(helperUrl);
                     if (!response.ok) {
@@ -5088,7 +5088,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
     // HÀM TỔNG HỢP NÂNG CẤP: Fetch mã nguồn hỗ trợ qua Google Script Proxy hoặc Direct
     // fetch Google script
     // window._$ = function (htmlOrBlock)
-    
+
     window.executeFetchSource = function(targetUrl,$check) {
         $treeContainer.html('<div style="color:#aaa; padding:10px;">⌛ Đang phân tích và dựng bản đồ DOM Tree nguồn...</div>');
 
@@ -5126,7 +5126,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                     $(treeRoot).children('.lab-dom-header').trigger('click');
                 }
 								//labTreeDomBody
-								
+
 
                 $modal.addClass('lab-html-modal-active');
                 $searchInput.val('');
@@ -6118,7 +6118,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                         document.addEventListener('DOMContentLoaded', function() {
                             setTimeout(initModule, 100);
                         });
-                     
+
                     }
 
                     // Restore previous shield state if any (but default is OFF)

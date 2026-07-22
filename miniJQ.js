@@ -1,4 +1,4 @@
-// "version": "2.2"  
+// "version": "2.3"  
 window.BASEURL = window.location.origin;
 window.log = function(msg) {
     if (typeof nativeLog !== 'undefined') {
