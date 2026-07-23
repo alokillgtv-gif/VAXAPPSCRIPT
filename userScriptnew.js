@@ -888,7 +888,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
 
                 try {
                     // 🚀 ĐƯỜNG DẪN ĐẾN FILE BẠN VỪA LƯU Ở BƯỚC 1 (Hãy đổi lại link này cho đúng cấu trúc web của bạn)
-                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/2ed43c93c2e9b694a3f7b3e73d6dfba60f56cfbd/miniJQ.js';
+                    const helperUrl = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/ccb656ca432e207e65af7271c0310c1c99168d6e/miniJQ.js';
 
                     const response = await fetch(helperUrl);
                     if (!response.ok) {
@@ -3432,142 +3432,161 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                 const jsTextarea = document.getElementById('labJsInput');
                 if (jsTextarea && !window.__labJsEditor) {
                     window.__labJsEditor = CodeMirror.fromTextArea(jsTextarea, {
-									    mode: 'javascript',
-									    theme: 'dracula',
-									    lineNumbers: true,
-									    matchBrackets: true,
-									    autoCloseBrackets: true,
-									    tabSize: 4,
-									    indentUnit: 4,
-									    lineWrapping: true,
-									    foldGutter: true,
-									    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-									    hintOptions: {
-									        hint: CodeMirror.hint.javascript
-									    },
-									    extraKeys: {
-									        'Up': function(cm) {
-									            if (cm.state.completionActive) {
-									                cm.state.completionActive.move(-1);
-									            } else {
-									                cm.execCommand('goLineUp');
-									            }
-									        },
-									        'Down': function(cm) {
-									            if (cm.state.completionActive) {
-									                cm.state.completionActive.move(1);
-									            } else {
-									                cm.execCommand('goLineDown');
-									            }
-									        },
-									        'Enter': function(cm) {
-									            if (cm.state.completionActive) {
-									                cm.state.completionActive.pick();
-									            } else {
-									                cm.execCommand('newlineAndIndent');
-									            }
-									        },
-                        
-									        'Esc': function(cm) {
-									            if (cm.state.completionActive) cm.closeHint();
-									        },
-									        'Tab': function(cm) {
-        if (cm.state.completionActive) {
-            cm.closeHint();
-        } else if (cm.somethingSelected()) {
-            // Thêm 4 khoảng trắng vào đầu mỗi dòng đang được bôi đen
-            var from = cm.getCursor("from");
-            var to = cm.getCursor("to");
-            cm.operation(function() {
-                for (var i = from.line; i <= to.line; i++) {
-                    cm.replaceRange('    ', {line: i, ch: 0});
-                }
-            });
-        } else {
-            // Đứng 1 chỗ thì chèn 4 khoảng trắng
-            cm.replaceSelection('    ');
-        }
-    },'Insert': function(cm) {
-        if (cm.state.completionActive) {
-            cm.closeHint();
-        }
-        
-        // Mô phỏng xóa thủ công bằng CodeMirror API
-        if (cm.somethingSelected()) {
-            // Nếu có bôi đen: xóa toàn bộ vùng đang chọn
-            cm.replaceSelection("");
-        } else {
-            var cursor = cm.getCursor();
-            var line = cursor.line;
-            var ch = cursor.ch;
-            
-            if (ch > 0) {
-                // Nếu không ở đầu dòng: xóa 1 ký tự ngay trước con trỏ
-                var from = {line: line, ch: ch - 1};
-                cm.replaceRange("", from, cursor);
-            } else if (line > 0) {
-                // Nếu đang ở đầu dòng: xóa ký tự ngắt dòng để gộp lên dòng phía trên
-                var prevLineLength = cm.getLine(line - 1).length;
-                var from = {line: line - 1, ch: prevLineLength};
-                cm.replaceRange("", from, cursor);
-            }
-        }
-    },
-									        'Ctrl-G': function() {
-									            $("#labBtnClearConsole").click();
-									            $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
-									            executeJsEngine();
-									        },
-									        'Ctrl-Enter': function() {
-									            $("#labBtnClearConsole").click();
-									            $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
-									            executeJsEngine();
-									        },
-									        'Ctrl-Space': 'autocomplete',
-									        'Ctrl-Q': function(cm) {
-									            cm.foldCode(cm.getCursor());
-									        },
-                        'Ctrl-D': function(cm) {
-        if (cm.somethingSelected()) {
-            // Nhân bản đoạn văn bản đang bôi đen
-            var from = cm.getCursor("from");
-            var to = cm.getCursor("to");
-            var text = cm.getRange(from, to);
-            cm.replaceRange(text, to);
-        } else {
-            // Nhân bản dòng hiện tại xuống dưới
-            var line = cm.getCursor().line;
-            var lineText = cm.getLine(line);
-            cm.replaceRange("\n" + lineText, {line: line, ch: lineText.length});
-        }
-    }
-									    }
-									});
+                        mode: 'javascript',
+                        theme: 'dracula',
+                        lineNumbers: true,
+                        matchBrackets: true,
+                        autoCloseBrackets: true,
+                        tabSize: 4,
+                        indentUnit: 4,
+                        lineWrapping: true,
+                        foldGutter: true,
+                        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+                        hintOptions: {
+                            hint: CodeMirror.hint.javascript
+                        },
+                        extraKeys: {
+                            'Up': function(cm) {
+                                if (cm.state.completionActive) {
+                                    cm.state.completionActive.move(-1);
+                                } else {
+                                    cm.execCommand('goLineUp');
+                                }
+                            },
+                            'Down': function(cm) {
+                                if (cm.state.completionActive) {
+                                    cm.state.completionActive.move(1);
+                                } else {
+                                    cm.execCommand('goLineDown');
+                                }
+                            },
+                            'Enter': function(cm) {
+                                if (cm.state.completionActive) {
+                                    cm.state.completionActive.pick();
+                                } else {
+                                    cm.execCommand('newlineAndIndent');
+                                }
+                            },
 
-									/* =========================================================
-									   CẤU HÌNH TỰ ĐỘNG TẠO & GIỮ TỐI THIỂU 20 DÒNG TRỐNG
-									   ========================================================= */
-									(function(cm) {
-									    if (!cm) return;
+                            'Esc': function(cm) {
+                                if (cm.state.completionActive) cm.closeHint();
+                            },
+                            'Tab': function(cm) {
+                                if (cm.state.completionActive) {
+                                    cm.closeHint();
+                                } else if (cm.somethingSelected()) {
+                                    // Thêm 4 khoảng trắng vào đầu mỗi dòng đang được bôi đen
+                                    var from = cm.getCursor("from");
+                                    var to = cm.getCursor("to");
+                                    cm.operation(function() {
+                                        for (var i = from.line; i <= to.line; i++) {
+                                            cm.replaceRange('    ', {
+                                                line: i,
+                                                ch: 0
+                                            });
+                                        }
+                                    });
+                                } else {
+                                    // Đứng 1 chỗ thì chèn 4 khoảng trắng
+                                    cm.replaceSelection('    ');
+                                }
+                            },
+                            'Insert': function(cm) {
+                                if (cm.state.completionActive) {
+                                    cm.closeHint();
+                                }
 
-									    // Chuỗi chứa 19 dấu xuống dòng để tạo ra đúng 20 dòng trống ban đầu
-									    const twentyBlankLines = '\n'.repeat(99);
+                                // Mô phỏng xóa thủ công bằng CodeMirror API
+                                if (cm.somethingSelected()) {
+                                    // Nếu có bôi đen: xóa toàn bộ vùng đang chọn
+                                    cm.replaceSelection("");
+                                } else {
+                                    var cursor = cm.getCursor();
+                                    var line = cursor.line;
+                                    var ch = cursor.ch;
 
-									    // 1. Kiểm tra lúc khởi tạo: Nếu editor rỗng (hoặc chưa có dữ liệu khôi phục), nạp 20 dòng trống
-									    if (cm.getValue().trim() === '') {
-									        cm.setValue(twentyBlankLines);
-									        // Đưa con trỏ chuột về dòng đầu tiên thay vì nằm ở cuối dòng 20
-									        cm.setCursor({line: 0, ch: 0});
-									    }
+                                    if (ch > 0) {
+                                        // Nếu không ở đầu dòng: xóa 1 ký tự ngay trước con trỏ
+                                        var from = {
+                                            line: line,
+                                            ch: ch - 1
+                                        };
+                                        cm.replaceRange("", from, cursor);
+                                    } else if (line > 0) {
+                                        // Nếu đang ở đầu dòng: xóa ký tự ngắt dòng để gộp lên dòng phía trên
+                                        var prevLineLength = cm.getLine(line - 1).length;
+                                        var from = {
+                                            line: line - 1,
+                                            ch: prevLineLength
+                                        };
+                                        cm.replaceRange("", from, cursor);
+                                    }
+                                }
+                            },
+                            'Ctrl-G': function() {
+                                $("#labBtnClearConsole").click();
+                                $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
+                                executeJsEngine();
+                            },
+                            'Ctrl-Enter': function() {
+                                $("#labBtnClearConsole").click();
+                                $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
+                                executeJsEngine();
+                            },
+                            'Ctrl-Space': 'autocomplete',
+                            'Ctrl-Q': function(cm) {
+                                cm.foldCode(cm.getCursor());
+                            },
+                            'Ctrl-D': function(cm) {
+                                if (cm.somethingSelected()) {
+                                    // Nhân bản đoạn văn bản đang bôi đen
+                                    var from = cm.getCursor("from");
+                                    var to = cm.getCursor("to");
+                                    var text = cm.getRange(from, to);
+                                    cm.replaceRange(text, to);
+                                } else {
+                                    // Nhân bản dòng hiện tại xuống dưới
+                                    var line = cm.getCursor().line;
+                                    var lineText = cm.getLine(line);
+                                    cm.replaceRange("\n" + lineText, {
+                                        line: line,
+                                        ch: lineText.length
+                                    });
+                                }
+                            }
+                        }
+                    });
 
-									    // 2. Lắng nghe sự kiện thay đổi: Nếu xóa hết sạch, tự động bù lại 20 dòng trống
-									    cm.on('change', function(instance) {
-									        if (instance.getValue() === '') {
-									            instance.setValue(twentyBlankLines);
-									            instance.setCursor({line: 0, ch: 0});
-									        }
-									    });
-									})(window.__labJsEditor);
+                    /* =========================================================
+                       CẤU HÌNH TỰ ĐỘNG TẠO & GIỮ TỐI THIỂU 20 DÒNG TRỐNG
+                       ========================================================= */
+                    (function(cm) {
+                        if (!cm) return;
+
+                        // Chuỗi chứa 19 dấu xuống dòng để tạo ra đúng 20 dòng trống ban đầu
+                        const twentyBlankLines = '\n'.repeat(99);
+
+                        // 1. Kiểm tra lúc khởi tạo: Nếu editor rỗng (hoặc chưa có dữ liệu khôi phục), nạp 20 dòng trống
+                        if (cm.getValue().trim() === '') {
+                            cm.setValue(twentyBlankLines);
+                            // Đưa con trỏ chuột về dòng đầu tiên thay vì nằm ở cuối dòng 20
+                            cm.setCursor({
+                                line: 0,
+                                ch: 0
+                            });
+                        }
+
+                        // 2. Lắng nghe sự kiện thay đổi: Nếu xóa hết sạch, tự động bù lại 20 dòng trống
+                        cm.on('change', function(instance) {
+                            if (instance.getValue() === '') {
+                                instance.setValue(twentyBlankLines);
+                                instance.setCursor({
+                                    line: 0,
+                                    ch: 0
+                                });
+                            }
+                        });
+                    })(window.__labJsEditor);
 
 
                     // Load initial tab content
@@ -4445,7 +4464,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
 
                     // THAY ĐỔI Ở ĐÂY: Chuyển toàn bộ mảng thành một chuỗi JSON duy nhất trước khi return
                     // Thay vì chỉ return JSON.stringify(rawDataArray);
-										return JSON.stringify(JSON.stringify(rawDataArray));
+                    return JSON.stringify(JSON.stringify(rawDataArray));
 
                 }
 
@@ -4933,7 +4952,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
             document.head.appendChild(htmlSourceStyle);
 
             (function initHtmlSourceViewer() {
-    const modalHtml = `<div id="labHtmlSourceModal">
+                const modalHtml = `<div id="labHtmlSourceModal">
         <div class="lab-html-modal-header">
             <span class="lab-html-modal-title"></span>
 
@@ -4981,622 +5000,647 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
         </div>
     </div>
 `;
-    $('body').append(modalHtml);
+                $('body').append(modalHtml);
 
-    const $viewSourceBtn = $('<button class="lab-mini-btn" id="labBtnViewSource" title="Xem Cây DOM Gốc" style="margin-right:4px;">📄 Source Tree</button>');
-    if ($('#labRestoreGroupButtons').length) {
-        $('#labRestoreGroupButtons').append($viewSourceBtn);
-    } else if ($('.lab-restore-group').length) {
-        $('.lab-restore-group').first().append($viewSourceBtn);
-    }
-
-    const $modal = $('#labHtmlSourceModal');
-    const $editorWrap = $('#labHtmlEditorWrap');
-    const $sidebar = $('#labHtmlSidebar');
-    const $sidebarList = $('#labHtmlSidebarList');
-    const $searchInput = $('#labHtmlSearchInput');
-    const $searchCount = $('#labHtmlSearchCount');
-    const $totalMatches = $('#labHtmlTotalMatches');
-    const $searchPrev = $('#labHtmlSearchPrev');
-    const $searchNext = $('#labHtmlSearchNext');
-    const $toggleSidebar = $('#labHtmlToggleSidebar');
-    const $closeModal = $('#labHtmlCloseModal');
-    const $treeContainer = $('#labHtmlTreeContainer');
-
-    // Các Element mới được thêm vào và cập nhật bổ sung
-    const $copySourceBtn = $('#labHtmlCopySourceBtn');
-    const $urlInput = $('#labHtmlUrlInput');
-    const $urlFetchBtn = $('#labHtmlUrlFetchBtn');
-    const $fetchMode = $('#labHtmlFetchMode');
-    const $renderLabel = $('#labHtmlRenderLabel');
-    const $renderToggle = $('#labHtmlRenderToggle');
-
-    let parsedHtmlDocument = null;
-    let searchMatches = [];
-    let currentMatchIndex = -1;
-    let sidebarOpen = false;
-    let lastSearchQuery = '';
-
-    // Khởi tạo biến toàn cục lưu trữ mã nguồn HTML thô thu được
-    window.sourceHTML = '';
-
-    // Ẩn/Hiện checkbox Render JS tùy thuộc vào việc chọn chế độ Scraper API
-    $fetchMode.on('change', function() {
-        if ($(this).val() === 'gas_scraper') {
-            $renderLabel.css('display', 'flex');
-        } else {
-            $renderLabel.css('display', 'none');
-        }
-    });
-
-    function escapeHTML(str) {
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    // HÀM XÂY DỰNG CÂY DOM ĐỆ QUY CHUYÊN NGHIỆP
-    function createTreeDOM(node) {
-        if (node.nodeType === Node.COMMENT_NODE) {
-            const commentTxt = node.nodeValue.trim();
-            if (!commentTxt) return null;
-            return $(`<div class="lab-dom-comment">&lt;!-- ${escapeHTML(commentTxt)} --&gt;</div>`)[0];
-        }
-        if (node.nodeType === Node.TEXT_NODE) {
-            const text = node.nodeValue.trim();
-            if (!text) return null;
-            return $(`<div class="lab-dom-pure-text">${escapeHTML(text)}</div>`)[0];
-        }
-        if (node.nodeType !== Node.ELEMENT_NODE) return null;
-
-        const tagName = node.tagName.toLowerCase();
-        if (['link', 'meta', 'br', 'hr', 'img', 'input'].includes(tagName)) {
-            const $nodeWrap = $('<div class="lab-dom-node"></div>');
-            const $header = $('<div class="lab-dom-header"></div>');
-            $header.append('<span class="lab-dom-toggle empty">&nbsp;</span>');
-
-            const $openTag = $(`<span class="lab-dom-tag-open">&lt;<span class="tag-name">${tagName}</span></span>`);
-            if (node.attributes && node.attributes.length > 0) {
-                for (let attr of node.attributes) {
-                    $openTag.append(' ');
-                    $openTag.append($(`<span class="tag-attr" data-name="${attr.name}" data-val="${attr.value}"><span class="attr-name">${attr.name}</span>="<span class="attr-val">${attr.value}</span>"</span>`));
-                }
-            }
-            $openTag.append(' /&gt;');
-            $header.append($openTag);
-            $nodeWrap.append($header).data('raw-node', node);
-            return $nodeWrap[0];
-        }
-
-        const $nodeWrap = $('<div class="lab-dom-node"></div>').data('raw-node', node);
-        const $header = $('<div class="lab-dom-header"></div>');
-
-        const hasChildren = node.childNodes.length > 0;
-        const hasElementChildren = node.children.length > 0;
-        const totalTextLength = node.textContent.trim().length;
-
-        const $toggle = $('<span class="lab-dom-toggle"></span>');
-        const complexNode = hasElementChildren || (hasChildren && totalTextLength > 80);
-
-        if (complexNode) {
-            $toggle.text('▸').addClass('has-children');
-        } else {
-            $toggle.html('&nbsp;').addClass('empty');
-        }
-        $header.append($toggle);
-
-        const $openTag = $(`<span class="lab-dom-tag-open">&lt;<span class="tag-name">${tagName}</span></span>`);
-        if (node.attributes && node.attributes.length > 0) {
-            for (let attr of node.attributes) {
-                $openTag.append(' ');
-                $openTag.append($(`<span class="tag-attr" data-name="${attr.name}" data-val="${attr.value}"><span class="attr-name">${attr.name}</span>="<span class="attr-val">${attr.value}</span>"</span>`));
-            }
-        }
-        $openTag.append('&gt;');
-        $header.append($openTag);
-
-        const $childrenContainer = $('<div class="lab-dom-children" style="display:none;"></div>');
-        const $blockClose = $(`<div class="lab-dom-block-close" style="display:none; padding-left:16px;">&lt;/<span class="tag-name">${tagName}</span>&gt;</div>`);
-
-        if (complexNode) {
-            $header.append('<span class="lab-dom-summary">...</span>');
-            $header.append($(`<span class="lab-dom-tag-close" style="display:none;">&lt;/<span class="tag-name">${tagName}</span>&gt;</span>`));
-
-            for (let child of node.childNodes) {
-                const childDOM = createTreeDOM(child);
-                if (childDOM) $childrenContainer.append(childDOM);
-            }
-            $nodeWrap.append($header).append($childrenContainer).append($blockClose);
-        } else {
-            const txt = node.textContent.trim();
-            if (txt) {
-                $header.append($(`<span class="lab-dom-text">${escapeHTML(txt)}</span>`));
-            }
-            $header.append($(`<span class="lab-dom-tag-close">&lt;/<span class="tag-name">${tagName}</span>&gt;</span>`));
-            $nodeWrap.append($header);
-        }
-
-        $header.on('click', function(e) {
-            if ($(e.target).closest('.tag-name, .tag-attr, .lab-dom-text').length > 0) return;
-            if ($toggle.hasClass('has-children')) {
-                const isOpen = $childrenContainer.is(':visible');
-                if (isOpen) {
-                    $childrenContainer.hide();
-                    $blockClose.hide();
-                    $header.find('.lab-dom-summary').show();
-                    $toggle.text('▸');
-                } else {
-                    $childrenContainer.show();
-                    $blockClose.show();
-                    $header.find('.lab-dom-summary').hide();
-                    $toggle.text('▾');
-                }
-            }
-        });
-
-        return $nodeWrap[0];
-    }
-
-    // HÀM TỔNG HỢP NÂNG CẤP: Fetch mã nguồn hỗ trợ qua Google Script Proxy hoặc Direct
-    // fetch Google script
-    // window._$ = function (htmlOrBlock)
-
-    window.executeFetchSource = function(targetUrl,$check) {
-        $treeContainer.html('<div style="color:#aaa; padding:10px;">⌛ Đang phân tích và dựng bản đồ DOM Tree nguồn...</div>');
-
-        let finalRequestUrl = targetUrl;
-        const selectedMode = $fetchMode.val();
-
-        // Xử lý cấu trúc URL endpoint gọi lên Google Script App của bạn
-        if (selectedMode === 'gas_proxy' || selectedMode === 'gas_scraper') {
-            const baseGasUrl = "https://script.google.com/macros/s/AKfycbyxM6-_Q-DG_2l1hm1bM_ASVA74OPywVPk3hpm2FbpT78gGzBEpDN81Ty6tla8DTO27/exec";
-            const checkParam = (selectedMode === 'gas_scraper') ? "true" : "false";
-            const renderParam = $renderToggle.is(':checked') ? "true" : "false";
-
-            finalRequestUrl = `${baseGasUrl}?url=${encodeURIComponent(targetUrl)}&check=${checkParam}&render=${renderParam}`;
-        }
-
-        fetch(finalRequestUrl)
-            .then(response => response.text())
-            .then(html => {
-                // Đổ dữ liệu thô thu được vào biến toàn cục sourceHTML
-
-                window.sourceHTML = html;
-                if ($check == true) {
-                	return false;
+                const $viewSourceBtn = $('<button class="lab-mini-btn" id="labBtnViewSource" title="Xem Cây DOM Gốc" style="margin-right:4px;">📄 Source Tree</button>');
+                if ($('#labRestoreGroupButtons').length) {
+                    $('#labRestoreGroupButtons').append($viewSourceBtn);
+                } else if ($('.lab-restore-group').length) {
+                    $('.lab-restore-group').first().append($viewSourceBtn);
                 }
 
-                parsedHtmlDocument = new DOMParser().parseFromString(html, 'text/html');
-                $treeContainer.empty();
+                const $modal = $('#labHtmlSourceModal');
+                const $editorWrap = $('#labHtmlEditorWrap');
+                const $sidebar = $('#labHtmlSidebar');
+                const $sidebarList = $('#labHtmlSidebarList');
+                const $searchInput = $('#labHtmlSearchInput');
+                const $searchCount = $('#labHtmlSearchCount');
+                const $totalMatches = $('#labHtmlTotalMatches');
+                const $searchPrev = $('#labHtmlSearchPrev');
+                const $searchNext = $('#labHtmlSearchNext');
+                const $toggleSidebar = $('#labHtmlToggleSidebar');
+                const $closeModal = $('#labHtmlCloseModal');
+                const $treeContainer = $('#labHtmlTreeContainer');
 
-                // Tiến hành dựng cây từ thẻ gốc HTML
-                const treeRoot = createTreeDOM(parsedHtmlDocument.documentElement);
-                const treeRoot2 = createTreeDOM(parsedHtmlDocument.documentElement);
-                if (treeRoot) {
-                    $treeContainer.html(treeRoot);
-                    $("#labTreeDomBody").html(treeRoot2);
-                    $(treeRoot).children('.lab-dom-header').trigger('click');
-                }
-								//labTreeDomBody
+                // Các Element mới được thêm vào và cập nhật bổ sung
+                const $copySourceBtn = $('#labHtmlCopySourceBtn');
+                const $urlInput = $('#labHtmlUrlInput');
+                const $urlFetchBtn = $('#labHtmlUrlFetchBtn');
+                const $fetchMode = $('#labHtmlFetchMode');
+                const $renderLabel = $('#labHtmlRenderLabel');
+                const $renderToggle = $('#labHtmlRenderToggle');
 
+                let parsedHtmlDocument = null;
+                let searchMatches = [];
+                let currentMatchIndex = -1;
+                let sidebarOpen = false;
+                let lastSearchQuery = '';
 
-                $modal.addClass('lab-html-modal-active');
-                $searchInput.val('');
-                lastSearchQuery = '';
-                clearSearch();
-            })
-            .catch(err => {
-                parsedHtmlDocument = null;
+                // Khởi tạo biến toàn cục lưu trữ mã nguồn HTML thô thu được
                 window.sourceHTML = '';
-                $treeContainer.html('<div style="color:#c0392b; padding:10px;">❌ Lỗi nạp nguồn mã: ' + err + '</div>');
-            });
-    }
 
-    $viewSourceBtn.on('click', function(e) {
-        e.stopPropagation();
-        if (parsedHtmlDocument) {
-            $modal.addClass('lab-html-modal-active');
-            return;
-        }
-        executeFetchSource(window.location.href);
-    });
+                // Ẩn/Hiện checkbox Render JS tùy thuộc vào việc chọn chế độ Scraper API
+                $fetchMode.on('change', function() {
+                    if ($(this).val() === 'gas_scraper') {
+                        $renderLabel.css('display', 'flex');
+                    } else {
+                        $renderLabel.css('display', 'none');
+                    }
+                });
 
-    $urlFetchBtn.on('click', function(e) {
-        e.stopPropagation();
-        let inputUrl = $urlInput.val().trim();
-        if (!inputUrl) {
-            alert('Vui lòng nhập đường dẫn URL hoặc Endpoint cần Fetch!');
-            return;
-        }
+                function escapeHTML(str) {
+                    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+                }
 
-        // Nếu người dùng nhập link tương đối, tự map với hostname hiện tại trước khi gửi lên Proxy
-        if (inputUrl.startsWith('/') && !inputUrl.startsWith('//')) {
-            try {
-                inputUrl = new URL(inputUrl, window.location.href).href;
-            } catch(e) {}
-        }
-        executeFetchSource(inputUrl);
-    });
+                // HÀM XÂY DỰNG CÂY DOM ĐỆ QUY CHUYÊN NGHIỆP
+                function createTreeDOM(node) {
+                    if (node.nodeType === Node.COMMENT_NODE) {
+                        const commentTxt = node.nodeValue.trim();
+                        if (!commentTxt) return null;
+                        return $(`<div class="lab-dom-comment">&lt;!-- ${escapeHTML(commentTxt)} --&gt;</div>`)[0];
+                    }
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const text = node.nodeValue.trim();
+                        if (!text) return null;
+                        return $(`<div class="lab-dom-pure-text">${escapeHTML(text)}</div>`)[0];
+                    }
+                    if (node.nodeType !== Node.ELEMENT_NODE) return null;
 
-    $urlInput.on('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            $urlFetchBtn.trigger('click');
-        }
-    });
+                    const tagName = node.tagName.toLowerCase();
+                    if (['link', 'meta', 'br', 'hr', 'img', 'input'].includes(tagName)) {
+                        const $nodeWrap = $('<div class="lab-dom-node"></div>');
+                        const $header = $('<div class="lab-dom-header"></div>');
+                        $header.append('<span class="lab-dom-toggle empty">&nbsp;</span>');
 
-    // GIỮ NGUYÊN CÁC SỰ KIỆN SAO CHÉP MÃ NGUỒN AN TOÀN ĐÃ CÓ CỦA BẠN
-    $copySourceBtn.on('click', function(e) {
-        e.stopPropagation();
-        if (!parsedHtmlDocument) {
-            alert('Không tìm thấy dữ liệu nguồn để sao chép!');
-            return;
-        }
-
-        let finalCleanHTML = '';
-
-        try {
-            const documentClone = parsedHtmlDocument.cloneNode(true);
-            if (documentClone && documentClone.documentElement) {
-                const allScriptTags = documentClone.querySelectorAll('script');
-                allScriptTags.forEach(script => script.remove());
-
-                const allElements = documentClone.querySelectorAll('*');
-                allElements.forEach(element => {
-                    if (element.attributes && element.attributes.length > 0) {
-                        const attrs = Array.from(element.attributes);
-                        attrs.forEach(attr => {
-                            if (attr.name.toLowerCase().startsWith('on')) {
-                                element.removeAttribute(attr.name);
+                        const $openTag = $(`<span class="lab-dom-tag-open">&lt;<span class="tag-name">${tagName}</span></span>`);
+                        if (node.attributes && node.attributes.length > 0) {
+                            for (let attr of node.attributes) {
+                                $openTag.append(' ');
+                                $openTag.append($(`<span class="tag-attr" data-name="${attr.name}" data-val="${attr.value}"><span class="attr-name">${attr.name}</span>="<span class="attr-val">${attr.value}</span>"</span>`));
                             }
-                        });
+                        }
+                        $openTag.append(' /&gt;');
+                        $header.append($openTag);
+                        $nodeWrap.append($header).data('raw-node', node);
+                        return $nodeWrap[0];
                     }
 
-                    ['src', 'href'].forEach(attrName => {
-                        if (element.hasAttribute(attrName)) {
-                            let attrVal = element.getAttribute(attrName).trim();
-                            if (attrVal && !/^(https?:|===|\/\/|data:|javascript:|#)/i.test(attrVal)) {
-                                try {
-                                    let absoluteUrl = new URL(attrVal, window.location.href).href;
-                                    element.setAttribute(attrName, absoluteUrl);
-                                } catch (urlErr) {}
+                    const $nodeWrap = $('<div class="lab-dom-node"></div>').data('raw-node', node);
+                    const $header = $('<div class="lab-dom-header"></div>');
+
+                    const hasChildren = node.childNodes.length > 0;
+                    const hasElementChildren = node.children.length > 0;
+                    const totalTextLength = node.textContent.trim().length;
+
+                    const $toggle = $('<span class="lab-dom-toggle"></span>');
+                    const complexNode = hasElementChildren || (hasChildren && totalTextLength > 80);
+
+                    if (complexNode) {
+                        $toggle.text('▸').addClass('has-children');
+                    } else {
+                        $toggle.html('&nbsp;').addClass('empty');
+                    }
+                    $header.append($toggle);
+
+                    const $openTag = $(`<span class="lab-dom-tag-open">&lt;<span class="tag-name">${tagName}</span></span>`);
+                    if (node.attributes && node.attributes.length > 0) {
+                        for (let attr of node.attributes) {
+                            $openTag.append(' ');
+                            $openTag.append($(`<span class="tag-attr" data-name="${attr.name}" data-val="${attr.value}"><span class="attr-name">${attr.name}</span>="<span class="attr-val">${attr.value}</span>"</span>`));
+                        }
+                    }
+                    $openTag.append('&gt;');
+                    $header.append($openTag);
+
+                    const $childrenContainer = $('<div class="lab-dom-children" style="display:none;"></div>');
+                    const $blockClose = $(`<div class="lab-dom-block-close" style="display:none; padding-left:16px;">&lt;/<span class="tag-name">${tagName}</span>&gt;</div>`);
+
+                    if (complexNode) {
+                        $header.append('<span class="lab-dom-summary">...</span>');
+                        $header.append($(`<span class="lab-dom-tag-close" style="display:none;">&lt;/<span class="tag-name">${tagName}</span>&gt;</span>`));
+
+                        for (let child of node.childNodes) {
+                            const childDOM = createTreeDOM(child);
+                            if (childDOM) $childrenContainer.append(childDOM);
+                        }
+                        $nodeWrap.append($header).append($childrenContainer).append($blockClose);
+                    } else {
+                        const txt = node.textContent.trim();
+                        if (txt) {
+                            $header.append($(`<span class="lab-dom-text">${escapeHTML(txt)}</span>`));
+                        }
+                        $header.append($(`<span class="lab-dom-tag-close">&lt;/<span class="tag-name">${tagName}</span>&gt;</span>`));
+                        $nodeWrap.append($header);
+                    }
+
+                    $header.on('click', function(e) {
+                        if ($(e.target).closest('.tag-name, .tag-attr, .lab-dom-text').length > 0) return;
+                        if ($toggle.hasClass('has-children')) {
+                            const isOpen = $childrenContainer.is(':visible');
+                            if (isOpen) {
+                                $childrenContainer.hide();
+                                $blockClose.hide();
+                                $header.find('.lab-dom-summary').show();
+                                $toggle.text('▸');
+                            } else {
+                                $childrenContainer.show();
+                                $blockClose.show();
+                                $header.find('.lab-dom-summary').hide();
+                                $toggle.text('▾');
                             }
                         }
                     });
-                });
-                finalCleanHTML = '<!DOCTYPE html>\n' + documentClone.documentElement.outerHTML;
-            } else {
-                throw new Error("Không thể clone phần tử gốc");
-            }
-        } catch (domError) {
-            console.warn("Tầng 1 (DOM) thất bại. Chuyển sang Tầng 2 (Regex)...", domError);
-            try {
-                let rawHtml = parsedHtmlDocument.documentElement ? parsedHtmlDocument.documentElement.outerHTML : parsedHtmlDocument.body.innerHTML;
-                rawHtml = rawHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-                rawHtml = rawHtml.replace(/\s+on[a-zA-Z]+\s*=\s*(["'])(.*?)\1/gi, '');
-                rawHtml = rawHtml.replace(/\s+on[a-zA-Z]+\s*=\s*[^>\s]+/gi, '');
 
-                rawHtml = rawHtml.replace(/(\b(src|href)\s*=\s*(["']))([^"'\s>]+)\3/gi, (match, p1, p2, p3, p4) => {
-                    let urlVal = p4.trim();
-                    if (urlVal && !/^(https?:|===|\/\/|data:|javascript:|#)/i.test(urlVal)) {
-                        try {
-                            return p1 + new URL(urlVal, window.location.href).href + p3;
-                        } catch (e) { return match; }
+                    return $nodeWrap[0];
+                }
+
+                // HÀM TỔNG HỢP NÂNG CẤP: Fetch mã nguồn hỗ trợ qua Google Script Proxy hoặc Direct
+                // fetch Google script
+                // window._$ = function (htmlOrBlock)
+
+                window.executeFetchSource = function(targetUrl, $check) {
+                    $treeContainer.html('<div style="color:#aaa; padding:10px;">⌛ Đang phân tích và dựng bản đồ DOM Tree nguồn...</div>');
+
+                    let finalRequestUrl = targetUrl;
+                    const selectedMode = $fetchMode.val();
+
+                    // Xử lý cấu trúc URL endpoint gọi lên Google Script App của bạn
+                    if (selectedMode === 'gas_proxy' || selectedMode === 'gas_scraper') {
+                        const baseGasUrl = "https://script.google.com/macros/s/AKfycbyxM6-_Q-DG_2l1hm1bM_ASVA74OPywVPk3hpm2FbpT78gGzBEpDN81Ty6tla8DTO27/exec";
+                        const checkParam = (selectedMode === 'gas_scraper') ? "true" : "false";
+                        const renderParam = $renderToggle.is(':checked') ? "true" : "false";
+
+                        finalRequestUrl = `${baseGasUrl}?url=${encodeURIComponent(targetUrl)}&check=${checkParam}&render=${renderParam}`;
                     }
-                    return match;
+
+                    fetch(finalRequestUrl)
+                        .then(response => response.text())
+                        .then(html => {
+                            // Đổ dữ liệu thô thu được vào biến toàn cục sourceHTML
+
+                            window.sourceHTML = html;
+                            if ($check == true) {
+                                return false;
+                            }
+
+                            parsedHtmlDocument = new DOMParser().parseFromString(html, 'text/html');
+                            $treeContainer.empty();
+
+                            // Tiến hành dựng cây từ thẻ gốc HTML
+                            const treeRoot = createTreeDOM(parsedHtmlDocument.documentElement);
+                            const treeRoot2 = createTreeDOM(parsedHtmlDocument.documentElement);
+                            if (treeRoot) {
+                                $treeContainer.html(treeRoot);
+                                $("#labTreeDomBody").html(treeRoot2);
+                                $(treeRoot).children('.lab-dom-header').trigger('click');
+                            }
+                            //labTreeDomBody
+
+
+                            $modal.addClass('lab-html-modal-active');
+                            $searchInput.val('');
+                            lastSearchQuery = '';
+                            clearSearch();
+                        })
+                        .catch(err => {
+                            parsedHtmlDocument = null;
+                            window.sourceHTML = '';
+                            $treeContainer.html('<div style="color:#c0392b; padding:10px;">❌ Lỗi nạp nguồn mã: ' + err + '</div>');
+                        });
+                }
+
+                $viewSourceBtn.on('click', function(e) {
+                    e.stopPropagation();
+                    if (parsedHtmlDocument) {
+                        $modal.addClass('lab-html-modal-active');
+                        return;
+                    }
+                    executeFetchSource(window.location.href);
                 });
 
-                finalCleanHTML = '<!DOCTYPE html>\n' + rawHtml;
-            } catch (regexError) {
-                alert('❌ Không thể xử lý mã nguồn của trang này!');
-                return;
-            }
-        }
+                $urlFetchBtn.on('click', function(e) {
+                    e.stopPropagation();
+                    let inputUrl = $urlInput.val().trim();
+                    if (!inputUrl) {
+                        alert('Vui lòng nhập đường dẫn URL hoặc Endpoint cần Fetch!');
+                        return;
+                    }
 
-        if (finalCleanHTML) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(finalCleanHTML)
-                    .then(() => { showToastSuccess("Đã sao chép Source Sạch!", e.clientX, e.clientY); })
-                    .catch(() => { executeFallbackCopyOrDownload(finalCleanHTML, e.clientX, e.clientY); });
-            } else {
-                executeFallbackCopyOrDownload(finalCleanHTML, e.clientX, e.clientY);
-            }
-        }
-    });
+                    // Nếu người dùng nhập link tương đối, tự map với hostname hiện tại trước khi gửi lên Proxy
+                    if (inputUrl.startsWith('/') && !inputUrl.startsWith('//')) {
+                        try {
+                            inputUrl = new URL(inputUrl, window.location.href).href;
+                        } catch (e) {}
+                    }
+                    executeFetchSource(inputUrl);
+                });
 
-    function executeFallbackCopyOrDownload(text, x, y) {
-        let copySuccess = false;
-        try {
-            const $temp = $('<textarea>').val(text).appendTo('body').select();
-            copySuccess = document.execCommand('copy');
-            $temp.remove();
-            if (copySuccess) {
-                showToastSuccess("Đã sao chép (Dự phòng)!", x, y);
-                return;
-            }
-        } catch (err) {}
+                $urlInput.on('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        $urlFetchBtn.trigger('click');
+                    }
+                });
 
-        try {
-            const blob = new Blob([text], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `clean_source_${new Date().getTime()}.html`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            alert('⚠️ Quyền Sao chép bị chặn, file sạch đã được tải về máy thành công!');
-        } catch (downloadError) {
-            alert('❌ Thất bại: Không thể xuất file!');
-        }
-    }
+                // GIỮ NGUYÊN CÁC SỰ KIỆN SAO CHÉP MÃ NGUỒN AN TOÀN ĐÃ CÓ CỦA BẠN
+                $copySourceBtn.on('click', function(e) {
+                    e.stopPropagation();
+                    if (!parsedHtmlDocument) {
+                        alert('Không tìm thấy dữ liệu nguồn để sao chép!');
+                        return;
+                    }
 
-    function showToastSuccess(msg, x, y) {
-        const $toast = $('<div class="lab-html-toast"></div>').text(msg);
-        $('body').append($toast);
-        $toast.css({ left: (x + 12) + 'px', top: (y + 12) + 'px' });
-        requestAnimationFrame(() => $toast.addClass('show'));
-        setTimeout(() => {
-            $toast.removeClass('show');
-            setTimeout(() => $toast.remove(), 250);
-        }, 2500);
-    }
+                    let finalCleanHTML = '';
 
-    $treeContainer.on('click', '.tag-name, .tag-attr, .lab-dom-text, .lab-dom-pure-text', function(e) {
-        e.stopPropagation();
-        let copyText = '';
-        if ($(this).hasClass('tag-attr')) {
-            copyText = $(this).attr('data-val') || '';
-        } else {
-            copyText = $(this).text();
-        }
+                    try {
+                        const documentClone = parsedHtmlDocument.cloneNode(true);
+                        if (documentClone && documentClone.documentElement) {
+                            const allScriptTags = documentClone.querySelectorAll('script');
+                            allScriptTags.forEach(script => script.remove());
 
-        if ($(this).hasClass('tag-name')) {
-            const rawNode = $(this).closest('.lab-dom-node').data('raw-node');
-            if (rawNode && typeof loadElementToTreeMain === 'function') {
-                loadElementToTreeMain(rawNode);
-                $('#labFamilyTreeBar').css('display', 'flex');
-            }
-        }
+                            const allElements = documentClone.querySelectorAll('*');
+                            allElements.forEach(element => {
+                                if (element.attributes && element.attributes.length > 0) {
+                                    const attrs = Array.from(element.attributes);
+                                    attrs.forEach(attr => {
+                                        if (attr.name.toLowerCase().startsWith('on')) {
+                                            element.removeAttribute(attr.name);
+                                        }
+                                    });
+                                }
 
-        if (copyText && copyText.trim()) {
-            copyToClipboardWithToast(copyText.trim(), e.clientX, e.clientY);
-        }
-    });
+                                ['src', 'href'].forEach(attrName => {
+                                    if (element.hasAttribute(attrName)) {
+                                        let attrVal = element.getAttribute(attrName).trim();
+                                        if (attrVal && !/^(https?:|===|\/\/|data:|javascript:|#)/i.test(attrVal)) {
+                                            try {
+                                                let absoluteUrl = new URL(attrVal, window.location.href).href;
+                                                element.setAttribute(attrName, absoluteUrl);
+                                            } catch (urlErr) {}
+                                        }
+                                    }
+                                });
+                            });
+                            finalCleanHTML = '<!DOCTYPE html>\n' + documentClone.documentElement.outerHTML;
+                        } else {
+                            throw new Error("Không thể clone phần tử gốc");
+                        }
+                    } catch (domError) {
+                        console.warn("Tầng 1 (DOM) thất bại. Chuyển sang Tầng 2 (Regex)...", domError);
+                        try {
+                            let rawHtml = parsedHtmlDocument.documentElement ? parsedHtmlDocument.documentElement.outerHTML : parsedHtmlDocument.body.innerHTML;
+                            rawHtml = rawHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                            rawHtml = rawHtml.replace(/\s+on[a-zA-Z]+\s*=\s*(["'])(.*?)\1/gi, '');
+                            rawHtml = rawHtml.replace(/\s+on[a-zA-Z]+\s*=\s*[^>\s]+/gi, '');
 
-    function closeModal() {
-        $modal.removeClass('lab-html-modal-active');
-        clearSearch();
-    }
-    $closeModal.on('click', closeModal);
-    $(document).on('keydown.htmlSourceModal', function(e) {
-        if (e.key === 'Escape' && $modal.hasClass('lab-html-modal-active')) closeModal();
-    });
+                            rawHtml = rawHtml.replace(/(\b(src|href)\s*=\s*(["']))([^"'\s>]+)\3/gi, (match, p1, p2, p3, p4) => {
+                                let urlVal = p4.trim();
+                                if (urlVal && !/^(https?:|===|\/\/|data:|javascript:|#)/i.test(urlVal)) {
+                                    try {
+                                        return p1 + new URL(urlVal, window.location.href).href + p3;
+                                    } catch (e) {
+                                        return match;
+                                    }
+                                }
+                                return match;
+                            });
 
-    function clearSearch() {
-        searchMatches = [];
-        currentMatchIndex = -1;
-        $searchCount.text('0/0');
-        $totalMatches.text('0 kết quả');
-        $sidebarList.empty();
-        $treeContainer.find('.lab-tree-search-highlight, .lab-tree-search-current').each(function() {
-            const rawTxt = $(this).text();
-            $(this).replaceWith(document.createTextNode(rawTxt));
-        });
-    }
+                            finalCleanHTML = '<!DOCTYPE html>\n' + rawHtml;
+                        } catch (regexError) {
+                            alert('❌ Không thể xử lý mã nguồn của trang này!');
+                            return;
+                        }
+                    }
 
-    function performSearch() {
-        const query = $searchInput.val().trim();
-        if (!query) {
-            lastSearchQuery = '';
-            clearSearch();
-            return;
-        }
-        if (query === lastSearchQuery && searchMatches.length > 0) {
-            jumpToMatch(currentMatchIndex + 1);
-            return;
-        }
+                    if (finalCleanHTML) {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(finalCleanHTML)
+                                .then(() => {
+                                    showToastSuccess("Đã sao chép Source Sạch!", e.clientX, e.clientY);
+                                })
+                                .catch(() => {
+                                    executeFallbackCopyOrDownload(finalCleanHTML, e.clientX, e.clientY);
+                                });
+                        } else {
+                            executeFallbackCopyOrDownload(finalCleanHTML, e.clientX, e.clientY);
+                        }
+                    }
+                });
 
-        clearSearch();
-        lastSearchQuery = query;
-        const lowerQuery = query.toLowerCase();
-        let listHtml = '';
-        let index = 0;
+                function executeFallbackCopyOrDownload(text, x, y) {
+                    let copySuccess = false;
+                    try {
+                        const $temp = $('<textarea>').val(text).appendTo('body').select();
+                        copySuccess = document.execCommand('copy');
+                        $temp.remove();
+                        if (copySuccess) {
+                            showToastSuccess("Đã sao chép (Dự phòng)!", x, y);
+                            return;
+                        }
+                    } catch (err) {}
 
-        $treeContainer.find('.tag-name, .attr-name, .attr-val, .lab-dom-text, .lab-dom-pure-text, .lab-dom-comment').each(function() {
-            const $el = $(this);
-            const txt = $el.text();
-            const startIdx = txt.toLowerCase().indexOf(lowerQuery);
+                    try {
+                        const blob = new Blob([text], {
+                            type: 'text/html'
+                        });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `clean_source_${new Date().getTime()}.html`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        alert('⚠️ Quyền Sao chép bị chặn, file sạch đã được tải về máy thành công!');
+                    } catch (downloadError) {
+                        alert('❌ Thất bại: Không thể xuất file!');
+                    }
+                }
 
-            if (startIdx !== -1) {
-                searchMatches.push($el);
-                const safeTxt = escapeHTML(txt);
-                const regex = new RegExp('(' + query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ')', 'gi');
-                const highlightedHtml = safeTxt.replace(regex, '<span class="lab-tree-search-highlight">$1</span>');
-                $el.html(highlightedHtml);
+                function showToastSuccess(msg, x, y) {
+                    const $toast = $('<div class="lab-html-toast"></div>').text(msg);
+                    $('body').append($toast);
+                    $toast.css({
+                        left: (x + 12) + 'px',
+                        top: (y + 12) + 'px'
+                    });
+                    requestAnimationFrame(() => $toast.addClass('show'));
+                    setTimeout(() => {
+                        $toast.removeClass('show');
+                        setTimeout(() => $toast.remove(), 250);
+                    }, 2500);
+                }
 
-                let displayTxt = txt.substring(startIdx, startIdx + 50);
-                if (txt.length > 50) displayTxt += '...';
+                $treeContainer.on('click', '.tag-name, .tag-attr, .lab-dom-text, .lab-dom-pure-text', function(e) {
+                    e.stopPropagation();
+                    let copyText = '';
+                    if ($(this).hasClass('tag-attr')) {
+                        copyText = $(this).attr('data-val') || '';
+                    } else {
+                        copyText = $(this).text();
+                    }
 
-                const pTag = $el.closest('.lab-dom-node').find('.tag-name').first().text() || 'text';
-                listHtml += `<div class="lab-html-match-item" data-idx="${index}">
+                    if ($(this).hasClass('tag-name')) {
+                        const rawNode = $(this).closest('.lab-dom-node').data('raw-node');
+                        if (rawNode && typeof loadElementToTreeMain === 'function') {
+                            loadElementToTreeMain(rawNode);
+                            $('#labFamilyTreeBar').css('display', 'flex');
+                        }
+                    }
+
+                    if (copyText && copyText.trim()) {
+                        copyToClipboardWithToast(copyText.trim(), e.clientX, e.clientY);
+                    }
+                });
+
+                function closeModal() {
+                    $modal.removeClass('lab-html-modal-active');
+                    clearSearch();
+                }
+                $closeModal.on('click', closeModal);
+                $(document).on('keydown.htmlSourceModal', function(e) {
+                    if (e.key === 'Escape' && $modal.hasClass('lab-html-modal-active')) closeModal();
+                });
+
+                function clearSearch() {
+                    searchMatches = [];
+                    currentMatchIndex = -1;
+                    $searchCount.text('0/0');
+                    $totalMatches.text('0 kết quả');
+                    $sidebarList.empty();
+                    $treeContainer.find('.lab-tree-search-highlight, .lab-tree-search-current').each(function() {
+                        const rawTxt = $(this).text();
+                        $(this).replaceWith(document.createTextNode(rawTxt));
+                    });
+                }
+
+                function performSearch() {
+                    const query = $searchInput.val().trim();
+                    if (!query) {
+                        lastSearchQuery = '';
+                        clearSearch();
+                        return;
+                    }
+                    if (query === lastSearchQuery && searchMatches.length > 0) {
+                        jumpToMatch(currentMatchIndex + 1);
+                        return;
+                    }
+
+                    clearSearch();
+                    lastSearchQuery = query;
+                    const lowerQuery = query.toLowerCase();
+                    let listHtml = '';
+                    let index = 0;
+
+                    $treeContainer.find('.tag-name, .attr-name, .attr-val, .lab-dom-text, .lab-dom-pure-text, .lab-dom-comment').each(function() {
+                        const $el = $(this);
+                        const txt = $el.text();
+                        const startIdx = txt.toLowerCase().indexOf(lowerQuery);
+
+                        if (startIdx !== -1) {
+                            searchMatches.push($el);
+                            const safeTxt = escapeHTML(txt);
+                            const regex = new RegExp('(' + query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ')', 'gi');
+                            const highlightedHtml = safeTxt.replace(regex, '<span class="lab-tree-search-highlight">$1</span>');
+                            $el.html(highlightedHtml);
+
+                            let displayTxt = txt.substring(startIdx, startIdx + 50);
+                            if (txt.length > 50) displayTxt += '...';
+
+                            const pTag = $el.closest('.lab-dom-node').find('.tag-name').first().text() || 'text';
+                            listHtml += `<div class="lab-html-match-item" data-idx="${index}">
                 <span class="match-num">#${index + 1}</span>[&lt;${pTag}&gt;]: ${escapeHTML(displayTxt)}
             </div>`;
-                index++;
-            }
-        });
+                            index++;
+                        }
+                    });
 
-        $totalMatches.text(searchMatches.length + ' kết quả');
-        $searchCount.text(searchMatches.length > 0 ? `1/${searchMatches.length}` : '0/0');
-        $sidebarList.html(listHtml);
+                    $totalMatches.text(searchMatches.length + ' kết quả');
+                    $searchCount.text(searchMatches.length > 0 ? `1/${searchMatches.length}` : '0/0');
+                    $sidebarList.html(listHtml);
 
-        $sidebarList.find('.lab-html-match-item').on('click', function() {
-            jumpToMatch(parseInt($(this).attr('data-idx'), 10));
-        });
+                    $sidebarList.find('.lab-html-match-item').on('click', function() {
+                        jumpToMatch(parseInt($(this).attr('data-idx'), 10));
+                    });
 
-        if (searchMatches.length > 0) {
-            jumpToMatch(0);
-            if (!sidebarOpen) toggleSidebar(true);
-        }
-    }
+                    if (searchMatches.length > 0) {
+                        jumpToMatch(0);
+                        if (!sidebarOpen) toggleSidebar(true);
+                    }
+                }
 
-    function jumpToMatch(index) {
-        if (searchMatches.length === 0) return;
-        if (index < 0) index = searchMatches.length - 1;
-        if (index >= searchMatches.length) index = 0;
-        currentMatchIndex = index;
+                function jumpToMatch(index) {
+                    if (searchMatches.length === 0) return;
+                    if (index < 0) index = searchMatches.length - 1;
+                    if (index >= searchMatches.length) index = 0;
+                    currentMatchIndex = index;
 
-        const $targetElement = searchMatches[index];
+                    const $targetElement = searchMatches[index];
 
-        $targetElement.parents('.lab-dom-children').each(function() {
-            const $childrenBlock = $(this);
-            if (!$childrenBlock.is(':visible')) {
-                $childrenBlock.show();
-                const $parentNode = $childrenBlock.closest('.lab-dom-node');
-                const $pHeader = $parentNode.children('.lab-dom-header');
-                $pHeader.find('.lab-dom-toggle').text('▾');
-                $pHeader.find('.lab-dom-summary').hide();
-                $parentNode.children('.lab-dom-block-close').show();
-            }
-        });
+                    $targetElement.parents('.lab-dom-children').each(function() {
+                        const $childrenBlock = $(this);
+                        if (!$childrenBlock.is(':visible')) {
+                            $childrenBlock.show();
+                            const $parentNode = $childrenBlock.closest('.lab-dom-node');
+                            const $pHeader = $parentNode.children('.lab-dom-header');
+                            $pHeader.find('.lab-dom-toggle').text('▾');
+                            $pHeader.find('.lab-dom-summary').hide();
+                            $parentNode.children('.lab-dom-block-close').show();
+                        }
+                    });
 
-        $treeContainer.find('.lab-tree-search-current').removeClass('lab-tree-search-current').addClass('lab-tree-search-highlight');
-        const $localHighlight = $targetElement.find('.lab-tree-search-highlight').eq(0);
-        if ($localHighlight.length) {
-            $localHighlight.removeClass('lab-tree-search-highlight').addClass('lab-tree-search-current');
-            $localHighlight[0].scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
-        } else {
-            $targetElement.addClass('lab-tree-search-current');
-            $targetElement[0].scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
-        }
+                    $treeContainer.find('.lab-tree-search-current').removeClass('lab-tree-search-current').addClass('lab-tree-search-highlight');
+                    const $localHighlight = $targetElement.find('.lab-tree-search-highlight').eq(0);
+                    if ($localHighlight.length) {
+                        $localHighlight.removeClass('lab-tree-search-highlight').addClass('lab-tree-search-current');
+                        $localHighlight[0].scrollIntoView({
+                            block: 'center',
+                            inline: 'nearest',
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        $targetElement.addClass('lab-tree-search-current');
+                        $targetElement[0].scrollIntoView({
+                            block: 'center',
+                            inline: 'nearest',
+                            behavior: 'smooth'
+                        });
+                    }
 
-        $searchCount.text((index + 1) + '/' + searchMatches.length);
-        $sidebarList.find('.lab-html-match-item').removeClass('active-match');
-        const $activeItem = $sidebarList.find(`.lab-html-match-item[data-idx="${index}"]`);
-        $activeItem.addClass('active-match');
-        if ($activeItem.length) {
-            $activeItem[0].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
-    }
+                    $searchCount.text((index + 1) + '/' + searchMatches.length);
+                    $sidebarList.find('.lab-html-match-item').removeClass('active-match');
+                    const $activeItem = $sidebarList.find(`.lab-html-match-item[data-idx="${index}"]`);
+                    $activeItem.addClass('active-match');
+                    if ($activeItem.length) {
+                        $activeItem[0].scrollIntoView({
+                            block: 'nearest',
+                            behavior: 'smooth'
+                        });
+                    }
+                }
 
-    $searchPrev.on('click', function(e) {
-        e.stopPropagation();
-        if (searchMatches.length > 0) jumpToMatch(currentMatchIndex - 1);
-    });
+                $searchPrev.on('click', function(e) {
+                    e.stopPropagation();
+                    if (searchMatches.length > 0) jumpToMatch(currentMatchIndex - 1);
+                });
 
-    $searchNext.on('click', function(e) {
-        e.stopPropagation();
-        performSearch();
-    });
+                $searchNext.on('click', function(e) {
+                    e.stopPropagation();
+                    performSearch();
+                });
 
-    $searchInput.on('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            performSearch();
-        }
-    });
+                $searchInput.on('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        performSearch();
+                    }
+                });
 
-    function toggleSidebar(force) {
-        if (typeof force !== 'undefined') sidebarOpen = force;
-        else sidebarOpen = !sidebarOpen;
-        $editorWrap.toggleClass('sidebar-open', sidebarOpen);
-        $sidebar.toggleClass('sidebar-open', sidebarOpen);
-    }
+                function toggleSidebar(force) {
+                    if (typeof force !== 'undefined') sidebarOpen = force;
+                    else sidebarOpen = !sidebarOpen;
+                    $editorWrap.toggleClass('sidebar-open', sidebarOpen);
+                    $sidebar.toggleClass('sidebar-open', sidebarOpen);
+                }
 
-    $toggleSidebar.on('click', function(e) {
-        e.stopPropagation();
-        toggleSidebar();
-    });
+                $toggleSidebar.on('click', function(e) {
+                    e.stopPropagation();
+                    toggleSidebar();
+                });
 
-    function copyToClipboardWithToast(text, x, y) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
-        } else {
-            fallbackCopy(text);
-        }
+                function copyToClipboardWithToast(text, x, y) {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+                    } else {
+                        fallbackCopy(text);
+                    }
 
-        const displayText = text.length > 35 ? text.substring(0, 32) + '...' : text;
-        const $toast = $('<div class="lab-html-toast"></div>').text('Đã sao chép: ' + displayText);
-        $('body').append($toast);
-        $toast.css({ left: (x + 12) + 'px', top: (y + 12) + 'px' });
+                    const displayText = text.length > 35 ? text.substring(0, 32) + '...' : text;
+                    const $toast = $('<div class="lab-html-toast"></div>').text('Đã sao chép: ' + displayText);
+                    $('body').append($toast);
+                    $toast.css({
+                        left: (x + 12) + 'px',
+                        top: (y + 12) + 'px'
+                    });
 
-        requestAnimationFrame(() => $toast.addClass('show'));
-        setTimeout(() => {
-            $toast.removeClass('show');
-            setTimeout(() => $toast.remove(), 250);
-        }, 2500);
-    }
+                    requestAnimationFrame(() => $toast.addClass('show'));
+                    setTimeout(() => {
+                        $toast.removeClass('show');
+                        setTimeout(() => $toast.remove(), 250);
+                    }, 2500);
+                }
 
-    function fallbackCopy(text) {
-        const $temp = $('<textarea>').val(text).appendTo('body').select();
-        document.execCommand('copy');
-        $temp.remove();
-    }
+                function fallbackCopy(text) {
+                    const $temp = $('<textarea>').val(text).appendTo('body').select();
+                    document.execCommand('copy');
+                    $temp.remove();
+                }
 
-    $modal.on('click', function(e) {
-        e.stopPropagation();
-    });
-})();
+                $modal.on('click', function(e) {
+                    e.stopPropagation();
+                });
+            })();
 
 
-/* === Begin Module Resize Main Panel === */
-(function() {
-    const panel = document.getElementById('labMainDashboard');
-    if (!panel) {
-        console.error("Không tìm thấy phần tử có id là 'labMainDashboard'");
-        return;
-    }
+            /* === Begin Module Resize Main Panel === */
+            (function() {
+                const panel = document.getElementById('labMainDashboard');
+                if (!panel) {
+                    console.error("Không tìm thấy phần tử có id là 'labMainDashboard'");
+                    return;
+                }
 
-    const resizer = document.createElement('div');
-    resizer.id = 'labPanelResizer';
+                const resizer = document.createElement('div');
+                resizer.id = 'labPanelResizer';
 
-    Object.assign(resizer.style, {
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        right: '0',
-        height: '6px',
-        cursor: 'ns-resize',
-        zIndex: '99999',
-        background: 'transparent',
-        transition: 'background 0.2s'
-    });
+                Object.assign(resizer.style, {
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    right: '0',
+                    height: '6px',
+                    cursor: 'ns-resize',
+                    zIndex: '99999',
+                    background: 'transparent',
+                    transition: 'background 0.2s'
+                });
 
-    resizer.addEventListener('mouseenter', () => resizer.style.background = 'rgba(69, 162, 158, 0.4)');
-    resizer.addEventListener('mouseleave', () => resizer.style.background = 'transparent');
+                resizer.addEventListener('mouseenter', () => resizer.style.background = 'rgba(69, 162, 158, 0.4)');
+                resizer.addEventListener('mouseleave', () => resizer.style.background = 'transparent');
 
-    if (window.getComputedStyle(panel).position === 'static') {
-        panel.style.position = 'relative';
-    }
+                if (window.getComputedStyle(panel).position === 'static') {
+                    panel.style.position = 'relative';
+                }
 
-    panel.insertBefore(resizer, panel.firstChild);
+                panel.insertBefore(resizer, panel.firstChild);
 
-    let isResizing = false;
+                let isResizing = false;
 
-    resizer.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        isResizing = true;
-        resizer.style.background = 'rgba(102, 252, 241, 0.7)';
-        document.body.style.cursor = 'ns-resize';
-    });
+                resizer.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    isResizing = true;
+                    resizer.style.background = 'rgba(102, 252, 241, 0.7)';
+                    document.body.style.cursor = 'ns-resize';
+                });
 
-    window.addEventListener('mousemove', function(e) {
-        if (!isResizing) return;
-        let newHeight = window.innerHeight - e.clientY;
-        if (newHeight < 44) newHeight = 44;
-        if (newHeight > window.innerHeight * 0.95) newHeight = window.innerHeight * 0.95;
-        panel.style.height = newHeight + 'px';
-    });
+                window.addEventListener('mousemove', function(e) {
+                    if (!isResizing) return;
+                    let newHeight = window.innerHeight - e.clientY;
+                    if (newHeight < 44) newHeight = 44;
+                    if (newHeight > window.innerHeight * 0.95) newHeight = window.innerHeight * 0.95;
+                    panel.style.height = newHeight + 'px';
+                });
 
-    window.addEventListener('mouseup', function() {
-        if (isResizing) {
-            isResizing = false;
-            resizer.style.background = 'transparent';
-            document.body.style.cursor = 'default';
-        }
-    });
-})();
+                window.addEventListener('mouseup', function() {
+                    if (isResizing) {
+                        isResizing = false;
+                        resizer.style.background = 'transparent';
+                        document.body.style.cursor = 'default';
+                    }
+                });
+            })();
 
-						/*===  End Module Resize Main Panel   ===*/
+            /*===  End Module Resize Main Panel   ===*/
 
 
             //[UPDATE 2.0] END Full-screen HTML Source Viewer Feature
@@ -6163,7 +6207,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                     // Start init when DOM ready
                     if (document.readyState === 'complete' || document.readyState === 'interactive') {
                         setTimeout(initModule, 100);
-                        executeFetchSource(window.location.href,true);
+                        executeFetchSource(window.location.href, true);
                     } else {
                         document.addEventListener('DOMContentLoaded', function() {
                             setTimeout(initModule, 100);
