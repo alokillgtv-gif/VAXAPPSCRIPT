@@ -2,16 +2,16 @@ var BASEURL = "https://animehay09.site";
 // https://www.whoreshub.com/categories/4k-porn/
 function getManifest() {
     return JSON.stringify({
-        "id": "animehay",
-        "name": "Nguồn Animehay",
-        "description": "Anime siêu hay.",
-        "version": "1.0.1",
-        "info": "Nguồn phim anime chất lượng cao. Cập nhật khá nhanh.",
-        "baseUrl": "https://animehay09.site",
-        "iconUrl": "https://animehay09.site/themes/img/logo.png",
-        "isEnabled": true,
-        "type": "MOVIE",
-        "playerTpye": "exoplayer"
+      "id": "animehay",
+      "name": "Nguồn Animehay",
+      "description": "Anime siêu hay.",
+      "version": "1.0.2",
+      "info": "Nguồn phim anime chất lượng cao. Cập nhật khá nhanh.",
+      "baseUrl": "https://animehay09.site",
+      "iconUrl": "https://animehay09.site/themes/img/logo.png",
+      "isEnabled": true,
+      "type": "MOVIE",
+      "playerTpye": "exoplayer"
     })
 };
 
@@ -39,7 +39,7 @@ function getPrimaryCategories() {
 
 function getFilterConfig() {
     var listurl = getLISTmenu();
-    var menulist = buildMenu(listurl);
+    var menulist = buildMenu(listurl,"filter");
     return JSON.stringify({
         category: menulist
     });
@@ -51,25 +51,6 @@ function getFilterConfig() {
 function getUrlList(slug, filtersJson) {
     try {
         if (slug && slug.indexOf("http") > -1) {
-            if (slug.indexOf("tim-kiem") > -1) {
-                if (filtersJson) {
-                    var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-                    try {
-                        var filters = JSON.parse(fixedJson);
-                        var page = parseInt(filters.page) || 1;
-                        if (page > 1) {
-                            var keyword = slug.split("?");
-                            console.log("findpage")
-
-                            return BASEURL + "/tim-kiem/trang-" + page + ".html?" + keyword[1];
-                        } else {
-                            return slug;
-                        }
-                    } catch (jsonErr) {
-                        return slug;
-                    }
-                }
-            }
             return slug;
         }
 
@@ -110,7 +91,20 @@ function getUrlList(slug, filtersJson) {
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/tim-kiem/?keyword=" + encodeURIComponent(keyword);
+    if (filtersJson) {
+        var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+        try {
+            var filters = JSON.parse(fixedJson);
+            var page = parseInt(filters.page) || 1;
+            if (page > 1) {
+                return BASEURL + "/tim-kiem/trang-" + page + ".html?keyword=" + keyword;
+            } else {
+                return BASEURL + "/tim-kiem/?keyword=" + encodeURIComponent(keyword);
+            }
+        } catch (jsonErr) {
+            return BASEURL + "/tim-kiem/?keyword=" + encodeURIComponent(keyword);
+        }
+    }
 }
 /*
 // https://animehay09.site/tim-kiem/trang-3.html?keyword=girl
@@ -179,16 +173,46 @@ function parseListResponse(html, $url) {
             var episode_current = this.find(".mc__ep-badge").text().trim();
             var quality = this.find(".mc__score").text().trim();
 
-            if (href && href.indexOf("http") > -1) {
-                var cleanThumb = src.replace(/&amp;/g, '&');
+// Hàm kiểm tra URL có phải là link thật hay chứa mã JS rác
+function isValidMediaUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    
+    var cleanUrl = url.trim();
+
+    // 1. Loại bỏ nếu dính chuỗi nối code JS, biến hoặc hàm (như _spEsc, +, ', ${...)
+    if (cleanUrl.indexOf('_spEsc') > -1 || 
+        cleanUrl.indexOf("'+") > -1 || 
+        cleanUrl.indexOf("+'") > -1 || 
+        cleanUrl.indexOf("${") > -1 ||
+        cleanUrl.indexOf("javascript:") > -1) {
+        return false;
+    }
+
+    // 2. Kiểm tra định dạng URL http/https hợp lệ (không chứa khoảng trắng, ngoặc đơn/kép, dấu +)
+    var httpPattern = /^https?:\/\/[^\s"'<>+]+$/i;
+    return httpPattern.test(cleanUrl);
+}
+
+// =============================================================================
+// ĐOẠN XỬ LÝ TRONG HÀM PARSE CỦA BẠN
+// =============================================================================
+
+            if (isValidMediaUrl(href)) {
+                var cleanThumb = (src || "").replace(/&amp;/g, '&').trim();
+                
+                // Đảm bảo cleanThumb cũng là link ảnh hợp lệ, nếu không có thì fallback
+                if (cleanThumb && cleanThumb.indexOf('http') !== 0) {
+                    cleanThumb = 'https:' + cleanThumb;
+                }
+            
                 items.push({
-                    "id": href,
-                    "title": title.trim(),
+                    "id": href.trim(),
+                    "title": (title || "").trim(),
                     "posterUrl": cleanThumb,
                     "backdropUrl": cleanThumb,
-                    "quality": quality,
+                    "quality": quality || "",
                     "lang": "",
-                    "episode_current": episode_current
+                    "episode_current": episode_current || ""
                 });
             }
         });
@@ -501,7 +525,11 @@ function buildMenu(menuStr, type) {
             menuItem = { "slug": link, "title": name, "type": "Horizontal" }; 
         } else if (typeStr === "true") { 
             menuItem = { "slug": link, "title": name, "type": "Grid" }; 
-        } else { 
+        } else if(typeStr === "filter"){
+          	menuItem = { "value": link, "name": name}; 
+        }
+        
+        else { 
             menuItem = { "slug": link, "name": name }; 
         } 
         menulist.push(menuItem); 

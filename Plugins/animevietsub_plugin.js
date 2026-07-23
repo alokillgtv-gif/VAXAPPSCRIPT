@@ -648,8 +648,8 @@ function customJS(initialLink){
         container.id = "floating-select-box";
         Object.assign(container.style, {
             position: "fixed",
-            bottom: "25px",
-            left: "50%",
+            top: "25px",
+            right: "25px",
             transform: "translateX(-50%)",
             zIndex: "999999",
             backgroundColor: "rgba(15, 15, 15, 0.85)",
@@ -664,7 +664,7 @@ function customJS(initialLink){
             alignItems: "center",
             gap: "10px",
             transition: "opacity 0.3s ease",
-            opacity: "0.25",
+            opacity: "0",
             pointerEvents: "auto"
         });
         container.innerHTML = "<span style='color: #aaa; font-size: 13px;'>⏳ Đang tải...</span>";
