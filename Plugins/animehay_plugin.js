@@ -231,7 +231,6 @@ JSON.parse(parseListResponse(sourceHTML, BASEURL));
 function parseSearchResponse(html, url) {
     return parseListResponse(html, url);
 }
-
 function parseMovieDetail(html, url) {
     try {
         // === BƯỚC 1: ĐỒNG NHẤT ID PHIM BẰNG REGEX META (Y hệt tác giả) ===
@@ -279,10 +278,36 @@ function parseMovieDetail(html, url) {
         var year = 2026;
         var extra = "";
 
-        //year = _$(html).find(".aim-hero__meta").find("span:first").text().replace(/[\s\S]*?(\d+)$/, "$1");
-        //year = Number(year);
+        var rawText = _$(html).find(".aim-hero__meta").find("span:first").text();
+
+        // 1. Dùng Regex lọc chính xác 4 chữ số năm (dạng 19xx hoặc 20xx)
+        var match = rawText.match(/\b(19|20)\d{2}\b/);
+
+        if (match) {
+            // 2. Ép kiểu về Số Nguyên bằng parseInt với cơ số 10
+            year = parseInt(match[0], 10);
+        }
+
+        // 3. Chốt chặn an toàn: Nếu parse thất bại (NaN), trả về năm mặc định
+        if (isNaN(year)) {
+            year = 2026;
+        }
         status = _$(html).find(".aim-hero__meta").find(".aim-status--airing").text();
-        category = _$(html).find(".aim-cate-chip").textAll(" - ");;
+
+        var categoryResult = [];
+        _$(html).find(".aim-cate-chip").each(function() {
+            var link = this.attr("href") || this.find("a").attr("href");
+            var name = this.text().replace(/\s+/g, ' ').trim();
+
+            if (name && link) {
+                var slug = typeof getSlug === 'function' ? getSlug(link) : link;
+                categoryResult.push("[" + name + "](" + slug + ")");
+            }
+        });
+
+        // THÊM DÒNG NÀY: Chuyển mảng thành Chuỗi nối nhau bằng dấu phẩy
+        category = categoryResult.join(", ");
+
         episode_current = _$(html).find(".aim-hero__meta").find("span:last").text();
 
         var servers = [];
@@ -330,6 +355,7 @@ function parseMovieDetail(html, url) {
         });
     }
 }
+
 /*
 // https://edge.narto-drama.com/e/rs/detail/watch/tro-choi-cong-so/9/refresh-source?lang=vi-VN
 
