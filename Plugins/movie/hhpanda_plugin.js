@@ -5,7 +5,7 @@ function getManifest() {
       "id": "hhpanda",
       "name": "Nguồn HHPanda",
       "description": "Anime siêu hay.",
-      "version": "1.0.2",
+      "version": "1.0.0",
       "info": "Nguồn phim anime chất lượng cao. Cập nhật khá nhanh.",
       "baseUrl": "https://hhpanda.st",
       "iconUrl": "https://hhpanda.st/wp-content/uploads/2024/10/logo.webp",
@@ -558,22 +558,38 @@ function customJS(config) {
                 left: 0 !important;
             }
 
-            #custom-main-player-iframe {
-                position: fixed !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) scale(1.55) !important;
-                width: 66% !important;
-                height: 58% !important;
-                max-height: 400px !important;
-                border: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                z-index: 1 !important;
-                display: block !important;
-                box-sizing: border-box !important;
-                transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease !important;
-            }
+#custom-main-player-iframe {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1.55) !important;
+    
+    /* Chiều rộng tính theo phần trăm màn hình */
+    width: 66% !important;
+    
+    /* Tự động tính toán: Chiều cao không bao giờ vượt quá 92% màn hình sau khi scale */
+    height: min(58vh, calc(92dvh / 1.55)) !important;
+    max-height: min(400px, calc(92dvh / 1.55)) !important;
+    
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 1 !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease !important;
+}
+
+/* Thêm quy tắc riêng cho màn hình có chiều cao cực ngắn (Dưới 600px - ví dụ: điện thoại xoay ngang) */
+@media (max-height: 400px) {
+    #custom-main-player-iframe {
+        /* Giảm bớt tỉ lệ scale xuống để không đè lên các nút điều khiển */
+        transform: translate(-50%, -50%) scale(1.25) !important;
+        height: calc(90dvh / 1.25) !important;
+        max-height: calc(90dvh / 1.25) !important;
+        width: 80% !important;
+    }
+}
             
             .floating-control-ui {
                 opacity: 0.1 !important;
