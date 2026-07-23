@@ -5,7 +5,7 @@ function getManifest() {
         "id": "newporn",          
         "name": "18porn",
         "description": "Nguồn xem phim XXX ổn định",
-        "version": "1.3.2",             
+        "version": "1.3.4",             
         "baseUrl": "https://www.18porn.sex",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/18porn.jpg", 
       "info":"Nguồn phim chất lượng 4K nên load hơi lâu, bạn chịu khó đợi tí nha.",
@@ -44,78 +44,103 @@ function getFilters() {
 
 
 function getUrlList(slug, filtersJson) {
- var BaseURLClean = (typeof BaseURL !== 'undefined' ? BaseURL : "").replace(/\/$/, "");
- 
- var page = 1;
- var path = "";
- 
- // 1. Cố gắng parse JSON một cách an toàn
- try {
-  if (filtersJson) {
-   // Thay thế các key không có dấu nháy bằng key có dấu nháy để sửa lỗi JSON lỏng lẻo
-   var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
-   var filters = JSON.parse(fixedJson);
-   
-   page = parseInt(filters.page) || 1;
-   
-   // Chỉ lấy category từ JSON nếu không truyền slug vào hàm
-   if (!slug && filters.category) {
-    if (Array.isArray(filters.category) && filters.category.length > 0) {
-     path = filters.category[0].slug;
-    } else if (typeof filters.category === 'string') {
-     path = filters.category;
+    try {
+        // Tương thích linh hoạt với cả BaseURL lẫn BASEURL
+        var baseUrl = typeof BaseURL !== 'undefined' ? BaseURL : (typeof BASEURL !== 'undefined' ? BASEURL : "");
+        var baseUrlClean = baseUrl.replace(/\/+$/, "");
+
+        var page = 1;
+        var path = slug || "";
+
+        // 1. Cố gắng parse JSON an toàn (xử lý cả key không ngoặc kép và dấu phẩy thừa)
+        if (filtersJson) {
+            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+
+                // Nếu không truyền slug trực tiếp, lấy category từ JSON
+                if (!slug && filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {}
+        }
+
+        // 2. Nếu path đã là URL tuyệt đối (chứa http:// hoặc https://)
+        if (/^https?:\/\//i.test(path)) {
+            path = path.replace(/\/+$/, "");
+            if (page > 1) {
+                return (path + "/" + page).replace(/([^:]\/)\/+/g, "$1");
+            } else {
+                return (path + "/").replace(/([^:]\/)\/+/g, "$1");
+            }
+        }
+
+        // 3. Xử lý đường dẫn tương đối
+        if (!path) return baseUrlClean + "/";
+
+        path = path.replace(/^\/+|\/+$/g, "");
+        var targetUrl = baseUrlClean + "/" + path;
+
+        if (page > 1) {
+            targetUrl += "/" + page;
+        } else {
+            if (path.indexOf("?") !== 0) {
+                targetUrl += "/";
+            }
+        }
+
+        return targetUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        var fallbackBase = typeof BaseURL !== 'undefined' ? BaseURL : (typeof BASEURL !== 'undefined' ? BASEURL : "");
+        if (slug && slug.indexOf("http") > -1) {
+            return slug;
+        }
+        var fallback = fallbackBase + (slug ? "/" + slug : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
-   }
-  }
- } catch (e) {
-  // Ghi log lỗi nếu cần thiết để debug: console.error(e);
- }
- 
- // 2. Nếu có slug truyền vào, ưu tiên sử dụng slug đó
- if (slug) {
-  path = slug;
- }
- 
- // 3. KIỂM TRA NẾU PATH ĐÃ LÀ URL TUYỆT ĐỐI
- if (/^https?:\/\//i.test(path)) {
-  path = path.replace(/\/+$/, "");
-  
-  if (page > 1) {
-   if (path.indexOf("?") > -1) {
-    return path + "/" + page;
-   } else {
-    return path + "/" + page;
-   }
-  } else {
-   return path + "/";
-  }
- }
- 
- // 4. Xử lý cho URL tương đối (slug thông thường)
- if (!path) return BaseURLClean + "/";
- 
- path = path.replace(/^\/+|\/+$/g, "");
- var targetUrl = BaseURLClean + "/" + path;
- 
- if (page > 1) {
-  if (targetUrl.indexOf("?") > -1) {
-   targetUrl += "/" + page;
-  } else {
-   targetUrl += "/" + page;
-  }
- } else {
-  // Tránh nhân đôi dấu / nếu path thực chất là query string (ví dụ: ?view=hay-nhat)
-  if (path.indexOf("?") !== 0) {
-   targetUrl += "/";
-  }
- }
- 
- return targetUrl;
 }
 
-
 function getUrlSearch(keyword, filtersJson) {
- return BaseURL + "/search/" + encodeURIComponent(keyword) + "/";
+    try {
+        var baseUrl = typeof BaseURL !== 'undefined' ? BaseURL : (typeof BASEURL !== 'undefined' ? BASEURL : "");
+        var baseUrlClean = baseUrl.replace(/\/+$/, "");
+
+        var page = 1;
+
+        // 1. Cố gắng parse JSON an toàn để lấy thông tin trang (page)
+        if (filtersJson) {
+            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+            } catch (jsonErr) {}
+        }
+
+        // 2. Tạo URL tìm kiếm theo cấu trúc /search/keyword/ hoặc /search/keyword/page
+        var encodedKeyword = encodeURIComponent(keyword || "");
+        var targetUrl = baseUrlClean + "/search/" + encodedKeyword;
+
+        if (page > 1) {
+            targetUrl += "/" + page + "/";
+        } else {
+            targetUrl += "/";
+        }
+
+        return targetUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        var fallbackBase = typeof BaseURL !== 'undefined' ? BaseURL : (typeof BASEURL !== 'undefined' ? BASEURL : "");
+        var fallback = fallbackBase + "/search/" + encodeURIComponent(keyword || "") + "/";
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
 }
 
 function getUrlDetail(slug) {

@@ -48,89 +48,84 @@ function getFilterConfig() {
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
-    var baseUrlClean = (typeof BASEURL !== 'undefined' ? BASEURL : "").replace(/\/$/, "");
-    
-    var page = 1;
-    var path = "";
-    
-    // 1. Cố gắng parse JSON một cách an toàn
     try {
-        if (filtersJson) {
-            // Thay thế các key không có dấu nháy bằng key có dấu nháy để sửa lỗi JSON lỏng lẻo
-            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
-            var filters = JSON.parse(fixedJson);
-            
-            page = parseInt(filters.page) || 1;
-            
-            // Chỉ lấy category từ JSON nếu không truyền slug vào hàm
-            if (!slug && filters.category) {
-                if (Array.isArray(filters.category) && filters.category.length > 0) {
-                    path = filters.category[0].slug;
-                } else if (typeof filters.category === 'string') {
-                    path = filters.category;
-                }
-            }
-        }
-    } catch (e) {
-        // Ghi log lỗi nếu cần thiết để debug: console.error(e);
-    }
-    
-    // 2. Nếu có slug truyền vào, ưu tiên sử dụng slug đó
-    if (slug) {
-        path = slug;
-    }
-    
-    // 3. KIỂM TRA NẾU PATH ĐÃ LÀ URL TUYỆT ĐỐI
-    if (/^https?:\/\//i.test(path)) {
-        path = path.replace(/\/+$/, "");
-        
-        if (page > 1) {
-            if (path.indexOf("?") > -1) {
-                return path + "&page=" + page;
-            } else {
-                return path + "/?page=" + page;
-            }
-        } else {
-            return path + "/";
-        }
-    }
-    
-    // 4. Xử lý cho URL tương đối (slug thông thường)
-    if (!path) return baseUrlClean + "/";
-    
-    path = path.replace(/^\/+|\/+$/g, "");
-    var targetUrl = baseUrlClean + "/" + path;
-    
-    if (page > 1) {
-        if (targetUrl.indexOf("?") > -1) {
-            targetUrl += "&page=" + page;
-        } else {
-            targetUrl += "?page=" + page;
-        }
-    } else {
-        // Tránh nhân đôi dấu / nếu path thực chất là query string (ví dụ: ?view=hay-nhat)
-        if (path.indexOf("?") !== 0) {
-            targetUrl += "/";
-        }
-    }
-    
-    return targetUrl;
-}
-/*
-// === KHU VỰC TEST CHẠY THỬ ===
-var BASEURL = "https://sexdep.vip";
-var filtersJson = '{page:5,category:[{"slug":"?view=hay-nhat","name":"Hay Nhất"},{"slug":"the-loai/vietsub","name":"Vietsub"},{"slug":"the-loai/khong-che","name":"Không Che"},{"slug":"the-loai/viet-nam","name":"Việt Nam"},{"slug":"the-loai/trung-quoc","name":"Trung Quốc"},{"slug":"the-loai/au-my","name":"Âu - Mỹ"},{"slug":"the-loai/gai-xinh","name":"Gái Xinh"},{"slug":"the-loai/hiep-dam","name":"Hiếp Dâm"},{"slug":"the-loai/jav-hd","name":"JAV HD"},{"slug":"the-loai/hoc-sinh","name":"Học Sinh"},{"slug":"the-loai/vu-to","name":"Vú To"}]}';
+        var page = 1;
+        var path = slug || "";
 
-//Trường hợp 1: Truyền slug cụ thể -> Sẽ lấy slug này + số page trong JSON
-//console.log(getUrlList("the-loai/au-my", filtersJson)); 
-// Kết quả: https://sexdep.vip/the-loai/au-my?page=7
-// Trường hợp 2: Không truyền slug -> Sẽ tự động lấy phần tử đầu tiên trong JSON (?view=hay-nhat)
-console.log(getUrlList("https://sexdep.vip/search/vang-anh", filtersJson));
-*/
-// https://sexdep.vip/search/gai-nga?page=2
+        // Parse JSON an toàn để lấy page và category (nếu chưa có slug)
+        if (filtersJson) {
+            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+                
+                // Nếu không truyền slug, lấy category từ JSON
+                if (!slug && filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {}
+        }
+
+        // Nếu path/slug đã là URL tuyệt đối (chứa http/https)
+        if (path && path.indexOf("http") > -1) {
+            var cleanPath = path.replace(/\/+$/, "");
+            if (page > 1) {
+                return cleanPath + (cleanPath.indexOf("?") > -1 ? "&page=" + page : "/?page=" + page);
+            }
+            return cleanPath + "/";
+        }
+
+        // Tạo URL chuẩn từ BASEURL
+        var baseUrlClean = (typeof BASEURL !== 'undefined' ? BASEURL : "").replace(/\/+$/, "");
+        var pathClean = path ? path.replace(/^\/+|\/+$/g, "") : "";
+        
+        var resultUrl = baseUrlClean + (pathClean ? "/" + pathClean : "");
+
+        if (page > 1) {
+            resultUrl += (resultUrl.indexOf("?") > -1 ? "&page=" + page : "/?page=" + page);
+        } else {
+            if (pathClean && pathClean.indexOf("?") !== 0) {
+                resultUrl += "/";
+            }
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        if (slug && slug.indexOf("http") > -1) {
+            return slug;
+        }
+        var fallback = (typeof BASEURL !== 'undefined' ? BASEURL : "") + (slug ? "/" + slug : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
+}
 
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/search/" + encodeURIComponent(keyword);
+    var page = 1;
+    
+    // Parse filtersJson để lấy trang nếu có
+    if (filtersJson) {
+        var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+        try {
+            var filters = JSON.parse(fixedJson);
+            page = parseInt(filters.page) || 1;
+        } catch (jsonErr) {}
+    }
+
+    var baseUrlClean = (typeof BASEURL !== 'undefined' ? BASEURL : "").replace(/\/+$/, "");
+    var searchPath = baseUrlClean + "/search/" + encodeURIComponent(keyword || "");
+
+    // Phân trang chuẩn dạng ?page=N
+    if (page > 1) {
+        searchPath += "?page=" + page;
+    }
+
+    return searchPath.replace(/([^:]\/)\/+/g, "$1");
 }
 
 function getUrlDetail(slug) {

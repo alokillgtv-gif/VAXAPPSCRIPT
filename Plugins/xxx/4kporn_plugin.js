@@ -5,7 +5,7 @@ function getManifest() {
         "id": "4kporn",
         "name": "Phim XXX 4K",
         "description": "XXX siêu nét.",
-        "version": "1.5.3",
+        "version": "1.5.4",
         "BASEURL": "https://www.freepornvideos.xxx",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/cnporn.jpg",
         "info":"Nguồn phim chất lượng 4K nên load hơi lâu, bạn chịu khó đợi tí nha.",
@@ -44,74 +44,115 @@ function getFilterConfig() {
 // URL GENERATION
 // =============================================================================
 
-function getUrlList(slug, filtersJson) {
-	try {
-		// 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
-		if (slug && slug.indexOf("http") > -1) {
-			// thường là link search sẽ bị trả về ở đây
-			return slug;
-		}
-		let page = 1;
-		let path = slug || "";
-		
-		// 2. Xử lý an toàn filtersJson nếu có truyền vào
-		if (filtersJson) {
-			// Nếu có số trang hoặc  có menu categ
-			// Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
-			let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
-				.replace(/:,/g, ':');
-			// Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
-			
-			try {
-				let filters = JSON.parse(fixedJson);
-				page = parseInt(filters.page) || 1;
-				
-				// Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
-				if (filters.category) {
-					if (Array.isArray(filters.category) && filters.category.length > 0) {
-						path = filters.category[0].slug;
-					} else if (typeof filters.category === 'string') {
-						path = filters.category;
-					}
-				}
-			} catch (jsonErr) {
-				//console.log("JSON parse lỗi, dùng giá trị mặc định");
-			}
-		}
-		
-		// 4. Chuẩn hóa path (Xóa dấu gạch chéo thừa ở đầu/cuối để tránh nhân đôi dấu //)        
-		// 5. Nối chuỗi URL kết quả
-		let resultUrl = BASEURL;
-		if (path) {
-			resultUrl += path;
-		}
-		// https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
-		if (page > 1) {
-			resultUrl += page + "/";
-		}
-		
-		
-		// Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
-		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
-		
-	} catch (e) {
-		// console.log("Lỗi hệ thống: " + e.message);
-		// Trả về URL gốc an toàn nếu có lỗi
-		let fallback = BASEURL + (slug ? "/" + slug : "");
-		return fallback.replace(/([^:]\/)\/+/g, "$1");
-	}
+function log(msg) {
+    var baseUrl = typeof BASEURL !== 'undefined' ? BASEURL : "";
+    if (typeof nativeLog !== 'undefined') {
+        nativeLog("[" + baseUrl + "] " + msg);
+    } else if (typeof console !== 'undefined' && console.log) {
+        console.log("[" + baseUrl + "] " + msg);
+    }
 }
-// https://www.freepornvideos.xxx/latest-updates/3/
-// https://xsexsub.site/sex-vietsub-moi/page/4/
-//var BASEURL = "https://xsexsub.site";
-// JSON lỗi cú pháp (thiếu nháy kép) của bạn
-//var filtersJsonNoCat = '{page:11,category:[{"slug":"/hiep-dam/","name":"Thiếu niên"}]}'; 
-//var filtersJsonNoCat = '{page:22}';
-//console.log(getUrlList("", filtersJsonNoCat));
 
+function getUrlList(slug, filtersJson) {
+    log("list url: " + slug);
+    try {
+        var page = 1;
+
+        // 1. Kiểm tra nếu slug là link tuyệt đối (chứa http/https)
+        if (slug && slug.indexOf("http") > -1) {
+            // Trường hợp link search tuyệt đối truyền vào cần phân trang
+            if (slug.indexOf("search") > -1 && filtersJson) {
+                var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+                try {
+                    var filters = JSON.parse(fixedJson);
+                    page = parseInt(filters.page) || 1;
+                    if (page > 1) {
+                        var cleanSlug = slug.replace(/\/+$/, "");
+                        return (cleanSlug + "/" + page + "/").replace(/([^:]\/)\/+/g, "$1");
+                    }
+                } catch (jsonErr) {}
+            }
+            return slug;
+        }
+
+        var path = slug || "";
+
+        // 2. Parse filtersJson an toàn để lấy trang (page) và category (nếu chưa có slug)
+        if (filtersJson) {
+            var fixedJson2 = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson2);
+                page = parseInt(filters.page) || 1;
+
+                if (filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {}
+        }
+
+        // 3. Chuẩn hóa đường dẫn từ BASEURL
+        var baseUrlClean = (typeof BASEURL !== 'undefined' ? BASEURL : "").replace(/\/+$/, "");
+        var pathClean = path ? path.replace(/^\/+|\/+$/g, "") : "";
+
+        var resultUrl = baseUrlClean + (pathClean ? "/" + pathClean : "");
+
+        // 4. Ghép phân trang theo cấu trúc /path/page/
+        if (page > 1) {
+            resultUrl += "/" + page + "/";
+        } else {
+            if (pathClean && pathClean.indexOf("?") !== 0) {
+                resultUrl += "/";
+            }
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        if (slug && slug.indexOf("http") > -1) {
+            return slug;
+        }
+        var fallbackBase = typeof BASEURL !== 'undefined' ? BASEURL : "";
+        var fallback = fallbackBase + (slug ? "/" + slug : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
+}
 
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/search/" + encodeURIComponent(keyword) + "/";
+    try {
+        var page = 1;
+
+        // 1. Parse filtersJson an toàn để lấy số trang nếu có
+        if (filtersJson) {
+            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+            } catch (jsonErr) {}
+        }
+
+        var baseUrlClean = (typeof BASEURL !== 'undefined' ? BASEURL : "").replace(/\/+$/, "");
+        var encodedKeyword = encodeURIComponent(keyword || "");
+
+        // 2. Tạo URL tìm kiếm: /search/keyword/ (trang 1) hoặc /search/keyword/page/ (trang > 1)
+        var resultUrl = baseUrlClean + "/search/" + encodedKeyword + "/";
+
+        if (page > 1) {
+            resultUrl += page + "/";
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        var fallbackBase = typeof BASEURL !== 'undefined' ? BASEURL : "";
+        var fallback = fallbackBase + "/search/" + encodeURIComponent(keyword || "") + "/";
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
 }
 
 function getUrlDetail(slug) {
