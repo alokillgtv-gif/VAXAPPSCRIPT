@@ -2743,7 +2743,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
 
             function __labShowBlockedModal() {
                 if (window.__labBlockedAccepted) return;
-                __labCreateBlockedModal();
+                //__labCreateBlockedModal();
                 $('#__labBlockedModal').css('display', 'flex');
             }
 
@@ -3467,16 +3467,52 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
 									                cm.execCommand('newlineAndIndent');
 									            }
 									        },
+                        
 									        'Esc': function(cm) {
 									            if (cm.state.completionActive) cm.closeHint();
 									        },
 									        'Tab': function(cm) {
-									            if (cm.state.completionActive) {
-									                cm.state.completionActive.pick();
-									            } else {
-									                cm.replaceSelection('    ');
-									            }
-									        },
+        if (cm.state.completionActive) {
+            cm.closeHint();
+        } else if (cm.somethingSelected()) {
+            // Thêm 4 khoảng trắng vào đầu mỗi dòng đang được bôi đen
+            var from = cm.getCursor("from");
+            var to = cm.getCursor("to");
+            cm.operation(function() {
+                for (var i = from.line; i <= to.line; i++) {
+                    cm.replaceRange('    ', {line: i, ch: 0});
+                }
+            });
+        } else {
+            // Đứng 1 chỗ thì chèn 4 khoảng trắng
+            cm.replaceSelection('    ');
+        }
+    },'Insert': function(cm) {
+        if (cm.state.completionActive) {
+            cm.closeHint();
+        }
+        
+        // Mô phỏng xóa thủ công bằng CodeMirror API
+        if (cm.somethingSelected()) {
+            // Nếu có bôi đen: xóa toàn bộ vùng đang chọn
+            cm.replaceSelection("");
+        } else {
+            var cursor = cm.getCursor();
+            var line = cursor.line;
+            var ch = cursor.ch;
+            
+            if (ch > 0) {
+                // Nếu không ở đầu dòng: xóa 1 ký tự ngay trước con trỏ
+                var from = {line: line, ch: ch - 1};
+                cm.replaceRange("", from, cursor);
+            } else if (line > 0) {
+                // Nếu đang ở đầu dòng: xóa ký tự ngắt dòng để gộp lên dòng phía trên
+                var prevLineLength = cm.getLine(line - 1).length;
+                var from = {line: line - 1, ch: prevLineLength};
+                cm.replaceRange("", from, cursor);
+            }
+        }
+    },
 									        'Ctrl-G': function() {
 									            $("#labBtnClearConsole").click();
 									            $('#panelJs .lab-sub-select').val('#panelConsole').trigger('change');
@@ -3490,7 +3526,21 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
 									        'Ctrl-Space': 'autocomplete',
 									        'Ctrl-Q': function(cm) {
 									            cm.foldCode(cm.getCursor());
-									        }
+									        },
+                        'Ctrl-D': function(cm) {
+        if (cm.somethingSelected()) {
+            // Nhân bản đoạn văn bản đang bôi đen
+            var from = cm.getCursor("from");
+            var to = cm.getCursor("to");
+            var text = cm.getRange(from, to);
+            cm.replaceRange(text, to);
+        } else {
+            // Nhân bản dòng hiện tại xuống dưới
+            var line = cm.getCursor().line;
+            var lineText = cm.getLine(line);
+            cm.replaceRange("\n" + lineText, {line: line, ch: lineText.length});
+        }
+    }
 									    }
 									});
 

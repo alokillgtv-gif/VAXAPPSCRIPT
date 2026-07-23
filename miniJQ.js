@@ -1,4 +1,4 @@
-// "version": "2.3"  
+// "version": "2.4" - Fixed Nested Tags Parsing
 window.BASEURL = window.location.origin;
 window.log = function(msg) {
     if (typeof nativeLog !== 'undefined') {
@@ -186,15 +186,29 @@ window._$ = function (htmlOrBlock) {
                         var endTagPos = endOpenTag + 1;
                         var selfClosingTags = ['img', 'source', 'input', 'br', 'hr', 'link', 'meta'];
                         
+                        // NÂNG CẤP TẠI ĐÂY: Thuật toán đếm độ sâu (Depth Counting) để xử lý thẻ lồng nhau
                         if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {
-                            var closeRegex = new RegExp('</' + currentTagName + '\\s*>', 'i');
-                            var subHtml = currentHtml.substring(endOpenTag + 1);
-                            var matchClose = subHtml.match(closeRegex);
+                            var depth = 1;
+                            var tagRegex = new RegExp('<(/?)' + currentTagName + '(?:\\s+[^>]*|\\s*>)', 'gi');
+                            tagRegex.lastIndex = endOpenTag + 1;
                             
-                            if (matchClose) {
-                                endTagPos = endOpenTag + 1 + matchClose.index + matchClose[0].length;
-                            } else {
-                                // Nếu không tìm thấy thẻ đóng (HTML bị thiếu/cắt ngang), lấy đến hết chuỗi
+                            var match;
+                            while ((match = tagRegex.exec(currentHtml)) !== null) {
+                                var isClose = match[1] === '/';
+                                var fullMatched = match[0];
+                                
+                                if (isClose) {
+                                    depth--;
+                                } else if (fullMatched.indexOf('/>') === -1) {
+                                    depth++;
+                                }
+                                
+                                if (depth === 0) {
+                                    endTagPos = tagRegex.lastIndex;
+                                    break;
+                                }
+                            }
+                            if (depth > 0) {
                                 endTagPos = currentHtml.length;
                             }
                         }
@@ -203,7 +217,6 @@ window._$ = function (htmlOrBlock) {
                         
                         if (contentFilter) {
                             var pureText = "";
-                            // Với thẻ script/style, lấy trực tiếp nội dung thô bên trong không dùng regex xóa thẻ HTML
                             if (currentTagName === "script" || currentTagName === "style") {
                                 var innerStart = foundBlock.indexOf('>') + 1;
                                 var innerEnd = foundBlock.search(/<\/(?:script|style)/i);
@@ -350,13 +363,14 @@ window._$ = function (htmlOrBlock) {
                     var endTagPos = endOpenTag + 1;
                     var selfClosingTags = ['img', 'source', 'input', 'br', 'hr', 'link', 'meta'];
                     if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {
-                        var closeRegex = new RegExp('</' + currentTagName + '\\s*>', 'i');
-                        var subHtml = this.sourceHtml.substring(endOpenTag + 1);
-                        var matchClose = subHtml.match(closeRegex);
-                        if (matchClose) {
-                            endTagPos = endOpenTag + 1 + matchClose.index + matchClose[0].length;
-                        } else {
-                            endTagPos = this.sourceHtml.length;
+                        var depth = 1;
+                        var tagRegex = new RegExp('<(/?)' + currentTagName + '(?:\\s+[^>]*|\\s*>)', 'gi');
+                        tagRegex.lastIndex = endOpenTag + 1;
+                        var match;
+                        while ((match = tagRegex.exec(this.sourceHtml)) !== null) {
+                            if (match[1] === '/') depth--;
+                            else if (match[0].indexOf('/>') === -1) depth++;
+                            if (depth === 0) { endTagPos = tagRegex.lastIndex; break; }
                         }
                     }
                     results.push(this.sourceHtml.substring(startTagPos, endTagPos));
@@ -388,13 +402,14 @@ window._$ = function (htmlOrBlock) {
                             var endTagPos = endOpenTag + 1;
                             var selfClosingTags = ['img', 'source', 'input', 'br', 'hr', 'link', 'meta'];
                             if (selfClosingTags.indexOf(currentTagName) === -1 && fullOpenTag.indexOf('/>') === -1) {
-                                var closeRegex = new RegExp('</' + currentTagName + '\\s*>', 'i');
-                                var subHtml = this.sourceHtml.substring(endOpenTag + 1);
-                                var matchClose = subHtml.match(closeRegex);
-                                if (matchClose) {
-                                    endTagPos = endOpenTag + 1 + matchClose.index + matchClose[0].length;
-                                } else {
-                                    endTagPos = this.sourceHtml.length;
+                                var depth = 1;
+                                var tagRegex = new RegExp('<(/?)' + currentTagName + '(?:\\s+[^>]*|\\s*>)', 'gi');
+                                tagRegex.lastIndex = endOpenTag + 1;
+                                var match;
+                                while ((match = tagRegex.exec(this.sourceHtml)) !== null) {
+                                    if (match[1] === '/') depth--;
+                                    else if (match[0].indexOf('/>') === -1) depth++;
+                                    if (depth === 0) { endTagPos = tagRegex.lastIndex; break; }
                                 }
                             }
                             if (endTagPos >= idx + elem.length) {
