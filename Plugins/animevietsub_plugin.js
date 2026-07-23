@@ -414,7 +414,7 @@ function parseDetailResponse(htmlContent, pageUrl) {
             isEmbed: false,
             headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Referer": pageUrl || BASEURL,
+                "Referer": pageUrl || "https://animevietsub.wiki/",
                 "Custom-Js": bypassJs
             },
             subtitles: []
@@ -454,23 +454,41 @@ function customJS(initialLink){
         </style>
     \`;
     
-    // Đảm bảo DOM sẵn sàng để append overlay
     if (document.body) {
         document.body.appendChild(overlay);
     } else {
         document.documentElement.appendChild(overlay);
     }
 
-    // Chống nhảy trang và chặn popup quảng cáo
+    // Kiểm tra lỗi Server 5xx ngay trước khi thực hiện các bước khác
+    const bodyText = document.body ? document.body.innerHTML : "";
+    const mainTitle = document.querySelector('.main-title');
+    const isServerError = bodyText.includes("Lỗi Server 5xx") || (mainTitle && mainTitle.textContent.includes("5xx"));
+
+    if (isServerError) {
+        overlay.innerHTML = \`
+            <div style="font-size: 45px; margin-bottom: 12px;">💥</div>
+            <div style="font-size: 18px; font-weight: bold; color: #ff5555; margin-bottom: 8px;">Lỗi Server 5xx!</div>
+            <div style="font-size: 14px; color: #aaa; text-align: center; max-width: 320px; line-height: 1.5; padding: 0 20px;">
+                Hệ thống đang gặp sự cố quá tải hoặc bảo trì. Vui lòng quay lại sau khi server được sửa lại nhé!
+            </div>
+        \`;
+        return;
+    }
+
+    // Chống nhảy trang quảng cáo nhưng cho phép bấm nút tắt (X) của quảng cáo
     window.addEventListener('click', function(e) {
         if (!e.target.closest('#floating-select-box') && !e.target.closest('#episode-grid-popup')) {
-            e.stopPropagation();
-            e.preventDefault();
+            let aTag = e.target.closest('a');
+            if (aTag && (aTag.target === '_blank' || aTag.href)) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
         }
     }, true);
+
     window.open = function() { return null; };
 
-    // Toast mini thông báo script đang chạy
     function showToast(msg) {
         let old = document.getElementById('script-toast');
         if (old) old.remove();
@@ -520,7 +538,90 @@ function customJS(initialLink){
             }
         });
 
-        // 2. LẤY LINK IFRAME BAN ĐẦU
+        // 2. KIỂM TRA LOCALSTORAGE & XỬ LÝ LỊCH SỬ XEM
+        const storageKey = "anime_history_" + window.location.pathname.replace(/[^a-zA-Z0-9]/g, "_");
+        let savedIndex = localStorage.getItem(storageKey);
+
+        if (savedIndex !== null) {
+            savedIndex = parseInt(savedIndex, 10);
+            // Nếu tập hiện tại khác tập đã lưu VÀ khác tập tiếp theo ngay sau đó (savedIndex + 1)
+            if (currentPlayingIndex !== savedIndex && currentPlayingIndex !== savedIndex + 1) {
+                if (overlay) overlay.remove();
+
+                let savedEpObj = allEpisodes[savedIndex] || { title: "Tập " + (savedIndex + 1) };
+                let nextEpObj = allEpisodes[savedIndex + 1] || { title: "Tập " + (savedIndex + 2) };
+                let currentEpObj = allEpisodes[currentPlayingIndex] || { title: "Tập " + (currentPlayingIndex + 1) };
+
+                let modalOverlay = document.createElement('div');
+                Object.assign(modalOverlay.style, {
+                    position: 'fixed',
+                    top: '0',
+                    left: '0',
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(0,0,0,0.85)',
+                    zIndex: '1000005',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'Arial, sans-serif'
+                });
+
+                let nextBtnHtml = (savedIndex + 1 < allEpisodes.length) ? 
+                    \`<button id="btn-resume-next" style="padding: 10px 14px; border-radius: 8px; border: none; background: #27272a; color: #fff; font-weight: bold; cursor: pointer; font-size: 13px; transition: background 0.2s;">▶️ Xem tập tiếp theo (\${nextEpObj.title})</button>\` : '';
+
+                modalOverlay.innerHTML = \`
+                    <div style="background: #18181b; border: 1px solid rgba(255,255,255,0.1); padding: 24px; border-radius: 16px; width: 380px; max-width: 90vw; color: #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.9); text-align: center;">
+                        <div style="font-size: 22px; margin-bottom: 10px;">📌</div>
+                        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #f43f5e;">Khôi phục lịch sử xem</div>
+                        <div style="font-size: 14px; color: #a1a1aa; margin-bottom: 20px; line-height: 1.5;">
+                            Bạn đang mở <b>\${currentEpObj.title}</b>, nhưng lịch sử gần đây bạn đang xem đến <b>\${savedEpObj.title}</b>. Bạn có muốn chuyển hướng không?
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button id="btn-resume-saved" style="padding: 10px 14px; border-radius: 8px; border: none; background: #e50914; color: #fff; font-weight: bold; cursor: pointer; font-size: 13px;">💾 Chuyển đến tập đã lưu (\${savedEpObj.title})</button>
+                            \${nextBtnHtml}
+                            <button id="btn-resume-current" style="padding: 10px 14px; border-radius: 8px; border: none; background: transparent; color: #a1a1aa; cursor: pointer; font-size: 13px;">Vẫn xem tập hiện tại (\${currentEpObj.title})</button>
+                        </div>
+                    </div>
+                \`;
+                
+                if (document.body) {
+                    document.body.appendChild(modalOverlay);
+                } else {
+                    document.documentElement.appendChild(modalOverlay);
+                }
+
+                document.getElementById('btn-resume-saved').onclick = () => {
+                    localStorage.setItem(storageKey, savedIndex);
+                    window.location.href = allEpisodes[savedIndex].url;
+                };
+
+                if (document.getElementById('btn-resume-next')) {
+                    document.getElementById('btn-resume-next').onclick = () => {
+                        localStorage.setItem(storageKey, savedIndex + 1);
+                        window.location.href = allEpisodes[savedIndex + 1].url;
+                    };
+                }
+
+                document.getElementById('btn-resume-current').onclick = () => {
+                    localStorage.setItem(storageKey, currentPlayingIndex);
+                    modalOverlay.remove();
+                    // Tạo lại overlay loading để tiếp tục chạy app
+                    document.documentElement.appendChild(overlay);
+                    runApp(currentPlayingIndex, overlay, allEpisodes);
+                };
+
+                return; // Dừng init chờ phản hồi từ modal
+            }
+        }
+
+        // Lưu mốc tập hiện tại vào localStorage
+        localStorage.setItem(storageKey, currentPlayingIndex);
+        runApp(currentPlayingIndex, overlay, allEpisodes);
+    }
+
+    function runApp(currentPlayingIndex, overlay, allEpisodes) {
+        // 3. LẤY LINK IFRAME BAN ĐẦU
         let initLink = "` + (initialLink || '') + `";
         if (!initLink) {
             try {
@@ -542,7 +643,7 @@ function customJS(initialLink){
             initLink = "https:" + initLink;
         }
 
-        // 3. TẠO GIAO DIỆN ĐIỀU KHIỂN CHÍNH (CONTAINER)
+        // 4. TẠO GIAO DIỆN ĐIỀU KHIỂN CHÍNH (CONTAINER)
         let container = document.createElement("div");
         container.id = "floating-select-box";
         Object.assign(container.style, {
@@ -568,7 +669,7 @@ function customJS(initialLink){
         });
         container.innerHTML = "<span style='color: #aaa; font-size: 13px;'>⏳ Đang tải...</span>";
 
-        // 4. TẠO BẢNG POPUP LƯỚI CHỌN TẬP (ĐÃ MỞ RỘNG VÀ 5 CỘT)
+        // 5. TẠO BẢNG POPUP LƯỚI CHỌN TẬP (5 CỘT, RỘNG 380px)
         let popupGrid = document.createElement("div");
         popupGrid.id = "episode-grid-popup";
         Object.assign(popupGrid.style, {
@@ -583,18 +684,18 @@ function customJS(initialLink){
             padding: "14px",
             borderRadius: "16px",
             boxShadow: "0 15px 35px rgba(0,0,0,0.9)",
-            width: "380px", // Đã nới rộng khung
+            width: "380px",
             maxHeight: "260px",
             overflowY: "auto",
             display: "none",
-            gridTemplateColumns: "repeat(5, 1fr)", // Đổi thành 5 cột cho thoáng
+            gridTemplateColumns: "repeat(5, 1fr)",
             gap: "8px",
             transition: "all 0.25s ease",
             opacity: "0",
             pointerEvents: "none"
         });
 
-        // 5. XOÁ SẠCH BODY VÀ CHÈN IFRAME MỚI
+        // 6. XOÁ SẠCH BODY VÀ CHÈN IFRAME MỚI
         document.documentElement.style.margin = '0';
         document.documentElement.style.padding = '0';
         document.documentElement.style.width = '100vw';
@@ -613,8 +714,9 @@ function customJS(initialLink){
             position: 'relative'
         });
 
-        // Đưa overlay trở lại body sạch
-        document.body.appendChild(overlay);
+        if (overlay) {
+            document.body.appendChild(overlay);
+        }
 
         if (initLink) {
             let newIframe = document.createElement("iframe");
@@ -639,19 +741,19 @@ function customJS(initialLink){
                 zIndex: '1'
             });
 
-            // Khi iframe đã load thành công, ẩn màn hình chờ và hiện iframe lên
             newIframe.onload = function() {
-                setTimeout(() => {
-                    overlay.style.transition = "opacity 0.4s ease";
-                    overlay.style.opacity = "0";
-                    setTimeout(() => overlay.remove(), 400);
-                }, 300);
+                if (overlay) {
+                    setTimeout(() => {
+                        overlay.style.transition = "opacity 0.4s ease";
+                        overlay.style.opacity = "0";
+                        setTimeout(() => overlay.remove(), 400);
+                    }, 300);
+                }
             };
 
             document.body.appendChild(newIframe);
         } else {
-            // Nếu không có link iframe, tự động gỡ overlay sau 2 giây để tránh bị treo
-            setTimeout(() => { overlay.remove(); }, 2000);
+            if (overlay) setTimeout(() => { overlay.remove(); }, 2000);
         }
 
         document.body.appendChild(container);
@@ -661,7 +763,7 @@ function customJS(initialLink){
         container.addEventListener("mouseleave", () => container.style.opacity = "0.25");
         container.addEventListener("touchstart", () => container.style.opacity = "1");
 
-        // 6. FETCH CÁC TẬP CÒN LẠI VÀ QUẢN LÝ UI
+        // 7. FETCH CÁC TẬP CÒN LẠI VÀ QUẢN LÝ UI
         const listFrame = new Array(allEpisodes.length);
         if (allEpisodes[currentPlayingIndex] && initLink) {
             listFrame[currentPlayingIndex] = {
@@ -692,9 +794,13 @@ function customJS(initialLink){
             const ep = listFrame[targetIndex];
             if (ep && ep.link) {
                 currentPlayingIndex = targetIndex;
+                
+                // Cập nhật lại lịch sử vào localStorage khi chuyển tập trực tiếp
+                const storageKey = "anime_history_" + window.location.pathname.replace(/[^a-zA-Z0-9]/g, "_");
+                localStorage.setItem(storageKey, currentPlayingIndex);
+
                 const targetIframe = document.querySelector(".frameMain");
                 if (targetIframe) {
-                    // Thêm tham số ngẫu nhiên hoặc làm mới src để kích hoạt autoplay khi sang tập mới
                     let cleanLink = ep.link.split('&autoplay=')[0].split('?autoplay=')[0];
                     let autoUrl = cleanLink.includes("?") ? cleanLink + "&autoplay=1&t=" + Date.now() : cleanLink + "?autoplay=1&t=" + Date.now();
                     targetIframe.src = autoUrl;
@@ -724,7 +830,6 @@ function customJS(initialLink){
             }
         }
 
-        // Đóng popup khi bấm ra ngoài
         document.addEventListener("click", (e) => {
             if (!container.contains(e.target) && !popupGrid.contains(e.target)) {
                 togglePopup(false);
@@ -735,7 +840,6 @@ function customJS(initialLink){
             const validFrames = listFrame.filter(Boolean);
             container.innerHTML = "";
 
-            // Nút Tập trước (⏮)
             const btnPrev = document.createElement("button");
             btnPrev.textContent = "⏮";
             btnPrev.title = "Tập trước";
@@ -755,7 +859,6 @@ function customJS(initialLink){
                 }
             };
 
-            // Nút mở bảng chọn tập (Hiển thị tập hiện tại)
             let currentEpObj = listFrame[currentPlayingIndex];
             let currentTitleText = currentEpObj ? currentEpObj.title : ("Tập " + (currentPlayingIndex + 1));
             
@@ -778,7 +881,6 @@ function customJS(initialLink){
                 togglePopup();
             };
 
-            // Nút Tập tiếp theo (⏭)
             const btnNext = document.createElement("button");
             btnNext.textContent = "⏭";
             btnNext.title = "Tập tiếp theo";
@@ -802,7 +904,6 @@ function customJS(initialLink){
             container.appendChild(btnSelector);
             container.appendChild(btnNext);
 
-            // Điền dữ liệu vào bảng popup dạng lưới 5 cột
             popupGrid.innerHTML = "";
             validFrames.forEach(item => {
                 const epBtn = document.createElement("button");
@@ -843,7 +944,6 @@ function customJS(initialLink){
         }
     }
 
-    // Đảm bảo trang tải xong mới chạy script
     if (document.readyState === 'complete') {
         init();
     } else {
