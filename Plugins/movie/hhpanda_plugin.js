@@ -5,7 +5,7 @@ function getManifest() {
       "id": "hhpanda",
       "name": "Nguồn HHPanda",
       "description": "Anime siêu hay.",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "info": "Nguồn phim anime chất lượng cao. Cập nhật khá nhanh.",
       "baseUrl": "https://hhpanda.st",
       "iconUrl": "https://hhpanda.st/wp-content/uploads/2024/10/logo.webp",
@@ -527,19 +527,11 @@ JSON.parse(parseEmbedResponse(sourceHTML, BASEURL))
 function customJS(config) {
     return `
 (function() {
-    // CỜ KHÓA TOÀN CỤC CHỐNG CHẠY LẶP SCRIPT VĨNH VIỄN
-    if (window.__ANIME_PLAYER_INITED__) return;
-    window.__ANIME_PLAYER_INITED__ = true;
-
-    const scriptElement = document.createElement('script');
-    scriptElement.type = 'text/javascript';
-    scriptElement.src = 'https://rawcdn.githack.com/alokillgtv-gif/VAXAPPSCRIPT/c8fcc0aba2325c07bf22a237d47d7fcec6aca917/injectVanila.js';
-    (document.head || document.documentElement).appendChild(scriptElement);
-
+  
     // =========================================================
     // CẤU HÌNH TOÀN CỤC (GLOBAL CONFIG)
     // =========================================================
-    const ENABLE_TOAST = true;         // true: Bật Toast URL | false: Tắt
+    const ENABLE_TOAST = false;         // true: Bật Toast URL | false: Tắt
     const TOAST_DURATION = 4000;       // Thời gian hiện Toast (ms)
     const INITIAL_SHOW_TIME = 10000;   // Thời gian hiện rõ thanh điều khiển (ms)
 
@@ -573,7 +565,7 @@ function customJS(config) {
                 transform: translate(-50%, -50%) scale(1.55) !important;
                 width: 66% !important;
                 height: 58% !important;
-                max-height: 100% !important;
+                max-height: 400px !important;
                 border: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -769,8 +761,10 @@ function customJS(config) {
         showLoading("Đang khởi tạo trình phát...");
 
         // 1. Iframe
+        // <iframe class="metaframe rptss" src="https://streamfree.vip/embed/v/RGrSoaPH" referrerpolicy="unsafe-url" scrolling="no" frameborder="0" width="100%" height="400" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" allow="autoplay; fullscreen">
         let iframe = document.createElement("iframe");
         iframe.id = "custom-main-player-iframe";
+        iframe.scrolling ="no";
         iframe.setAttribute("allowfullscreen", "true");
         iframe.setAttribute("allow", "autoplay; fullscreen; picture-in-picture");
         iframe.onload = () => {
