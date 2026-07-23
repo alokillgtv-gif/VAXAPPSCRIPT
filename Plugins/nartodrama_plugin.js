@@ -5,7 +5,7 @@ function getManifest() {
         "id": "nartodrama",
         "name": "Phim Ngắn Narto",
         "description": "Phim Ngắn lồng tiếng vietsub hay",
-        "version": "1.1.5",
+        "version": "1.1.6",
         "info": "Nguồn phim ngắn siêu hay, một vài bộ phim nên xem theo chiều dọc. App có hỗ trợ nhé. Hãy nhấn thử lại nếu không tải được video.",
         "baseUrl": "https://edge.narto-drama.com",
         "iconUrl": "https://narto-drama.com/narto-drama-logo-compressed.png",
@@ -49,34 +49,38 @@ function getFilterConfig() {
 // =============================================================================
 function getUrlList(slug, filtersJson) {
     try {
+        // 1. Kiểm tra nếu slug là link tuyệt đối (chứa http)
         if (slug && slug.indexOf("http") > -1) {
-            if (slug.indexOf("search") > -1) {
-                if (filtersJson) {
-                    var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-                    try {
-                        var filters = JSON.parse(fixedJson);
-                        var page = parseInt(filters.page) || 1;
-                        if (page > 1) {
-                            return slug + "&page=" + page
-                        } else {
-                            return slug;
-                        }
-                    } catch (jsonErr) {
-                        return slug;
+            if (slug.indexOf("search") > -1 && filtersJson) {
+                var fixedJson1 = filtersJson
+                    .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                    .replace(/:,/g, ':');
+                try {
+                    var filtersSearch = JSON.parse(fixedJson1);
+                    var pageSearch = parseInt(filtersSearch.page) || 1;
+
+                    if (pageSearch > 1 && slug.indexOf("page=") === -1) {
+                        var sepSearch = slug.indexOf("?") > -1 ? "&" : "?";
+                        return slug + sepSearch + "page=" + pageSearch;
                     }
-                }
+                } catch (jsonErr) {}
             }
             return slug;
         }
-        
+
         var page = 1;
         var path = slug || "";
-        
+
+        // 2. Xử lý an toàn filtersJson cho link tương đối
         if (filtersJson) {
-            var fixedJson2 = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            var fixedJson2 = filtersJson
+                .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':');
+
             try {
                 var filters = JSON.parse(fixedJson2);
                 page = parseInt(filters.page) || 1;
+
                 if (filters.category) {
                     if (Array.isArray(filters.category) && filters.category.length > 0) {
                         path = filters.category[0].slug;
@@ -86,37 +90,65 @@ function getUrlList(slug, filtersJson) {
                 }
             } catch (jsonErr) {}
         }
-        
+
+        // 3. Ghép URL an toàn với BASEURL
         var resultUrl = BASEURL;
         if (path) {
-            resultUrl += path;
+            resultUrl += (path.indexOf("/") === 0 ? "" : "/") + path;
         }
-        if (page > 1) {
-            resultUrl += "&page=" + page;
+
+        // 4. Ghép tham số phân trang page (tự động nhận biết ? hay &)
+        if (page > 1 && resultUrl.indexOf("page=") === -1) {
+            var separator = resultUrl.indexOf("?") > -1 ? "&" : "?";
+            resultUrl += separator + "page=" + page;
         }
+
+        // 5. Làm sạch dấu // thừa ở path (giữ nguyên https://)
         return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
     } catch (e) {
         console.log(e);
         if (slug && slug.indexOf("http") > -1) {
             return slug;
         }
-        var fallback = BASEURL + (slug ? "/" + slug : "");
+        var fallback = BASEURL + (slug ? (slug.indexOf("/") === 0 ? slug : "/" + slug) : "");
         return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/search?lang=vi-VN&q=" + encodeURIComponent(keyword);
-}
+    try {
+        var page = 1;
 
-// https://narto-drama.com/?lang=vi-VN&tab-provider=bibishort
-// https://narto-drama.com/?lang=vi-VN&tab-provider=bibishort&page=2
-// https://narto-drama.com/search?lang=vi-VN&q=ti%E1%BB%83u+th%C6%B0
-//var BASEURL = "https://narto-drama.com/";
-// JSON lỗi cú pháp (thiếu nháy kép) của bạn
-//var filtersJson = '{page:11,category:[{"slug":"/movies?sort=year_desc&limit=24&category=18-plus","name":"Thiếu niên"}]}'; 
-//var filtersJson = '{page:22}';
-//console.log(getUrlList("/?lang=vi-VN", filtersJson));
+        // 1. Giải mã filtersJson lấy trang đúng chuẩn hàm gốc
+        if (filtersJson) {
+            var fixedJson = filtersJson
+                .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':');
+
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+            } catch (jsonErr) {}
+        }
+
+        // 2. Khởi tạo URL tìm kiếm kèm cấu trúc /search?lang=vi-VN&q=
+        var encodedKeyword = encodeURIComponent(keyword || "");
+        var resultUrl = BASEURL + "/search?lang=vi-VN&q=" + encodedKeyword;
+
+        // 3. Nếu page > 1 thì nối thêm &page=
+        if (page > 1) {
+            resultUrl += "&page=" + page;
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        var fallback = BASEURL + "/search?lang=vi-VN&q=" + encodeURIComponent(keyword || "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
+}
 
 
 function getUrlDetail(slug) {

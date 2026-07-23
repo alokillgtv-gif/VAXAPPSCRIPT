@@ -6,7 +6,7 @@ function getManifest() {
         "id": "bilutv",
         "name": "Nguồn Bilutv",
         "description": "Trang xem phim siêu hay.",
-        "version": "1.4",
+        "version": "1.5",
         "BASEURL": "https://bilutv.asia",
         "iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
         "isEnabled": true,
@@ -53,30 +53,23 @@ function getFilterConfig() {
 // =============================================================================
 // URL GENERATION
 // =============================================================================
-
 function getUrlList(slug, filtersJson) {
     try {
-        // 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
-        if (slug && slug.indexOf("http") > -1 || slug.indexOf("search") > -1) {
-            // thường là link search sẽ bị trả về ở đây
-            return slug;
-        }
-        let page = 1;
-        let path = slug || "";
+        var page = 1;
+        var path = slug || "";
 
-        // 2. Xử lý an toàn filtersJson nếu có truyền vào
+        // 1. Xử lý an toàn filtersJson nếu có truyền vào
         if (filtersJson) {
-            // Nếu có số trang hoặc  có menu categ
-            // Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
-            let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+            // Sửa lỗi JSON lỏng lẻo (thiếu nháy kép ở key, dư dấu phẩy)
+            var fixedJson = filtersJson
+                .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
                 .replace(/:,/g, ':');
-            // Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
 
             try {
-                let filters = JSON.parse(fixedJson);
+                var filters = JSON.parse(fixedJson);
                 page = parseInt(filters.page) || 1;
 
-                // Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
+                // Ưu tiên lấy category làm đường dẫn (path) nếu có trong bộ lọc
                 if (filters.category) {
                     if (Array.isArray(filters.category) && filters.category.length > 0) {
                         path = filters.category[0].slug;
@@ -85,44 +78,77 @@ function getUrlList(slug, filtersJson) {
                     }
                 }
             } catch (jsonErr) {
-                //console.log("JSON parse lỗi, dùng giá trị mặc định");
+                // Parse lỗi thì bỏ qua, dùng giá trị mặc định
             }
         }
 
-        // 4. Chuẩn hóa path (Xóa dấu gạch chéo thừa ở đầu/cuối để tránh nhân đôi dấu //)        
-        // 5. Nối chuỗi URL kết quả
-        let resultUrl = BASEURL;
-        if (path) {
-            resultUrl += path;
-        }
-        // https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
-        if (page > 1) {
-            resultUrl += "?page=" + page;
+        // 2. Kiểm tra nếu path/slug là link tuyệt đối (chứa http)
+        if (path && path.indexOf("http") > -1) {
+            if (page > 1 && path.indexOf("page=") === -1) {
+                var sep = path.indexOf("?") > -1 ? "&" : "?";
+                path += sep + "page=" + page;
+            }
+            return path;
         }
 
-        // Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
+        // 3. Nối chuỗi URL kết quả từ BASEURL
+        var resultUrl = BASEURL;
+        if (path) {
+            if (!path.startsWith("/") && !resultUrl.endsWith("/")) {
+                resultUrl += "/" + path;
+            } else {
+                resultUrl += path;
+            }
+        }
+
+        // 4. Ghép tham số trang (tự động nhận biết ? hay &)
+        if (page > 1 && resultUrl.indexOf("page=") === -1) {
+            var separator = resultUrl.indexOf("?") > -1 ? "&" : "?";
+            resultUrl += separator + "page=" + page;
+        }
+
+        // 5. Chuẩn hóa loại bỏ dấu // thừa (giữ lại https://)
         return resultUrl.replace(/([^:]\/)\/+/g, "$1");
 
     } catch (e) {
-        // console.log("Lỗi hệ thống: " + e.message);
-        // Trả về URL gốc an toàn nếu có lỗi
-        let fallback = BASEURL + (slug ? "/" + slug : "");
+        console.log("Lỗi getUrlList: " + e.message);
+        var fallback = BASEURL + (slug ? (slug.indexOf("http") > -1 ? slug : "/" + slug) : "");
         return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
 }
-// https://bilutv.asia/danh-sach/phim-moi?page=2
-// https://bilutv.asia/danh-sach/phim-le?page=7
-// https://bilutv.asia/?search=girl&page=2
 
-//var BASEURL = "https://bilutv.asia";
-//var BASEAPI = "https://k8s.onflixcdn.com/api";
-// JSON lỗi cú pháp (thiếu nháy kép) của bạn
-//var filtersJson = '{page:11,category:[{"slug":"/movies?sort=year_desc&limit=24&category=18-plus","name":"Thiếu niên"}]}'; 
-//var filtersJson = '{page:22}';
-//console.log(getUrlList("https://bilutv.asia/?search=girl", filtersJson));
-//getUrlSearch("naruto", filtersJson)
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/?search=" + encodeURIComponent(keyword);
+    try {
+        var page = 1;
+
+        // 1. Giải mã filtersJson để lấy trang (nếu có)
+        if (filtersJson) {
+            var fixedJson = filtersJson
+                .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':');
+
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+            } catch (jsonErr) {}
+        }
+
+        // 2. Tạo URL tìm kiếm kèm từ khóa đã mã hóa
+        var encodedKeyword = encodeURIComponent(keyword || "");
+        var resultUrl = BASEURL + "/?search=" + encodedKeyword;
+
+        // 3. Nếu trang > 1 thì nối thêm &page=
+        if (page > 1) {
+            resultUrl += "&page=" + page;
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log("Lỗi getUrlSearch: " + e.message);
+        var fallback = BASEURL + "/?search=" + encodeURIComponent(keyword || "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
 }
 
 function getUrlDetail(slug) {

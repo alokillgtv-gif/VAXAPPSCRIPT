@@ -6,7 +6,7 @@ function getManifest() {
         "id": "motchill",
         "name": "Nguồn Phim Motchill",
         "description": "Mochill Trang Xem Phim.",
-        "version": "1.0.7",
+        "version": "1.0.9",
         "BASEURL": "https://motchille.cx",
         "iconUrl": "https://motchille.cx/motchill.png",
         "isEnabled": true,
@@ -51,89 +51,109 @@ function getFilterConfig() {
 // =============================================================================
 // URL GENERATION
 // =============================================================================
-
 function getUrlList(slug, filtersJson) {
-	try {
-		// 1. Kiểm tra nếu slug là link tuyệt đối (chứa http)
-		if (slug && slug.indexOf("http") > -1) {
-			
-			// Xử lý riêng cho link search tuyệt đối
-			if (slug.indexOf("search") > -1) {
-				if (filtersJson) {
-					// Sửa lỗi JSON thiếu dấu ngoặc kép trước khi parse (đưa lên đây dùng chung)
-					let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-					
-					try {
-						var filters = JSON.parse(fixedJson);
-						var page = parseInt(filters.page) || 1;
-						
-						if (page > 1) {
-							// Sửa lại Regex ([^&]+) để lấy trọn vẹn keyword sau q=
-							var keyword = slug.match(/\?q=([^&]+)/i);
-							if (keyword && keyword[1]) {
-								return "https://motchille.cx/search/" + page + "?q=" + keyword[1];
-							}
-						} else {
-							return slug;
-						}
-					} catch (jsonErr) {
-						// Nếu parse JSON vẫn lỗi, trả về slug gốc an toàn luôn
-						return slug;
-					}
-				}
-			}
-			return slug;
-		}
-		
-		var page = 1;
-		var path = slug || "";
-		
-		// 2. Xử lý an toàn filtersJson cho các trường hợp link tương đối (không chứa http)
-		if (filtersJson) {
-			let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
-			
-			try {
-				let filters = JSON.parse(fixedJson);
-				page = parseInt(filters.page) || 1;
-				
-				if (filters.category) {
-					if (Array.isArray(filters.category) && filters.category.length > 0) {
-						path = filters.category[0].slug;
-					} else if (typeof filters.category === 'string') {
-						path = filters.category;
-					}
-				}
-			} catch (jsonErr) {
-				// Coi như bỏ qua nếu lỗi JSON
-			}
-		}
-		
-		// 3. Nối chuỗi URL kết quả cho link tương đối
-		let resultUrl = BASEURL;
-		if (path) {
-			resultUrl += path;
-		}
-		if (page > 1) {
-			resultUrl += "/" + page;
-		}
-		
-		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
-		
-	} catch (e) {
-		// SỬA LỖI TẠI ĐÂY: Nếu slug đã có http thì trả về chính nó, không cộng thêm BASEURL nữa
-		console.log(e)
-		if (slug && slug.indexOf("http") > -1) {
-			return slug;
-		}
-		let fallback = BASEURL + (slug ? "/" + slug : "");
-		return fallback.replace(/([^:]\/)\/+/g, "$1");
-	}
+    try {
+        // 1. Kiểm tra nếu slug là link tuyệt đối (chứa http)
+        if (slug && slug.indexOf("http") > -1) {
+            // Xử lý riêng cho link search tuyệt đối khi có phân trang
+            if (slug.indexOf("search") > -1 && filtersJson) {
+                var fixedJson1 = filtersJson
+                    .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                    .replace(/:,/g, ':');
+                try {
+                    var filtersSearch = JSON.parse(fixedJson1);
+                    var pageSearch = parseInt(filtersSearch.page) || 1;
+
+                    if (pageSearch > 1) {
+                        var keywordMatch = slug.match(/\?q=([^&]+)/i);
+                        if (keywordMatch && keywordMatch[1]) {
+                            var searchPageUrl = BASEURL + "/search/" + pageSearch + "?q=" + keywordMatch[1];
+                            return searchPageUrl.replace(/([^:]\/)\/+/g, "$1");
+                        }
+                    }
+                } catch (jsonErr) {}
+            }
+            return slug;
+        }
+
+        var page = 1;
+        var path = slug || "";
+
+        // 2. Xử lý an toàn filtersJson cho link tương đối
+        if (filtersJson) {
+            var fixedJson2 = filtersJson
+                .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':');
+
+            try {
+                var filters = JSON.parse(fixedJson2);
+                page = parseInt(filters.page) || 1;
+
+                if (filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {}
+        }
+
+        // 3. Ghép chuỗi URL kết quả cho link tương đối
+        var resultUrl = BASEURL;
+        if (path) {
+            resultUrl += (path.indexOf("/") === 0 ? "" : "/") + path;
+        }
+        if (page > 1) {
+            resultUrl += "/" + page;
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        if (slug && slug.indexOf("http") > -1) {
+            return slug;
+        }
+        var fallback = BASEURL + (slug ? (slug.indexOf("/") === 0 ? slug : "/" + slug) : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-	return BASEURL + "/search?q=" + encodeURIComponent(keyword);
-}
+    try {
+        var page = 1;
 
+        // 1. Giải mã filtersJson lấy trang đúng chuẩn hàm gốc
+        if (filtersJson) {
+            var fixedJson = filtersJson
+                .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':');
+
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+            } catch (jsonErr) {}
+        }
+
+        var encodedKeyword = encodeURIComponent(keyword || "");
+        var resultUrl = BASEURL;
+
+        // 2. Tạo đường dẫn tìm kiếm theo cấu trúc /search/{page}?q=
+        if (page > 1) {
+            resultUrl += "/search/" + page + "?q=" + encodedKeyword;
+        } else {
+            resultUrl += "/search?q=" + encodedKeyword;
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        var fallback = BASEURL + "/search?q=" + encodeURIComponent(keyword || "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
+}
 // https://motchille.cx/danh-sach/4
 // https://motchille.cx/the-loai/kinh-di/4
 // https://motchille.cx/search/?q=girl

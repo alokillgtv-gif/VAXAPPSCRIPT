@@ -1,120 +1,88 @@
-// Tắt browser scroll restoration để tránh xung đột khi navigate back/forward
-        if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-        $(document).ready(function() {
-            var _epHash = 'rwZEFti5OakBVvm4b_mh7qBlH7ZGFSMB_0X38Cz_3vhpaTJiv9Ffn5upLsyfwCyNRG2Dq3xELT6fjU4MD_Lm7v-Yb1QdNtEToN1L5uOXHMtfJXw78a_2tK3U-4Nh4HGM';
-            var _epID   = 114455;
-            console.log('[DEBUG] EpisodeURL hash:', _epHash);
-            console.log('[DEBUG] episode_id:', _epID);
-            console.log('[DEBUG] filmInfo:', filmInfo);
+function getUrlList(slug, filtersJson) {
+	try {
+		// 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
+		if (slug && slug.indexOf("http") > -1 || slug.indexOf("search") > -1) {
+			// thường là link search sẽ bị trả về ở đây
+			return slug;
+		}
+		let page = 1;
+		let path = slug || "";
+		
+		// 2. Xử lý an toàn filtersJson nếu có truyền vào
+		if (filtersJson) {
+			// Nếu có số trang hoặc  có menu categ
+			// Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
+			let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+				.replace(/:,/g, ':');
+			// Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
+			
+			try {
+				let filters = JSON.parse(fixedJson);
+				page = parseInt(filters.page) || 1;
+				
+				// Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
+				if (filters.category) {
+					if (Array.isArray(filters.category) && filters.category.length > 0) {
+						path = filters.category[0].slug;
+					} else if (typeof filters.category === 'string') {
+						path = filters.category;
+					}
+				}
+			} catch (jsonErr) {
+				//console.log("JSON parse lỗi, dùng giá trị mặc định");
+			}
+		}
+		
+		// 4. Chuẩn hóa path (Xóa dấu gạch chéo thừa ở đầu/cuối để tránh nhân đôi dấu //)        
+		// 5. Nối chuỗi URL kết quả
+		let resultUrl = BASEURL;
+		if (path) {
+			resultUrl += path;
+		}
+		// https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
+		if (page > 1) {
+			resultUrl += "?page=" + page;
+		}
+		
+		// Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
+		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+		
+	} catch (e) {
+		// console.log("Lỗi hệ thống: " + e.message);
+		// Trả về URL gốc an toàn nếu có lỗi
+		let fallback = BASEURL + (slug ? "/" + slug : "");
+		return fallback.replace(/([^:]\/)\/+/g, "$1");
+	}
+}
+// https://yanhh3d.ac/the-loai/huyen-huyen?page=2
+// https://yanhh3d.ac/storage/settings/January2026/yme.png
+// https://yanhh3d.ac/search?keysearch=nh%E1%BA%A5t
 
-            // Inline player data optimization — use inline data if available
-            if (window.PLAYER_DATA && window.PLAYER_DATA.playTech) {
-                try {
-                    console.log('[PERF] Using inline player data');
-                    var f = window.PLAYER_DATA;
-                    var episodeId = filmInfo.episodeID;
-
-                    // Active class + scroll handled below after player init
-
-                    if (f.playTech == "api" || f.playTech == "all") {
-                        if (typeof f.link === "string") {
-                            jQuery("#media-player").empty().html('<span style="vertical-align: middle;text-align: center;display: table-cell;font-style: normal;font-variant: normal;font-weight: normal;font-stretch: normal;font-size: 23px;line-height: 20px;">' + f.link + "</span>").css({
-                                "display": "table",
-                                "background": "#000"
-                            });
-                        } else {
-                            var sources = [];
-                            jQuery.each(f.link, function(dataAndEvents, file) {
-                                file.file = file.file.replace("&http", "http");
-                                sources.push(file);
-                            });
-
-                            // Get next episode URL from DOM (no AJAX needed)
-                            var nextEpUrl = _getNextEpisodeUrl(episodeId);
-                            setupJWPlayer(sources, episodeId, null);
-                            if (nextEpUrl) {
-                                window.currentXMLFile = nextEpUrl;
-                                pautonext = true;
-                                jQuery("#autonext-status").html("Bật");
-                            } else {
-                                pautonext = false;
-                                jQuery("#autonext-status").html("Tắt");
-                            }
-                        }
-                    } else if (f.playTech == "embed") {
-                        // For embed, wrap URL in sources array format expected by PLTV.Player
-                        var embedSources = [{
-                            file: f.link,
-                            type: "mp4",
-                            mimeType: "video/mp4",
-                            default: true,
-                            label: "720"
-                        }];
-                        var href = $(".list-episode a[data-hash='" + _epHash + "']").attr("href");
-                        PLTV.Player(f.playTech, embedSources, href);
-                    } else if (f.playTech == "iframe") {
-                        jQuery("#media-player").empty().html('<iframe src="' + f.link + '" width="100%" height="100%" frameborder="0" scrolling="no" allowfullscreen allow="autoplay; fullscreen"></iframe>');
-                    }
-                } catch (e) {
-                    console.error('[PERF] Inline player data error, falling back to AJAX:', e);
-                    AnimeVsub(_epHash, filmInfo.filmID);
-                }
-            } else {
-                console.log('[PERF] Falling back to AJAX');
-                AnimeVsub(_epHash, filmInfo.filmID);
-            }
-
-            // Deferred backup links loading — removed from page load
-            // LoadLinksBackup(_epID);  // Commented out — will load on-demand
-
-            // Highlight tập đang xem bằng JS — dựa vào filmInfo.episodeID
-            var curEpID = filmInfo.episodeID;
-            if (curEpID) {
-                var $activeEp = $('.episode-link[data-id="' + curEpID + '"]');
-                $(".list-episode a").attr("data-movie", "");
-                $activeEp.attr("data-movie", "playing");
-                $(EPISODE_LINK_ID + " a").removeClass(EPISODE_CLASS_ACTIVE).addClass(EPISODE_CLASS_NOACTIVE);
-                $activeEp.removeClass(EPISODE_CLASS_NOACTIVE).addClass(EPISODE_CLASS_ACTIVE)
-                    .closest('li.episode').addClass('playing');
-                // Scroll list episode đến tập đang active
-                if ($activeEp.length) {
-                    var el = $activeEp[0];
-                    var container = $activeEp.closest('ul.list-episode')[0];
-                    if (container) {
-                        container.scrollTop = el.offsetTop - container.offsetTop - container.clientHeight / 2 + el.offsetHeight / 2;
-                    }
-                }
-            }
-            // Scroll đến player sau 300ms
-            setTimeout(function() { fx.scrollTo("#watch-block", 1000); }, 300);
-
-            // Deferred backup links loading
-            var backupLinksLoaded = false;
-            var _epID_forBackup = _epID;
-
-            // Load backup links on-demand when #links-backup area is clicked or becomes visible
-            $(document).on('click focus mouseenter', '#links-backup', function() {
-                if (!backupLinksLoaded && _epID_forBackup) {
-                    console.log('[PERF] Loading backup links on-demand');
-                    backupLinksLoaded = true;
-                    LoadLinksBackup(_epID_forBackup);
-                }
-            });
-
-            // Also load if user scrolls near the backup links area
-            var backupObserver = new IntersectionObserver(function(entries) {
-                entries.forEach(function(entry) {
-                    if (entry.isIntersecting && !backupLinksLoaded && _epID_forBackup) {
-                        console.log('[PERF] Loading backup links (scroll trigger)');
-                        backupLinksLoaded = true;
-                        LoadLinksBackup(_epID_forBackup);
-                        backupObserver.disconnect();
-                    }
-                });
-            }, { rootMargin: '100px' });
-
-            var backupEl = document.getElementById('links-backup');
-            if (backupEl) {
-                backupObserver.observe(backupEl);
-            }
-        });
+//var BASEURL = "https://bilutv.asia";
+//var BASEAPI = "https://k8s.onflixcdn.com/api";
+// JSON lỗi cú pháp (thiếu nháy kép) của bạn
+//var filtersJson = '{page:11,category:[{"slug":"/movies?sort=year_desc&limit=24&category=18-plus","name":"Thiếu niên"}]}'; 
+//var filtersJson = '{page:22}';
+//console.log(getUrlList("https://bilutv.asia/?search=girl", filtersJson));
+//getUrlSearch("naruto", filtersJson)
+function getUrlSearch(keyword, filtersJson) {
+		let page = 1;
+		let path = slug || "";
+		
+		// 2. Xử lý an toàn filtersJson nếu có truyền vào
+		if (filtersJson) {
+			// Nếu có số trang hoặc  có menu categ
+			// Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
+			let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+				.replace(/:,/g, ':');
+			// Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
+				let filters = JSON.parse(fixedJson);
+				page = parseInt(filters.page) || 1;
+				if(page > 1){
+          return BASEURL + "/search?keysearch=" + encodeURIComponent(keyword) + "&page=" + page;
+        }
+				// Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
+				return BASEURL + "/search?keysearch=" + encodeURIComponent(keyword) + "&page=" + page;;
+		}
+    return BASEURL + "/search?keysearch=" + encodeURIComponent(keyword);
+}

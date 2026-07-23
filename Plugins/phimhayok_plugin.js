@@ -2,14 +2,14 @@
 // VAAPP Plugin-Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
 // Tên file bắt buộc khi lưu:s crophim_plugin.js
 // =============================================================================
-BASEURL = "https://myopia.media";
+BASEURL = "https://clink.media";
 function getManifest() {
     return JSON.stringify({
         "id": "phimhayok",          
         "name": "phimhayok",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.1.1",             
-        "baseUrl": "https://myopia.media",
+        "version": "1.1.2",             
+        "baseUrl": "https://clink.media",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/phimhayok.jpg",
         "isEnabled": true,
         "type": "MOVIE",
@@ -48,79 +48,110 @@ function getFilterConfig() {
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
-    if (slug && slug.indexOf("http") !== -1) {
-        // Nếu có JSON và có page, ta có thể chèn page vào link (tùy bạn cấu hình, ở đây trả về slug gốc để tránh lỗi)
-        return slug;
-    }
-    var path = "";
-    // Thay thế các key không có dấu nháy bằng key có dấu nháy để sửa lỗi JSON lỏng lẻo
-    if (filtersJson) {
-        var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
-        var filters = JSON.parse(fixedJson);
-        page = parseInt(filters.page) || 1;
-        // Chỉ lấy category từ JSON nếu không truyền slug vào hàm
-        // https://y2mate.ink/?s=&genres=bao-thu&regions=&years=&categories=phim-ngan
-        if (filters.category || filters.sort) {
-            if (filters.category) {
-                if (Array.isArray(filters.category) && filters.category.length > 0) {
-                    path += "&genres=" + filters.category[0].slug;
-                } else if (typeof filters.category === 'string') {
-                    path += "&genres=" + filters.category;
+    try {
+        // 1. Kiểm tra URL tuyệt đối ngay đầu hàm (giống hàm gốc)
+        if (slug && slug.indexOf("http") > -1) {
+            return slug;
+        }
+
+        var page = 1;
+        var path = "";
+        var isFiltered = false;
+
+        // 2. Xử lý JSON bằng Regex 2 lớp & Try-catch nội bộ (giống hàm gốc)
+        if (filtersJson) {
+            var fixedJson2 = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson2);
+                page = parseInt(filters.page) || 1;
+
+                if (filters.category || filters.sort) {
+                    isFiltered = true;
+                    if (filters.category) {
+                        if (Array.isArray(filters.category) && filters.category.length > 0) {
+                            path += "&genres=" + filters.category[0].slug;
+                        } else if (typeof filters.category === 'string') {
+                            path += "&genres=" + filters.category;
+                        }
+                    }
+                    if (filters.sort) {
+                        if (Array.isArray(filters.sort) && filters.sort.length > 0) {
+                            path += "&categories=" + filters.sort[0].value;
+                        } else if (typeof filters.sort === 'string') {
+                            path += "&categories=" + filters.sort;
+                        }
+                    }
                 }
+            } catch (jsonErr) {}
+        }
+
+        // 3. Khởi tạo và xây dựng resultUrl (giống hàm gốc)
+        var resultUrl = BASEURL;
+
+        if (isFiltered) {
+            resultUrl += "/page/" + page + "/?s=" + path;
+        } else if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
+            if (page > 1) {
+                resultUrl += "/page/" + page + "/?s=&categories=" + slug;
+            } else {
+                resultUrl += "/?s=&categories=" + slug;
             }
-            if (filters.sort) {
-                if (Array.isArray(filters.sort) && filters.sort.length > 0) {
-                    path += "&categories=" + filters.sort[0].value;
-                } else if (typeof filters.sort === 'string') {
-                    path += "&categories=" + filters.sort;
-                }
+        } else if (slug && slug.indexOf("chuyen-muc") > -1) {
+            resultUrl += "/" + slug;
+            if (page > 1) {
+                resultUrl += "/page/" + page;
             }
-            //console.log("sort");
-            return BASEURL + "/page/" + page + "/?s=" + path;
-            
-        }
-        if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
-            //console.log("menu");
-            return BASEURL + "/page/" + page + "/?s=&categories=" + slug;
-        }
-        if(slug.indexOf("chuyen-muc") > -1){
-            return BASEURL  + "/" + slug + "/page/" + page;
-        }
-        //console.log("main");
-        return BASEURL + "/page/" + page + "/?s=&genres=" + slug;
-    }
-    else {
-        if (slug.indexOf("http") == -1) {
-            if (slug === "phim-le" || slug === "phim-bo" || slug === "phim-ngan") {
-                //console.log("menu");
-                return BASEURL + "/?s=&categories=" + slug;
+        } else {
+            if (page > 1) {
+                resultUrl += "/page/" + page + "/?s=&genres=" + (slug || "");
+            } else {
+                resultUrl += "/?s=&genres=" + (slug || "");
             }
-            return BASEURL + "/?s=&genres=" + slug;
         }
-        else {
-            return slug
+
+        // 4. Chuẩn hóa loại bỏ dấu // thừa (giống hàm gốc)
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        // 5. Catch tổng và trả về Fallback an toàn (giống hàm gốc)
+        console.log(e);
+        if (slug && slug.indexOf("http") > -1) {
+            return slug;
         }
+        var fallback = BASEURL + (slug ? "/" + slug : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
 }
 
-/*
-
-//var BASEURL = "https://y2mate.ink";
-// Test trường hợp của bạn (slug = "kinh-di", có kèm filter JSON)
-//var filtersJson = '{"page":5,"category":[{"slug":"am-nhac","name":"Âm Nhạc"}],"sort":[{"name":"Phim Lẻ","value":"phim-le"}]}';
-//console.log(getUrlList("kinh-di", filtersJson)); 
-// Kết quả chuẩn: https://y2mate.ink/page/5?genres=kinh-di&categories=phim-le
-// (genres "kinh-di" truyền ngoài vào đã ghi đè "am-nhac" trong JSON theo đúng logic ưu tiên slug)
-// Test trường hợp không có filter JSON
-//var filtersJson = '{"page":6}';
-//console.log(getUrlList("https://y2mate.ink/?s=b%C3%A1o+th%C3%B9", filtersJson));
-// Kết quả chuẩn: https://y2mate.ink?categories=phim-bo
-
-*/
 function getUrlSearch(keyword, filtersJson) {
-    var filters = JSON.parse(filtersJson || "{}");
-    var page = filters.page || 1;
-    return BASEURL + "/page/" + page + "/?s=" + encodeURIComponent(keyword);
+    try {
+        var page = 1;
+
+        // Xử lý JSON an toàn đúng khung hàm gốc
+        if (filtersJson) {
+            var fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/:,/g, ':');
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+            } catch (jsonErr) {}
+        }
+
+        var encodedKeyword = encodeURIComponent(keyword || "");
+        var resultUrl = BASEURL;
+
+        if (page > 1) {
+            resultUrl += "/page/" + page + "/?s=" + encodedKeyword;
+        } else {
+            resultUrl += "/?s=" + encodedKeyword;
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log(e);
+        var fallback = BASEURL + "/?s=" + encodeURIComponent(keyword || "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
+    }
 }
 
 function getUrlDetail(slug) {

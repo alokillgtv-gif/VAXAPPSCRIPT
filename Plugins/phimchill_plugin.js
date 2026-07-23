@@ -5,7 +5,7 @@ function getManifest() {
         "id": "phimchill",          
         "name": "Phim Chill",
         "description": "Phim online",
-        "version": "3.7.8",             
+        "version": "3.7.9",             
         "baseUrl": "https://phimchillhdf.im",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/motherless_logo.jpgphimchill.ico", 
         "isEnabled": true,
@@ -42,23 +42,54 @@ function getFilterConfig() {
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
+    // 1. Nếu slug đã là URL tuyệt đối thì trả về ngay
+    if (slug && slug.indexOf("http") > -1) {
+        return slug;
+    }
+
     try {
-        var filters = JSON.parse(filtersJson || "{}");
-        var page = filters.page || 1;
+        var filters = typeof filtersJson === "string" ? JSON.parse(filtersJson || "{}") : (filtersJson || {});
+        var page = parseInt(filters.page) || 1;
+        var path = slug || "";
+
+        // 2. Xử lý category (hỗ trợ cả dạng Mảng lẫn Chuỗi)
         if (filters.category) {
-            return BASEURL + "/" + filters.category + "?page=" + page;
+            if (Array.isArray(filters.category) && filters.category.length > 0) {
+                path = filters.category[0].slug || path;
+            } else if (typeof filters.category === "string") {
+                path = filters.category;
+            }
         }
+
+        // 3. Ghép URL và Query Parameter
+        var url = BASEURL + (path ? "/" + path : "");
         if (page > 1) {
-            return BASEURL + "/" + slug + "?page=" + page;
+            url += "?page=" + page;
         }
-        return BASEURL + "/" + slug;
+
+        return url.replace(/([^:]\/)\/+/g, "$1");
     } catch (e) {
-        return BASEURL + "/" + slug;
+        var fallback = BASEURL + (slug ? "/" + slug : "");
+        return fallback.replace(/([^:]\/)\/+/g, "$1");
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return BASEURL + "/?search=" + encodeURIComponent(keyword);
+    var encodedKeyword = encodeURIComponent(keyword || "");
+    var page = 1;
+
+    try {
+        var filters = typeof filtersJson === "string" ? JSON.parse(filtersJson || "{}") : (filtersJson || {});
+        page = parseInt(filters.page) || 1;
+    } catch (e) {}
+
+    // Ghép tham số tìm kiếm dạng Query String
+    var url = BASEURL + "/?search=" + encodedKeyword;
+    if (page > 1) {
+        url += "&page=" + page;
+    }
+
+    return url;
 }
 
 function getUrlDetail(id) {

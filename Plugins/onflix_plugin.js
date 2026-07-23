@@ -6,13 +6,21 @@ function getManifest() {
 		"id": "onflix",
 		"name": "Onflix",
 		"description": "Trang xem phim siêu hay.",
-		"version": "1.7.6",
+		"version": "1.7.8",
 		"BASEURL": "https://onflix.lat",
 		"iconUrl": "https://onflix.lat/app/asset/logo.png",
 		"isEnabled": true,
 		"type": "VIDEO",
 		"playerType": "auto"
 	});
+}
+
+function log(msg) {
+    if (typeof nativeLog !== 'undefined') {
+        nativeLog("["+BASEURL+"] " + msg);
+    } else if (typeof console !== 'undefined' && console.log) {
+        console.log("["+BASEURL+"] " + msg);
+    }
 }
 
 // https://onflix.lat/kham-pha?page=2
@@ -43,142 +51,203 @@ function getFilterConfig() {
 // URL GENERATION
 // =============================================================================
 
+// =============================================================================
+// URL GENERATORS
+// =============================================================================
+
+// =============================================================================
+// URL GENERATORS
+// =============================================================================
 
 function getUrlList(slug, filtersJson) {
-	try {
-		// 1. Kiểm tra nếu slug là link tuyệt đối (chứa http) và không có bộ lọc thì trả về luôn
-		if (slug && slug.indexOf("http") > -1 || slug.indexOf("search") > -1) {
-			// thường là link search sẽ bị trả về ở đây
-			return slug;
-		}
-		let page = 1;
-		let path = slug || "";
-		
-		// 2. Xử lý an toàn filtersJson nếu có truyền vào
-		if (filtersJson) {
-			// Nếu có số trang hoặc  có menu categ
-			// Sửa lỗi nếu JSON thiếu dấu ngoặc kép ở key hoặc sai cú pháp cơ bản
-			let fixedJson = filtersJson.replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
-				.replace(/:,/g, ':');
-			// Sửa lỗi nếu truyền kiểu {"page",24} thành {"page":24}
-			
-			try {
-				let filters = JSON.parse(fixedJson);
-				page = parseInt(filters.page) || 1;
-				
-				// Nếu có category trong JSON, ưu tiên lấy category làm đường dẫn (path)
-				if (filters.category) {
-					if (Array.isArray(filters.category) && filters.category.length > 0) {
-						path = filters.category[0].slug;
-					} else if (typeof filters.category === 'string') {
-						path = filters.category;
-					}
-				}
-			} catch (jsonErr) {
-				//console.log("JSON parse lỗi, dùng giá trị mặc định");
-			}
-		}
-		
-		
-		// 4. Chuẩn hóa path (Xóa dấu gạch chéo thừa ở đầu/cuối để tránh nhân đôi dấu //)        
-		// 5. Nối chuỗi URL kết quả
-		let resultUrl = BASEAPI;
-		if (path) {
-			resultUrl += path;
-		}
-		// https://www.tranny.one/recent/?mix=true&pageId=2&_=1783573720196
-		if (page > 1) {
-			if (resultUrl.indexOf("?") > -1) {
-				resultUrl += "&page=" + page;
-			}
-			else {
-				resultUrl += "?page=" + page;
-			}
-		}
-		
-		// Trả về kết quả, chỉ gộp dấu // ở phần path, giữ nguyên https://
-		return resultUrl.replace(/([^:]\/)\/+/g, "$1");
-		
-	} catch (e) {
-		// console.log("Lỗi hệ thống: " + e.message);
-		// Trả về URL gốc an toàn nếu có lỗi
-		let fallback = BASEURL + (slug ? "/" + slug : "");
-		return fallback.replace(/([^:]\/)\/+/g, "$1");
-	}
-}
-// /movies?sort=year_desc&limit=24&category=chuyen-the
-// /movies?sort=year_desc&limit=24&category=18-plus
-// /themes/hoat-hinh-chon-loc
-// /search?q=naruto&type=all
-//var BASEURL = "https://onflix.lat";
-//var BASEAPI = "https://k8s.onflixcdn.com/api";
-// JSON lỗi cú pháp (thiếu nháy kép) của bạn
-//var filtersJson = '{page:11,category:[{"slug":"/movies?sort=year_desc&limit=24&category=18-plus","name":"Thiếu niên"}]}'; 
-//var filtersJson = '{page:22}';
-//console.log(getUrlList("", filtersJson));
-//getUrlSearch("naruto", filtersJson)
-function getUrlSearch(keyword, filtersJson) {
-	return BASEAPI + "/search?q=" + encodeURIComponent(keyword) + "&type=all";
+    try {
+        var api = (typeof BASEAPI !== "undefined" && BASEAPI) ? BASEAPI : "https://k8s.onflixcdn.com/api";
+        var page = 1;
+        var path = slug || "";
+
+        // 1. Kiểm tra nếu slug là link tuyệt đối (http://...)
+        if (path && path.indexOf("http") === 0) {
+            if (filtersJson) {
+                var fixedJson1 = filtersJson
+                    .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                    .replace(/:,/g, ':');
+                try {
+                    var filtersSearch = JSON.parse(fixedJson1);
+                    var pageSearch = parseInt(filtersSearch.page) || 1;
+
+                    if (pageSearch > 1 && path.indexOf("page=") === -1) {
+                        var sepSearch = path.indexOf("?") > -1 ? "&" : "?";
+                        return (path + sepSearch + "page=" + pageSearch).replace(/([^:]\/)\/+/g, "$1");
+                    }
+                } catch (jsonErr) {}
+            }
+            return path;
+        }
+
+        // 2. Xử lý an toàn filtersJson lấy page và category
+        if (filtersJson) {
+            var fixedJson2 = filtersJson
+                .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':');
+
+            try {
+                var filters = JSON.parse(fixedJson2);
+                page = parseInt(filters.page) || 1;
+
+                if (filters.category) {
+                    if (Array.isArray(filters.category) && filters.category.length > 0) {
+                        path = filters.category[0].slug;
+                    } else if (typeof filters.category === 'string') {
+                        path = filters.category;
+                    }
+                }
+            } catch (jsonErr) {}
+        }
+
+        if (path && path.indexOf("/") !== 0) {
+            path = "/" + path;
+        }
+
+        var resultUrl = api + path;
+
+        if (page > 1 && resultUrl.indexOf("page=") === -1) {
+            var separator = resultUrl.indexOf("?") > -1 ? "&" : "?";
+            resultUrl += separator + "page=" + page;
+        }
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log("Lỗi getUrlList: " + e);
+        var fallbackApi = (typeof BASEAPI !== "undefined" && BASEAPI) ? BASEAPI : "https://k8s.onflixcdn.com/api";
+        var safePath = slug ? (slug.indexOf("/") === 0 ? slug : "/" + slug) : "";
+        return (fallbackApi + safePath).replace(/([^:]\/)\/+/g, "$1");
+    }
 }
 
+function getUrlSearch(keyword, filtersJson) {
+    try {
+        var api = (typeof BASEAPI !== "undefined" && BASEAPI) ? BASEAPI : "https://k8s.onflixcdn.com/api";
+        var page = 1;
+
+        if (filtersJson) {
+            var fixedJson = filtersJson
+                .replace(/([{,])\s*([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                .replace(/:,/g, ':');
+
+            try {
+                var filters = JSON.parse(fixedJson);
+                page = parseInt(filters.page) || 1;
+            } catch (jsonErr) {}
+        }
+
+        var encodedKeyword = encodeURIComponent(keyword || "");
+        // Chuẩn hóa theo cấu trúc: /search?q=keyword&page=1
+        var resultUrl = api + "/search?q=" + encodedKeyword + "&page=" + page;
+
+        return resultUrl.replace(/([^:]\/)\/+/g, "$1");
+
+    } catch (e) {
+        console.log("Lỗi getUrlSearch: " + e);
+        var fallbackApi = (typeof BASEAPI !== "undefined" && BASEAPI) ? BASEAPI : "https://k8s.onflixcdn.com/api";
+        return (fallbackApi + "/search?q=" + encodeURIComponent(keyword || "") + "&page=1").replace(/([^:]\/)\/+/g, "$1");
+    }
+}
 
 function getUrlDetail(slug) {
+    var domain = (typeof BASEURL !== "undefined" && BASEURL) ? BASEURL : "https://onflix.lat";
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return BASEURL + "/" + slug;
+    return (domain + "/phim/" + slug).replace(/([^:]\/)\/+/g, "$1");
 }
 
-function getUrlCategories() { return BASEURL; }
+function getUrlCategories() { 
+    return (typeof BASEURL !== "undefined" && BASEURL) ? BASEURL : "https://onflix.lat"; 
+}
 function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
 // =============================================================================
 // PARSERS
 // =============================================================================
+
 function parseListResponse(html, $url) {
-	try {
-		var items = [];
-		var videoData = JSON.parse(html);
-		var currentpg = videoData.pagination.current_page;
-		var total_pages = videoData.pagination.total_pages;
-		for (var $j = 0; $j < videoData.data.length; $j++) {
-			var $block = videoData.data[$j];
-			var $url = BASEURL + "/phim/" + $block.slug
-			items.push({
-				// https://onflix.lat/phim/san-ho-den
-				"id": $url,
-				"title": $block.title.trim(),
-				"posterUrl": $block.poster_url,
-				"backdropUrl": $block.thumb_url,
-				"year": $block.year,
-				"quality": $block.quality,
-				"episode_current": $block.episode_current,
-				"lang": $block.lang
-			});
-		}
-		
-		return JSON.stringify({
-			"items": items,
-			"pagination": {
-				"currentPage": currentpg,
-				"totalPages": total_pages
-			}
-		});
-		
-	} catch (e) {
-		return JSON.stringify({
-			"items": [{
-				"id": $url,
-				"title": "Lỗi: " + e,
-				"posterUrl": "",
-				"backdropUrl": ""
-			}],
-			"pagination": {
-				"currentPage": 1,
-				"totalPages": 1
-			}
-		});
-	}
+    try {
+        var safeUrl = $url || "";
+        var domain = (typeof BASEURL !== "undefined" && BASEURL) ? BASEURL : "https://onflix.lat";
+
+        if (typeof log === "function") {
+            log("parseListResponse: " + safeUrl);
+        }
+
+        var items = [];
+        var videoData = typeof html === "string" ? JSON.parse(html) : html;
+
+        if (!videoData) {
+            return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
+        }
+
+        // Ưu tiên đọc mảng movies (cho Search API) hoặc data (cho Danh sách)
+        var rawList = [];
+        if (Array.isArray(videoData.movies)) {
+            rawList = videoData.movies;
+        } else if (Array.isArray(videoData.data)) {
+            rawList = videoData.data;
+        } else if (videoData.data && Array.isArray(videoData.data.items)) {
+            rawList = videoData.data.items;
+        } else if (Array.isArray(videoData)) {
+            rawList = videoData;
+        }
+
+        // Đọc thông tin phân trang an toàn (API Search không trả về pagination)
+        var currentpg = 1;
+        var total_pages = 1;
+
+        if (videoData.pagination) {
+            currentpg = parseInt(videoData.pagination.current_page || videoData.pagination.currentPage) || 1;
+            total_pages = parseInt(videoData.pagination.total_pages || videoData.pagination.totalPages) || 1;
+        } else if (rawList.length >= 24) {
+            // Nếu có từ 24 item trở lên, cho phép phân trang tiếp
+            total_pages = currentpg + 1;
+        }
+
+        // Lặp bóc tách thông tin từng phim
+        for (var j = 0; j < rawList.length; j++) {
+            var block = rawList[j];
+            var movieSlug = block.slug || "";
+            var itemUrl = domain + "/phim/" + movieSlug;
+
+            items.push({
+                "id": itemUrl,
+                "title": (block.title || block.name || "").trim(),
+                "posterUrl": block.poster_url || "",
+                "backdropUrl": block.thumb_url || "",
+                "year": block.year || "",
+                "quality": block.quality || "",
+                "episode_current": block.episode_current || "",
+                "lang": block.lang || ""
+            });
+        }
+
+        return JSON.stringify({
+            "items": items,
+            "pagination": {
+                "currentPage": currentpg,
+                "totalPages": total_pages
+            }
+        });
+
+    } catch (e) {
+        console.log("Lỗi parseListResponse: " + e);
+        return JSON.stringify({
+            "items": [],
+            "pagination": { "currentPage": 1, "totalPages": 1 }
+        });
+    }
+}
+
+function parserFind(html, $url) {
+    return parseListResponse(html, $url);
 }
 //var BASEURL = "https://onflix.lat";
 //var BASEAPI = "https://k8s.onflixcdn.com/api";
