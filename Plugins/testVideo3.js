@@ -135,25 +135,27 @@ function parseDetailResponse(html,url) {
         var videoUrl = BaseJSON.link || "";
         var refUrl = BaseJSON.ref || "";
         var agent = BaseJSON.codeb || "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
-        var customjs = textJS(parsed);
+        var customjs = BaseJSON.coded;
         var $type = BaseJSON.codea;
         var $reg = BaseJSON.codee;
         
-				return JSON.stringify({
-					url: videoUrl,
-					isEmbed: true,
-					headers: {
-						"User-Agent": agent,
-						"Referer": "https://example.com/",
-						"Custom-Js": customjs
-					},
-					subtitles: []
-				});
+				 return JSON.stringify({
+        "url": videoUrl,
+        "isEmbed": true,
+        "headers": {
+            "Block-Ads": "true",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Referer": refUrl,
+            "Custom-Js": customJsCode
+        }
+   			 });
       
     } catch (e) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
 }
+
+/*
 function parseEmbedResponse(html, fallbackUrl) {
 	// If the streaming link is doodstream or streamwish, the app core might handle it
 	// Or if `parseDetailResponse` marked `isEmbed = true`, App's engine intercepts it.
@@ -169,211 +171,7 @@ function parseEmbedResponse(html, fallbackUrl) {
 		isEmbed: false
 	});
 }
-
-
-
-function textJS($links) {
-    // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
-    return `
-LINKVIDEO = ${JSON.stringify($links)}
-
-SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=testVideo&type=js"; 
-const style = document.createElement('style');
-var customcss = 'body{background:#000000;overflow:hidden;margin:0;height:100vh;display:flex;justify-content:center;align-items:center;position:relative;font-family:sans-serif;}body::before{content:"";width:60px;height:60px;border:4px solid rgba(255, 255, 255, 0.1);border-top-color:#00ffcc;border-radius:50%;animation:spin 0.8s linear infinite;transform:translateY(-20px);box-shadow:0 0 10px rgba(0, 255, 204, 0.2);}body::after{content:"LOADING";position:absolute;color:#ffffff;font-size:11px;letter-spacing:3px;transform:translateY(40px);animation:pulse 1.5s ease-in-out infinite;opacity:0.8;}@keyframes spin{to{transform:translateY(-20px) rotate(360deg);}}@keyframes pulse{0%, 100%{opacity:0.3;}50%{opacity:1;text-shadow:0 0 8px rgba(0, 255, 204, 0.6);}}';
-style.innerHTML = customcss;
-//document.head.appendChild(style);
-
-/* Build Video Begin*/
-
-    var DEVELOPE = false;
-
-       // ─── HÀM TOAST ĐƯỢC ĐƯA RA NGOÀI (Có thể gọi ở mọi nơi) ───
-    function showToast(message, duration, check) {
-        if (typeof duration === 'undefined') duration = 7000;
-        if (typeof check === 'undefined') check = true;
-        if (check === false) return;
-        var container = document.getElementById('global-toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'global-toast-container';
-            container.style.cssText =
-                'position:fixed;bottom:20px;right:20px;z-index:9999999;display:flex;flex-direction:column;gap:10px;';
-            document.body.appendChild(container);
-        }
-        var toastEl = document.createElement('div');
-        toastEl.innerHTML = message;
-        toastEl.style.cssText =
-            'background:rgba(50,50,50,0.95);color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:sans-serif;font-size:14px;min-width:200px;transition:all 0.3s ease;transform:translateX(120%);opacity:0;';
-        container.appendChild(toastEl);
-        setTimeout(function() {
-            toastEl.style.transform = 'translateX(0)';
-            toastEl.style.opacity = '1';
-        }, 10);
-        setTimeout(function() {
-            toastEl.style.transform = 'translateX(120%)';
-            toastEl.style.opacity = '0';
-            setTimeout(function() {
-                toastEl.remove();
-                if (container.childElementCount === 0) container.remove();
-            }, 300);
-        }, duration);
-    }
-
-       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', GetlinkVideo);
-    } else {
-        GetlinkVideo();
-    }
-
-
-/* Build Video End */
-
-function injectScriptAfterLoad(scriptUrl) {
-(function() {
-									    if (window._vaapp_hooked) return;
-									    window._vaapp_hooked = true;
-									
-									    function report(url) {
-									        try {
-									            if (!url) return;
-									            url = String(url);
-									
-									            if (
-									                url.indexOf('http') === 0 &&
-									                url.indexOf('blob:') !== 0 &&
-									                (
-									                    url.indexOf('.m3u8') !== -1 
-									                    url.indexOf('.m3u9') !== -1 
-									                    url.indexOf('.mp4') !== -1 
-									                    url.indexOf('.ts') !== -1 
-									                    url.indexOf('get_video') !== -1
-									                )
-									            ) {
-									            	showToast('Đã gửi url '+url+'!',5000
-									                SnifferBridge.onVideoDetected(url);
-									            }
-									        } catch (e) {}
-									    }
-									
-									    function scan() {
-									        try {
-									            var v = document.querySelector('video');
-									            if (v) {
-									                report(v.src);
-									                var s = document.querySelector('video source');
-									                if (s) report(s.src);
-									            }
-									
-									            var scripts = document.getElementsByTagName('script');
-									            for (var i = 0; i < scripts.length; i++) {
-									                if (scripts[i].src) report(scripts[i].src);
-									            }
-									        } catch (e) {}
-									    }
-									
-									    try {
-									        var ofetch = window.fetch;
-									        if (ofetch) {
-									            window.fetch = function() {
-									                try {
-									                    var input = arguments[0];
-									                    var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
-									                    report(url);
-									                } catch (e) {}
-									                return ofetch.apply(this, arguments);
-									            };
-									        }
-									    } catch (e) {}
-									
-									    try {
-									        var oopen = XMLHttpRequest.prototype.open;
-									        XMLHttpRequest.prototype.open = function(method, url) {
-									            try { report(url); } catch (e) {}
-									            return oopen.apply(this, arguments);
-									        };
-									    } catch (e) {}
-									
-									    try {
-									        var desc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
-									        if (desc && desc.set) {
-									            Object.defineProperty(HTMLMediaElement.prototype, 'src', {
-									                get: desc.get,
-									                set: function(value) {
-									                    try { report(value); } catch (e) {}
-									                    return desc.set.call(this, value);
-									                }
-									            });
-									        }
-									    } catch (e) {}
-									
-									    window._vaapp_interval = setInterval(function() {
-									        try {
-									            document.querySelectorAll(
-									                '.play-wrapper, .plyr__control--overlaid, div#videooverlay, .jw-icon-playback, .jw-display-icon-container, video, button[class*="play"], div[class*="play"], button[aria-label*="play"], div[aria-label*="play"]'
-									            ).forEach(function(el) {
-									                try {
-									                    if (el.offsetParent !== null  el.offsetWidth > 0  el.offsetHeight > 0) {
-									                        el.click();
-									                    }
-									                } catch (e) {}
-									            });
-									        } catch (e) {}
-									
-									        scan();
-									    }, 500);
-									})();
-    function doFetchAndInject() {
-        console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
-        
-        fetch(SCRIPTURL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Mã phản hồi từ Server không tốt: ' + response.status);
-                }
-                return response.text(); // Lấy toàn bộ mã nguồn dưới dạng chuỗi chữ
-            })
-            .then(codeText => {
-                // 1. Tạo một thẻ script trống mới hoàn toàn bằng JS
-                const scriptElement = document.createElement('script');
-                scriptElement.type = 'text/javascript';
-                
-                // 2. Đổ thẳng nội dung code dạng chữ vào trong thẻ script vừa tạo
-                scriptElement.textContent = codeText;
-                
-                // 3. Nhúng (Inject) thẻ script này vào vị trí cuối cùng của thẻ body
-                document.body.appendChild(scriptElement);
-               // showToast('🎯 Đã fetch và nhúng thành công script vào sau body,!',5000);
-            })
-            .catch(error => {
-                console.error('❌ Lỗi không thể fetch hoặc nhúng script:', error);
-            });
-    }
-    
-    // Kiểm tra trạng thái tải của trang web
-    if (document.readyState !== 'loading') {
-        // Nếu trang web đã tải xong cấu trúc DOM cơ bản, thực hiện ngay lập tức
-        doFetchAndInject();
-    } else {
-        // Nếu trang web vẫn đang load thô, đợi sự kiện DOMContentLoaded kích hoạt rồi chạy
-        document.addEventListener('DOMContentLoaded', doFetchAndInject);
-    }
-}
-
-function initCustomVideoFix() {
-    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
-    if (SCRIPTURL && SCRIPTURL !== "undefined") {
-        injectScriptAfterLoad(SCRIPTURL);
-    }
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCustomVideoFix);
-} else {
-    initCustomVideoFix();
-}
-
-`;
-}
+*/
 
 
 function parseCategoriesResponse(html) { return "[]"; }

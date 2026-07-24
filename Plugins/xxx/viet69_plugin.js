@@ -5,7 +5,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.4",             
+        "version": "1.5",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://raw.githubusercontent.com/alokillgtv-gif/VAXAPPSCRIPT/main/img/viet69.png", 
         "isEnabled": true,
@@ -210,6 +210,7 @@ function parseDetailResponse(html, url) {
         var iframeMatch = html.match(/iframe[^>]+src="([^"']+)"/i);
         if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
         var customjs = textJS(html, url);
+      /*
         customjs += `
             function runScript($msg){
                 showToast("Bước 1: ${streamUrl}", 10000)
@@ -226,7 +227,7 @@ function parseDetailResponse(html, url) {
                 body.innerHTML = framehtml;
             }
         `
-        
+        */
         return JSON.stringify({
             url: streamUrl,
             isEmbed: true, // Vẫn cần fetch tiếp
@@ -272,10 +273,29 @@ function textJS() {
     // Sử dụng biến $url từ tham số truyền vào thay vì ghi cứng link
     return `
 SCRIPTURL = "https://script.google.com/macros/s/AKfycbwsvLFzWMdxvX9ZH-3wnP3GJzS58v0CtT_0mlEYeOz6cOsgen9IR3c6VPv_EssPXMFzwQ/exec?name=viet69&type=js"; 
-const style = document.createElement('style');
 var customcss = 'body,html { background: black!important;overflow: hidden!immportant}body,body * {background: black!important;display:none!important}';
-style.innerHTML = customcss;
-document.head.appendChild(style);
+//const customcss = "body{}";
+    function injectCSS() {
+        if (document.getElementById('anti-flash-style')) return;
+        const style = document.createElement('style');
+        style.id = 'anti-flash-style';
+        style.innerHTML = customcss;
+        (document.head || document.documentElement || document.body).appendChild(style);
+    }
+
+    if (document.head) {
+        injectCSS();
+    } else {
+        const observer = new MutationObserver((mutations, obs) => {
+            if (document.head) {
+                injectCSS();
+                obs.disconnect();
+            }
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+
 function injectScriptAfterLoad(scriptUrl) {
     function doFetchAndInject() {
         console.log('⏳ Đang tiến hành fetch code từ:', scriptUrl);
@@ -315,10 +335,47 @@ function injectScriptAfterLoad(scriptUrl) {
 }
 
 function initCustomVideoFix() {
-    // SỬA: Lấy động giá trị từ tham số $url truyền vào hàm textJS bên ngoài
-    if (SCRIPTURL && SCRIPTURL !== "undefined") {
-        injectScriptAfterLoad(SCRIPTURL);
+    // 1. Gỡ bỏ CSS anti-flash một cách an toàn (chỉ gỡ nếu thẻ này thực sự tồn tại)
+    const antiFlashStyle = document.getElementById("anti-flash-style");
+    if (antiFlashStyle) {
+        antiFlashStyle.remove();
     }
+
+    // 2. Tìm thẻ iframe
+    const iframe = document.getElementsByTagName("iframe")[0];
+
+    // Kiểm tra nếu tìm thấy iframe và iframe có thuộc tính src
+    if (iframe && iframe.src) {
+        const src = iframe.src;
+
+        var newframe = '<iframe src="' + src + '" style="' +
+    'position: fixed !important;' +
+    'top: calc(50% + 20px) !important;' +
+    'left: 50% !important;' +
+    'transform: translate(-50%, -50%) !important;' +
+    'width: 100vw !important;' +
+    'height: calc(100vh - 20px) !important;' +
+    'border: none !important;' +
+    'margin: 0 !important;' +
+    'padding: 0 !important;' +
+    'z-index: 999999 !important;' +
+    'box-sizing: border-box !important;' +
+    '"></iframe>';
+
+        // 3. Đảm bảo body đã tồn tại mới ghi đè innerHTML
+        if (document.body) {
+            document.body.innerHTML = newframe;
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                document.body.innerHTML = newframe;
+            });
+        }
+    } else {
+        console.warn("⚠️ Không tìm thấy thẻ iframe nào trên trang!");
+    }
+
+    // Nếu bạn muốn gọi tiếp hàm fetch script của bạn:
+    // injectScriptAfterLoad(SCRIPTURL);
 }
 
 if (document.readyState === 'loading') {

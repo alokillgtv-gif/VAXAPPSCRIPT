@@ -139,9 +139,9 @@
 
 // ### BLOCK START: UserScript Header & IIFE Start
 // ==UserScript==
-// @name         Web Interactive Lab & Inspector Dashboard PRO v16.5 (Stable Patch)
+// @name         Web Interactive Lab & Inspector Dashboard PRO v16.7 (Search, Goto, Export CSS, BUILDDOM)
 // @namespace    http://tampermonkey.net/
-// @version      16.6
+// @version      16.7
 // @description  Hồi sinh Click chuột Phải soi DOM trong Hard-Sandbox. Tự động lưu trạng thái. Tích hợp Pro CodeEditor Engine & Sub-Panel Splitter + Fix UI/Draggable. [FIX] Remove invalid CSS @require.
 // @author       Gemini
 // @match        *://*/*
@@ -346,6 +346,15 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
 .lab-dashboard-container .cm-editor *, .lab-dashboard-container .CodeMirror * { box-sizing: content-box !important; }
 .cm-scroller { overflow-x: auto !important; display: block !important; }
 .CodeMirror-scroll { overflow-x: auto !important; }
+.lab-dashboard-container input { height:18px!important}
+.lab-mini-btn { line-height: initial!important; }
+.lab-dashboard-container input { height: initial!important; line-height: initial!important; margin-bottom: 0!important; }
+.lab-sub-select, .lab-select-size { min-width: 50px!important; width: 50px!important; }
+#panelJs .lab-btn-max,#labBtnGotoLine { display: none; }
+.lab-js-tabs-bar { padding: 2px!important; }
+#labMainDashboard .CodeMirror { background-color: #282a36 !important; color: #f8f8f2 !important; border: none!important; }
+input#labJsSearchInput,#labJsGotoInput { width: 40px!important; }
+.lab-js-tab-add { padding: 2px 4px!important; }
 
         `;
             document.head.appendChild(styleElement);
@@ -429,6 +438,7 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                                     <option value="20">20px</option>
                                 </select>
                                 <button class="lab-mini-btn lab-btn-wrap active" data-target="css" title="Bật/Tắt Wrap">↩️</button>
+                                <button class="lab-mini-btn" id="labBtnExportToolCss" title="Xuất CSS tổng từ Tool">📤 CSS</button>
                                 <button class="lab-mini-btn lab-btn-max" data-target="#panelCss">🔲 </button>
                                 <button class="lab-mini-btn btn-danger" id="labBtnClearCss">Xóa</button>
                                 <button class="lab-mini-btn lab-btn-toggle" data-target="#panelCss">Ẩn</button>
@@ -458,6 +468,11 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                                 <button class="lab-mini-btn btn-success" id="labBtnRunJs" style="margin-right:4px;">▶ </button>
                                 <button class="lab-mini-btn" id="labBtnBeautifyJs" title="Làm đẹp code JS">✨</button>
                                 <button class="lab-mini-btn" id="labBtnOutdentJs" title="Outdent 1 cấp">⬅️</button>
+                                <input type="text" id="labJsSearchInput" placeholder="🔍 Tìm..." style="width:80px; font-size:11px; background:#1a1a1a; color:#eee; border:1px solid #333; border-radius:3px; padding:2px 4px; margin-left:2px;">
+                                <button class="lab-mini-btn" id="labBtnSearchPrev" title="Tìm trước">▲</button>
+                                <button class="lab-mini-btn" id="labBtnSearchNext" title="Tìm sau">▼</button>
+                                <input type="number" id="labJsGotoInput" placeholder="#" style="width:45px; font-size:11px; background:#1a1a1a; color:#eee; border:1px solid #333; border-radius:3px; padding:2px 4px; margin-left:2px;">
+                                <button class="lab-mini-btn" id="labBtnGotoLine" title="Nhảy đến dòng">➜</button>
                                 <button class="lab-mini-btn lab-btn-max" data-target="#panelJs">🔲 </button>
                                 <button class="lab-mini-btn btn-danger" id="labBtnClearJs">Xóa</button>
                                 <button class="lab-mini-btn lab-btn-toggle" data-target="#panelJs">Ẩn</button>
@@ -964,7 +979,17 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                             let vnSuggest = window.__labEscapeHtmlHelper(errorInfo.suggestion);
                             let rawMsg = window.__labEscapeHtmlHelper(safeMsg);
 
-                            let linkHtml = lineNum ? '<div style="margin-top: 8px;"><span class="lab-error-line-link" data-line="' + lineNum + '" style="display:inline-block; padding:4px 10px; background:#e74c3c; color:#fff; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯 Cuộn tới Dòng ' + lineNum + '</span></div>' : "";
+                            let errTabIndex = 0, errLocalLine = lineNum;
+                            if (window.__labJsTabs && window.__labJsTabs.length > 1) {
+                                const lens = window.__labJsTabs.map(t => (t.content || '').split('\\n').length);
+                                let acc = 0;
+                                for (let i = 0; i < lens.length; i++) {
+                                    let tabLines = lens[i] + 2; // include \\n\\n separator
+                                    if (acc + tabLines >= lineNum) { errTabIndex = i; errLocalLine = lineNum - acc; break; }
+                                    acc += tabLines;
+                                }
+                            }
+                            let linkHtml = lineNum ? '<div style="margin-top: 8px;"><span class="lab-error-line-link" data-line="' + errLocalLine + '" data-tab="' + errTabIndex + '" data-total="' + lineNum + '" style="display:inline-block; padding:4px 10px; background:#e74c3c; color:#fff; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯 Tab ' + (errTabIndex+1) + ' - Dòng ' + errLocalLine + ' (Tổng ' + lineNum + ')</span></div>' : "";
 
                             let errorHtml = '<div class="lab-log-item lab-log-error" style="display:flex; flex-direction:column; align-items:flex-start; padding:10px; line-height: 1.6; border-left: 3px solid #ff5555;">' +
                                                 '<span style="font-weight:bold; font-size:13px; color:#ff5555;">🚨 ' + safeName + ': ' + vnMsg + '</span>' +
@@ -992,6 +1017,11 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                 e.stopPropagation();
 
                 let line = parseInt($(this).data('line'), 10);
+                let targetTab = parseInt($(this).data('tab'), 10);
+
+                if (!isNaN(targetTab) && window.__labJsTabs && window.__labSwitchJsTab) {
+                    window.__labSwitchJsTab(targetTab);
+                }
 
                 if (window.__labJsEditor && !isNaN(line)) {
                     let targetLine = line - 1; // CodeMirror tính dòng từ 0
@@ -4810,6 +4840,133 @@ body.lab-fullscreen-locked { overflow: hidden !important; }
                 }, 500);
             })();
             /* === End Module Safe Patch V16.3 (UI/Drag/CM Isolation): 4044 === */
+            /* === Begin Module v16.7 Enhancements (Search, Goto, Export CSS, BUILDDOM) === */
+            // --- Search in JS Editor ---
+            let __labSearchPos = 0;
+            let __labLastQuery = '';
+            function labEditorFindNext(query, reverse) {
+                if (!window.__labJsEditor) return;
+                if (!query) return;
+                let doc = window.__labJsEditor.getDoc();
+                let text = doc.getValue();
+                if (query !== __labLastQuery) {
+                    __labSearchPos = reverse ? text.length : 0;
+                    __labLastQuery = query;
+                }
+                let idx;
+                if (reverse) {
+                    idx = text.lastIndexOf(query, __labSearchPos - 1);
+                    if (idx === -1) idx = text.lastIndexOf(query); // wrap around
+                } else {
+                    idx = text.indexOf(query, __labSearchPos);
+                    if (idx === -1) idx = text.indexOf(query); // wrap around
+                }
+                if (idx !== -1) {
+                    let from = doc.posFromIndex(idx);
+                    let to = doc.posFromIndex(idx + query.length);
+                    doc.setSelection(from, to);
+                    window.__labJsEditor.scrollIntoView(from, 100);
+                    __labSearchPos = reverse ? idx : idx + query.length;
+                }
+            }
+            $(document).on('keydown', '#labJsSearchInput', function(e) {
+                if (e.key === 'Enter') {
+                    labEditorFindNext($(this).val().trim(), false);
+                }
+            });
+            $(document).on('click', '#labBtnSearchNext', function() {
+                labEditorFindNext($('#labJsSearchInput').val().trim(), false);
+            });
+            $(document).on('click', '#labBtnSearchPrev', function() {
+                labEditorFindNext($('#labJsSearchInput').val().trim(), true);
+            });
+
+            // --- Goto Line in JS Editor ---
+            function labEditorGotoLine(lineNum) {
+                if (!window.__labJsEditor) return;
+                let line = parseInt(lineNum, 10) - 1;
+                if (isNaN(line) || line < 0) return;
+                let lastLine = window.__labJsEditor.lastLine();
+                if (line > lastLine) line = lastLine;
+                window.__labJsEditor.setCursor(line, 0);
+                window.__labJsEditor.focus();
+                let coords = window.__labJsEditor.charCoords({line: line, ch: 0}, "local");
+                let middle = window.__labJsEditor.getScrollerElement().offsetHeight / 2;
+                window.__labJsEditor.scrollTo(null, coords.top - middle - 5);
+                window.__labJsEditor.addLineClass(line, 'background', 'CodeMirror-selected');
+                setTimeout(() => window.__labJsEditor.removeLineClass(line, 'background', 'CodeMirror-selected'), 1500);
+            }
+            $(document).on('keydown', '#labJsGotoInput', function(e) {
+                if (e.key === 'Enter') labEditorGotoLine($(this).val());
+            });
+            $(document).on('click', '#labBtnGotoLine', function() {
+                labEditorGotoLine($('#labJsGotoInput').val());
+            });
+
+            // --- Switch JS Tab helper ---
+            window.__labSwitchJsTab = function(idx) {
+                if (!window.__labJsTabs || idx < 0 || idx >= window.__labJsTabs.length) return;
+                if (window.__labJsEditor) {
+                    window.__labJsTabs[window.__labJsActiveTab].content = window.__labJsEditor.getValue();
+                }
+                window.__labJsActiveTab = idx;
+                if (typeof saveJsTabs === 'function') saveJsTabs();
+                if (typeof renderJsTabs === 'function') renderJsTabs();
+                if (window.__labJsEditor) {
+                    window.__labJsEditor.setValue(window.__labJsTabs[idx].content || '');
+                }
+            };
+
+            // --- Export Tool CSS to CSS LIVE panel ---
+            $(document).on('click', '#labBtnExportToolCss', function() {
+                let toolCss = '';
+                let styleEl = document.getElementById('interactive-dashboard-styles-v15-0');
+                if (styleEl) toolCss += styleEl.innerHTML;
+                let liveCssEl = document.getElementById('lab-dynamic-live-css');
+                if (liveCssEl) {
+                    if (toolCss) toolCss += '\n\n/* === Live CSS === */\n';
+                    toolCss += liveCssEl.innerHTML;
+                }
+                if ($cssInput.length) {
+                    let current = $cssInput.val() || '';
+                    if (current) current += '\n\n';
+                    $cssInput.val(current + toolCss);
+                    $cssInput.trigger('input');
+                    if (window.__labCssEditor) window.__labCssEditor.setValue($cssInput.val());
+                }
+                window.__labAppendLog('📤 Đã xuất CSS tổng từ Tool vào panel CSS', 'log');
+            });
+
+            // --- Global BUILDDOM ---
+            window.BUILDDOM = function(htmlString) {
+                if (!htmlString) return;
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(htmlString, 'text/html');
+                $treeDomBody.find('.tree-node, div').remove();
+                let fragment = doc.body;
+                if (fragment.childNodes.length === 1 && fragment.firstChild.nodeType === 1) {
+                    let $tree = buildDomTreeMain(fragment.firstChild);
+                    if ($tree) $treeDomBody.append($tree);
+                } else {
+                    let $wrapper = $('<div>').addClass('tree-node').html('<span class="html-tag">#document-fragment</span>');
+                    let $children = $('<div>').addClass('tree-children');
+                    fragment.childNodes.forEach(function(node) {
+                        if (node.nodeType === 3) {
+                            let text = node.nodeValue.trim();
+                            if (text) $children.append($('<div>').addClass('tree-node').html('<span class="html-text">' + escapeHtml(text) + '</span>'));
+                        } else if (node.nodeType === 1) {
+                            let $t = buildDomTreeMain(node);
+                            if ($t) $children.append($t);
+                        }
+                    });
+                    $wrapper.append($children);
+                    $treeDomBody.append($wrapper);
+                }
+                $('#labBtnCollapseAllTree').html('⤓ ').data('collapsed', false);
+                window.__labAppendLog('🌳 BUILDDOM: Đã nạp cây DOM từ chuỗi HTML', 'log');
+            };
+            /* === End Module v16.7 Enhancements === */
+
             /* === Begin Module Full-Screen HTML Source Viewer  3496: 4045 === */
             // [UPDATE SOURCE WITH CLEAN COPY & MULTI-URL FETCH]
             const htmlSourceStyle = document.createElement('style');
