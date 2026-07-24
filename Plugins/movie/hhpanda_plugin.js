@@ -334,22 +334,24 @@ function parseMovieDetail(html, url) {
         category = categoryResult.join(", ");
 
         episode_current = _$(html).find("span.new-ep").text();
-       // rating = _$(html).find(".kksr-legend").text();
+        //rating = _$(html).find(".kksr-legend").text();
 
         var servers = [];
 
 
-        _$(html).find(".halim-server").each(function() {
+        _$(html).find("#halim-list-server").find(".halim-server").each(function() {
             var $namesv = this.find(".halim-server-name").text();
             var items = [];
-            _$(html).find(".halim-episode").each(function() {
-                var id = this.find("a").attr("href");
-                var name = this.find("a").attr("title");
-                var slug = this.find("a").attr("data-ep");
-                items.push({
-                    id: id,
-                    name: name,
-                    slug: slug
+            this.find(".halim-list-eps").each(function() {
+                this.find("a").each(function() {
+                    var id = this.attr("href");
+                    var name = this.attr("title");
+                    var slug = this.attr("data-ep");
+                    items.push({
+                        id: id,
+                        name: name,
+                        slug: slug
+                    })
                 })
             })
             servers.push({
@@ -357,7 +359,8 @@ function parseMovieDetail(html, url) {
                 episodes: items
             })
         })
-        servers = sortEpisodesByName(servers)
+        servers = sortEpisodesByName(servers);
+        //console.log(JSON.stringify(servers));
         // === BƯỚC 5: TRẢ VỀ KẾT QUẢ ĐỒNG NHẤT ID ===
         return JSON.stringify({
             id: id, // BẮT BUỘC: ID phải là slug rút gọn của bộ phim để cả 2 lần fetch khớp nhau
@@ -527,12 +530,12 @@ JSON.parse(parseEmbedResponse(sourceHTML, BASEURL))
 function customJS(config) {
     return `
 (function() {
-  
+    
     // =========================================================
     // CẤU HÌNH TOÀN CỤC (GLOBAL CONFIG)
     // =========================================================
     const ENABLE_TOAST = false;         // true: Bật Toast URL | false: Tắt
-    const TOAST_DURATION = 4000;       // Thời gian hiện Toast (ms)
+    const TOAST_DURATION = 4000;       // Thời gian hiện Toast URL (ms)
     const INITIAL_SHOW_TIME = 10000;   // Thời gian hiện rõ thanh điều khiển (ms)
 
     const CONFIG = ${JSON.stringify(config)};
@@ -558,39 +561,38 @@ function customJS(config) {
                 left: 0 !important;
             }
 
-#custom-main-player-iframe {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) scale(1.55) !important;
-    
-    /* Chiều rộng tính theo phần trăm màn hình */
-    width: 66% !important;
-    
-    /* Tự động tính toán: Chiều cao không bao giờ vượt quá 92% màn hình sau khi scale */
-    height: min(58vh, calc(92dvh / 1.55)) !important;
-    max-height: min(400px, calc(92dvh / 1.55)) !important;
-    
-    border: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    z-index: 1 !important;
-    display: block !important;
-    box-sizing: border-box !important;
-    transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease !important;
-}
+            #custom-main-player-iframe {
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) scale(var(--player-scale, 1.5)) !important;
+                
+                /* Chiều rộng tính theo phần trăm màn hình */
+                width: 66% !important;
+                
+                /* Tự động tính toán theo biến --player-scale */
+                height: min(58vh, calc(92dvh / var(--player-scale, 1.5))) !important;
+                max-height: min(400px, calc(92dvh / var(--player-scale, 1.5))) !important;
+                
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                z-index: 1 !important;
+                display: block !important;
+                box-sizing: border-box !important;
+                transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease !important;
+            }
 
-/* Thêm quy tắc riêng cho màn hình có chiều cao cực ngắn (Dưới 600px - ví dụ: điện thoại xoay ngang) */
-@media (max-height: 400px) {
-    #custom-main-player-iframe {
-        /* Giảm bớt tỉ lệ scale xuống để không đè lên các nút điều khiển */
-        transform: translate(-50%, -50%) scale(1) !important;
-        height: calc(90dvh / 1) !important;
-        max-height: calc(90dvh / 1) !important;
-        width: 80% !important;
-    }
-}
-            
+            /* Quy tắc cho màn hình chiều cao ngắn (Xoay ngang điện thoại) */
+            @media (max-height: 400px) {
+                #custom-main-player-iframe {
+                    transform: translate(-50%, -50%) scale(var(--player-scale, 1)) !important;
+                    height: calc(70dvh / var(--player-scale, 1)) !important;
+                    max-height: calc(70dvh / var(--player-scale, 1)) !important;
+                    width: 80% !important;
+                }
+            }
+
             .floating-control-ui {
                 opacity: 0.1 !important;
                 transition: opacity 0.4s ease, transform 0.2s ease, background-color 0.2s ease !important;
@@ -649,7 +651,7 @@ function customJS(config) {
 
     // CHỐNG QUẢNG CÁO & MỞ TAB MỚI
     window.addEventListener('click', function(e) {
-        if (!e.target.closest('#floating-select-box') && !e.target.closest('#episode-grid-popup') && !e.target.closest('#url-toast-notice') && !e.target.closest('.floating-nav-item') && !e.target.closest('#resume-modal-overlay')) {
+        if (!e.target.closest('#floating-select-box') && !e.target.closest('#episode-grid-popup') && !e.target.closest('#scale-grid-popup') && !e.target.closest('#url-toast-notice') && !e.target.closest('#resume-history-toast') && !e.target.closest('.floating-nav-item')) {
             let aTag = e.target.closest('a');
             if (aTag && (aTag.target === '_blank' || aTag.href)) {
                 e.stopPropagation();
@@ -661,17 +663,19 @@ function customJS(config) {
 
     // --- 2. BIẾN QUẢN LÝ TRẠNG THÁI ---
     const storageKey = "anime_history_" + CONFIG.movieid;
-    const widthStorageKey = "anime_player_iframe_width";
+    const scaleStorageKey = "anime_player_iframe_scale";
 
     let currentServer = CONFIG.serverhientai;
     let currentHQ = CONFIG.hqhientai;
     let currentTapStr = CONFIG.taphientai;
     let currentTapNum = parseInt(currentTapStr.replace('tap-', ''), 10) || 1;
 
-    function applyIframeWidth(widthValue) {
+    function applyIframeScale(scaleValue) {
         let iframe = document.getElementById("custom-main-player-iframe");
-        if (iframe) iframe.style.width = widthValue;
-        localStorage.setItem(widthStorageKey, widthValue);
+        if (iframe) {
+            iframe.style.setProperty('--player-scale', scaleValue);
+        }
+        localStorage.setItem(scaleStorageKey, scaleValue);
     }
 
     function triggerInitialShow() {
@@ -777,7 +781,6 @@ function customJS(config) {
         showLoading("Đang khởi tạo trình phát...");
 
         // 1. Iframe
-        // <iframe class="metaframe rptss" src="https://streamfree.vip/embed/v/RGrSoaPH" referrerpolicy="unsafe-url" scrolling="no" frameborder="0" width="100%" height="400" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" allow="autoplay; fullscreen">
         let iframe = document.createElement("iframe");
         iframe.id = "custom-main-player-iframe";
         iframe.scrolling ="no";
@@ -785,8 +788,8 @@ function customJS(config) {
         iframe.setAttribute("allow", "autoplay; fullscreen; picture-in-picture");
         iframe.onload = () => {
             hideLoading();
-            const savedWidth = localStorage.getItem(widthStorageKey) || "75%";
-            applyIframeWidth(savedWidth);
+            const savedScale = localStorage.getItem(scaleStorageKey) || "1.5";
+            applyIframeScale(savedScale);
         };
         document.body.appendChild(iframe);
 
@@ -805,25 +808,34 @@ function customJS(config) {
             display: "flex", alignItems: "center", gap: "8px"
         });
 
-        // Width Select
-        let widthSelect = document.createElement("select");
-        widthSelect.id = "width-select-box";
-        styleSelect(widthSelect);
-        const widthOpts = [
-            { val: "70%", label: "📐 Rộng 70%" },
-            { val: "75%", label: "📐 Rộng 75%" },
-            { val: "85%", label: "📐 Rộng 85%" },
-            { val: "100%", label: "📐 Rộng 100%" }
-        ];
-        const activeWidth = localStorage.getItem(widthStorageKey) || "75%";
-        widthOpts.forEach(optData => {
-            let opt = document.createElement("option");
-            opt.value = optData.val;
-            opt.textContent = optData.label;
-            if (optData.val === activeWidth) opt.selected = true;
-            widthSelect.appendChild(opt);
+        // SCALE TRIGGER (Nút bật Bảng chọn Scale)
+        const activeScale = localStorage.getItem(scaleStorageKey) || "1.5";
+        let scaleTrigger = document.createElement("span");
+        scaleTrigger.id = "scale-select-trigger";
+        scaleTrigger.textContent = "🔍 " + activeScale + "x ▼";
+        styleClickable(scaleTrigger, "#2a2a2a");
+
+        // Bảng chọn Scale dạng Grid
+        let scalePopupGrid = document.createElement("div");
+        scalePopupGrid.id = "scale-grid-popup";
+        Object.assign(scalePopupGrid.style, {
+            position: "fixed", top: "65px", right: "160px",
+            zIndex: "1000000",
+            backgroundColor: "rgba(20, 20, 20, 0.95)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            padding: "12px", borderRadius: "12px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.9)",
+            width: "220px", maxHeight: "250px", overflowY: "auto",
+            display: "none", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px"
         });
-        widthSelect.onchange = (e) => applyIframeWidth(e.target.value);
+
+        scaleTrigger.onclick = (e) => {
+            e.stopPropagation();
+            let epGrid = document.getElementById("episode-grid-popup");
+            if (epGrid) epGrid.style.display = "none";
+            scalePopupGrid.style.display = (scalePopupGrid.style.display === "grid") ? "none" : "grid";
+        };
 
         // Server Select
         let serverSelect = document.createElement("select");
@@ -859,7 +871,7 @@ function customJS(config) {
             onSelectionChanged(false);
         };
 
-        // Nút mở Danh Sách Tập (Dùng SPAN)
+        // Nút mở Danh Sách Tập
         let epTrigger = document.createElement("span");
         epTrigger.id = "ep-select-trigger";
         epTrigger.textContent = "Tập " + currentTapNum + " ▼";
@@ -881,21 +893,23 @@ function customJS(config) {
 
         epTrigger.onclick = (e) => {
             e.stopPropagation();
+            if (scalePopupGrid) scalePopupGrid.style.display = "none";
             popupGrid.style.display = (popupGrid.style.display === "grid") ? "none" : "grid";
         };
 
         document.addEventListener("click", (e) => {
-            if (!container.contains(e.target) && !popupGrid.contains(e.target)) {
+            if (!container.contains(e.target) && !popupGrid.contains(e.target) && !scalePopupGrid.contains(e.target)) {
                 popupGrid.style.display = "none";
+                scalePopupGrid.style.display = "none";
             }
         });
 
-        container.appendChild(widthSelect);
+        container.appendChild(scaleTrigger);
         container.appendChild(serverSelect);
         container.appendChild(hqSelect);
         container.appendChild(epTrigger);
 
-        // Prev Item (Dùng SPAN)
+        // Prev Item
         let navPrev = document.createElement("span");
         navPrev.id = "nav-prev-item";
         navPrev.className = "floating-control-ui floating-nav-item initial-show";
@@ -919,7 +933,7 @@ function customJS(config) {
             }
         };
 
-        // Next Item (Dùng SPAN)
+        // Next Item
         let navNext = document.createElement("span");
         navNext.id = "nav-next-item";
         navNext.className = "floating-control-ui floating-nav-item initial-show";
@@ -950,108 +964,156 @@ function customJS(config) {
         addTouchSupport(navNext);
 
         document.body.appendChild(container);
+        document.body.appendChild(scalePopupGrid);
         document.body.appendChild(popupGrid);
         document.body.appendChild(navPrev);
         document.body.appendChild(navNext);
 
         triggerInitialShow();
+        renderScaleGrid();
         renderEpisodeGrid();
-        applyIframeWidth(activeWidth);
+        applyIframeScale(activeScale);
     }
 
-    // --- 5. ĐỌC LỊCH SỬ -> NẾU CÓ THÌ BẬT MODAL VÀ CHỜ THAO TÁC ---
-    function checkHistoryAndStart() {
-        initBaseLayout();
+    // --- RENDER BẢNG CHỌN SCALE (0.5x -> 2.0x, BƯỚC NHẢY 0.1) ---
+    function renderScaleGrid() {
+        let popupGrid = document.getElementById("scale-grid-popup");
+        if (!popupGrid) return;
+        popupGrid.innerHTML = "";
 
-        const savedDataRaw = localStorage.getItem(storageKey);
-        let showModalNeeded = false;
-        let savedState = null;
-        let savedTapNum = 1;
+        const activeScale = (localStorage.getItem(scaleStorageKey) || "1.5");
 
-        if (savedDataRaw) {
-            try {
-                savedState = JSON.parse(savedDataRaw);
-                savedTapNum = parseInt(savedState.tap.replace('tap-', ''), 10) || 1;
+        for (let s = 0.5; s <= 2.01; s += 0.1) {
+            let scaleValStr = s.toFixed(1);
+            let item = document.createElement("span");
+            item.textContent = scaleValStr + "x";
+            let isCurrent = (parseFloat(scaleValStr) === parseFloat(activeScale));
+            styleClickable(item, isCurrent ? "#e50914" : "#2a2a2a");
 
-                if (currentTapNum !== savedTapNum && currentTapNum !== (savedTapNum + 1)) {
-                    showModalNeeded = true;
-                }
-            } catch(e) {}
-        }
-
-        if (showModalNeeded) {
-            hideLoading();
-            showResumeModal(savedState, savedTapNum);
-        } else {
-            loadPlayer();
+            item.onclick = (e) => {
+                e.stopPropagation();
+                applyIframeScale(scaleValStr);
+                popupGrid.style.display = "none";
+                let trigger = document.getElementById("scale-select-trigger");
+                if (trigger) trigger.textContent = "🔍 " + scaleValStr + "x ▼";
+                renderScaleGrid();
+            };
+            popupGrid.appendChild(item);
         }
     }
 
-    function showResumeModal(savedState, savedTapNum) {
-        let modalOverlay = document.createElement('div');
-        modalOverlay.id = 'resume-modal-overlay';
-        Object.assign(modalOverlay.style, {
-            position: 'fixed', top: '0', left: '0',
-            width: '100vw', height: '100vh',
-            backgroundColor: 'rgba(0,0,0,0.95)',
+    // --- 5. TOAST LỊCH SỬ XEM (GÓC TRÊN BÊN TRÁI, BÊN DƯỚI THANH CÔNG CỤ, 30 GIÂY) ---
+    function showResumeToast(savedState, savedTapNum) {
+        let toast = document.getElementById('resume-history-toast');
+        if (toast) toast.remove();
+
+        toast = document.createElement('div');
+        toast.id = 'resume-history-toast';
+        Object.assign(toast.style, {
+            position: 'fixed',
+            top: '65px', right: '20px',
             zIndex: '2147483647',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Arial, sans-serif'
+            backgroundColor: 'rgba(20, 20, 20, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(229, 9, 20, 0.8)',
+            color: '#fff', padding: '12px 18px', borderRadius: '12px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.9)',
+            fontFamily: 'Arial, sans-serif', fontSize: '13px',
+            display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px',
+            transition: 'opacity 0.4s ease, transform 0.4s ease',
+            opacity: '0', transform: 'translateY(-10px)',
+            maxWidth: '380px'
         });
 
-        const selectedServerObj = CONFIG.servers.find(s => s.type === currentServer) || CONFIG.servers[0];
-        const maxEpi = selectedServerObj ? selectedServerObj.maxEpi : 40;
+        const activeServerObj = CONFIG.servers.find(s => s.type === currentServer) || CONFIG.servers[0];
+        const maxEpi = activeServerObj ? activeServerObj.maxEpi : 40;
         const hasNextEp = (savedTapNum + 1) <= maxEpi;
 
-        // TẤT CẢ LỰA CHỌN TRONG MODAL DÙNG THẺ SPAN VÀ KHÔNG CÓ TỪ KHÓA BTN / BUTTON
-        modalOverlay.innerHTML = \`
-            <div style="background: #18181b; border: 1px solid rgba(255,255,255,0.15); padding: 24px; border-radius: 16px; width: 380px; max-width: 90vw; color: #fff; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.9);">
-                <div style="font-size: 28px; margin-bottom: 8px;">📌</div>
-                <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #f43f5e;">Khôi phục lịch sử xem</div>
-                <div style="font-size: 14px; color: #a1a1aa; margin-bottom: 20px; line-height: 1.5;">
-                    Bạn đang mở <b>Tập \${currentTapNum}</b>, nhưng lịch sử gần đây bạn đã xem tới <b>Tập \${savedTapNum}</b>. Bạn muốn tiếp tục như thế nào?
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <span id="act-resume-saved" style="padding: 10px; border-radius: 8px; background: #e50914; color: #fff; font-weight: bold; cursor: pointer; display: block; user-select: none;">💾 Chuyển đến Tập \${savedTapNum}</span>
-                    \${hasNextEp ? \`<span id="act-resume-next" style="padding: 10px; border-radius: 8px; background: #27272a; color: #fff; font-weight: bold; cursor: pointer; display: block; user-select: none;">▶️ Xem Tập tiếp theo (Tập \${savedTapNum + 1})</span>\` : ''}
-                    <span id="act-resume-current" style="padding: 10px; border-radius: 8px; background: transparent; color: #a1a1aa; cursor: pointer; display: block; user-select: none;">Vẫn xem Tập \${currentTapNum}</span>
-                </div>
+        toast.innerHTML = \`
+            <div style="color: #eee; font-size: 13px; font-weight: 500;">
+                📌 Bạn đang mở <b>Tập \${currentTapNum}</b>, nhưng lịch sử đã xem đến <b>Tập \${savedTapNum}</b>.
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span id="act-resume-saved" style="background: #e50914; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; user-select: none;">💾 Tập \${savedTapNum}</span>
+                \${hasNextEp ? \`<span id="act-resume-next" style="background: #2563eb; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; user-select: none;">▶️ Tập \${savedTapNum + 1}</span>\` : ''}
+                <span id="act-resume-cancel" style="background: #3f3f46; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; user-select: none;">❌ Không</span>
             </div>
         \`;
 
-        document.body.appendChild(modalOverlay);
+        document.body.appendChild(toast);
 
-        // Lựa chọn 1
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        });
+
+        const closeHistoryToast = () => {
+            if (toast) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => { if (toast) toast.remove(); }, 400);
+            }
+            if (window.historyToastTimer) clearTimeout(window.historyToastTimer);
+        };
+
+        // 1. Tập đã xem
         document.getElementById('act-resume-saved').onclick = (e) => {
             e.stopPropagation();
             currentTapNum = savedTapNum;
             if (savedState.server) currentServer = savedState.server;
             if (savedState.hq) currentHQ = savedState.hq;
-            modalOverlay.remove();
-            loadPlayer();
+            onSelectionChanged(false);
+            closeHistoryToast();
         };
 
-        // Lựa chọn 2
+        // 2. Tập kế tiếp
         if (document.getElementById('act-resume-next')) {
             document.getElementById('act-resume-next').onclick = (e) => {
                 e.stopPropagation();
                 currentTapNum = savedTapNum + 1;
                 if (savedState.server) currentServer = savedState.server;
                 if (savedState.hq) currentHQ = savedState.hq;
-                modalOverlay.remove();
-                loadPlayer();
+                onSelectionChanged(false);
+                closeHistoryToast();
             };
         }
 
-        // Lựa chọn 3
-        document.getElementById('act-resume-current').onclick = (e) => {
+        // 3. Không (Tiếp tục tập hiện tại)
+        document.getElementById('act-resume-cancel').onclick = (e) => {
             e.stopPropagation();
-            modalOverlay.remove();
-            loadPlayer();
+            closeHistoryToast();
         };
+
+        // Tự động ẩn sau 30 giây nếu không tương tác
+        if (window.historyToastTimer) clearTimeout(window.historyToastTimer);
+        window.historyToastTimer = setTimeout(() => {
+            closeHistoryToast();
+        }, 15000);
     }
 
-    // --- 6. NẠP IFRAME VÀ THÔNG TIN PHIM ---
+    // --- 6. KIỂM TRA LỊCH SỬ VÀ CHẠY TRÌNH PHÁT ---
+    function checkHistoryAndStart() {
+        initBaseLayout();
+
+        const savedDataRaw = localStorage.getItem(storageKey);
+        let savedState = null;
+        let savedTapNum = null;
+
+        if (savedDataRaw) {
+            try {
+                savedState = JSON.parse(savedDataRaw);
+                savedTapNum = parseInt(savedState.tap.replace('tap-', ''), 10) || null;
+            } catch(e) {}
+        }
+
+        loadPlayer();
+
+        if (savedTapNum !== null && currentTapNum !== savedTapNum && currentTapNum !== (savedTapNum + 1)) {
+            showResumeToast(savedState, savedTapNum);
+        }
+    }
+
+    // --- 7. NẠP IFRAME VÀ CẬP NHẬT TRẠNG THÁI ---
     function loadPlayer() {
         saveCurrentState();
         showLoading("Đang tải tập " + currentTapNum + "...");
@@ -1071,8 +1133,8 @@ function customJS(config) {
         updateNavState();
         showToast(currentUrl);
 
-        const savedWidth = localStorage.getItem(widthStorageKey) || "75%";
-        applyIframeWidth(savedWidth);
+        const savedScale = localStorage.getItem(scaleStorageKey) || "1.5";
+        applyIframeScale(savedScale);
     }
 
     function onSelectionChanged(rebuildGrid = false) {
@@ -1082,6 +1144,8 @@ function customJS(config) {
 
         let popupGrid = document.getElementById("episode-grid-popup");
         if (popupGrid) popupGrid.style.display = "none";
+        let scaleGrid = document.getElementById("scale-grid-popup");
+        if (scaleGrid) scaleGrid.style.display = "none";
 
         const newUrl = buildIframeUrl();
         let iframe = document.getElementById("custom-main-player-iframe");
@@ -1101,8 +1165,8 @@ function customJS(config) {
         updateNavState();
         showToast(newUrl);
 
-        const savedWidth = localStorage.getItem(widthStorageKey) || "75%";
-        applyIframeWidth(savedWidth);
+        const savedScale = localStorage.getItem(scaleStorageKey) || "1.5";
+        applyIframeScale(savedScale);
     }
 
     function renderEpisodeGrid() {
