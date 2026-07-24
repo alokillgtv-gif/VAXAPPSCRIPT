@@ -5,7 +5,7 @@ function getManifest() {
       "id": "hhpanda",
       "name": "Nguồn HHPanda",
       "description": "Anime siêu hay.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "info": "Nguồn phim hoạt hình chất lượng cao, tuy nhiên cơ chế chiếu phát của nó rất khó chịu. Chỉ phát được trên máy chủ của họ còn phát qua app sẽ bị mất góc không tràn viền.\r\nVì thế đã tích hợp bộ chỉnh kích cỡ video vào bên trong video. Bạn có thể chỉnh sao cho vừa màn hình. Chỉ cần chỉnh 1 lần là các lần sau sẽ dùng như vậy.",
       "baseUrl": "https://hhpanda.st",
       "iconUrl": "https://hhpanda.st/wp-content/uploads/2024/10/logo.webp",
@@ -576,8 +576,8 @@ function customJS(config) {
             }
 
             .floating-control-ui {
-                opacity: 0.1 !important;
-                transition: opacity 0.4s ease, transform 0.2s ease, background-color 0.2s ease !important;
+                opacity: 0 !important;
+                transition: opacity 0.5s ease, transform 0.2s ease, background-color 0.2s ease !important;
             }
             
             .floating-control-ui:hover, 
@@ -1140,7 +1140,7 @@ function customJS(config) {
         toast.id = 'resume-history-toast';
         Object.assign(toast.style, {
             position: 'fixed',
-            top: '65px', left: '20px',
+            bottom: '25px', right: '20px',
             zIndex: '2147483647',
             backgroundColor: 'rgba(20, 20, 20, 0.95)',
             backdropFilter: 'blur(10px)',
