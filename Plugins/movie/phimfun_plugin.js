@@ -5,7 +5,7 @@ function getManifest() {
       "id": "phimfun",
       "name": "Nguồn Phim Fun",
       "description": "Nguồn phim mới.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "info": "Nguồn phim dự phòng, có server riêng có thể sơ cưa khi những nguồn khác bị lỗi. Có cơ chế lưu lại tập vừa xem và có thể chuyển tập không cần quay lại menu phim.",
       "baseUrl": "https://phimfun.net",
       "iconUrl": "https://phimfun.net/Content/PhimFun/Imgs/phimFun.png",
@@ -544,7 +544,7 @@ function rawJS(config) {
     return `
 (function() {
     // =========================================================
-    // 1. DIỆT SẠCH HEAD VÀ BODY CỦA WEB GỐC
+    // 1. DỌN SẠCH HEAD VÀ BODY
     // =========================================================
     if (document.head) {
         document.head.innerHTML = '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">';
@@ -554,13 +554,13 @@ function rawJS(config) {
     document.body.style.cssText = 'margin:0 !important; padding:0 !important; width:100vw !important; height:100vh !important; overflow:hidden !important; background:#000 !important; position:fixed !important; top:0 !important; left:0 !important; z-index:0 !important;';
 
     // =========================================================
-    // 2. DỮ LIỆU & BIẾN KHỞI TẠO
+    // 2. BIẾN KHỞI TẠO
     // =========================================================
     const DATA = ${JSON.stringify(config)};
     const INITIAL_STREAM = DATA.stream || "";
     const CURRENT_URL = DATA.current || "";
     const SERVERS = Array.isArray(DATA.servers) ? DATA.servers : [];
-    const AUTO_HIDE_TIME = 10000; // Giảm xuống 10 giây tự ẩn UI
+    const AUTO_HIDE_TIME = 10000; // 10 giây tự ẩn UI
     const movieId = DATA.movieId || "movie_default_id";
     const storageKey = "anime_history_" + movieId;
     const widthStorageKey = "anime_player_iframe_width";
@@ -572,30 +572,26 @@ function rawJS(config) {
     let hideTimer = null;
 
     // =========================================================
-    // 3. INJECT CSS CLEAN MỚI (SỬA LỖI ĐEN MÀN HÌNH MOBILE)
+    // 3. INJECT CSS CLEAN (KHÔNG LỚP PHỦ PHÒNG ĐEN MÀN HÌNH)
     // =========================================================
     let styleTag = document.createElement('style');
     styleTag.textContent = \`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        * { box-sizing: border-box !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; -webkit-tap-highlight-color: transparent !important; }
+        * { box-sizing: border-box !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; -webkit-tap-highlight-color: transparent !important; }
         
         #framePlay {
-            position: fixed !important; top: 50% !important; left: 50% !important;
-            transform-origin: center center !important; border: none !important;
-            margin: 0 !important; padding: 0 !important; z-index: 1 !important;
+            position: fixed !important; 
+            top: 50% !important; 
+            left: 50% !important;
+            transform-origin: center center !important; 
+            border: none !important;
+            margin: 0 !important; 
+            padding: 0 !important; 
+            z-index: 1 !important;
             display: block !important;
+            pointer-events: auto !important;
             transition: width 0.15s ease, height 0.15s ease, transform 0.15s ease !important;
             background: transparent !important;
-        }
-
-        /* Lớp phủ cảm ứng đè lên iframe - Đảm bảo hoàn toàn trong suốt */
-        #iframe-event-overlay {
-            position: fixed !important; top: 0 !important; left: 0 !important;
-            width: 100vw !important; height: 100vh !important;
-            z-index: 10 !important; 
-            background: rgba(0,0,0,0.001) !important; /* Không dùng #000 hay transparent hẳn để tránh lỗi render webview */
-            cursor: pointer !important;
-            display: block !important;
         }
 
         .floating-control-ui { 
@@ -608,7 +604,6 @@ function rawJS(config) {
             pointer-events: auto !important;
         }
 
-        /* Thông báo Play nằm ở giữa màn hình (dịch xuống 50px) */
         #center-play-notice {
             position: fixed !important;
             top: calc(50% + 50px) !important;
@@ -642,7 +637,7 @@ function rawJS(config) {
             background: rgba(255, 255, 255, 0.12) !important; color: #fff !important; border: none !important;
             border-radius: 4px !important; width: 22px !important; height: 22px !important; cursor: pointer !important;
             font-size: 13px !important; font-weight: bold !important; display: inline-flex !important;
-            align-items: center !important; justify-content: center !important; padding: 0 !important; line-height: 1 !important;
+            align-items: center !important; justify-content: center !important; padding: 0 !important;
         }
         .dim-btn:hover { background: rgba(255, 255, 255, 0.25) !important; }
         .dim-input {
@@ -658,9 +653,8 @@ function rawJS(config) {
             padding: 8px 12px !important; border-radius: 6px !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;
             color: #fff !important; cursor: pointer !important; font-size: 12px !important; font-weight: 700 !important;
             text-align: center !important; white-space: nowrap !important; transition: all 0.2s ease !important;
-            user-select: none !important; box-sizing: border-box !important; width: 100% !important; min-height: 36px !important;
+            user-select: none !important; width: 100% !important; min-height: 36px !important;
         }
-        .ep-grid-btn:hover { border-color: rgba(255, 255, 255, 0.3) !important; }
         .ep-grid-btn.active { background-color: #e50914 !important; border-color: #e50914 !important; }
         .ep-grid-btn.inactive { background-color: rgba(255, 255, 255, 0.08) !important; }
 
@@ -669,14 +663,12 @@ function rawJS(config) {
             padding: 5px 10px !important; border-radius: 5px !important; font-size: 11px !important; font-weight: 700 !important;
             cursor: pointer !important; transition: background 0.2s ease !important; display: inline-flex !important; align-items: center !important;
         }
-        .toast-action-btn:hover { background: rgba(255, 255, 255, 0.3) !important; }
         .toast-action-btn.primary { background: #e50914 !important; border-color: #e50914 !important; }
-        .toast-action-btn.primary:hover { background: #b80710 !important; }
     \`;
     document.head.appendChild(styleTag);
 
     // =========================================================
-    // 4. OVERLAY LOADING & TRUNG TÂM PLAY NOTICE
+    // 4. OVERLAY LOADING & NOTICE
     // =========================================================
     let overlay = document.createElement('div');
     overlay.id = 'loading-overlay';
@@ -708,25 +700,14 @@ function rawJS(config) {
             document.body.appendChild(notice);
         }
         notice.textContent = text;
-        requestAnimationFrame(function() {
-            notice.style.opacity = '1';
-        });
-
-        // Bật lớp phủ bắt click chạm đầu tiên
-        let overlayEvt = document.getElementById('iframe-event-overlay');
-        if (overlayEvt) overlayEvt.style.pointerEvents = 'auto';
+        requestAnimationFrame(function() { notice.style.opacity = '1'; });
     }
 
     function hideCenterPlayNotice() {
         let notice = document.getElementById('center-play-notice');
         if (notice) notice.style.opacity = '0';
-        
-        // Nhường pointer-events cho iframe khi bấm play
-        let overlayEvt = document.getElementById('iframe-event-overlay');
-        if (overlayEvt) overlayEvt.style.pointerEvents = 'none';
     }
 
-    // Toast Lịch sử xem
     function showHistoryPrompt(savedSrvIdx, savedEpIdx, savedEpName, nextEpIdx, nextEpName) {
         let toast = document.getElementById('mini-action-toast');
         if (toast) toast.remove();
@@ -781,27 +762,20 @@ function rawJS(config) {
     }
 
     // =========================================================
-    // 5. HIỂN THỊ / ẨN THANH CÔNG CỤ TỰ ĐỘNG (FIXED FOR MOBILE)
+    // 5. TỰ ĐỘNG ẨN/HIỆN UI SAU 10 GIÂY
     // =========================================================
     function resetAutoHideTimer() {
         let elements = document.querySelectorAll('.floating-control-ui');
         elements.forEach(function(el) { el.classList.add('active-show'); });
 
-        let overlayEvt = document.getElementById('iframe-event-overlay');
-        if (overlayEvt) overlayEvt.style.pointerEvents = 'auto';
-
         if (hideTimer) clearTimeout(hideTimer);
         
-        // Đặt đúng 10 giây (10000ms)
         hideTimer = setTimeout(function() {
             elements.forEach(function(el) { el.classList.remove('active-show'); });
             let popupGrid = document.getElementById("episode-grid-popup");
             let scalePopupGrid = document.getElementById("scale-grid-popup");
             if (popupGrid) popupGrid.style.display = "none";
             if (scalePopupGrid) scalePopupGrid.style.display = "none";
-
-            // Khi UI tự ẩn, nhường cảm ứng lại cho iframe
-            if (overlayEvt) overlayEvt.style.pointerEvents = 'none';
         }, AUTO_HIDE_TIME);
     }
 
@@ -934,7 +908,7 @@ function rawJS(config) {
                         
                         framePlay.onload = function() {
                             hideLoading();
-                            showCenterPlayNotice('▶ Đã chuyển ' + epName + '. Vui lòng nhấn Play để tiếp tục xem!');
+                            showCenterPlayNotice('▶ Đã chuyển ' + epName + '. Vui lòng nhấn Play để tiếp tục!');
                         };
                     }
                 } else {
@@ -953,7 +927,7 @@ function rawJS(config) {
     }
 
     // =========================================================
-    // 8. LAYOUT BẢNG CÔNG CỤ VÀ LỚP PHỦ EVENTS
+    // 8. KHỞI TẠO NÚT BẤM VÀ BẮT SỰ KIỆN TRỰC TIẾP
     // =========================================================
     function initBaseLayout() {
         matchCurrentEpisode();
@@ -978,22 +952,15 @@ function rawJS(config) {
         };
         document.body.appendChild(framePlay);
 
-        // 2. Lớp phủ sự kiện tương tác đè màn hình
-        let eventOverlay = document.createElement("div");
-        eventOverlay.id = "iframe-event-overlay";
-        
-        function handleOverlayTrigger(e) {
+        // 2. Bắt sự kiện chạm trực tiếp trên window để bật lại UI (Không dùng overlay)
+        function handleGlobalTrigger() {
             resetAutoHideTimer();
             hideCenterPlayNotice();
         }
+        window.addEventListener('touchstart', handleGlobalTrigger, { passive: true });
+        window.addEventListener('mousemove', handleGlobalTrigger);
 
-        // Bắt đồng thời chạm (Mobile) và Click/Hover (Desktop)
-        eventOverlay.addEventListener('touchstart', handleOverlayTrigger, { passive: true });
-        eventOverlay.addEventListener('click', handleOverlayTrigger);
-        eventOverlay.addEventListener('mousemove', handleOverlayTrigger);
-        document.body.appendChild(eventOverlay);
-
-        // 3. Thanh điều hướng công cụ (Top Right)
+        // 3. Bảng công cụ
         let container = document.createElement("div");
         container.id = "floating-select-box";
         container.className = "floating-control-ui active-show";
@@ -1114,7 +1081,6 @@ function rawJS(config) {
             }
         }
         document.addEventListener("click", handleOutsideClick);
-        document.addEventListener("touchstart", handleOutsideClick, { passive: true });
 
         // 4. Nút Prev / Next
         let navPrev = createNavButton("nav-prev-item", "&#10094;", "left", "30px");
@@ -1259,6 +1225,8 @@ function rawJS(config) {
 })();
     `;
 }
+
+
 /*
 
 BASEURL = "https://animehay09.site";
