@@ -6,7 +6,7 @@ function getManifest() {
         "id": "yanhh3d",
         "name": "Yanhh3d",
         "description": "Trang xem phim Hoạt Hình siêu hay.",
-        "version": "1.2",
+        "version": "1.3",
         "BASEURL": "https://yanhh3d.ac",
         "iconUrl": "https://bilutv.asia/img/bilutvlogo-ngang.jpg",
         "isEnabled": true,
@@ -281,6 +281,7 @@ function parseMovieDetail(htmlContent, url) {
             var nameServer = this.text();
             var idserver = this.attr("href");
             var items = [];
+          	var items4k = [];
             $parent.find(idserver).find("a").each(function() {
                 var name = this.find("div").text();
                 var item = {
@@ -288,11 +289,17 @@ function parseMovieDetail(htmlContent, url) {
                     name: name,
                     slug: "tap-" + name.replace(/\s/, "-")
                 }
-                items.push(item)
+                items.push(item);
+              	item.id = this.attr("href") + "?type=4k";
+              	items4k.push(item);
             })
             servers.push({
                 name: nameServer,
                 episodes: items
+            })
+            servers.push({
+                name: nameServer + " [4K]",
+                episodes: items4k
             })
         });
 
@@ -382,6 +389,10 @@ function parseDetailResponse(html, url) {
 			}
 		});
 		selectedLink =  pool.hd || pool.k4 ||pool.anyM3u8 || pool.anyEmbed;
+    if(url.indexOf("type=4k") > -1){
+      selectedLink =  pool.k4 || pool.hd || pool.anyM3u8 || pool.anyEmbed;
+      log("Đã chọn 4K:" + selectedLink)
+    }
 		var streamlink = selectedLink.replace(/(https?:\/\/[^\/]+)\/[^]+?\/([^\/]+\.m3u8)$/, '$1/stream/m3u8/$2')
 		return JSON.stringify({
 			"url": streamlink,
