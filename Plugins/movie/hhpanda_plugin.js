@@ -5,7 +5,7 @@ function getManifest() {
       "id": "hhpanda",
       "name": "Nguồn HHPanda",
       "description": "Anime siêu hay.",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "info": "Nguồn phim anime chất lượng cao. Cập nhật khá nhanh.",
       "baseUrl": "https://hhpanda.st",
       "iconUrl": "https://hhpanda.st/wp-content/uploads/2024/10/logo.webp",
