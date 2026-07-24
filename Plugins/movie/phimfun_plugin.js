@@ -5,7 +5,7 @@ function getManifest() {
       "id": "phimfun",
       "name": "Nguồn Phim Fun",
       "description": "Nguồn phim mới.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "info": "Nguồn phim dự phòng, có server riêng có thể sơ cưa khi những nguồn khác bị lỗi. Có cơ chế lưu lại tập vừa xem và có thể chuyển tập không cần quay lại menu phim.",
       "baseUrl": "https://phimfun.net",
       "iconUrl": "https://phimfun.net/Content/PhimFun/Imgs/phimFun.png",
@@ -180,6 +180,7 @@ function fixHref(href) {
 function parseListResponse(html, $url) {
   	log("parseListResponse: " + $url)
     try {
+      	var quality = "";
         var items = [];
         _$(html).find(".MovieList").find("li").each(function() {
             var href = this.find("a").attr("href");
