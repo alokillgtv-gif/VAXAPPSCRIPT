@@ -545,23 +545,23 @@ function rawJS(config) {
     return `
 (function() {
     // =========================================================
-    // 1. DỌN SẠCH HEAD VÀ BODY
+    // 1. DIỆT SẠCH HEAD VÀ BODY CỦA WEB GỐC
     // =========================================================
     if (document.head) {
-        document.head.innerHTML = '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">';
+        document.head.innerHTML = '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">';
     }
     document.documentElement.style.cssText = 'margin:0 !important; padding:0 !important; width:100vw !important; height:100vh !important; overflow:hidden !important; background:#000 !important;';
     document.body.innerHTML = '';
     document.body.style.cssText = 'margin:0 !important; padding:0 !important; width:100vw !important; height:100vh !important; overflow:hidden !important; background:#000 !important; position:fixed !important; top:0 !important; left:0 !important; z-index:0 !important;';
 
     // =========================================================
-    // 2. BIẾN KHỞI TẠO
+    // 2. DỮ LIỆU & BIẾN KHỞI TẠO
     // =========================================================
     const DATA = ${JSON.stringify(config)};
     const INITIAL_STREAM = DATA.stream || "";
     const CURRENT_URL = DATA.current || "";
     const SERVERS = Array.isArray(DATA.servers) ? DATA.servers : [];
-    const AUTO_HIDE_TIME = 8000; // 8 giây tự ẩn UI
+    const AUTO_HIDE_TIME = 15000; // 15 giây tự ẩn UI
     const movieId = DATA.movieId || "movie_default_id";
     const storageKey = "anime_history_" + movieId;
     const widthStorageKey = "anime_player_iframe_width";
@@ -571,53 +571,60 @@ function rawJS(config) {
     let currentServerIndex = 0;
     let currentEpisodeIndex = 0;
     let hideTimer = null;
-    let noticeTimer = null;
 
     // =========================================================
-    // 3. INJECT CSS CLEAN
+    // 3. INJECT CSS CLEAN MỚI
     // =========================================================
     let styleTag = document.createElement('style');
     styleTag.textContent = \`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        * { box-sizing: border-box !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; -webkit-tap-highlight-color: transparent !important; }
+        * { box-sizing: border-box !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; }
         
         #framePlay {
-            position: fixed !important; 
-            top: 50% !important; 
-            left: 50% !important;
-            transform-origin: center center !important; 
-            border: none !important;
-            margin: 0 !important; 
-            padding: 0 !important; 
-            z-index: 1 !important;
+            position: fixed !important; top: 50% !important; left: 50% !important;
+            transform-origin: center center !important; border: none !important;
+            margin: 0 !important; padding: 0 !important; z-index: 1 !important;
             display: block !important;
-            pointer-events: auto !important;
             transition: width 0.15s ease, height 0.15s ease, transform 0.15s ease !important;
-            background: transparent !important;
         }
 
-        .floating-ui-item {
-            transition: opacity 0.3s ease !important;
+        /* Lớp phủ tương tác đè lên iframe */
+        #iframe-event-overlay {
+            position: fixed !important; top: 0 !important; left: 0 !important;
+            width: 100vw !important; height: 100vh !important;
+            z-index: 10 !important; background: transparent !important;
+            cursor: pointer !important;
         }
 
+        .floating-control-ui { 
+            opacity: 0 !important; 
+            pointer-events: none !important;
+            transition: opacity 0.4s ease !important; 
+        }
+        .floating-control-ui.active-show { 
+            opacity: 1 !important; 
+            pointer-events: auto !important;
+        }
+
+        /* Thông báo Play nằm ở giữa màn hình (dịch xuống 50px) */
         #center-play-notice {
             position: fixed !important;
-            top: 70% !important;
+            top: calc(50% + 50px) !important;
             left: 50% !important;
             transform: translate(-50%, -50%) !important;
-            z-index: 2147483646 !important;
-            background: rgba(15, 15, 18, 0.9) !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
+            z-index: 999999 !important;
+            background: rgba(15, 15, 18, 0.92) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: #fff !important;
-            padding: 10px 18px !important;
+            padding: 12px 24px !important;
             border-radius: 30px !important;
-            font-size: 13px !important;
+            font-size: 14px !important;
             font-weight: 600 !important;
             box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
             pointer-events: none !important;
-            transition: opacity 0.4s ease !important;
+            transition: opacity 0.3s ease, transform 0.3s ease !important;
             opacity: 0;
             text-align: center !important;
             white-space: nowrap !important;
@@ -633,7 +640,7 @@ function rawJS(config) {
             background: rgba(255, 255, 255, 0.12) !important; color: #fff !important; border: none !important;
             border-radius: 4px !important; width: 22px !important; height: 22px !important; cursor: pointer !important;
             font-size: 13px !important; font-weight: bold !important; display: inline-flex !important;
-            align-items: center !important; justify-content: center !important; padding: 0 !important;
+            align-items: center !important; justify-content: center !important; padding: 0 !important; line-height: 1 !important;
         }
         .dim-btn:hover { background: rgba(255, 255, 255, 0.25) !important; }
         .dim-input {
@@ -649,8 +656,9 @@ function rawJS(config) {
             padding: 8px 12px !important; border-radius: 6px !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;
             color: #fff !important; cursor: pointer !important; font-size: 12px !important; font-weight: 700 !important;
             text-align: center !important; white-space: nowrap !important; transition: all 0.2s ease !important;
-            user-select: none !important; width: 100% !important; min-height: 36px !important;
+            user-select: none !important; box-sizing: border-box !important; width: 100% !important; min-height: 36px !important;
         }
+        .ep-grid-btn:hover { border-color: rgba(255, 255, 255, 0.3) !important; }
         .ep-grid-btn.active { background-color: #e50914 !important; border-color: #e50914 !important; }
         .ep-grid-btn.inactive { background-color: rgba(255, 255, 255, 0.08) !important; }
 
@@ -659,12 +667,14 @@ function rawJS(config) {
             padding: 5px 10px !important; border-radius: 5px !important; font-size: 11px !important; font-weight: 700 !important;
             cursor: pointer !important; transition: background 0.2s ease !important; display: inline-flex !important; align-items: center !important;
         }
+        .toast-action-btn:hover { background: rgba(255, 255, 255, 0.3) !important; }
         .toast-action-btn.primary { background: #e50914 !important; border-color: #e50914 !important; }
+        .toast-action-btn.primary:hover { background: #b80710 !important; }
     \`;
     document.head.appendChild(styleTag);
 
     // =========================================================
-    // 4. OVERLAY LOADING & NOTICE THÔNG BÁO TỰ ẨN
+    // 4. OVERLAY LOADING & TRUNG TÂM PLAY NOTICE
     // =========================================================
     let overlay = document.createElement('div');
     overlay.id = 'loading-overlay';
@@ -688,7 +698,7 @@ function rawJS(config) {
         setTimeout(function() { overlay.style.display = 'none'; }, 250);
     }
 
-    // HIỂN THỊ THÔNG BÁO VÀ TỰ ĐỘNG ẨN SAU 3 GIÂY
+    // Quản lý Dòng thông báo Nhấn Play giữa màn hình
     function showCenterPlayNotice(text) {
         let notice = document.getElementById('center-play-notice');
         if (!notice) {
@@ -697,22 +707,33 @@ function rawJS(config) {
             document.body.appendChild(notice);
         }
         notice.textContent = text;
-        notice.style.opacity = '1';
+        requestAnimationFrame(function() {
+            notice.style.opacity = '1';
+        });
 
-        if (noticeTimer) clearTimeout(noticeTimer);
-        noticeTimer = setTimeout(function() {
-            notice.style.opacity = '0';
-        }, 3500); // Tự biến mất sau 3.5s
+        // Bật lại lớp phủ iframe để bắt cú click đầu tiên của người dùng
+        let overlayEvt = document.getElementById('iframe-event-overlay');
+        if (overlayEvt) overlayEvt.style.display = 'block';
     }
 
+    function hideCenterPlayNotice() {
+        let notice = document.getElementById('center-play-notice');
+        if (notice) notice.style.opacity = '0';
+        
+        // Ẩn lớp phủ event tạm thời để bấm trực tiếp vào nút Play của iframe
+        let overlayEvt = document.getElementById('iframe-event-overlay');
+        if (overlayEvt) overlayEvt.style.display = 'none';
+    }
+
+    // Toast Lịch sử xem
     function showHistoryPrompt(savedSrvIdx, savedEpIdx, savedEpName, nextEpIdx, nextEpName) {
         let toast = document.getElementById('mini-action-toast');
         if (toast) toast.remove();
 
         toast = document.createElement('div');
         toast.id = 'mini-action-toast';
-        toast.className = 'floating-ui-item';
-        toast.style.cssText = 'position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 2147483647 !important; background-color: rgba(22, 22, 26, 0.95) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.2) !important; color: #fff !important; padding: 12px 16px !important; border-radius: 8px !important; font-size: 12px !important; box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important; transition: opacity 0.3s ease !important; opacity: 1; display: flex !important; flex-direction: column !important; gap: 10px !important; max-width: 380px !important;';
+        toast.className = 'floating-control-ui active-show';
+        toast.style.cssText = 'position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 2147483647 !important; background-color: rgba(22, 22, 26, 0.95) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.2) !important; color: #fff !important; padding: 12px 16px !important; border-radius: 8px !important; font-size: 12px !important; box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important; transition: opacity 0.4s ease !important; opacity: 0; display: flex !important; flex-direction: column !important; gap: 10px !important; max-width: 380px !important;';
 
         let title = document.createElement('div');
         title.innerHTML = '📍 Lần trước bạn đã xem đến <b>' + savedEpName + '</b>.';
@@ -754,45 +775,29 @@ function rawJS(config) {
         toast.appendChild(btnGroup);
         document.body.appendChild(toast);
 
-        showUI();
+        requestAnimationFrame(function() { toast.classList.add('active-show'); });
+        resetAutoHideTimer();
     }
 
     // =========================================================
-    // 5. Quản lý ẨN / HIỆN UI trực tiếp bằng Style
+    // 5. HIỂN THỊ / ẨN THANH CÔNG CỤ TỰ ĐỘNG
     // =========================================================
-    function showUI() {
-        let elements = document.querySelectorAll('.floating-ui-item');
-        elements.forEach(function(el) { 
-            el.style.opacity = '1';
-            el.style.pointerEvents = 'auto';
-        });
+    function resetAutoHideTimer() {
+        let elements = document.querySelectorAll('.floating-control-ui');
+        elements.forEach(function(el) { el.classList.add('active-show'); });
 
         if (hideTimer) clearTimeout(hideTimer);
         hideTimer = setTimeout(function() {
-            hideUI();
+            elements.forEach(function(el) { el.classList.remove('active-show'); });
+            let popupGrid = document.getElementById("episode-grid-popup");
+            let scalePopupGrid = document.getElementById("scale-grid-popup");
+            if (popupGrid) popupGrid.style.display = "none";
+            if (scalePopupGrid) scalePopupGrid.style.display = "none";
+
+            // Khi UI tự ẩn, hiển thị lại lớp phủ để lần hover/click tiếp theo lại kích hoạt UI
+            let overlayEvt = document.getElementById('iframe-event-overlay');
+            if (overlayEvt) overlayEvt.style.display = 'block';
         }, AUTO_HIDE_TIME);
-    }
-
-    function hideUI() {
-        let elements = document.querySelectorAll('.floating-ui-item');
-        elements.forEach(function(el) { 
-            el.style.opacity = '0';
-            el.style.pointerEvents = 'none';
-        });
-
-        let popupGrid = document.getElementById("episode-grid-popup");
-        let scalePopupGrid = document.getElementById("scale-grid-popup");
-        if (popupGrid) popupGrid.style.display = "none";
-        if (scalePopupGrid) scalePopupGrid.style.display = "none";
-    }
-
-    function toggleUI() {
-        let container = document.getElementById("floating-select-box");
-        if (container && container.style.opacity === '1') {
-            hideUI();
-        } else {
-            showUI();
-        }
     }
 
     // =========================================================
@@ -924,7 +929,8 @@ function rawJS(config) {
                         
                         framePlay.onload = function() {
                             hideLoading();
-                            showCenterPlayNotice('▶ Đã chuyển ' + epName + '. Nhấn Play để xem!');
+                            // Hiển thị thông báo yêu cầu nhấn Play sau khi tải tập mới xong
+                            showCenterPlayNotice('▶ Đã chuyển ' + epName + '. Vui lòng nhấn Play để tiếp tục xem!');
                         };
                     }
                 } else {
@@ -938,18 +944,18 @@ function rawJS(config) {
             .finally(function() {
                 updateEpisodeGridState();
                 updateNavState();
-                showUI();
+                resetAutoHideTimer();
             });
     }
 
     // =========================================================
-    // 8. KHỞI TẠO NÚT BẤM VÀ GIAO DIỆN
+    // 8. LAYOUT BẢNG CÔNG CỤ VÀ LỚP PHỦ EVENTS
     // =========================================================
     function initBaseLayout() {
         matchCurrentEpisode();
         showLoading("Đang tải...");
 
-        // 1. IFRAME Video
+        // 1. Tạo IFRAME Video
         let framePlay = document.createElement("iframe");
         framePlay.id = "framePlay";
         framePlay.scrolling = "no";
@@ -964,40 +970,37 @@ function rawJS(config) {
         framePlay.onload = function() {
             hideLoading();
             applyIframeDimensions(getSavedWidth(), getSavedHeight(), getSavedScale());
+            // Lần tải đầu tiên -> Hiện thông báo yêu cầu nhấn Play ngay giữa màn hình
             showCenterPlayNotice('▶ Vui lòng nhấn Play để xem video!');
         };
         document.body.appendChild(framePlay);
 
-        // 2. NÚT TOGGLE CỐ ĐỊNH (LUÔN HIỆN Ở CÓC TRÊN BÊN TRÁI)
-        // Bấm vào nút này để Bật/Tắt Menu bất cứ lúc nào
-        let toggleBtn = document.createElement("div");
-        toggleBtn.id = "ui-toggle-btn";
-        toggleBtn.innerHTML = "⚙️";
-        Object.assign(toggleBtn.style, {
-            position: "fixed", top: "16px", left: "16px", zIndex: "2147483647",
-            width: "34px", height: "34px", borderRadius: "50%",
-            backgroundColor: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.2)",
-            color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: "16px", userSelect: "none"
-        });
-        toggleBtn.onclick = function(e) {
-            e.stopPropagation();
-            toggleUI();
-        };
-        document.body.appendChild(toggleBtn);
+        // 2. Tạo Lớp phủ bắt sự kiện Hover / Click đè lên iframe
+        let eventOverlay = document.createElement("div");
+        eventOverlay.id = "iframe-event-overlay";
+        
+        function handleOverlayTrigger() {
+            resetAutoHideTimer();
+            hideCenterPlayNotice(); // Nhấp/hover vào overlay sẽ ẩn ngay dòng thông báo để xem video
+        }
 
-        // 3. BẢNG CÔNG CỤ (MENU CHÍNH)
+        eventOverlay.addEventListener('mousemove', handleOverlayTrigger);
+        eventOverlay.addEventListener('click', handleOverlayTrigger);
+        eventOverlay.addEventListener('touchstart', handleOverlayTrigger, { passive: true });
+        document.body.appendChild(eventOverlay);
+
+        // 3. Thanh điều hướng công cụ (Top Right)
         let container = document.createElement("div");
         container.id = "floating-select-box";
-        container.className = "floating-ui-item";
+        container.className = "floating-control-ui active-show";
         
         Object.assign(container.style, {
-            position: "fixed", top: "16px", right: "20px", zIndex: "2147483645",
+            position: "fixed", top: "16px", right: "20px", zIndex: "999999",
             backgroundColor: "rgba(22, 22, 26, 0.92)", backdropFilter: "blur(16px)", webkitBackdropFilter: "blur(16px)",
             padding: "5px 8px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.15)",
             boxShadow: "0 6px 24px rgba(0,0,0,0.6)", color: "#fff",
             fontSize: "12px", display: "flex", flexDirection: "row", alignItems: "center",
-            gap: "6px", boxSizing: "border-box", flexWrap: "nowrap", opacity: "1"
+            gap: "6px", boxSizing: "border-box", flexWrap: "nowrap"
         });
 
         function createDimensionControl(type) {
@@ -1019,7 +1022,6 @@ function rawJS(config) {
                 e.stopPropagation();
                 let curW = getSavedWidth(), curH = getSavedHeight(), curS = getSavedScale();
                 applyIframeDimensions(isW ? curW - 20 : curW, isW ? curH : curH - 20, curS);
-                showUI();
             };
 
             let input = document.createElement("input");
@@ -1041,7 +1043,6 @@ function rawJS(config) {
                 e.stopPropagation();
                 let curW = getSavedWidth(), curH = getSavedHeight(), curS = getSavedScale();
                 applyIframeDimensions(isW ? curW + 20 : curW, isW ? curH : curH + 20, curS);
-                showUI();
             };
 
             group.appendChild(lbl); group.appendChild(btnMinus); group.appendChild(input); group.appendChild(btnPlus);
@@ -1094,24 +1095,31 @@ function rawJS(config) {
             e.stopPropagation();
             popupGrid.style.display = "none";
             scalePopupGrid.style.display = (scalePopupGrid.style.display === "grid") ? "none" : "grid";
-            showUI();
         };
 
         epTrigger.onclick = function(e) {
             e.stopPropagation();
             scalePopupGrid.style.display = "none";
             popupGrid.style.display = (popupGrid.style.display === "grid") ? "none" : "grid";
-            showUI();
         };
 
+        function handleOutsideClick(e) {
+            if (!container.contains(e.target) && !popupGrid.contains(e.target) && !scalePopupGrid.contains(e.target)) {
+                popupGrid.style.display = "none";
+                scalePopupGrid.style.display = "none";
+            }
+        }
+        document.addEventListener("click", handleOutsideClick);
+        document.addEventListener("touchstart", handleOutsideClick, { passive: true });
+
         // 4. Nút Prev / Next
-        let navPrev = createNavButton("nav-prev-item", "&#10094;", "left", "20px");
+        let navPrev = createNavButton("nav-prev-item", "&#10094;", "left", "30px");
         navPrev.onclick = function(e) {
             e.stopPropagation();
             if (currentEpisodeIndex > 0) fetchAndPlayEpisode(currentServerIndex, currentEpisodeIndex - 1);
         };
 
-        let navNext = createNavButton("nav-next-item", "&#10095;", "right", "20px");
+        let navNext = createNavButton("nav-next-item", "&#10095;", "right", "30px");
         navNext.onclick = function(e) {
             e.stopPropagation();
             let activeServer = SERVERS[currentServerIndex];
@@ -1126,18 +1134,18 @@ function rawJS(config) {
         document.body.appendChild(navPrev);
         document.body.appendChild(navNext);
 
+        resetAutoHideTimer();
         renderEpisodeGrid();
         renderScaleGrid();
         applyIframeDimensions(getSavedWidth(), getSavedHeight(), getSavedScale());
-        showUI();
     }
 
     function createPopup(id, width) {
         let el = document.createElement("div");
         el.id = id;
-        el.className = "floating-ui-item";
+        el.className = "floating-control-ui active-show";
         Object.assign(el.style, {
-            position: "fixed", top: "58px", right: "20px", zIndex: "2147483646",
+            position: "fixed", top: "58px", right: "20px", zIndex: "1000000",
             backgroundColor: "rgba(22, 22, 26, 0.95)", backdropFilter: "blur(12px)",
             border: "1px solid rgba(255, 255, 255, 0.15)", padding: "10px", borderRadius: "10px",
             boxShadow: "0 10px 30px rgba(0,0,0,0.8)", width: width, maxHeight: "250px",
@@ -1149,10 +1157,10 @@ function rawJS(config) {
     function createNavButton(id, arrow, side, offset) {
         let btn = document.createElement("span");
         btn.id = id;
-        btn.className = "floating-ui-item";
+        btn.className = "floating-control-ui active-show";
         btn.innerHTML = arrow;
         Object.assign(btn.style, {
-            position: "fixed", top: "50%", zIndex: "2147483645",
+            position: "fixed", top: "50%", zIndex: "999999",
             transform: "translateY(-50%)", width: "42px", height: "42px", borderRadius: "50%",
             backgroundColor: "rgba(20, 20, 20, 0.6)", backdropFilter: "blur(8px)",
             border: "1px solid rgba(255, 255, 255, 0.12)", color: "#fff",
@@ -1247,7 +1255,6 @@ function rawJS(config) {
 })();
     `;
 }
-
 /*
 
 BASEURL = "https://animehay09.site";
