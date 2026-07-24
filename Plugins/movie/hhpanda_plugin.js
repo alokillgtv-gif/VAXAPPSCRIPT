@@ -5,7 +5,7 @@ function getManifest() {
       "id": "hhpanda",
       "name": "Nguồn HHPanda",
       "description": "Anime siêu hay.",
-      "version": "1.0.7",
+      "version": "1.1.1",
       "info": "Nguồn phim anime chất lượng cao. Cập nhật khá nhanh.",
       "baseUrl": "https://hhpanda.st",
       "iconUrl": "https://hhpanda.st/wp-content/uploads/2024/10/logo.webp",
@@ -1011,7 +1011,7 @@ function customJS(config) {
         toast.id = 'resume-history-toast';
         Object.assign(toast.style, {
             position: 'fixed',
-            top: '65px', right: '20px',
+            top: '65px', left: '20px',
             zIndex: '2147483647',
             backgroundColor: 'rgba(20, 20, 20, 0.95)',
             backdropFilter: 'blur(10px)',
@@ -1088,7 +1088,7 @@ function customJS(config) {
         if (window.historyToastTimer) clearTimeout(window.historyToastTimer);
         window.historyToastTimer = setTimeout(() => {
             closeHistoryToast();
-        }, 15000);
+        }, 30000);
     }
 
     // --- 6. KIỂM TRA LỊCH SỬ VÀ CHẠY TRÌNH PHÁT ---
