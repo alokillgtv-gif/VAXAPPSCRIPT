@@ -584,9 +584,9 @@ function customJS(config) {
 @media (max-height: 400px) {
     #custom-main-player-iframe {
         /* Giảm bớt tỉ lệ scale xuống để không đè lên các nút điều khiển */
-        transform: translate(-50%, -50%) scale(1.25) !important;
-        height: calc(90dvh / 1.25) !important;
-        max-height: calc(90dvh / 1.25) !important;
+        transform: translate(-50%, -50%) scale(1) !important;
+        height: calc(90dvh / 1) !important;
+        max-height: calc(90dvh / 1) !important;
         width: 80% !important;
     }
 }
